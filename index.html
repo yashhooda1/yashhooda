@@ -241,8 +241,6 @@ form.goal.addEventListener('change', () => {
     }
 });
 
-// Example: Replace '/calculate' with your deployed backend's URL
-const backendUrl = "https://yashhooda1.github.io/yashhooda/#calculator";
 
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -250,7 +248,7 @@ form.addEventListener('submit', async (event) => {
     const formData = new FormData(form);
 
     try {
-        const response = await fetch(backendUrl, {
+        const response = await fetch(/calculator, {
             method: 'POST',
             body: formData,
         });

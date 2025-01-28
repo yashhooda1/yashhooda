@@ -1,22 +1,24 @@
-# app.py
-
 from flask import Flask, render_template, request, jsonify
-from calculator import calculate_pace, calculate_distance, calculate_time, predict_race_time
+from calculator import (
+    calculate_pace,
+    calculate_distance,
+    calculate_time,
+    predict_race_time,
+    calculate_training_paces,
+    calculate_vo2max,
+)
 
 app = Flask(__name__)
 
-# Serve the main HTML file
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Endpoint for the Running Conversion Calculator
 @app.route('/calculate', methods=['POST'])
 def calculate():
     try:
         goal = request.form['goal']
 
-        # Perform calculations based on the selected goal
         if goal == 'pace':
             time = float(request.form['time'])
             distance = float(request.form['distance'])
@@ -37,6 +39,17 @@ def calculate():
             running_distance = float(request.form['running_distance'])
             predicted_distance = float(request.form['predicted_distance'])
             result = predict_race_time(running_time, running_distance, predicted_distance)
+
+        elif goal == 'training_paces':
+            predicted_race_time = float(request.form['predicted_race_time'])
+            result = calculate_training_paces(predicted_race_time)
+
+        elif goal == 'vo2max':
+            running_time = float(request.form['running_time'])
+            running_distance = float(request.form['running_distance'])
+            gender = request.form['gender']
+            body_weight = float(request.form['body_weight'])
+            result = calculate_vo2max(running_time, running_distance, gender, body_weight)
 
         else:
             return jsonify({"error": "Invalid calculation type selected."}), 400

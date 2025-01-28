@@ -153,12 +153,93 @@
                 <li>GitHub: <a href="https://github.com/yashhooda1">View my Repositories</a></li>
             </ul>
         </section>
+        
+         <!-- Calculator Section -->
+        <section id="calculator">
+            <h2>Running Conversion Calculator</h2>
+            <form id="calculator-form">
+                <label for="goal">What do you want to calculate?</label>
+                <select id="goal" name="goal">
+                    <option value="pace">Pace</option>
+                    <option value="distance">Distance</option>
+                    <option value="time">Time</option>
+                    <option value="predict_race_time">Predict Race Time</option>
+                </select>
+
+                <div id="calculator-inputs"></div>
+
+                <button type="submit">Calculate</button>
+            </form>
+
+            <div id="calculator-result"></div>
+        </section>
     </div>
 
     <footer>
         <p>&copy; 2025 Yash Hooda. All rights reserved.</p>
     </footer>
 
+    <script>
+        const form = document.getElementById('calculator-form');
+        const inputsDiv = document.getElementById('calculator-inputs');
+        const resultDiv = document.getElementById('calculator-result');
+
+        // Update inputs based on selected goal
+        form.goal.addEventListener('change', () => {
+            const goal = form.goal.value;
+            inputsDiv.innerHTML = ''; // Clear inputs
+
+            if (goal === 'pace') {
+                inputsDiv.innerHTML = `
+                    <label for="time">Total Time (minutes):</label>
+                    <input type="number" name="time" step="0.01" required>
+                    <label for="distance">Distance (miles):</label>
+                    <input type="number" name="distance" step="0.01" required>
+                `;
+            } else if (goal === 'distance') {
+                inputsDiv.innerHTML = `
+                    <label for="pace">Pace (minutes per mile):</label>
+                    <input type="number" name="pace" step="0.01" required>
+                    <label for="time">Total Time (minutes):</label>
+                    <input type="number" name="time" step="0.01" required>
+                `;
+            } else if (goal === 'time') {
+                inputsDiv.innerHTML = `
+                    <label for="pace">Pace (minutes per mile):</label>
+                    <input type="number" name="pace" step="0.01" required>
+                    <label for="distance">Distance (miles):</label>
+                    <input type="number" name="distance" step="0.01" required>
+                `;
+            } else if (goal === 'predict_race_time') {
+                inputsDiv.innerHTML = `
+                    <label for="running_time">Current Running Time (minutes):</label>
+                    <input type="number" name="running_time" step="0.01" required>
+                    <label for="running_distance">Current Running Distance (miles):</label>
+                    <input type="number" name="running_distance" step="0.01" required>
+                    <label for="predicted_distance">Goal Race Distance (miles):</label>
+                    <input type="number" name="predicted_distance" step="0.01" required>
+                `;
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch('/calculate', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.result) {
+                resultDiv.textContent = data.result;
+            } else {
+                resultDiv.textContent = data.error || 'Error calculating.';
+            }
+        });
+    </script>
     <!-- JavaScript to Fetch Latest Runs -->
     <script>
         async function fetchLatestRuns() {

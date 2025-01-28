@@ -185,7 +185,7 @@ const form = document.getElementById('calculator-form');
 const inputsDiv = document.getElementById('calculator-inputs');
 const resultDiv = document.getElementById('calculator-result');
 
-// Update inputs based on the selected goal
+// Dynamically update input fields based on selected goal
 form.goal.addEventListener('change', () => {
     const goal = form.goal.value;
     inputsDiv.innerHTML = ''; // Clear existing inputs
@@ -223,7 +223,7 @@ form.goal.addEventListener('change', () => {
     }
 });
 
-// Handle form submission and display results
+// Handle form submission
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -236,15 +236,13 @@ form.addEventListener('submit', async (event) => {
         });
 
         const data = await response.json();
-
-        if (response.ok && data.result) {
+        if (data.result) {
             resultDiv.textContent = data.result;
         } else {
-            console.error('Error response:', data);
             resultDiv.textContent = data.error || 'An error occurred. Please try again.';
         }
     } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('Error:', error);
         resultDiv.textContent = 'Unable to calculate. Please check your input or try again later.';
     }
 });

@@ -241,14 +241,16 @@ form.goal.addEventListener('change', () => {
     }
 });
 
-// Handle form submission
+// Example: Replace '/calculate' with your deployed backend's URL
+const backendUrl = "https://yashhooda1.github.io/yashhooda/#calculator";
+
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const formData = new FormData(form);
 
     try {
-        const response = await fetch('/calculate', {
+        const response = await fetch(backendUrl, {
             method: 'POST',
             body: formData,
         });
@@ -260,7 +262,7 @@ form.addEventListener('submit', async (event) => {
             resultDiv.textContent = data.error || 'An error occurred. Please try again.';
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Fetch error:', error);
         resultDiv.textContent = 'Unable to calculate. Please check your input or try again later.';
     }
 });

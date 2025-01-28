@@ -181,16 +181,15 @@
     </footer>
 
     <script>
-    const form = document.getElementById('calculator-form');
-    const inputsDiv = document.getElementById('calculator-inputs');
-    const resultDiv = document.getElementById('calculator-result');
+const form = document.getElementById('calculator-form');
+const inputsDiv = document.getElementById('calculator-inputs');
+const resultDiv = document.getElementById('calculator-result');
 
 // Update inputs based on the selected goal
 form.goal.addEventListener('change', () => {
     const goal = form.goal.value;
     inputsDiv.innerHTML = ''; // Clear existing inputs
 
-    // Dynamically update input fields based on the selected goal
     if (goal === 'pace') {
         inputsDiv.innerHTML = `
             <label for="time">Total Time (minutes):</label>
@@ -229,6 +228,7 @@ form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const formData = new FormData(form);
+
     try {
         const response = await fetch('/calculate', {
             method: 'POST',
@@ -236,13 +236,15 @@ form.addEventListener('submit', async (event) => {
         });
 
         const data = await response.json();
-        if (data.result) {
+
+        if (response.ok && data.result) {
             resultDiv.textContent = data.result;
         } else {
+            console.error('Error response:', data);
             resultDiv.textContent = data.error || 'An error occurred. Please try again.';
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Fetch error:', error);
         resultDiv.textContent = 'Unable to calculate. Please check your input or try again later.';
     }
 });

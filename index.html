@@ -185,10 +185,10 @@ const form = document.getElementById('calculator-form');
 const inputsDiv = document.getElementById('calculator-inputs');
 const resultDiv = document.getElementById('calculator-result');
 
-// Dynamically update input fields based on selected goal
+// Handle form changes
 form.goal.addEventListener('change', () => {
     const goal = form.goal.value;
-    inputsDiv.innerHTML = ''; // Clear existing inputs
+    inputsDiv.innerHTML = '';
 
     if (goal === 'pace') {
         inputsDiv.innerHTML = `
@@ -219,6 +219,22 @@ form.goal.addEventListener('change', () => {
             <input type="number" name="running_distance" step="0.01" required>
             <label for="predicted_distance">Goal Race Distance (miles):</label>
             <input type="number" name="predicted_distance" step="0.01" required>
+        `;
+    } else if (goal === 'training_paces') {
+        inputsDiv.innerHTML = `
+            <label for="predicted_race_time">1-Mile Race Time (minutes):</label>
+            <input type="number" name="predicted_race_time" step="0.01" required>
+        `;
+    } else if (goal === 'vo2max') {
+        inputsDiv.innerHTML = `
+            <label for="running_time">Running Time (minutes):</label>
+            <input type="number" name="running_time" step="0.01" required>
+            <label for="running_distance">Running Distance (miles):</label>
+            <input type="number" name="running_distance" step="0.01" required>
+            <label for="gender">Gender (M/F):</label>
+            <input type="text" name="gender" maxlength="1" required>
+            <label for="body_weight">Body Weight (lbs):</label>
+            <input type="number" name="body_weight" step="0.01" required>
         `;
     }
 });

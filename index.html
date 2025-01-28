@@ -71,6 +71,22 @@
         a:hover {
             color: #4caf50;
         }
+        .latest-runs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        .run-card {
+            background-color: #2d3748;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            color: #E0E0E0;
+        }
+        .run-card h3 {
+            margin: 0 0 0.5rem;
+            color: #4caf50;
+        }
     </style>
 </head>
 <body>
@@ -83,10 +99,12 @@
         <a href="#about">About Me</a>
         <a href="#projects">Projects</a>
         <a href="#running">Running Journey</a>
+        <a href="#latest-runs">Latest Runs</a>
         <a href="#contact">Contact Info</a>
     </nav>
 
     <div class="container">
+        <!-- About Me Section -->
         <section id="about">
             <h2>About Me</h2>
             <p>I'm a 23-year-old Aspiring AI Engineer with a passion for developing intelligent systems that solve real-world problems. I graduated with a BS in Computer Science from UT Dallas and have earned certifications in IBM AI Engineering and Data Science.</p>
@@ -94,6 +112,7 @@
             <p>When I'm not coding or training AI models, I enjoy running, exploring new places, watching Netflix/TV, and reading about advancements in tech and AI.</p>
         </section>
 
+        <!-- Projects Section -->
         <section id="projects">
             <h2>Projects</h2>
             <p>Here are some of my notable projects:</p>
@@ -104,6 +123,7 @@
             </ul>
         </section>
 
+        <!-- Running Journey Section -->
         <section id="running">
             <h2>Running Journey</h2>
             <p>Running has been my passion and a source of discipline and motivation. I've competed in various distances and continue to push my limits. Notable achievements include:</p>
@@ -115,6 +135,15 @@
             <p>Follow my training journey on my public Strava account: <a href="https://www.strava.com/athletes/89409717">here</a>.</p>
         </section>
 
+        <!-- Latest Runs Section -->
+        <section id="latest-runs">
+            <h2>Latest Runs</h2>
+            <div class="latest-runs" id="run-container">
+                <p>Loading your latest runs...</p>
+            </div>
+        </section>
+
+        <!-- Contact Info Section -->
         <section id="contact">
             <h2>Contact Info</h2>
             <p>I'd love to connect! Feel free to reach out to me:</p>
@@ -129,5 +158,33 @@
     <footer>
         <p>&copy; 2024 Yash Hooda. All rights reserved.</p>
     </footer>
+
+    <!-- JavaScript to Fetch Latest Runs -->
+    <script>
+        async function fetchLatestRuns() {
+            try {
+                const response = await fetch("/api/latest-runs"); // Update with your backend URL
+                const runs = await response.json();
+                const container = document.getElementById("run-container");
+                container.innerHTML = ""; // Clear loading text
+                runs.forEach(run => {
+                    const card = document.createElement("div");
+                    card.className = "run-card";
+                    card.innerHTML = `
+                        <h3>${run.title}</h3>
+                        <p><strong>Distance:</strong> ${run.distance} km</p>
+                        <p><strong>Pace:</strong> ${run.pace} min/km</p>
+                        <p><strong>Date:</strong> ${run.time}</p>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Error fetching runs:", error);
+                document.getElementById("run-container").innerHTML = "<p>Unable to load runs.</p>";
+            }
+        }
+
+        fetchLatestRuns();
+    </script>
 </body>
 </html>

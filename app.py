@@ -14,7 +14,7 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-@app.route('/calculate', methods=['POST'])
+@app.route('https://yashhooda1.github.io/yashhooda/#calculator', methods=['POST'])
 def calculate():
     try:
         goal = request.form['goal']

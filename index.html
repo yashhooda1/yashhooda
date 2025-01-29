@@ -99,9 +99,7 @@
         <a href="#about">About Me</a>
         <a href="#projects">Projects</a>
         <a href="#running">Running Journey</a>
-        <a href="#latest-runs">Latest Runs</a>
         <a href="#contact">Contact Info</a>
-        <a href="#calculator">Running Conversion Calculator</a>
     </nav>
 
     <div class="container">
@@ -144,13 +142,6 @@
             <p>Follow my training journey on my public Strava account: <a href="https://www.strava.com/athletes/89409717">here</a>.</p>
         </section>
 
-        <!-- Latest Runs Section -->
-        <section id="latest-runs">
-            <h2>Latest Runs</h2>
-            <div class="latest-runs" id="run-container">
-                <p>Loading your latest runs...</p>
-            </div>
-        </section>
 
         <!-- Contact Info Section -->
         <section id="contact">
@@ -163,158 +154,9 @@
             </ul>
         </section>
         
-         <!-- Calculator Section -->
-        <section id="calculator">
-            <h2>Running Conversion Calculator</h2>
-            <form id="calculator-form">
-                <label for="goal">What do you want to calculate?</label>
-                <select id="goal" name="goal">
-                    <option value="pace">Pace</option>
-                    <option value="distance">Distance</option>
-                    <option value="time">Time</option>
-                    <option value="predict_race_time">Predict Race Time</option>
-                    <option value="training_paces">Training Paces</option>
-                    <option value="vo2max">V02 Max</option>
-                </select>
-
-                <div id="calculator-inputs"></div>
-
-                <button type="submit">calculate</button>
-            </form>
-
-            <div id="calculator-result"></div>
-        </section>
-    </div>
-
     <footer>
         <p>&copy; 2025 Yash Hooda. All rights reserved.</p>
     </footer>
 
-    <script>
-const form = document.getElementById('calculator-form');
-const inputsDiv = document.getElementById('calculator-inputs');
-const resultDiv = document.getElementById('calculator-result');
-
-// Handle form changes
-form.goal.addEventListener('change', () => {
-    const goal = form.goal.value;
-    inputsDiv.innerHTML = '';
-
-    if (goal === 'pace') {
-        inputsDiv.innerHTML = `
-            <label for="time">Total Time (minutes):</label>
-            <input type="number" name="time" step="0.01" required>
-            <label for="distance">Distance (miles):</label>
-            <input type="number" name="distance" step="0.01" required>
-        `;
-    } else if (goal === 'distance') {
-        inputsDiv.innerHTML = `
-            <label for="pace">Pace (minutes per mile):</label>
-            <input type="number" name="pace" step="0.01" required>
-            <label for="time">Total Time (minutes):</label>
-            <input type="number" name="time" step="0.01" required>
-        `;
-    } else if (goal === 'time') {
-        inputsDiv.innerHTML = `
-            <label for="pace">Pace (minutes per mile):</label>
-            <input type="number" name="pace" step="0.01" required>
-            <label for="distance">Distance (miles):</label>
-            <input type="number" name="distance" step="0.01" required>
-        `;
-    } else if (goal === 'predict_race_time') {
-        inputsDiv.innerHTML = `
-            <label for="running_time">Current Running Time (minutes):</label>
-            <input type="number" name="running_time" step="0.01" required>
-            <label for="running_distance">Current Running Distance (miles):</label>
-            <input type="number" name="running_distance" step="0.01" required>
-            <label for="predicted_distance">Goal Race Distance (miles):</label>
-            <input type="number" name="predicted_distance" step="0.01" required>
-        `;
-    } else if (goal === 'training_paces') {
-        inputsDiv.innerHTML = `
-            <label for="predicted_race_time">1-Mile Race Time (minutes):</label>
-            <input type="number" name="predicted_race_time" step="0.01" required>
-        `;
-    } else if (goal === 'vo2max') {
-        inputsDiv.innerHTML = `
-            <label for="running_time">Running Time (minutes):</label>
-            <input type="number" name="running_time" step="0.01" required>
-            <label for="running_distance">Running Distance (miles):</label>
-            <input type="number" name="running_distance" step="0.01" required>
-            <label for="gender">Gender (M/F):</label>
-            <input type="text" name="gender" maxlength="1" required>
-            <label for="body_weight">Body Weight (lbs):</label>
-            <input type="number" name="body_weight" step="0.01" required>
-        `;
-    }
-});
-
-
-form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    // Collect form data
-    const formData = new FormData(form);
-    const goal = formData.get("goal");
-    let payload = { goal };
-
-    // Extract inputs dynamically
-    formData.forEach((value, key) => {
-        if (key !== "goal") {
-            payload[key] = value;
-        }
-    });
-
-    // Send as JSON
-    try {
-        const response = await fetch('/calculator', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-        if (data.result) {
-            resultDiv.innerHTML = `<p>${data.result}</p>`;
-        } else {
-            resultDiv.innerHTML = `<p>${data.error || 'An error occurred. Please try again.'}</p>`;
-        }
-    } catch (error) {
-        console.error('Fetch error:', error);
-        resultDiv.innerHTML = '<p>Unable to calculate. Please check your input or try again later.</p>';
-    }
-});
-
-
-    </script>
-    <!-- JavaScript to Fetch Latest Runs -->
-    <script>
-        async function fetchLatestRuns() {
-            try {
-                const response = await fetch("/api/latest-runs"); // Update with your backend URL
-                const runs = await response.json();
-                const container = document.getElementById("run-container");
-                container.innerHTML = ""; // Clear loading text
-                runs.forEach(run => {
-                    const card = document.createElement("div");
-                    card.className = "run-card";
-                    card.innerHTML = `
-                        <h3>${run.title}</h3>
-                        <p><strong>Distance:</strong> ${run.distance} km</p>
-                        <p><strong>Pace:</strong> ${run.pace} min/km</p>
-                        <p><strong>Date:</strong> ${run.time}</p>
-                    `;
-                    container.appendChild(card);
-                });
-            } catch (error) {
-                console.error("Error fetching runs:", error);
-                document.getElementById("run-container").innerHTML = "<p>Unable to load runs.</p>";
-            }
-        }
-
-        fetchLatestRuns();
-    </script>
 </body>
 </html>

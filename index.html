@@ -245,25 +245,40 @@ form.goal.addEventListener('change', () => {
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
+    // Collect form data
     const formData = new FormData(form);
+    const goal = formData.get("goal");
+    let payload = { goal };
 
+    // Extract inputs dynamically
+    formData.forEach((value, key) => {
+        if (key !== "goal") {
+            payload[key] = value;
+        }
+    });
+
+    // Send as JSON
     try {
-        const response = await fetch('/calculator', { // Replace with your backend URL
+        const response = await fetch('/calculator', {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
         if (data.result) {
-            resultDiv.textContent = data.result;
+            resultDiv.innerHTML = `<p>${data.result}</p>`;
         } else {
-            resultDiv.textContent = data.error || 'An error occurred. Please try again.';
+            resultDiv.innerHTML = `<p>${data.error || 'An error occurred. Please try again.'}</p>`;
         }
     } catch (error) {
         console.error('Fetch error:', error);
-        resultDiv.textContent = 'Unable to calculate. Please check your input or try again later.';
+        resultDiv.innerHTML = '<p>Unable to calculate. Please check your input or try again later.</p>';
     }
 });
+
 
     </script>
     <!-- JavaScript to Fetch Latest Runs -->

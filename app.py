@@ -15,6 +15,10 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
+# Required for Vercel
+def handler(event, context):
+    return app(event, context)
+
 @app.route('/calculator', methods=['POST'])
 def calculate():
     try:

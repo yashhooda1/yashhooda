@@ -15,15 +15,6 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-# Required for Vercel
-def handler(event, context):
-    return app(event, context)
-
-# Required for Vercel (Fixing Serverless Function Issue)
-from flask_lambda import FlaskLambda
-
-app = FlaskLambda(app)  # Convert Flask app to work with serverless functions
-
 @app.route('/calculator', methods=['POST'])
 def calculate():
     try:
@@ -73,4 +64,6 @@ def calculate():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
+

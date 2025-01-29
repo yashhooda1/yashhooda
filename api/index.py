@@ -19,6 +19,11 @@ def home():
 def handler(event, context):
     return app(event, context)
 
+# Required for Vercel (Fixing Serverless Function Issue)
+from flask_lambda import FlaskLambda
+
+app = FlaskLambda(app)  # Convert Flask app to work with serverless functions
+
 @app.route('/calculator', methods=['POST'])
 def calculate():
     try:

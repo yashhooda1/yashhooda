@@ -4,410 +4,1621 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yash Hooda - Data Engineer and AI Enthusiast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --green: #4caf50;
+            --green-light: #81c784;
+            --green-dark: #2e7d32;
+            --green-glow: rgba(76,175,80,0.15);
+            --bg: #0d1117;
+            --bg-card: #1e293b;
+            --bg-nav: #161b22;
+            --bg-elevated: #2d3748;
+            --text: #E0E0E0;
+            --text-muted: #9ca3af;
+            --border: rgba(76,175,80,0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: 'Roboto', sans-serif;
-            line-height: 1.6;
-            color: #E0E0E0;
-            background-color: #0d1117;
-            margin: 0;
+            font-family: 'DM Sans', sans-serif;
+            line-height: 1.7;
+            color: var(--text);
+            background-color: var(--bg);
+            overflow-x: hidden;
+        }
+
+        /* ── PARTICLE CANVAS ── */
+        #particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* ── CUSTOM CURSOR ── */
+        .cursor {
+            width: 10px; height: 10px;
+            background: var(--green);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+            mix-blend-mode: screen;
+        }
+        .cursor-ring {
+            width: 32px; height: 32px;
+            border: 1.5px solid var(--green);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: all 0.15s ease;
+            opacity: 0.6;
+        }
+
+        /* ── HEADER ── */
+        header {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0b3d91 0%, #0d1117 40%, #1a4a1d 100%);
+            color: #fff;
+            padding: 5rem 0 3rem;
+            text-align: center;
+            z-index: 1;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(ellipse at 60% 40%, rgba(76,175,80,0.12) 0%, transparent 60%),
+                        radial-gradient(ellipse at 30% 70%, rgba(11,61,145,0.2) 0%, transparent 50%);
+            animation: headerPulse 8s ease-in-out infinite alternate;
+        }
+        @keyframes headerPulse {
+            from { transform: scale(1) rotate(0deg); }
+            to   { transform: scale(1.05) rotate(2deg); }
+        }
+        header h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            letter-spacing: -0.02em;
+            position: relative;
+            background: linear-gradient(135deg, #fff 30%, #81c784 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeSlideDown 0.8s ease both;
+        }
+        header p {
+            position: relative;
+            color: rgba(255,255,255,0.75);
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            margin-top: 0.5rem;
+            animation: fadeSlideDown 0.8s 0.15s ease both;
+        }
+        .header-badges {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            position: relative;
+            animation: fadeSlideDown 0.8s 0.3s ease both;
+        }
+        .badge {
+            background: rgba(76,175,80,0.15);
+            border: 1px solid rgba(76,175,80,0.35);
+            color: #81c784;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.04em;
+            cursor: default;
+            transition: all 0.25s;
+        }
+        .badge:hover {
+            background: rgba(76,175,80,0.25);
+            border-color: #4caf50;
+            transform: translateY(-2px);
+        }
+        .header-cta {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            animation: fadeSlideDown 0.8s 0.45s ease both;
+        }
+        .btn-primary {
+            background: var(--green);
+            color: #000;
+            font-weight: 600;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.82rem;
+            padding: 0.65rem 1.4rem;
+            border-radius: 6px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.03em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover {
+            background: #81c784;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76,175,80,0.35);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #fff;
+            font-weight: 500;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.82rem;
+            padding: 0.65rem 1.4rem;
+            border-radius: 6px;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.03em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-secondary:hover {
+            border-color: var(--green);
+            color: var(--green);
+            transform: translateY(-2px);
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(22,27,34,0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
             padding: 0;
         }
-        header {
-            background: linear-gradient(45deg, #4caf50, #0b3d91);
-            color: #fff;
-            padding: 1.5rem 0;
-            text-align: center;
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
         }
-        nav {
-            text-align: center;
-            background-color: #161b22;
-            padding: 1rem;
+        .nav-logo {
+            font-family: 'Space Mono', monospace;
+            color: var(--green);
+            font-size: 0.95rem;
+            padding: 1rem 0;
+            letter-spacing: 0.05em;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0;
         }
         nav a {
-            color: #4caf50;
-            margin: 0 1rem;
+            color: var(--text-muted);
+            padding: 1.1rem 0.9rem;
             text-decoration: none;
-            font-weight: bold;
+            font-size: 0.83rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            transition: color 0.2s;
+            position: relative;
         }
-        nav a:hover {
-            color: #81c784;
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%; right: 50%;
+            height: 2px;
+            background: var(--green);
+            transition: all 0.25s;
         }
+        nav a:hover { color: var(--green); }
+        nav a:hover::after { left: 0.9rem; right: 0.9rem; }
+        .nav-chat-btn {
+            background: var(--green);
+            color: #000 !important;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.45rem 1rem;
+            border-radius: 5px;
+            margin-left: 0.5rem;
+            letter-spacing: 0.04em;
+            transition: all 0.2s;
+        }
+        .nav-chat-btn:hover {
+            background: #81c784 !important;
+            transform: scale(1.04);
+        }
+        .nav-chat-btn::after { display: none !important; }
+
+        /* ── CONTAINER ── */
         .container {
-            width: 80%;
+            max-width: 1100px;
             margin: 0 auto;
-            overflow: hidden;
-            padding: 1rem 0;
+            padding: 1.5rem 2rem;
+            position: relative;
+            z-index: 1;
         }
+
+        /* ── SECTIONS ── */
         section {
-            margin: 2rem 0;
-            padding: 1rem;
-            background-color: #1e293b;
-            border-radius: 10px;
+            margin: 2.5rem 0;
+            padding: 2rem 2rem;
+            background: var(--bg-card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            opacity: 0;
+            transform: translateY(24px);
         }
-        footer {
-            background-color: #161b22;
-            color: #bdbdbd;
-            text-align: center;
-            padding: 1rem 0;
-            margin-top: 2rem;
+        section.visible {
+            animation: sectionReveal 0.6s ease forwards;
         }
+        @keyframes sectionReveal {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: linear-gradient(180deg, var(--green) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        section:hover {
+            border-color: rgba(76,175,80,0.4);
+            box-shadow: 0 0 40px rgba(76,175,80,0.07);
+        }
+        section:hover::before { opacity: 1; }
+
         h2 {
-            color: #4caf50;
-            margin-bottom: 0.5rem;
+            font-family: 'Space Mono', monospace;
+            color: var(--green);
+            font-size: 1.15rem;
+            letter-spacing: 0.04em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
         }
-        ul {
-            list-style: none;
-            padding: 0;
+        h2::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
         }
+
+        p { margin-bottom: 0.75rem; color: var(--text); }
+        a { color: var(--green-light); transition: color 0.2s; }
+        a:hover { color: var(--green); }
+
+        ul { list-style: none; padding: 0; }
         ul li {
-            background: url('https://img.icons8.com/fluency/48/000000/chevron-right.png') no-repeat left center;
-            padding-left: 50px;
-            margin: 10px 0;
+            padding: 0.65rem 0 0.65rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            position: relative;
         }
-        a {
-            color: #81c784;
+        ul li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-size: 0.8rem;
+            top: 0.75rem;
         }
-        a:hover {
-            color: #4caf50;
-        }
-        .latest-runs {
+        ul li:last-child { border-bottom: none; }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1px;
+            background: var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
         }
+        .stat-item {
+            background: var(--bg-card);
+            padding: 1.25rem 1rem;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        .stat-item:hover { background: var(--bg-elevated); }
+        .stat-num {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.6rem;
+            color: var(--green);
+            display: block;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 0.2rem;
+        }
+
+        /* ── SKILL TAGS ── */
+        .skill-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .skill-tag {
+            background: rgba(76,175,80,0.08);
+            border: 1px solid rgba(76,175,80,0.25);
+            color: var(--green-light);
+            padding: 0.3rem 0.75rem;
+            border-radius: 5px;
+            font-size: 0.78rem;
+            font-family: 'Space Mono', monospace;
+            cursor: default;
+            transition: all 0.2s;
+            letter-spacing: 0.03em;
+        }
+        .skill-tag:hover {
+            background: rgba(76,175,80,0.18);
+            border-color: var(--green);
+            transform: translateY(-1px);
+        }
+
+        /* ── PROJECTS ── */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+        }
+        .project-card {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 1.25rem;
+            transition: all 0.25s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .project-card:hover {
+            border-color: rgba(76,175,80,0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.25), 0 0 0 1px rgba(76,175,80,0.1);
+        }
+        .project-title {
+            font-family: 'Space Mono', monospace;
+            color: var(--green);
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+        .project-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            flex: 1;
+        }
+        .project-links {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        .project-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 5px;
+            text-decoration: none;
+            border: 1px solid rgba(76,175,80,0.35);
+            color: var(--green-light);
+            background: rgba(76,175,80,0.07);
+            transition: all 0.2s;
+            letter-spacing: 0.04em;
+        }
+        .project-btn:hover {
+            background: rgba(76,175,80,0.2);
+            border-color: var(--green);
+            transform: translateY(-1px);
+        }
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .tech-pill {
+            background: rgba(11,61,145,0.2);
+            border: 1px solid rgba(59,130,246,0.2);
+            color: #93c5fd;
+            padding: 0.15rem 0.55rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── CERTIFICATIONS ── */
+        .cert-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .cert-card {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 1.25rem;
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+        .cert-card::after {
+            content: '✓';
+            position: absolute;
+            top: 1rem; right: 1rem;
+            width: 24px; height: 24px;
+            background: rgba(76,175,80,0.15);
+            border: 1px solid rgba(76,175,80,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--green);
+        }
+        .cert-card:hover {
+            border-color: rgba(76,175,80,0.4);
+            transform: translateY(-2px);
+        }
+        .cert-card h3 {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text);
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+            padding-right: 2rem;
+        }
+        .cert-card p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+        .cert-card a {
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            padding: 0.3rem 0.75rem;
+            background: rgba(76,175,80,0.1);
+            border: 1px solid rgba(76,175,80,0.3);
+            border-radius: 5px;
+            color: var(--green-light);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .cert-card a:hover {
+            background: rgba(76,175,80,0.2);
+            border-color: var(--green);
+        }
+
+        /* ── RUNNING ── */
+        .pr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .pr-card {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+        .pr-card:hover {
+            border-color: rgba(76,175,80,0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(76,175,80,0.08);
+        }
+        .pr-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 3px;
+            background: linear-gradient(90deg, var(--green-dark), var(--green));
+        }
+        .pr-distance {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.4rem;
+        }
+        .pr-time {
+            font-family: 'Space Mono', monospace;
+            color: var(--green);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .pr-event {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+        }
+        .training-status {
+            background: rgba(76,175,80,0.08);
+            border: 1px solid rgba(76,175,80,0.2);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .training-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s infinite;
+            flex-shrink: 0;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(76,175,80,0.6); }
+            50% { box-shadow: 0 0 0 8px rgba(76,175,80,0); }
+        }
+        .training-text { font-size: 0.85rem; }
+        .training-text strong { color: var(--green); }
+
+        /* ── TARS SECTION ── */
+        .tars-cta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .tars-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--green);
+            color: #000;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            border-radius: 7px;
+            text-decoration: none;
+            letter-spacing: 0.03em;
+            transition: all 0.25s;
+            box-shadow: 0 0 20px rgba(76,175,80,0.2);
+        }
+        .tars-btn:hover {
+            background: #81c784;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(76,175,80,0.4);
+            color: #000;
+        }
+        .tars-pulse {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+        .tars-pulse::before {
+            content: '';
+            display: inline-block;
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        /* ── AI CHATBOT WIDGET ── */
+        #chat-fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: var(--green);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(76,175,80,0.4);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            transition: all 0.25s;
+            color: #000;
+        }
+        #chat-fab:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 30px rgba(76,175,80,0.5);
+        }
+        #chat-fab .fab-pulse {
+            position: absolute;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: rgba(76,175,80,0.3);
+            animation: fabPulse 2.5s ease-out infinite;
+        }
+        @keyframes fabPulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.7); opacity: 0; }
+        }
+        #chat-window {
+            position: fixed;
+            bottom: 6rem;
+            right: 2rem;
+            width: 360px;
+            max-height: 520px;
+            background: #12181f;
+            border: 1px solid rgba(76,175,80,0.3);
+            border-radius: 14px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            transform: translateY(20px) scale(0.95);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #chat-window.open {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #0b3d91, #1a4a1d);
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .chat-avatar {
+            width: 36px; height: 36px;
+            background: var(--green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #000;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            flex-shrink: 0;
+        }
+        .chat-header-info h4 {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: #fff;
+            font-weight: 700;
+        }
+        .chat-header-info span {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.5);
+        }
+        .chat-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.2rem;
+            transition: color 0.2s;
+        }
+        .chat-close:hover { color: #fff; }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.3); border-radius: 2px; }
+        .msg {
+            max-width: 88%;
+            padding: 0.6rem 0.9rem;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            line-height: 1.55;
+            animation: msgPop 0.2s ease;
+        }
+        @keyframes msgPop {
+            from { opacity: 0; transform: scale(0.95) translateY(5px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .msg.bot {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.07);
+            color: var(--text);
+            align-self: flex-start;
+            border-bottom-left-radius: 3px;
+        }
+        .msg.user {
+            background: rgba(76,175,80,0.2);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: var(--text);
+            align-self: flex-end;
+            border-bottom-right-radius: 3px;
+        }
+        .msg-typing {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            padding: 0.6rem 0.9rem;
+        }
+        .msg-typing span {
+            width: 6px; height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typingDot 1.2s ease-in-out infinite;
+        }
+        .msg-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .msg-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-5px); opacity: 1; }
+        }
+        .chat-quick-btns {
+            padding: 0 1rem 0.75rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .quick-btn {
+            background: rgba(76,175,80,0.07);
+            border: 1px solid rgba(76,175,80,0.2);
+            color: var(--green-light);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Space Mono', monospace;
+        }
+        .quick-btn:hover {
+            background: rgba(76,175,80,0.18);
+            border-color: var(--green);
+        }
+        .chat-input-row {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border);
+        }
+        .chat-input {
+            flex: 1;
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 7px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            padding: 0.55rem 0.8rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .chat-input:focus { border-color: rgba(76,175,80,0.5); }
+        .chat-send {
+            background: var(--green);
+            border: none;
+            color: #000;
+            border-radius: 7px;
+            width: 36px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-send:hover { background: #81c784; }
+
+        /* ── HIKES ── */
         .run-card {
-            background-color: #2d3748;
+            background: var(--bg-elevated);
             padding: 1rem;
             border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            color: #E0E0E0;
+            border: 1px solid rgba(255,255,255,0.06);
+            color: var(--text);
+            transition: all 0.25s;
+        }
+        .run-card:hover {
+            border-color: rgba(76,175,80,0.3);
+            transform: translateY(-2px);
         }
         .run-card h3 {
             margin: 0 0 0.5rem;
-            color: #4caf50;
+            color: var(--green);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .run-card img { border-radius: 6px; width: 100%; }
+        .latest-runs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .hike-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        .hike-stat {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        .hike-stat strong {
+            display: block;
+            font-family: 'Space Mono', monospace;
+            color: var(--green);
+            font-size: 1rem;
+        }
+        .hike-stat span { font-size: 0.72rem; color: var(--text-muted); }
+
+        /* ── CONTACT ── */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+        .contact-link {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 9px;
+            padding: 1rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s;
+        }
+        .contact-link:hover {
+            border-color: rgba(76,175,80,0.4);
+            background: rgba(76,175,80,0.05);
+            transform: translateY(-2px);
+        }
+        .contact-icon {
+            width: 36px; height: 36px;
+            background: rgba(76,175,80,0.1);
+            border: 1px solid rgba(76,175,80,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .contact-label { font-size: 0.72rem; color: var(--text-muted); }
+        .contact-value { font-size: 0.83rem; color: var(--text); font-weight: 500; }
+        .upwork-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.85rem 1.75rem;
+            background: #6fda44;
+            color: #000;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 1.5rem;
+            transition: all 0.25s;
+            letter-spacing: 0.03em;
+        }
+        .upwork-btn:hover {
+            background: #7fe455;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(111,218,68,0.3);
+            color: #000;
+        }
+
+        /* ── PROGRESS BAR ── */
+        #reading-progress {
+            position: fixed;
+            top: 0; left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--green-dark), var(--green));
+            z-index: 200;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            background: var(--bg-nav);
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.8rem;
+            font-family: 'Space Mono', monospace;
+            position: relative;
+            z-index: 1;
+        }
+        footer p { color: var(--text-muted); margin: 0; }
+
+        /* ── BACK TO TOP ── */
+        #back-to-top {
+            display: none;
+            position: fixed;
+            bottom: 7rem;
+            right: 2rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--green);
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 998;
+            font-size: 1rem;
+            transition: all 0.2s;
+            align-items: center;
+            justify-content: center;
+        }
+        #back-to-top:hover {
+            background: rgba(76,175,80,0.1);
+            transform: translateY(-2px);
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeSlideDown {
+            from { opacity: 0; transform: translateY(-16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            #chat-window { width: calc(100vw - 2rem); right: 1rem; }
+            .projects-grid, .cert-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Yash Hooda</h1>
-        <p>Data Engineer | Artificial Intelligence and Machine Learning Enthusiast | Runner</p>
-    </header>
 
-    <nav>
-        <a href="#about">About Me</a>
-        <a href="#projects">Projects</a>
-        <a href="#certifications">Certifications</a>
-        <a href="#tars">Tars</a>
-        <a href="#running">Running Journey</a>
-        <a href="#hikes">Hikes</a>
-        <a href="#contact">Contact Info</a>
-    </nav>
+<div id="reading-progress"></div>
+<canvas id="particles"></canvas>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
 
-    <div class="container">
-        <!-- About Me Section -->
-        <section id="about">
-            <h2>About Me</h2>
-            <p>I'm a 24-year-old Data Engineer with a deep passion for intelligent systems that solve real-world challenges. I hold a Bachelor of Science in Computer Science from the University of Texas at Dallas, along with professional certifications in <strong>IBM AI Engineering</strong>, <strong>IBM Data Science</strong>, and the<strong> Databricks Certified Data Engineer Associate</strong>.</p>
-            <p>My core expertise lies in <strong>Data Engineering</strong> with a strong focus on building scalable, efficient data platforms that transform complex datasets into actionable insights. I specialize in designing and optimizing end-to-end data pipelines, working extensively with modern data stack technologies including Microsoft Fabric, Databricks, PySpark, SQL, and distributed data processing systems.
-            <p>My work experience spans data modeling, ETL/ELT pipeline development, and large-scale data transformation, with a focus on performance optimization, reliability, and cost efficiency. I am passionate about enabling data-driven decision-making by building robust data infrastructure that supports analytics, reporting, and advanced use cases.
-            <p>In addition to my data engineering expertise, I have a strong foundation in artificial intelligence and machine learning. I actively explore applications of AI, including NLP and LLMs, to enhance data workflows and unlock new capabilities within modern data ecosystems. I thrive on building innovative, AI-powered solutions and am continually exploring the frontiers of artificial intelligence and its applications across various industries. My ultimate goal is to harness AI to deliver impactful, real-world solutions that improve lives.</p>
-            <p>I'm also highly proficient with today's most advanced AI tools, including <strong>ChatGPT-4o</strong>, <strong>Gemini 2.5 Flash</strong>, <strong>Grok-3</strong>, <strong>Microsoft CoPilot</strong>, <strong>Claude Sonnet 4</strong>, <strong>Perplexity</strong>, <strong>DeepSeek R1</strong>, and <strong>Meta AI Llama 4 Maverick</strong>. I actively experiment with these platforms to build smarter, more adaptive systems and stay ahead in the rapidly evolving AI landscape.</p>
-            <p>Beyond tech, I live an active and curious life. I'm an avid runner with a love for aviation, astronomy, hiking, and travel. I also enjoy unwinding with Netflix or documentaries, and I value spending time with family and friends. In my free time, I'm often reading about the latest breakthroughs in technology, AI, and the future of intelligent systems.</p>
-        </section>
+<!-- AI Chatbot FAB -->
+<button id="chat-fab" onclick="toggleChat()" aria-label="Open AI Assistant">
+    <div class="fab-pulse"></div>
+    🤖
+</button>
 
-       <!-- Projects Section -->
-        <section id="projects">
-            <h2>Projects</h2>
-            <p>Here are some of my notable projects:</p>
-            <ul>
-            <li>
-            🤖 <strong>HoodaAgents AI Hiring Engine – AI Resume Intelligence System:</strong>
-
-            An AI-powered hiring engine that analyzes resumes and evaluates candidate fit against job descriptions using Large Language Models (LLMs).
-
-            The system allows users to upload resume PDFs, automatically extract structured candidate intelligence (skills, experience, education, projects), and perform AI-powered job matching.
-
-            <br><br>
-
-            🧠 <strong>Key Features:</strong>
-
-            <br>• Resume PDF parsing and text extraction
-            <br>• AI-powered resume intelligence extraction
-            <br>• Structured candidate profile generation
-            <br>• Skill matching against job descriptions
-            <br>• AI candidate fit analysis with strengths and gaps
-
-            <br><br>
-
-            🛠 <strong>Tech:</strong> Python, Streamlit, OpenAI API, pdfplumber
-
-            <br>
-
-            🌐 <a href="https://jnopbakdpluthfpwq9whli.streamlit.app/" target="_blank">Live Demo</a> |
-            📂 <a href="https://github.com/yashhooda1/hooda-hiring-ai" target="_blank">View on GitHub</a>
-            ▶️ <a href="https://www.youtube.com/watch?v=4KTblUUGv4I" target="_blank">View YouTube Demo</a>
-            </li>
-            <li>
-            🌎 <strong>ClimatePulse – 55-Year Climate Analytics Pipeline:</strong> 
-            Built an end-to-end Bronze → Silver → Gold data engineering pipeline analyzing 55 years (1970–2025) of NOAA daily station data for Houston (IAH) and Newark (EWR). 
-
-            Engineered seasonal features (winter-year logic, mean temperature derivation, 80°F extreme-day flag) and applied regression modeling to quantify long-term warming trends.
-
-            <br><br>
-
-            📊 <strong>Key Findings:</strong>
-            <br>• Houston annual warming: +0.805°F per decade
-            <br>• Winter nighttime warming: +1.005°F per decade
-            <br>• February–March 80°F days increasing by +1.721 days per decade
-            <br>• Newark warming: +0.472°F per decade
-
-            <br><br>
-
-            🛠 <strong>Tech:</strong> Python, pandas, scikit-learn, matplotlib, Modular ETL Design
-
-            <br>
-            📂 <a href="https://github.com/yashhooda1/climatepulse" target="_blank">View on GitHub</a>
-            </li>
-            <li>
-            🧠 <strong>HoodaAgents – GPT-4 AI Assistant:</strong> A custom AI agent built using GPT-4 (OpenAI), LangChain, and Streamlit. Features conversational memory, live web search via Tavily, and built-in tools like a calculator. This project demonstrates end-to-end agentic design, local deployment, and API integration.
-            <br>
-            🎥 <a href="https://youtu.be/Pe540X27zmM?feature=shared" target="_blank">Watch Demo</a> | 
-            📂 <a href="https://github.com/yashhooda1/hoodaAgents" target="_blank">View on GitHub</a>
-            </li>
-            <li>
-            Virtual TA Chatbot: Designed and implemented a conversational AI system to assist students with course-related queries. This project, completed as my senior capstone, uses natural language processing to understand and respond to student questions in real-time. 
-            <a href="https://github.com/yashhooda1/Virtual-TA-Chatbot">View on GitHub</a>
-            </li>
-            <li>
-            IBM AI Engineering Capstone: Developed and deployed an AI model for image recognition and predictive analytics. 
-            <a href="https://github.com/yashhooda1/IBM-AI-Engineering-Certificate">View on GitHub</a>
-            </li>
-            <li>
-            Food Demand Forecasting: Conducted data analysis and built machine learning models to optimize restaurant demand predictions. 
-            <a href="https://github.com/yashhooda1/Foodhub-Project">View on GitHub</a>
-            </li>
-            <li>
-            Liver Cancer Prediction: Built a machine learning model to predict the likelihood of liver cancer using patient health data. The project involved feature engineering, data preprocessing, and model selection to enhance prediction accuracy. 
-            <a href="https://github.com/yashhooda1/Liver-Cancer-Prediction">View on GitHub</a>
-            </li>
-            <li>
-            TogetherAI Agent: Developed an AI assistant leveraging Together.ai's API and the meta-llama/Llama-3.3-70B-Instruct-Turbo code model. This project integrates advanced natural language processing capabilities to create a functional AI agent capable of understanding and responding to user inputs effectively. 
-            <a href="https://github.com/yashhooda1/TogetherAI-Agent">View on GitHub</a>
-            </li>
-        </ul>
-        </section>
-
-        <!-- Certifications Section -->
-        <section id="certifications" class="certifications-section">
-          <div class="container">
-          <h2 class="section-title">Certifications</h2>
-           <p class="section-subtitle">
-              Professional certifications that reflect my skills in data engineering, AI, and data science.
-        </p>
-
-        <div class="certifications-grid">
-         <div class="cert-card">
-         <h3><strong>Databricks Certified Data Engineer Associate</strong></h3>
-          <p>
-          Validates my knowledge of data engineering concepts, ETL pipelines, Delta Lake,
-          and building scalable data solutions on Databricks.
-          </p>
-          <div class="cert-buttons">
-           <a href="https://credentials.databricks.com/003cc055-4848-4791-b1e9-9eea340f96fa#acc.JpnRGgik" target="_blank" class="cert-btn">
-            View Credential
-          </a>
-          <a href="https://credentials.databricks.com/profile/yashhooda818627/wallet" target="_blank" class="cert-btn secondary">
-            Certification Wallet
-          </a>
+<!-- Chat Window -->
+<div id="chat-window">
+    <div class="chat-header">
+        <div class="chat-avatar">YH</div>
+        <div class="chat-header-info">
+            <h4>Yash's AI Assistant</h4>
+            <span>Ask me anything about Yash</span>
         </div>
-      </div>
-
-      <div class="cert-card">
-        <h3><strong> Microsoft Certified: Power Platform Fundamentals Certificate</strong></h3>
-        <p>
-          Covers Microsoft Power Platform environment, business value of Power Platform, Capabilities of Microsoft Power Apps, Microsoft Power Automate, and Microsoft Power Pages.
-        </p>
-        <div class="cert-buttons">
-          <a href="https://learn.microsoft.com/api/credentials/share/en-us/YashHooda-0521/F45AC312179B5D?sharingId=DC8B74CB8591C9DD" target="_blank" class="cert-btn">
-              View Credential
-          </a>
-        </div>
-      </div>
-
-
-      <div class="cert-card">
-        <h3><strong>IBM AI Engineering Professional Certificate</strong></h3>
-        <p>
-          Covers machine learning, deep learning, neural networks, and practical AI model development.
-        </p>
-        <div class="cert-buttons">
-          <a href="https://www.coursera.org/account/accomplishments/specialization/CKPB221THAWV" target="_blank" class="cert-btn">
-            View Credential
-          </a>
-        </div>
-      </div>
-
-     <div class="cert-card">
-        <h3><strong>Vanderbilt University AI Prompt Engineering Professional Certificate</strong></h3>
-        <p>
-          Covers Prompt Engineering, ChatGPT, trustworthy Generative AI, and ChatGPT Advanced Data Analysis.
-        </p>
-        <div class="cert-buttons">
-          <a href="https://www.coursera.org/account/accomplishments/specialization/ENRYEOQPTN93" target="_blank" class="cert-btn">
-            View Credential
-          </a>
-        </div>
-      </div>
-
-
-      <div class="cert-card">
-        <h3><strong>IBM Data Science Professional Certificate</strong></h3>
-        <p>
-          Demonstrates skills in Python, SQL, data analysis, visualization, machine learning, and applied data science workflows.
-        </p>
-        <div class="cert-buttons">
-          <a href="https://www.coursera.org/account/accomplishments/specialization/JRIZFWEMPM6Y" target="_blank" class="cert-btn">
-            View Credential
-          </a>
-        </div>
-      </div>
+        <button class="chat-close" onclick="toggleChat()">✕</button>
     </div>
-  </div>
-</section>
+    <div class="chat-messages" id="chat-messages">
+        <div class="msg bot">Hey! 👋 I'm Yash's personal AI assistant. Ask me anything — his projects, skills, running PRs, or how to work with him!</div>
+    </div>
+    <div class="chat-quick-btns" id="quick-btns">
+        <button class="quick-btn" onclick="quickAsk('What are Yash\u0027s top skills?')">Top skills</button>
+        <button class="quick-btn" onclick="quickAsk('Tell me about his projects')">Projects</button>
+        <button class="quick-btn" onclick="quickAsk('What are his running PRs?')">Running PRs</button>
+        <button class="quick-btn" onclick="quickAsk('How can I hire Yash?')">Hire him</button>
+    </div>
+    <div class="chat-input-row">
+        <input class="chat-input" id="chat-input" type="text" placeholder="Ask about Yash..." onkeydown="if(event.key==='Enter') sendMsg()" />
+        <button class="chat-send" onclick="sendMsg()">➤</button>
+    </div>
+</div>
 
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
-        <!-- Tars Section -->
-        <section id="tars" style="margin-top: 40px;">
-            <h2>💬 Meet TARS – My AI Assistant</h2>
-            <p>I built a custom AI assistant called <strong>TARS</strong> using OpenAI's GPT-4. TARS is designed to solve real-world problems through natural conversations. Try it out below!</p>
-            <a href="https://chatgpt.com/g/g-67ab8c95b11c81918787b6dc80159559-tars" target="_blank" style="display:inline-block; padding:10px 20px; background-color:#4CAF50; color:white; border-radius:5px; text-decoration:none;">
+<!-- HEADER -->
+<header>
+    <h1>Yash Hooda</h1>
+    <p>Data Engineer | Artificial Intelligence and Machine Learning Enthusiast | Runner</p>
+    <div class="header-badges">
+        <span class="badge">UTD Computer Science</span>
+        <span class="badge">Databricks Certified</span>
+        <span class="badge">IBM AI Engineering</span>
+        <span class="badge">IBM Data Science</span>
+        <span class="badge">Runner · 45 mi/wk</span>
+    </div>
+    <div class="header-cta">
+        <a href="#projects" class="btn-primary">🚀 View Projects</a>
+        <a href="https://github.com/yashhooda1" target="_blank" class="btn-secondary">⭐ GitHub</a>
+        <a href="https://github.com/yashhooda1/Resume/blob/main/YashHooda%20Resume.pdf" target="_blank" class="btn-secondary">📄 Resume</a>
+        <a href="https://www.upwork.com/freelancers/~01d69d754fc4bf488e?mp_source=share" target="_blank" class="btn-primary">💼 Hire on Upwork</a>
+    </div>
+</header>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">YH_</a>
+        <div class="nav-links">
+            <a href="#about">About</a>
+            <a href="#projects">Projects</a>
+            <a href="#certifications">Certs</a>
+            <a href="#tars">TARS</a>
+            <a href="#running">Running</a>
+            <a href="#hikes">Hikes</a>
+            <a href="#contact">Contact</a>
+            <a href="#" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- STATS BAR -->
+    <div class="stats-bar" style="margin-top: 2rem;">
+        <div class="stat-item">
+            <span class="stat-num" data-target="5">0</span>
+            <div class="stat-label">Certifications</div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num" data-target="8">0</span>
+            <div class="stat-label">Projects</div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num" data-target="45">0</span>
+            <div class="stat-label">Miles / Week</div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num" data-target="55">0</span>
+            <div class="stat-label">Years Climate Data</div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num" data-target="8">0</span>
+            <div class="stat-label">AI Tools Mastered</div>
+        </div>
+    </div>
+
+    <!-- ABOUT -->
+    <section id="about">
+        <h2>⚡ About Me</h2>
+        <p>I'm a 24-year-old Data Engineer with a deep passion for intelligent systems that solve real-world challenges. I hold a Bachelor of Science in Computer Science from the University of Texas at Dallas, along with professional certifications in <strong>IBM AI Engineering</strong>, <strong>IBM Data Science</strong>, and the<strong> Databricks Certified Data Engineer Associate</strong>.</p>
+        <p>My core expertise lies in <strong>Data Engineering</strong> with a strong focus on building scalable, efficient data platforms that transform complex datasets into actionable insights. I specialize in designing and optimizing end-to-end data pipelines, working extensively with modern data stack technologies including Microsoft Fabric, Databricks, PySpark, SQL, and distributed data processing systems.</p>
+        <p>My work experience spans data modeling, ETL/ELT pipeline development, and large-scale data transformation, with a focus on performance optimization, reliability, and cost efficiency. I am passionate about enabling data-driven decision-making by building robust data infrastructure that supports analytics, reporting, and advanced use cases.</p>
+        <p>In addition to my data engineering expertise, I have a strong foundation in artificial intelligence and machine learning. I actively explore applications of AI, including NLP and LLMs, to enhance data workflows and unlock new capabilities within modern data ecosystems. I thrive on building innovative, AI-powered solutions and am continually exploring the frontiers of artificial intelligence and its applications across various industries. My ultimate goal is to harness AI to deliver impactful, real-world solutions that improve lives.</p>
+        <p>I'm also highly proficient with today's most advanced AI tools, including <strong>ChatGPT-4o</strong>, <strong>Gemini 2.5 Flash</strong>, <strong>Grok-3</strong>, <strong>Microsoft CoPilot</strong>, <strong>Claude Sonnet 4</strong>, <strong>Perplexity</strong>, <strong>DeepSeek R1</strong>, and <strong>Meta AI Llama 4 Maverick</strong>. I actively experiment with these platforms to build smarter, more adaptive systems and stay ahead in the rapidly evolving AI landscape.</p>
+        <p>Beyond tech, I live an active and curious life. I'm an avid runner with a love for aviation, astronomy, hiking, and travel. I also enjoy unwinding with Netflix or documentaries, and I value spending time with family and friends. In my free time, I'm often reading about the latest breakthroughs in technology, AI, and the future of intelligent systems.</p>
+
+        <div class="skill-cloud" style="margin-top: 1.5rem;">
+            <span class="skill-tag">PySpark</span>
+            <span class="skill-tag">Databricks</span>
+            <span class="skill-tag">Microsoft Fabric</span>
+            <span class="skill-tag">SQL</span>
+            <span class="skill-tag">Python</span>
+            <span class="skill-tag">ETL/ELT</span>
+            <span class="skill-tag">Delta Lake</span>
+            <span class="skill-tag">OpenAI API</span>
+            <span class="skill-tag">LangChain</span>
+            <span class="skill-tag">Streamlit</span>
+            <span class="skill-tag">scikit-learn</span>
+            <span class="skill-tag">NLP / LLMs</span>
+            <span class="skill-tag">Deep Learning</span>
+            <span class="skill-tag">Prompt Engineering</span>
+        </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects">
+        <h2>🚀 Projects</h2>
+        <p>Here are some of my notable projects:</p>
+
+        <div class="projects-grid">
+
+            <div class="project-card">
+                <div class="project-title">🤖 HoodaAgents AI Hiring Engine</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Python</span><span class="tech-pill">Streamlit</span><span class="tech-pill">OpenAI API</span><span class="tech-pill">pdfplumber</span>
+                </div>
+                <div class="project-desc">An AI-powered hiring engine that analyzes resumes and evaluates candidate fit against job descriptions using LLMs. Features resume PDF parsing, structured intelligence extraction, skill matching, and AI candidate fit analysis with strengths and gaps.</div>
+                <div class="project-links">
+                    <a href="https://jnopbakdpluthfpwq9whli.streamlit.app/" target="_blank" class="project-btn">🌐 Live Demo</a>
+                    <a href="https://github.com/yashhooda1/hooda-hiring-ai" target="_blank" class="project-btn">📂 GitHub</a>
+                    <a href="https://www.youtube.com/watch?v=4KTblUUGv4I" target="_blank" class="project-btn">▶️ YouTube</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">🌎 ClimatePulse – 55-Year Analytics Pipeline</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Python</span><span class="tech-pill">pandas</span><span class="tech-pill">scikit-learn</span><span class="tech-pill">matplotlib</span>
+                </div>
+                <div class="project-desc">End-to-end Bronze → Silver → Gold pipeline analyzing 55 years (1970–2025) of NOAA daily station data for Houston (IAH) and Newark (EWR). Houston warming: +0.805°F/decade. Winter nighttime: +1.005°F/decade.</div>
+                <div class="project-links">
+                    <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">🧠 HoodaAgents – GPT-4 AI Assistant</div>
+                <div class="project-tech">
+                    <span class="tech-pill">GPT-4</span><span class="tech-pill">LangChain</span><span class="tech-pill">Streamlit</span><span class="tech-pill">Tavily</span>
+                </div>
+                <div class="project-desc">Custom AI agent with conversational memory, live web search via Tavily, and built-in tools like a calculator. Demonstrates end-to-end agentic design, local deployment, and API integration.</div>
+                <div class="project-links">
+                    <a href="https://youtu.be/Pe540X27zmM?feature=shared" target="_blank" class="project-btn">🎥 Demo</a>
+                    <a href="https://github.com/yashhooda1/hoodaAgents" target="_blank" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">🎓 Virtual TA Chatbot</div>
+                <div class="project-tech">
+                    <span class="tech-pill">NLP</span><span class="tech-pill">Python</span><span class="tech-pill">Chatbot</span>
+                </div>
+                <div class="project-desc">Designed and implemented a conversational AI system to assist students with course-related queries. Senior capstone project using natural language processing to understand and respond to student questions in real-time.</div>
+                <div class="project-links">
+                    <a href="https://github.com/yashhooda1/Virtual-TA-Chatbot" target="_blank" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">🏥 Liver Cancer Prediction</div>
+                <div class="project-tech">
+                    <span class="tech-pill">ML</span><span class="tech-pill">Python</span><span class="tech-pill">Feature Engineering</span>
+                </div>
+                <div class="project-desc">Built a machine learning model to predict the likelihood of liver cancer using patient health data. Involved feature engineering, data preprocessing, and model selection to enhance prediction accuracy.</div>
+                <div class="project-links">
+                    <a href="https://github.com/yashhooda1/Liver-Cancer-Prediction" target="_blank" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">🍕 Food Demand Forecasting</div>
+                <div class="project-tech">
+                    <span class="tech-pill">ML</span><span class="tech-pill">Python</span><span class="tech-pill">Data Analysis</span>
+                </div>
+                <div class="project-desc">Data analysis and machine learning models to optimize restaurant demand predictions. Demonstrates applied forecasting in real-world operational settings.</div>
+                <div class="project-links">
+                    <a href="https://github.com/yashhooda1/Foodhub-Project" target="_blank" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">🤖 TogetherAI Agent</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Together.ai</span><span class="tech-pill">LLaMA 3.3</span><span class="tech-pill">NLP</span>
+                </div>
+                <div class="project-desc">AI assistant leveraging Together.ai's API and meta-llama/Llama-3.3-70B-Instruct-Turbo. Integrates advanced NLP capabilities to create a functional agent capable of understanding and responding to user inputs effectively.</div>
+                <div class="project-links">
+                    <a href="https://github.com/yashhooda1/TogetherAI-Agent" target="_blank" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">📊 IBM AI Engineering Capstone</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Deep Learning</span><span class="tech-pill">Computer Vision</span><span class="tech-pill">IBM Watson</span>
+                </div>
+                <div class="project-desc">Developed and deployed an AI model for image recognition and predictive analytics as part of the IBM AI Engineering Professional Certificate capstone.</div>
+                <div class="project-links">
+                    <a href="https://github.com/yashhooda1/IBM-AI-Engineering-Certificate" target="_blank" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CERTIFICATIONS -->
+    <section id="certifications">
+        <h2>🏆 Certifications</h2>
+        <p>Professional certifications that reflect my skills in data engineering, AI, and data science.</p>
+
+        <div class="cert-grid">
+            <div class="cert-card">
+                <h3>Databricks Certified Data Engineer Associate</h3>
+                <p>Validates my knowledge of data engineering concepts, ETL pipelines, Delta Lake, and building scalable data solutions on Databricks.</p>
+                <a href="https://credentials.databricks.com/003cc055-4848-4791-b1e9-9eea340f96fa#acc.JpnRGgik" target="_blank">View Credential →</a>
+            </div>
+            <div class="cert-card">
+                <h3>Microsoft Certified: Power Platform Fundamentals</h3>
+                <p>Covers Microsoft Power Platform environment, business value of Power Platform, Capabilities of Power Apps, Power Automate, and Power Pages.</p>
+                <a href="https://learn.microsoft.com/api/credentials/share/en-us/YashHooda-0521/F45AC312179B5D?sharingId=DC8B74CB8591C9DD" target="_blank">View Credential →</a>
+            </div>
+            <div class="cert-card">
+                <h3>IBM AI Engineering Professional Certificate</h3>
+                <p>Covers machine learning, deep learning, neural networks, and practical AI model development.</p>
+                <a href="https://www.coursera.org/account/accomplishments/specialization/CKPB221THAWV" target="_blank">View Credential →</a>
+            </div>
+            <div class="cert-card">
+                <h3>Vanderbilt University AI Prompt Engineering Certificate</h3>
+                <p>Covers Prompt Engineering, ChatGPT, trustworthy Generative AI, and ChatGPT Advanced Data Analysis.</p>
+                <a href="https://www.coursera.org/account/accomplishments/specialization/ENRYEOQPTN93" target="_blank">View Credential →</a>
+            </div>
+            <div class="cert-card">
+                <h3>IBM Data Science Professional Certificate</h3>
+                <p>Demonstrates skills in Python, SQL, data analysis, visualization, machine learning, and applied data science workflows.</p>
+                <a href="https://www.coursera.org/account/accomplishments/specialization/JRIZFWEMPM6Y" target="_blank">View Credential →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- TARS -->
+    <section id="tars">
+        <h2>💬 Meet TARS – My AI Assistant</h2>
+        <p>I built a custom AI assistant called <strong>TARS</strong> using OpenAI's GPT-4. TARS is designed to solve real-world problems through natural conversations. Try it out below!</p>
+        <div class="tars-cta">
+            <a href="https://chatgpt.com/g/g-67ab8c95b11c81918787b6dc80159559-tars" target="_blank" class="tars-btn">
                 💡 Chat with TARS Now
             </a>
-        </section>
+            <span class="tars-pulse">Live &amp; Available 24/7</span>
+        </div>
+    </section>
 
+    <!-- RUNNING -->
+    <section id="running">
+        <h2>🏃 Running Journey</h2>
+        <p>Running has been my passion and a source of discipline and motivation. I've competed in various distances and continue to push my limits. Notable achievements include:</p>
 
-        <!-- Running Journey Section -->
-        <section id="running">
-            <h2>Running Journey</h2>
-            <p>Running has been my passion and a source of discipline and motivation. I've competed in various distances and continue to push my limits. Notable achievements include:</p>
-            <ul>
-                <li>Marathon Personal Record: TBD
+        <div class="pr-grid">
+            <div class="pr-card">
+                <div class="pr-distance">Marathon PR</div>
+                <div class="pr-time">TBD</div>
+                <div class="pr-event">In Training</div>
+            </div>
+            <div class="pr-card">
+                <div class="pr-distance">Half Marathon PR</div>
+                <div class="pr-time">1:24:31</div>
+                <div class="pr-event">2025 Aramco Houston HM</div>
+            </div>
+            <div class="pr-card">
+                <div class="pr-distance">8K PR</div>
+                <div class="pr-time">29:48</div>
+                <div class="pr-event">2025 Sugar Land Turkey Trot</div>
+            </div>
+            <div class="pr-card">
+                <div class="pr-distance">5-Mile PR</div>
+                <div class="pr-time">30:22</div>
+                <div class="pr-event">2025 Sugar Land Turkey Trot</div>
+            </div>
+            <div class="pr-card">
+                <div class="pr-distance">5K PR</div>
+                <div class="pr-time">18:15</div>
+                <div class="pr-event">2025 Women's Quarter Marathon</div>
+            </div>
+        </div>
 
-                </li>
-                <li>Half Marathon Personal Best: 1:24:31 (2025 Aramco Houston Half Marathon)
-                    <a href="https://rtrt.me/render/badges?e=HOU-2025&pid=RX4HKW35&resp=1&bgcolor=fff&filename=hou-2025rx4hkw35" target="_blank">
-                        <img src="https://rtrt.me/render/badges?e=HOU-2025&pid=RX4HKW35&resp=1&bgcolor=fff&filename=hou-2025rx4hkw35" alt="Half Marathon PR Badge" style="height: 25px; vertical-align: middle;">
-                    </a>
-                </li>
-                <li>8k Personal Record: 29:48 (2025 40th annual Sugar Land Turkey Trot)
-                </li>
-                </li>5-mile Personal Record: 30:22 (2025 40th annual Sugar Land Turkey Trot)
-                   <a href="https://runsignup.com/Race/Results/174287/IndividualResult/RRJFK?resultSetId=610427#U114846388" target="_blank">
-                       View Results
-                    </a>
-                </li>
-                <li>5k Personal Record: 18:15 (2025 Women's Quarter Marathon - Houston Running Co)
-                    <a href="https://results.raceroster.com/v2/en-US/results/gmd6pbsxdkfxvzrk/detail/t4zy2fb9zsxzejfg" target="_blank">
-                        View Results
-                    </a>
-                </li>
-                <li>Current Weekly Mileage: 45 miles per week - Week 3 for Boulderthon training </li>
-                <li>Currently Training For: 2026 Boulderthon Marathon </li>
-                <li>Last Race + Time: 2026 NYCRuns Brooklyn Experience Half Marathon - 1:27:41
-                    <a href="https://nycruns.com/race-results?race=nycruns-brooklyn-experience-half-marathon-2026&result=2961804" target="_blank">
-                        View Results
-                    </a>
-                </li>
-            </ul>
-            <p>Follow my training journey on my public Strava account: <a href="https://www.strava.com/athletes/89409717">here</a>.</p>
-        </section>
+        <div class="training-status">
+            <div class="training-dot"></div>
+            <div class="training-text">
+                <strong>Currently Training:</strong> 2026 Boulderthon Marathon · Week 3 · 45 miles/week<br>
+                <span style="font-size:0.8rem; color: var(--text-muted);">Last Race: 2026 NYCRuns Brooklyn Experience Half Marathon — 1:27:41</span>
+            </div>
+        </div>
 
-        <!-- Hikes Section -->
-        <section id="hikes">
-          <h2>Morning Hike around Lake Monarch – Granby, CO</h2>
-          <p>
-            First solo hike in Arapaho National Forest. Soundtrack: Hans Zimmer – 
-            <em>First Step</em> & <em>Day One</em> (Interstellar).
-          </p>
+        <ul style="margin-top: 1.25rem;">
+            <li>Marathon Personal Record: TBD</li>
+            <li>Half Marathon Personal Best: 1:24:31 (2025 Aramco Houston Half Marathon)
+                <a href="https://rtrt.me/render/badges?e=HOU-2025&pid=RX4HKW35&resp=1&bgcolor=fff&filename=hou-2025rx4hkw35" target="_blank">View Badge</a>
+            </li>
+            <li>8k Personal Record: 29:48 (2025 40th annual Sugar Land Turkey Trot)</li>
+            <li>5-mile Personal Record: 30:22 (2025 40th annual Sugar Land Turkey Trot)
+                <a href="https://runsignup.com/Race/Results/174287/IndividualResult/RRJFK?resultSetId=610427#U114846388" target="_blank">View Results</a>
+            </li>
+            <li>5k Personal Record: 18:15 (2025 Women's Quarter Marathon - Houston Running Co)
+                <a href="https://results.raceroster.com/v2/en-US/results/gmd6pbsxdkfxvzrk/detail/t4zy2fb9zsxzejfg" target="_blank">View Results</a>
+            </li>
+            <li>Current Weekly Mileage: 45 miles per week - Week 3 for Boulderthon training</li>
+            <li>Currently Training For: 2026 Boulderthon Marathon</li>
+            <li>Last Race + Time: 2026 NYCRuns Brooklyn Experience Half Marathon - 1:27:41
+                <a href="https://nycruns.com/race-results?race=nycruns-brooklyn-experience-half-marathon-2026&result=2961804" target="_blank">View Results</a>
+            </li>
+        </ul>
+        <p style="margin-top: 1rem;">Follow my training journey on my public Strava account: <a href="https://www.strava.com/athletes/89409717" target="_blank">here</a>.</p>
+    </section>
 
-          <ul>
-            <li><strong>Distance:</strong> 4.07 mi</li>
-            <li><strong>Elevation Gain:</strong> 335 ft</li>
-            <li><strong>Time:</strong> 1h 18m</li>
-            <li><strong>Calories:</strong> 499</li>
-            <li><strong>Avg HR:</strong> 107 bpm</li>
-          </ul>
+    <!-- HIKES -->
+    <section id="hikes">
+        <h2>🏔️ Morning Hike around Lake Monarch – Granby, CO</h2>
+        <p>First solo hike in Arapaho National Forest. Soundtrack: Hans Zimmer – <em>First Step</em> &amp; <em>Day One</em> (Interstellar).</p>
 
-          <!-- Strava / Map cards -->
-          <div class="latest-runs">
+        <div class="hike-stats">
+            <div class="hike-stat"><strong>4.07 mi</strong><span>Distance</span></div>
+            <div class="hike-stat"><strong>335 ft</strong><span>Elevation Gain</span></div>
+            <div class="hike-stat"><strong>1h 18m</strong><span>Time</span></div>
+            <div class="hike-stat"><strong>499</strong><span>Calories</span></div>
+            <div class="hike-stat"><strong>107 bpm</strong><span>Avg HR</span></div>
+        </div>
+
+        <div class="latest-runs">
             <div class="run-card">
-              <h3>Route Map & Stats</h3>
-              <img src="images/1000015947.png" alt="Granby Hike Map with stats" style="width:100%; border-radius:8px;">
+                <h3>Route Map &amp; Stats</h3>
+                <img src="images/1000015947.png" alt="Granby Hike Map with stats">
             </div>
             <div class="run-card">
-              <h3>3D View</h3>
-              <img src="images/1000015942.png" alt="Strava 3D loop" style="width:100%; border-radius:8px;">
+                <h3>3D View</h3>
+                <img src="images/1000015942.png" alt="Strava 3D loop">
             </div>
             <div class="run-card">
-              <h3>Activity Summary</h3>
-              <img src="images/1000015935.png" alt="Strava activity summary" style="width:100%; border-radius:8px;">
+                <h3>Activity Summary</h3>
+                <img src="images/1000015935.png" alt="Strava activity summary">
             </div>
-          </div>
+        </div>
 
-          <h3 style="margin-top:1rem;">Photo Journal</h3>
-          <div class="latest-runs">
-             <div class="run-card"><img src="images/1000015849.jpg" alt="Dam / lakeside path" style="width:100%; border-radius:8px;></div>
-             <div class="run-card"><img src="images/1000015847.jpg" alt="Lake + clouds view" style="width:100%; border-radius:8px;></div>
-             <div class="run-card"><img src="images/1000015845.jpg" alt="River crossing"  style="width:100%; border-radius:8px;></div>
-             <div class="run-card"><img src="images/1000015838.jpg" alt="Lake framed by leaves" style="width:100%; border-radius:8px;></div>
-             <div class="run-card"><img src="images/1000015799.jpg" alt="Mountains over lake" style="width:100%; border-radius:8px;></div>
-             <div class="run-card"><img src="images/1000015791.jpg" alt="Forest trail" style="width:100%; border-radius:8px;></div>
-         </div>
+        <h3 style="margin-top:1.5rem; font-family: 'Space Mono', monospace; color: var(--green); font-size: 0.9rem;">📷 Photo Journal</h3>
+        <div class="latest-runs">
+            <div class="run-card"><img src="images/1000015849.jpg" alt="Dam / lakeside path"></div>
+            <div class="run-card"><img src="images/1000015847.jpg" alt="Lake + clouds view"></div>
+            <div class="run-card"><img src="images/1000015845.jpg" alt="River crossing"></div>
+            <div class="run-card"><img src="images/1000015838.jpg" alt="Lake framed by leaves"></div>
+            <div class="run-card"><img src="images/1000015799.jpg" alt="Mountains over lake"></div>
+            <div class="run-card"><img src="images/1000015791.jpg" alt="Forest trail"></div>
+        </div>
 
-          <p style="margin-top:1rem;">
-    This hike wasn’t just exercise — it was a milestone.  
-    Being out there alone reminded me of the power of independence. The silence of the forest, the vastness of the mountains, and the rhythm of my footsteps gave me peace and clarity.  
-    Taking this hike solo was my own “first step.” Just like in *Interstellar*, sometimes the journey begins when you step into the unknown — and the views at the end are worth it.  
+        <p style="margin-top:1.25rem; font-style: italic; color: var(--text-muted);">
+            This hike wasn't just exercise — it was a milestone. Being out there alone reminded me of the power of independence. The silence of the forest, the vastness of the mountains, and the rhythm of my footsteps gave me peace and clarity. Taking this hike solo was my own "first step." Just like in <em>Interstellar</em>, sometimes the journey begins when you step into the unknown — and the views at the end are worth it.
+        </p>
+    </section>
 
-          </p>
-        </section>
+    <!-- CONTACT -->
+    <section id="contact">
+        <h2>📬 Contact Info</h2>
+        <p>I'd love to connect! Feel free to reach out to me:</p>
 
+        <div class="contact-grid">
+            <a href="mailto:yash.hooda6@gmail.com" class="contact-link">
+                <div class="contact-icon">✉️</div>
+                <div>
+                    <div class="contact-label">Email</div>
+                    <div class="contact-value">yash.hooda6@gmail.com</div>
+                </div>
+            </a>
+            <a href="https://www.linkedin.com/in/yash-hooda-384430242/" target="_blank" class="contact-link">
+                <div class="contact-icon">💼</div>
+                <div>
+                    <div class="contact-label">LinkedIn</div>
+                    <div class="contact-value">View my Profile</div>
+                </div>
+            </a>
+            <a href="https://github.com/yashhooda1" target="_blank" class="contact-link">
+                <div class="contact-icon">🐙</div>
+                <div>
+                    <div class="contact-label">GitHub</div>
+                    <div class="contact-value">View my Repositories</div>
+                </div>
+            </a>
+            <a href="https://linktr.ee/hooda_yash1" target="_blank" class="contact-link">
+                <div class="contact-icon">🌿</div>
+                <div>
+                    <div class="contact-label">Linktree</div>
+                    <div class="contact-value">View my Linktree</div>
+                </div>
+            </a>
+            <a href="https://www.youtube.com/@hoodarunner" target="_blank" class="contact-link">
+                <div class="contact-icon">📺</div>
+                <div>
+                    <div class="contact-label">YouTube</div>
+                    <div class="contact-value">View my YouTube Channel</div>
+                </div>
+            </a>
+            <a href="https://github.com/yashhooda1/Resume/blob/main/YashHooda%20Resume.pdf" target="_blank" class="contact-link">
+                <div class="contact-icon">📄</div>
+                <div>
+                    <div class="contact-label">Resume</div>
+                    <div class="contact-value">Download PDF</div>
+                </div>
+            </a>
+        </div>
 
-        <!-- Contact Info Section -->
-        <section id="contact">
-            <h2>Contact Info</h2>
-            <p>I'd love to connect! Feel free to reach out to me:</p>
-            <ul>
-                <li>Email: <a href="mailto:yash.hooda6@gmail.com">yash.hooda6@gmail.com</a></li>
-                <li>LinkedIn: <a href="https://www.linkedin.com/in/yash-hooda-384430242/">View my Profile</a></li>
-                <li>GitHub: <a href="https://github.com/yashhooda1">View my Repositories</a></li>
-                <li>Linktree: <a href="https://linktr.ee/hooda_yash1">View my Linktree</a></li>
-                <li>YouTube: <a href="https://www.youtube.com/@hoodarunner">View my YouTube Channel</a></li>
-                <li>Resume: <a href="https://github.com/yashhooda1/Resume/blob/main/YashHooda%20Resume.pdf" target="_blank">Download PDF</a></li>
-            </ul>
-            <div style="margin-top: 20px;">
-                <a href="https://www.upwork.com/freelancers/~01d69d754fc4bf488e?mp_source=share"
-                   target="_blank"
-                   style="display: inline-block; padding: 12px 24px; background-color: #6fda44; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
-                  💼 Hire Me on Upwork
-                </a>
-           </div>
-        </section>
-        
-    <footer>
-        <p>&copy; 2026 Yash Hooda. All rights reserved.</p>
-    </footer>
+        <a href="https://www.upwork.com/freelancers/~01d69d754fc4bf488e?mp_source=share" target="_blank" class="upwork-btn">
+            💼 Hire Me on Upwork
+        </a>
+    </section>
 
+</div>
+
+<footer>
+    <p>&copy; 2026 Yash Hooda. All rights reserved.</p>
+</footer>
+
+<script>
+// ── PARTICLES ──
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let W, H, pts = [];
+function resizeCanvas() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+for (let i = 0; i < 60; i++) {
+    pts.push({
+        x: Math.random() * 2000, y: Math.random() * 2000,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 1.5 + 0.5
+    });
+}
+function drawParticles() {
+    ctx.clearRect(0, 0, W, H);
+    pts.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(76,175,80,0.6)';
+        ctx.fill();
+    });
+    pts.forEach((a, i) => pts.slice(i+1).forEach(b => {
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d < 120) {
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(76,175,80,${0.12 * (1 - d/120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+        }
+    }));
+    requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ── CUSTOM CURSOR ──
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx - 5 + 'px'; cursor.style.top = my - 5 + 'px'; });
+function animRing() { rx += (mx - rx - 16) * 0.12; ry += (my - ry - 16) * 0.12; ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; requestAnimationFrame(animRing); }
+animRing();
+document.querySelectorAll('a, button, .project-card, .cert-card, .skill-tag').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(2)'; ring.style.transform = 'scale(1.5)'; ring.style.opacity = '0.3'; });
+    el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; ring.style.transform = 'scale(1)'; ring.style.opacity = '0.6'; });
+});
+
+// ── READING PROGRESS ──
+window.addEventListener('scroll', () => {
+    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+    document.getElementById('reading-progress').style.width = pct + '%';
+    document.getElementById('back-to-top').style.display = window.scrollY > 400 ? 'flex' : 'none';
+});
+
+// ── SECTION REVEAL ──
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('section').forEach(s => observer.observe(s));
+
+// ── ANIMATED COUNTERS ──
+const countObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        const target = parseInt(el.dataset.target);
+        let cur = 0;
+        const step = Math.ceil(target / 40);
+        const timer = setInterval(() => {
+            cur = Math.min(cur + step, target);
+            el.textContent = cur + (el.dataset.suffix || '');
+            if (cur >= target) clearInterval(timer);
+        }, 35);
+        countObserver.unobserve(el);
+    });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stat-num[data-target]').forEach(el => countObserver.observe(el));
+
+// ── CHATBOT ──
+
+let chatHistory = [];
+let chatOpen = false;
+
+function toggleChat() {
+    chatOpen = !chatOpen;
+    document.getElementById('chat-window').classList.toggle('open', chatOpen);
+}
+
+function quickAsk(q) {
+    document.getElementById('chat-input').value = q;
+    sendMsg();
+}
+
+async function sendMsg() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    document.getElementById('quick-btns').style.display = 'none';
+
+    const msgs = document.getElementById('chat-messages');
+    const userDiv = document.createElement('div');
+    userDiv.className = 'msg user';
+    userDiv.textContent = text;
+    msgs.appendChild(userDiv);
+
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'msg bot msg-typing';
+    typingDiv.innerHTML = '<span></span><span></span><span></span>';
+    msgs.appendChild(typingDiv);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    chatHistory.push({ role: 'user', content: text });
+
+    try {
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: chatHistory })
+        });
+        const data = await res.json();
+        const reply = data.reply || "I'm not sure about that — email yash.hooda6@gmail.com for more info!";
+        chatHistory.push({ role: 'assistant', content: reply });
+        typingDiv.remove();
+        const botDiv = document.createElement('div');
+        botDiv.className = 'msg bot';
+        botDiv.textContent = reply;
+        msgs.appendChild(botDiv);
+    } catch {
+        typingDiv.remove();
+        const errDiv = document.createElement('div');
+        errDiv.className = 'msg bot';
+        errDiv.textContent = "Couldn't connect right now. Reach Yash at yash.hooda6@gmail.com!";
+        msgs.appendChild(errDiv);
+    }
+    msgs.scrollTop = msgs.scrollHeight;
+}
+</script>
 </body>
 </html>
-
-
-
-
-
-
 
 
 

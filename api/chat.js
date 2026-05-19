@@ -60,7 +60,7 @@ export default async function handler(req) {
     });
   }
 
-  const apiKey = process.env.AnthropicAPIKey;
+  const apiKey = process.env.ANTHROPIC_API_KEY ?? globalThis.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'API key not configured' }), {
       status: 500,

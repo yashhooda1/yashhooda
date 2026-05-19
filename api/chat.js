@@ -12,6 +12,7 @@ export default async function handler(req, res) {
   }
 
   const apiKey = process.env.AnthropicAPIKey;
+  console.log('API KEY EXISTS:', !!apiKey, 'LENGTH:', apiKey?.length);
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   const CONTEXT = `You are an AI assistant for Yash Hooda's personal portfolio website. Answer questions about Yash concisely and helpfully.

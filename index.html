@@ -1049,17 +1049,43 @@
         </div>
         <button class="chat-close" onclick="toggleChat()">✕</button>
     </div>
+    <div class="chat-tabs">
+        <button class="chat-tab active" onclick="switchTab(this,'about')">👤 About</button>
+        <button class="chat-tab" onclick="switchTab(this,'career')">💼 Career</button>
+        <button class="chat-tab" onclick="switchTab(this,'running')">🏃 Running</button>
+        <button class="chat-tab" onclick="switchTab(this,'balance')">⚖️ Balance</button>
+    </div>
     <div class="chat-messages" id="chat-messages">
-        <div class="msg bot">Hey! 👋 I'm Yash's personal AI assistant. Ask me anything — his projects, skills, running PRs, or how to work with him!</div>
+        <div class="msg bot">Hey! 👋 I'm Yash's AI assistant. I can talk about his projects &amp; skills, give career advice for Data/AI Engineering, running coaching, or tips on balancing a demanding job with your goals. What's on your mind?</div>
     </div>
     <div class="chat-quick-btns" id="quick-btns">
-        <button class="quick-btn" onclick="quickAsk('What are Yash\u0027s top skills?')">Top skills</button>
-        <button class="quick-btn" onclick="quickAsk('Tell me about his projects')">Projects</button>
-        <button class="quick-btn" onclick="quickAsk('What are his running PRs?')">Running PRs</button>
-        <button class="quick-btn" onclick="quickAsk('How can I hire Yash?')">Hire him</button>
+        <span class="quick-section-label">About Yash</span>
+        <button class="quick-btn" onclick="quickAsk('What are Yash top skills?')">Top skills</button>
+        <button class="quick-btn" onclick="quickAsk('Tell me about his AI projects')">Projects</button>
+        <button class="quick-btn" onclick="quickAsk('How can I hire or contact Yash?')">Hire him</button>
+        <span class="quick-section-label">Career Advice</span>
+        <button class="quick-btn" onclick="quickAsk('How do I break into AI Engineering without a masters degree?')">No degree path</button>
+        <button class="quick-btn" onclick="quickAsk('What certifications should I get for Data Engineering?')">Best certs</button>
+        <button class="quick-btn" onclick="quickAsk('How do I go from Data Engineer to AI Engineer?')">DE → AI path</button>
+        <span class="quick-section-label">Running Coaching</span>
+        <button class="quick-btn" onclick="quickAsk('How do I run a faster 5K?')">Faster 5K</button>
+        <button class="quick-btn" onclick="quickAsk('How do I train for my first marathon?')">Marathon training</button>
+        <button class="quick-btn" onclick="quickAsk('What are Yash running PRs?')">Yash's PRs</button>
+        <span class="quick-section-label">Work-Life Balance</span>
+        <button class="quick-btn" onclick="quickAsk('How do I balance a demanding 8-5 job with running and side projects?')">Balance tips</button>
+        <button class="quick-btn" onclick="quickAsk('How do I avoid burnout while training and working full time?')">Avoid burnout</button>
     </div>
+    <div class="img-preview-wrap" id="img-preview-wrap">
+        <div class="img-preview">
+            <img id="img-preview-img" src="" alt="preview" />
+            <button class="img-preview-remove" onclick="removeImage()">✕</button>
+        </div>
+    </div>
+    <input type="file" id="img-file-input" accept="image/*" style="display:none" onchange="handleImageSelect(event)" />
     <div class="chat-input-row">
-        <input class="chat-input" id="chat-input" type="text" placeholder="Ask about Yash..." onkeydown="if(event.key==='Enter') sendMsg()" />
+        <button class="chat-icon-btn" id="voice-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
+        <button class="chat-icon-btn" onclick="document.getElementById('img-file-input').click()" title="Send image">🖼️</button>
+        <input class="chat-input" id="chat-input" type="text" placeholder="Ask anything..." onkeydown="if(event.key==='Enter') sendMsg()" />
         <button class="chat-send" onclick="sendMsg()">➤</button>
     </div>
 </div>
@@ -1558,9 +1584,30 @@ const countObserver = new IntersectionObserver(entries => {
 document.querySelectorAll('.stat-num[data-target]').forEach(el => countObserver.observe(el));
 
 // ── CHATBOT ──
-
 let chatHistory = [];
 let chatOpen = false;
+let mediaRecorder = null;
+let isRecording = false;
+let pendingImageBase64 = null;
+let pendingImageType = null;
+
+// Tab switcher
+function switchTab(btn, topic) {
+    document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const prompts = {
+        about: ['What are Yash top skills?', 'Tell me about his AI projects', 'How can I hire or contact Yash?'],
+        career: ['How do I break into AI Engineering without a masters degree?', 'What certifications matter most for Data Engineering?', 'How do I build an AI portfolio with no experience?'],
+        running: ['How do I run a faster half marathon?', 'What is a good marathon training plan for a beginner?', 'How do I prevent running injuries?'],
+        balance: ['How do I balance a demanding 8-5 job with running and side projects?', 'How do I find time to train when I work full time?', 'How do I avoid burnout while working and training?']
+    };
+    const btns = document.querySelectorAll('.quick-btn');
+    const list = prompts[topic] || [];
+    btns.forEach((b, i) => {
+        if (list[i]) { b.textContent = list[i].length > 30 ? list[i].slice(0,28)+'…' : list[i]; b.onclick = () => quickAsk(list[i]); b.style.display=''; }
+        else { b.style.display = i < 9 ? '' : 'none'; }
+    });
+}
 
 function toggleChat() {
     chatOpen = !chatOpen;
@@ -1572,17 +1619,102 @@ function quickAsk(q) {
     sendMsg();
 }
 
+// ── IMAGE HANDLING ──
+function handleImageSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        const dataUrl = ev.target.result;
+        pendingImageBase64 = dataUrl.split(',')[1];
+        pendingImageType = file.type;
+        document.getElementById('img-preview-img').src = dataUrl;
+        document.getElementById('img-preview-wrap').classList.add('has-img');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+}
+
+function removeImage() {
+    pendingImageBase64 = null;
+    pendingImageType = null;
+    document.getElementById('img-preview-wrap').classList.remove('has-img');
+    document.getElementById('img-preview-img').src = '';
+}
+
+// ── VOICE INPUT ──
+function toggleVoice() {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        addBotMsg('Voice input isn't supported in this browser. Try Chrome!');
+        return;
+    }
+    const btn = document.getElementById('voice-btn');
+    if (isRecording) {
+        if (mediaRecorder) mediaRecorder.stop();
+        isRecording = false;
+        btn.classList.remove('recording');
+        btn.textContent = '🎤';
+        return;
+    }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SR();
+    rec.lang = 'en-US';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onstart = () => { isRecording = true; btn.classList.add('recording'); btn.textContent = '⏹️'; };
+    rec.onresult = e => {
+        const transcript = e.results[0][0].transcript;
+        document.getElementById('chat-input').value = transcript;
+        isRecording = false;
+        btn.classList.remove('recording');
+        btn.textContent = '🎤';
+        sendMsg();
+    };
+    rec.onerror = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = '🎤'; };
+    rec.onend = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = '🎤'; };
+    mediaRecorder = rec;
+    rec.start();
+}
+
+// ── SEND MESSAGE ──
+function addBotMsg(text) {
+    const msgs = document.getElementById('chat-messages');
+    const d = document.createElement('div');
+    d.className = 'msg bot';
+    d.textContent = text;
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
 async function sendMsg() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
-    if (!text) return;
+    if (!text && !pendingImageBase64) return;
     input.value = '';
     document.getElementById('quick-btns').style.display = 'none';
 
     const msgs = document.getElementById('chat-messages');
+
+    // Build user message content
+    let userContent;
     const userDiv = document.createElement('div');
     userDiv.className = 'msg user';
-    userDiv.textContent = text;
+
+    if (pendingImageBase64) {
+        userContent = [
+            { type: 'image', source: { type: 'base64', media_type: pendingImageType, data: pendingImageBase64 } },
+            { type: 'text', text: text || 'What do you see in this image? Give me relevant advice.' }
+        ];
+        const imgEl = document.createElement('img');
+        imgEl.src = 'data:' + pendingImageType + ';base64,' + pendingImageBase64;
+        imgEl.className = 'msg-img';
+        if (text) userDiv.textContent = text;
+        userDiv.appendChild(imgEl);
+        removeImage();
+    } else {
+        userContent = text;
+        userDiv.textContent = text;
+    }
     msgs.appendChild(userDiv);
 
     const typingDiv = document.createElement('div');
@@ -1591,7 +1723,7 @@ async function sendMsg() {
     msgs.appendChild(typingDiv);
     msgs.scrollTop = msgs.scrollHeight;
 
-    chatHistory.push({ role: 'user', content: text });
+    chatHistory.push({ role: 'user', content: userContent });
 
     try {
         const res = await fetch('/api/chat', {
@@ -1600,7 +1732,7 @@ async function sendMsg() {
             body: JSON.stringify({ messages: chatHistory })
         });
         const data = await res.json();
-        const reply = data.reply || "I'm not sure about that — email yash.hooda6@gmail.com for more info!";
+        const reply = data.reply || 'I'm not sure — email yash.hooda6@gmail.com!';
         chatHistory.push({ role: 'assistant', content: reply });
         typingDiv.remove();
         const botDiv = document.createElement('div');
@@ -1611,7 +1743,7 @@ async function sendMsg() {
         typingDiv.remove();
         const errDiv = document.createElement('div');
         errDiv.className = 'msg bot';
-        errDiv.textContent = "Couldn't connect right now. Reach Yash at yash.hooda6@gmail.com!";
+        errDiv.textContent = 'Couldn't connect right now. Reach Yash at yash.hooda6@gmail.com!';
         msgs.appendChild(errDiv);
     }
     msgs.scrollTop = msgs.scrollHeight;

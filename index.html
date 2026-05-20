@@ -1024,6 +1024,19 @@
             #chat-window { width: calc(100vw - 2rem); right: 1rem; }
             .projects-grid, .cert-grid { grid-template-columns: 1fr; }
         }
+
+        /* ── IMAGE PREVIEW ── */
+        .img-preview-wrap { padding: 0 1rem 0.5rem; display: none; }
+        .img-preview-wrap.has-img { display: block; }
+        .img-preview { position: relative; display: inline-block; }
+        .img-preview img { max-height: 80px; border-radius: 6px; border: 1px solid var(--border); }
+        .img-preview-remove {
+            position: absolute; top: -6px; right: -6px;
+            width: 18px; height: 18px; background: #ef4444; border: none;
+            border-radius: 50%; color: #fff; font-size: 0.65rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; line-height:1;
+        }
+        .msg-img { max-width: 100%; border-radius: 6px; margin-top: 0.4rem; display: block; }
     </style>
 </head>
 <body>
@@ -1731,20 +1744,25 @@ async function sendMsg() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ messages: chatHistory })
         });
-        const data = await res.json();
-        const reply = data.reply || 'I\'m not sure — email yash.hooda6@gmail.com!';
+        let data;
+        try { data = await res.json(); } catch(e) { data = {}; }
+        if (!res.ok) {
+            console.error('API error:', res.status, data);
+            typingDiv.remove();
+            addBotMsg('Error ' + res.status + ' — check Vercel logs. Email yash.hooda6@gmail.com if this persists!');
+            return;
+        }
+        const reply = data.reply || 'I\'m not sure about that — email yash.hooda6@gmail.com!';
         chatHistory.push({ role: 'assistant', content: reply });
         typingDiv.remove();
         const botDiv = document.createElement('div');
         botDiv.className = 'msg bot';
         botDiv.textContent = reply;
         msgs.appendChild(botDiv);
-    } catch {
+    } catch(err) {
+        console.error('Fetch error:', err);
         typingDiv.remove();
-        const errDiv = document.createElement('div');
-        errDiv.className = 'msg bot';
-        errDiv.textContent = 'Couldn\'t connect right now. Reach Yash at yash.hooda6@gmail.com!';
-        msgs.appendChild(errDiv);
+        addBotMsg('Network error — make sure you are on the live Vercel site, not a local file!');
     }
     msgs.scrollTop = msgs.scrollHeight;
 }

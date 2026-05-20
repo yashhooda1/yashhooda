@@ -904,6 +904,27 @@
             font-size: 1rem;
         }
         .hike-stat span { font-size: 0.72rem; color: var(--text-muted); }
+        /* ── STRAVA LIVE FEED ── */
+        .strava-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
+        .strava-live-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.3); color: #fc4c02; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
+        .strava-live-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fc4c02; animation: pulse 2s infinite; }
+        .strava-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+        .strava-card { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.1rem; transition: all 0.25s; position: relative; overflow: hidden; }
+        .strava-card:hover { border-color: rgba(252,76,2,0.4); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(252,76,2,0.07); }
+        .strava-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #fc4c02, #ff6b35); }
+        .strava-type-badge { display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.2); color: #fc4c02; padding: 0.15rem 0.55rem; border-radius: 4px; font-size: 0.68rem; font-family: 'Space Mono', monospace; letter-spacing: 0.04em; margin-bottom: 0.5rem; }
+        .strava-name { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--text); font-weight: 700; margin-bottom: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .strava-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+        .strava-stat-val { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--green); font-weight: 700; display: block; }
+        .strava-stat-label { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+        .strava-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.7rem; color: var(--text-muted); }
+        .strava-kudos { color: #fc4c02; font-family: 'Space Mono', monospace; }
+        .strava-loading { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; }
+        .strava-loading::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(252,76,2,0.3); border-top-color: #fc4c02; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .strava-error { color: var(--text-muted); font-size: 0.85rem; padding: 1.5rem; text-align: center; }
+        .strava-view-all { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(252,76,2,0.08); border: 1px solid rgba(252,76,2,0.25); color: #fc4c02; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.75rem; font-family: 'Space Mono', monospace; text-decoration: none; transition: all 0.2s; letter-spacing: 0.03em; }
+        .strava-view-all:hover { background: rgba(252,76,2,0.15); border-color: #fc4c02; color: #fc4c02; }
 
         /* ── CONTACT ── */
         .contact-grid {
@@ -1404,6 +1425,20 @@
         <p style="margin-top: 1rem;">Follow my training journey on my public Strava account: <a href="https://www.strava.com/athletes/89409717" target="_blank">here</a>.</p>
     </section>
 
+    <!-- STRAVA LIVE FEED -->
+    <section id="strava-feed">
+        <div class="strava-header">
+        <h2 style="margin-bottom:0;">🏃 Live Training Feed</h2>
+        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <span class="strava-live-badge">LIVE FROM STRAVA</span>
+            <a href="https://www.strava.com/athletes/89409717" target="_blank" class="strava-view-all">View Full Profile →</a>
+        </div>
+        </div>
+        <div id="strava-grid" class="strava-grid">
+        <div class="strava-loading">Loading latest activities...</div>
+        </div>
+    </section>
+
     <!-- HIKES -->
     <section id="hikes">
         <h2>🏔️ Morning Hike around Lake Monarch – Granby, CO</h2>
@@ -1766,6 +1801,47 @@ async function sendMsg() {
     }
     msgs.scrollTop = msgs.scrollHeight;
 }
+
+// ── STRAVA LIVE FEED ──
+async function loadStrava() {
+    const grid = document.getElementById('strava-grid');
+    if (!grid) return;
+    try {
+        const res = await fetch('/api/strava');
+        const data = await res.json();
+        if (!res.ok || !data.activities) {
+            grid.innerHTML = '<div class="strava-error">Could not load Strava data. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';
+            return;
+        }
+        const acts = data.activities;
+        if (!acts.length) { grid.innerHTML = '<div class="strava-error">No recent activities found.</div>'; return; }
+        const typeIcon = t => ({'Run':'🏃','Ride':'🚴','Swim':'🏊','Hike':'🥾','Walk':'🚶','VirtualRun':'🏃','TrailRun':'🏔️','Workout':'💪'}[t] || '🏃');
+        const fmtTime = s => { const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60; return h > 0 ? `${h}h ${m}m` : `${m}:${sec.toString().padStart(2,'0')}`; };
+        const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        grid.innerHTML = acts.map(a => `
+            <div class="strava-card">
+                <div class="strava-type-badge">${typeIcon(a.sport_type || a.type)} ${a.sport_type || a.type}</div>
+                <div class="strava-name" title="${a.name}">${a.name}</div>
+                <div class="strava-stats">
+                    <div class="strava-stat"><span class="strava-stat-val">${a.distance_mi} mi</span><span class="strava-stat-label">Distance</span></div>
+                    <div class="strava-stat"><span class="strava-stat-val">${fmtTime(a.moving_time_s)}</span><span class="strava-stat-label">Moving Time</span></div>
+                    ${a.pace_min_mi ? `<div class="strava-stat"><span class="strava-stat-val">${a.pace_min_mi}/mi</span><span class="strava-stat-label">Avg Pace</span></div>` : ''}
+                    ${a.avg_hr ? `<div class="strava-stat"><span class="strava-stat-val">${Math.round(a.avg_hr)} bpm</span><span class="strava-stat-label">Avg HR</span></div>` : ''}
+                    ${a.elevation_ft > 0 ? `<div class="strava-stat"><span class="strava-stat-val">${a.elevation_ft} ft</span><span class="strava-stat-label">Elevation</span></div>` : ''}
+                    ${a.suffer_score ? `<div class="strava-stat"><span class="strava-stat-val">${a.suffer_score}</span><span class="strava-stat-label">Suffer Score</span></div>` : ''}
+                </div>
+                <div class="strava-footer">
+                    <span>${fmtDate(a.date)}</span>
+                    <span class="strava-kudos">❤️ ${a.kudos} kudos</span>
+                </div>
+            </div>
+        `).join('');
+    } catch(err) {
+        console.error('Strava error:', err);
+        grid.innerHTML = '<div class="strava-error">Could not load activities. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';
+    }
+}
+loadStrava();
 </script>
 </body>
 </html>

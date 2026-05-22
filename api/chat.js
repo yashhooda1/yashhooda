@@ -1,3 +1,6 @@
+import { Index } from "@upstash/vector";
+import { Redis } from "@upstash/redis";
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -6,7 +9,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages } = req.body;
+  const { messages, sessionId } = req.body;
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages array required' });
   }
@@ -203,6 +206,93 @@ RESPONSE GUIDELINES
 - Always end career/running advice with one specific actionable next step
 - If unsure about something specific to Yash, say so and suggest emailing yash.hooda6@gmail.com`;
 
+  // ── RAG: retrieve relevant context from Upstash Vector ──
+  let ragContext = '';
+  try {
+    if (
+      process.env.UPSTASH_VECTOR_REST_URL &&
+      process.env.UPSTASH_VECTOR_REST_TOKEN &&
+      process.env.OPENAI_API_KEY
+    ) {
+      // Embed the latest user message
+      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+      const queryText = typeof lastUserMsg?.content === 'string'
+        ? lastUserMsg.content
+        : lastUserMsg?.content?.find?.(c => c.type === 'text')?.text || '';
+ 
+      if (queryText) {
+        // Get embedding from OpenAI
+        const embedRes = await fetch('https://api.openai.com/v1/embeddings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({ model: 'text-embedding-3-small', input: queryText }),
+        });
+        const embedData = await embedRes.json();
+        const vector = embedData?.data?.[0]?.embedding;
+ 
+        if (vector) {
+          // Query Upstash Vector for top 3 relevant chunks
+          const vectorIndex = new Index({
+            url: process.env.UPSTASH_VECTOR_REST_URL,
+            token: process.env.UPSTASH_VECTOR_REST_TOKEN,
+          });
+          const results = await vectorIndex.query({
+            vector,
+            topK: 3,
+            includeMetadata: true,
+          });
+          const chunks = results
+            .filter(r => r.score > 0.3) // only use relevant hits
+            .map(r => r.metadata?.text || '')
+            .filter(Boolean);
+          if (chunks.length) {
+            ragContext = '\n\n═══════════════════════════════════════\nADDITIONAL CONTEXT (retrieved from knowledge base):\n═══════════════════════════════════════\n' + chunks.join('\n\n');
+          }
+        }
+      }
+    }
+  } catch (ragErr) {
+    console.warn('RAG retrieval failed (non-fatal):', ragErr.message);
+  }
+ 
+  // ── MEMORY: load past conversation summaries from Redis ──
+  let memoryContext = '';
+  let redis = null;
+  const SESSION_KEY = `hooda_chat:${sessionId || 'anonymous'}`;
+  const MAX_MEMORY_PAIRS = 5; // last 5 Q&A pairs stored
+ 
+  try {
+    if (
+      process.env.UPSTASH_REDIS_REST_URL &&
+      process.env.UPSTASH_REDIS_REST_TOKEN &&
+      sessionId
+    ) {
+      redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
+      const stored = await redis.lrange(SESSION_KEY, 0, MAX_MEMORY_PAIRS * 2 - 1);
+      if (stored && stored.length) {
+        const pairs = stored.map(s => {
+          try { return typeof s === 'string' ? JSON.parse(s) : s; } catch { return null; }
+        }).filter(Boolean);
+        if (pairs.length) {
+          memoryContext = '\n\n═══════════════════════════════════════\nCONVERSATION MEMORY (what this user has asked before):\n═══════════════════════════════════════\n' +
+            pairs.map(p => `${p.role === 'user' ? 'User previously asked' : 'You previously answered'}: ${p.content}`).join('\n');
+        }
+      }
+    }
+  } catch (memErr) {
+    console.warn('Memory load failed (non-fatal):', memErr.message);
+  }
+ 
+  // ── BUILD FINAL SYSTEM PROMPT ──
+  // Inject RAG + memory into the system prompt — CONTEXT stays 100% intact
+  const finalSystem = CONTEXT + ragContext + memoryContext;
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -214,7 +304,7 @@ RESPONSE GUIDELINES
       body: JSON.stringify({
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 600,
-        system: CONTEXT,
+        system: finalSystem,
         messages,
       }),
     });
@@ -226,6 +316,23 @@ RESPONSE GUIDELINES
     }
 
     const reply = data.content?.[0]?.text ?? "Reach Yash at yash.hooda6@gmail.com!";
+
+    // ── MEMORY: save this exchange to Redis ──
+    try {
+      if (redis && sessionId) {
+        const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+        const userText = typeof lastUserMsg?.content === 'string'
+        ? lastUserMsg.content
+        : lastUserMsg?.content?.find?.(c => c.type === 'text')?.text || '[image/media]';
+
+        await redis.lpush(SESSION_KEY, JSON.stringify({ role: 'assistant', content: reply.slice(0, 500) }));
+        await redis.lpush(SESSION_KEY, JSON.stringify({ role: 'user', content: userText.slice(0, 300) }));
+        await redis.ltrim(SESSION_KEY, 0, MAX_MEMORY_PAIRS * 2 - 1);
+        await redis.expire(SESSION_KEY, 60 * 60 * 24 * 30);
+      }
+    } catch (savErr) {
+      console.warn('Memory save failed (non-fatal):', savErr.message);
+    }
     return res.status(200).json({ reply });
   } catch (err) {
     console.error('Handler error:', err);

@@ -866,6 +866,9 @@
             flex: 1;
             overflow: hidden;
         }
+        .save-tab-btn { margin-left: auto; border-left: 1px solid var(--border); color: var(--green-light) !important; }
+        .save-tab-btn:hover { background: rgba(76,175,80,0.15) !important; color: var(--green) !important; }
+        .save-tab-btn.saved { color: var(--green) !important; }
         .chat-history-panel.active { display: flex; }
         .chat-history-panel .history-actions { padding: 0.75rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
         .chat-messages.hidden { display: none; }
@@ -1833,6 +1836,56 @@ async function saveChat() {
         alert('Save failed — check your connection.');
     }
 }
+
+// ── SAVE CURRENT CHAT (one-tap from tab bar) ──
+async function saveCurrentChat() {
+    const btn = document.getElementById('save-tab-btn');
+    if (!chatHistory.length) {
+        // Flash the button red briefly to indicate nothing to save
+        btn.textContent = '✕';
+        setTimeout(() => { btn.textContent = '💾'; }, 1200);
+        return;
+    }
+    // Auto-title from first user message
+    const firstUserMsg = chatHistory.find(m => m.role === 'user');
+    const title = typeof firstUserMsg?.content === 'string'
+        ? firstUserMsg.content.slice(0, 50)
+        : 'Chat ' + new Date().toLocaleDateString();
+
+    btn.textContent = '⏳';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('/api/history?action=save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: SESSION_ID, title, messages: chatHistory })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            // Flash green checkmark, then switch to History tab to show it
+            btn.textContent = '✅';
+            btn.classList.add('saved');
+            setTimeout(() => {
+                btn.textContent = '💾';
+                btn.classList.remove('saved');
+                btn.disabled = false;
+                // Auto-navigate to History so user sees their saved chat
+                const historyTabBtn = document.querySelector('.chat-tab:nth-child(3)');
+                switchHistoryTab(historyTabBtn);
+            }, 800);
+        } else {
+            btn.textContent = '✕';
+            btn.disabled = false;
+            setTimeout(() => { btn.textContent = '💾'; }, 1200);
+        }
+    } catch (err) {
+        btn.textContent = '✕';
+        btn.disabled = false;
+        setTimeout(() => { btn.textContent = '💾'; }, 1200);
+    }
+}
+
 
 // ── NEW: Start a new chat ──
 function newChat() {

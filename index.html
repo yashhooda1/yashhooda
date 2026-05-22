@@ -1634,6 +1634,12 @@ document.querySelectorAll('.stat-num[data-target]').forEach(el => countObserver.
 // ── CHATBOT ──
 let chatHistory = [];
 let chatOpen = false;
+// Persistent session ID so memory works across browser visits
+const SESSION_ID = (() => {
+    let id = localStorage.getItem('hooda_session_id');
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem('hooda_session_id', id); }
+    return id;
+})();
 let mediaRecorder = null;
 let isRecording = false;
 let pendingImageBase64 = null;
@@ -1777,7 +1783,7 @@ async function sendMsg() {
         const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages: chatHistory })
+            body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID })
         });
         let data;
         try { data = await res.json(); } catch(e) { data = {}; }

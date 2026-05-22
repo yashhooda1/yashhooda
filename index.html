@@ -1121,29 +1121,38 @@
         <div class="history-list" id="history-list">
             <div class="history-empty">Loading saved chats…</div>
         </div>
+        <div class="history-actions">
+            <button class="chat-save-btn" onclick="saveChat()">💾 Save Chat</button>
+            <button class="chat-new-btn" onclick="newChat()">＋ New Chat</button>
+        </div>
     </div>
-    <!-- Save / New Chat row (always visible) -->
-    <div class="history-actions">
-        <button class="chat-save-btn" onclick="saveChat()">💾 Save Chat</button>
-        <button class="chat-new-btn" onclick="newChat()">＋ New Chat</button>
+
+    <!-- Prompts Panel -->
+    <div class="chat-history-panel" id="prompts-panel">
+        <div class="history-list">
+            <div class="prompts-new-row">
+                <button class="chat-new-btn" style="width:100%" onclick="newChat()">＋ New Chat</button>
+            </div>
+            <span class="quick-section-label">👤 About Yash</span>
+            <button class="quick-btn wide-btn" onclick="quickAsk('What are Yash top skills?')">What are Yash's top skills?</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('Tell me about his AI projects')">Tell me about his AI projects</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How can I hire or contact Yash?')">How can I hire or contact Yash?</button>
+            <span class="quick-section-label">💼 Career Advice</span>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How do I break into AI Engineering without a masters degree?')">Break into AI Engineering without a degree</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('What certifications should I get for Data Engineering?')">Best certifications for Data Engineering</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How do I go from Data Engineer to AI Engineer?')">How to go from Data Engineer → AI Engineer</button>
+            <span class="quick-section-label">🏃 Running Coaching</span>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How do I run a faster 5K?')">How do I run a faster 5K?</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How do I train for my first marathon?')">How do I train for my first marathon?</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('What are Yash running PRs?')">What are Yash's running PRs?</button>
+            <span class="quick-section-label">⚖️ Work-Life Balance</span>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How do I balance a demanding 8-5 job with running and side projects?')">Balance a job, running & side projects</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How do I avoid burnout while training and working full time?')">Avoid burnout while training full time</button>
+        </div>
     </div>
-    <div class="chat-quick-btns" id="quick-btns">
-        <span class="quick-section-label">About Yash</span>
-        <button class="quick-btn" onclick="quickAsk('What are Yash top skills?')">Top skills</button>
-        <button class="quick-btn" onclick="quickAsk('Tell me about his AI projects')">Projects</button>
-        <button class="quick-btn" onclick="quickAsk('How can I hire or contact Yash?')">Hire him</button>
-        <span class="quick-section-label">Career Advice</span>
-        <button class="quick-btn" onclick="quickAsk('How do I break into AI Engineering without a masters degree?')">No degree path</button>
-        <button class="quick-btn" onclick="quickAsk('What certifications should I get for Data Engineering?')">Best certs</button>
-        <button class="quick-btn" onclick="quickAsk('How do I go from Data Engineer to AI Engineer?')">DE → AI path</button>
-        <span class="quick-section-label">Running Coaching</span>
-        <button class="quick-btn" onclick="quickAsk('How do I run a faster 5K?')">Faster 5K</button>
-        <button class="quick-btn" onclick="quickAsk('How do I train for my first marathon?')">Marathon training</button>
-        <button class="quick-btn" onclick="quickAsk('What are Yash running PRs?')">Yash's PRs</button>
-        <span class="quick-section-label">Work-Life Balance</span>
-        <button class="quick-btn" onclick="quickAsk('How do I balance a demanding 8-5 job with running and side projects?')">Balance tips</button>
-        <button class="quick-btn" onclick="quickAsk('How do I avoid burnout while training and working full time?')">Avoid burnout</button>
-    </div>
+
+    <!-- quick-btns kept empty/hidden — tabs now handle prompts -->
+    <div class="chat-quick-btns" id="quick-btns" style="display:none"></div>
     <div class="img-preview-wrap" id="img-preview-wrap">
         <div class="img-preview">
             <img id="img-preview-img" src="" alt="preview" />

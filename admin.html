@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HoodaAgents Admin</title>
+  <style>
+    :root {
+      --green: #4caf50; --green-light: #81c784;
+      --bg: #0d1117; --bg-card: #1e293b; --bg-elevated: #2d3748;
+      --text: #E0E0E0; --text-muted: #9ca3af;
+      --border: rgba(76,175,80,0.2);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    .login-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2.5rem; width: 360px; }
+    .login-box h1 { font-family: 'Space Mono', monospace; color: var(--green); font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .login-box p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+    input[type=password] { width:100%; background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.08); border-radius: 7px; color: var(--text); padding: 0.65rem 0.9rem; font-size: 0.9rem; outline:none; margin-bottom: 1rem; }
+    input[type=password]:focus { border-color: rgba(76,175,80,0.5); }
+    .btn { background: var(--green); color:#000; border:none; border-radius:7px; padding:0.65rem 1.5rem; font-size:0.9rem; font-weight:700; cursor:pointer; width:100%; font-family:'Space Mono',monospace; transition: all 0.2s; }
+    .btn:hover { background: var(--green-light); }
+    .err { color:#f87171; font-size:0.8rem; margin-top:0.5rem; display:none; }
+
+    /* Dashboard */
+    #dashboard { display:none; }
+    .dash-header { background: #161b22; border-bottom: 1px solid var(--border); padding: 1rem 2rem; display:flex; align-items:center; justify-content:space-between; }
+    .dash-header h1 { font-family:'Space Mono',monospace; color:var(--green); font-size:1rem; }
+    .dash-header button { background:none; border:1px solid var(--border); color:var(--text-muted); border-radius:6px; padding:0.3rem 0.8rem; font-size:0.8rem; cursor:pointer; }
+    .dash-body { display:grid; grid-template-columns: 320px 1fr; height: calc(100vh - 57px); }
+    .chat-list { border-right: 1px solid var(--border); overflow-y:auto; }
+    .chat-list-header { padding: 1rem; border-bottom: 1px solid var(--border); font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--text-muted); letter-spacing:0.05em; text-transform:uppercase; }
+    .chat-item { padding: 0.9rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); cursor:pointer; transition: background 0.15s; }
+    .chat-item:hover, .chat-item.active { background: rgba(76,175,80,0.06); }
+    .chat-item-title { font-size:0.85rem; color:var(--text); font-weight:500; margin-bottom:0.25rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .chat-item-meta { font-size:0.72rem; color:var(--text-muted); display:flex; gap:0.75rem; }
+    .chat-detail { padding: 2rem; overflow-y:auto; }
+    .chat-detail-empty { display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted); font-size:0.9rem; }
+    .detail-title { font-family:'Space Mono',monospace; color:var(--green); font-size:1rem; margin-bottom:0.5rem; }
+    .detail-meta { font-size:0.78rem; color:var(--text-muted); margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--border); }
+    .msg-row { display:flex; flex-direction:column; gap:0.6rem; margin-bottom: 1.5rem; }
+    .msg-bubble { max-width:80%; padding:0.6rem 0.9rem; border-radius:10px; font-size:0.85rem; line-height:1.55; }
+    .msg-bubble.user { background:rgba(76,175,80,0.15); border:1px solid rgba(76,175,80,0.25); align-self:flex-end; border-bottom-right-radius:3px; }
+    .msg-bubble.bot { background:var(--bg-elevated); border:1px solid rgba(255,255,255,0.07); align-self:flex-start; border-bottom-left-radius:3px; }
+    .msg-label { font-size:0.68rem; color:var(--text-muted); margin-bottom:0.2rem; }
+    .msg-label.user { text-align:right; }
+    .loading { color:var(--text-muted); font-size:0.85rem; padding:2rem; text-align:center; }
+    .badge-count { background:rgba(76,175,80,0.15); color:var(--green); border-radius:4px; padding:0.1rem 0.4rem; font-size:0.72rem; font-family:'Space Mono',monospace; margin-left:0.5rem; }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <h1>🤖 HoodaAgents Admin</h1>
+    <p>Enter your admin password to view all saved conversations.</p>
+    <input type="password" id="admin-pw" placeholder="Admin password" onkeydown="if(event.key==='Enter') login()" />
+    <button class="btn" onclick="login()">Sign In</button>
+    <div class="err" id="login-err">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="dash-header">
+    <h1>🤖 HoodaAgents — Conversation Admin</h1>
+    <button onclick="logout()">Sign Out</button>
+  </div>
+  <div class="dash-body">
+    <div class="chat-list" id="chat-list">
+      <div class="chat-list-header">Saved Conversations <span class="badge-count" id="chat-count">0</span></div>
+      <div id="chat-list-items"><div class="loading">Loading...</div></div>
+    </div>
+    <div class="chat-detail" id="chat-detail">
+      <div class="chat-detail-empty">← Select a conversation to view</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let adminKey = '';
+
+  function login() {
+    const pw = document.getElementById('admin-pw').value.trim();
+    if (!pw) return;
+    adminKey = pw;
+    loadChats();
+  }
+
+  function logout() {
+    adminKey = '';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-wrap').style.display = 'flex';
+    document.getElementById('admin-pw').value = '';
+  }
+
+  async function loadChats() {
+    try {
+      const res = await fetch('/api/history?action=admin', {
+        headers: { 'x-admin-key': adminKey }
+      });
+      if (res.status === 401) {
+        document.getElementById('login-err').style.display = 'block';
+        return;
+      }
+      const data = await res.json();
+      document.getElementById('login-err').style.display = 'none';
+      document.getElementById('login-wrap').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      renderList(data.chats || []);
+    } catch (err) {
+      document.getElementById('login-err').textContent = 'Connection error.';
+      document.getElementById('login-err').style.display = 'block';
+    }
+  }
+
+  function renderList(chats) {
+    document.getElementById('chat-count').textContent = chats.length;
+    const container = document.getElementById('chat-list-items');
+    if (!chats.length) { container.innerHTML = '<div class="loading">No saved conversations yet.</div>'; return; }
+    container.innerHTML = chats.map(c => `
+      <div class="chat-item" onclick="viewChat(this, '${escHtml(JSON.stringify(c))}')" >
+        <div class="chat-item-title">${escHtml(c.title)}</div>
+        <div class="chat-item-meta">
+          <span>${new Date(c.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+          <span>${c.messageCount} messages</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function viewChat(el, rawJson) {
+    document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    const chat = JSON.parse(rawJson);
+    const detail = document.getElementById('chat-detail');
+    detail.innerHTML = `
+      <div class="detail-title">${escHtml(chat.title)}</div>
+      <div class="detail-meta">
+        Saved ${new Date(chat.savedAt).toLocaleString()} &nbsp;·&nbsp; Session: <code>${escHtml((chat.sessionId||'').slice(0,8))}…</code> &nbsp;·&nbsp; ${chat.messageCount} messages
+      </div>
+      <div class="msg-row">
+        ${(chat.messages || []).map(m => `
+          <div class="msg-label ${m.role}">${m.role === 'user' ? 'User' : 'TARS'}</div>
+          <div class="msg-bubble ${m.role}">${escHtml(typeof m.content === 'string' ? m.content : '[media]')}</div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function escHtml(str) {
+    if (typeof str !== 'string') str = String(str);
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>

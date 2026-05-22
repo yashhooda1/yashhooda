@@ -111,5 +111,22 @@ export default async function handler(req, res) {
     return res.status(200).json({ chats: records.filter(Boolean) });
   }
 
+  // ── DELETE A SAVED CHAT ──
+  // POST /api/history?action=delete
+  // body: { sessionId, chatId }
+  if (req.method === 'POST' && action === 'delete') {
+    const { sessionId, chatId } = req.body;
+    if (!sessionId || !chatId) {
+      return res.status(400).json({ error: 'sessionId and chatId required' });
+    }
+    // Delete the chat record
+    await redis.del(`saved_chat:${chatId}`);
+    // Remove from this session's index
+    await redis.lrem(`saved_index:${sessionId}`, 0, chatId);
+    // Remove from admin index
+    await redis.lrem('admin:all_chats', 0, chatId);
+    return res.status(200).json({ ok: true });
+  }
+
   return res.status(400).json({ error: 'Unknown action' });
 }

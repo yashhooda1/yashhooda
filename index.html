@@ -1691,34 +1691,34 @@ const SESSION_ID = (() => {
     return id;
 })();
 
-// Tab switcher (existing — unchanged)
-function switchTab(btn, topic) {
-    document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    // Show messages, hide history panel
+// ── Helper: reset all panels to hidden ──
+function hideAllPanels() {
     document.getElementById('chat-messages').classList.remove('hidden');
     document.getElementById('history-panel').classList.remove('active');
-    document.getElementById('quick-btns').style.display = '';
-    const prompts = {
-        about: ['What are Yash top skills?', 'Tell me about his AI projects', 'How can I hire or contact Yash?'],
-        career: ['How do I break into AI Engineering without a masters degree?', 'What certifications matter most for Data Engineering?', 'How do I build an AI portfolio with no experience?'],
-        running: ['How do I run a faster half marathon?', 'What is a good marathon training plan for a beginner?', 'How do I prevent running injuries?'],
-        balance: ['How do I balance a demanding 8-5 job with running and side projects?', 'How do I find time to train when I work full time?', 'How do I avoid burnout while working and training?']
-    };
-    const btns = document.querySelectorAll('.quick-btn');
-    const list = prompts[topic] || [];
-    btns.forEach((b, i) => {
-        if (list[i]) { b.textContent = list[i].length > 30 ? list[i].slice(0,28)+'…' : list[i]; b.onclick = () => quickAsk(list[i]); b.style.display=''; }
-        else { b.style.display = i < 9 ? '' : 'none'; }
-    });
+    document.getElementById('prompts-panel').classList.remove('active');
+    document.getElementById('quick-btns').style.display = 'none';
+    document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
 }
 
-// ── NEW: History tab switcher ──
-function switchHistoryTab(btn) {
-    document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+// ── Chat tab (default view) ──
+function showChatView(btn) {
+    hideAllPanels();
+    btn.classList.add('active');
+}
+
+// ── Prompts tab ──
+function switchPromptsTab(btn) {
+    hideAllPanels();
     btn.classList.add('active');
     document.getElementById('chat-messages').classList.add('hidden');
-    document.getElementById('quick-btns').style.display = 'none';
+    document.getElementById('prompts-panel').classList.add('active');
+}
+
+// ── History tab ──
+function switchHistoryTab(btn) {
+    hideAllPanels();
+    btn.classList.add('active');
+    document.getElementById('chat-messages').classList.add('hidden');
     document.getElementById('history-panel').classList.add('active');
     loadHistoryList();
 }
@@ -1840,8 +1840,8 @@ function newChat() {
     const msgs = document.getElementById('chat-messages');
     msgs.innerHTML = '<div class="msg bot">Hey! 👋 I\'m Yash\'s AI assistant. I can talk about his projects &amp; skills, give career advice for Data/AI Engineering, running coaching, or tips on balancing a demanding job with your goals. What\'s on your mind?</div>';
     document.getElementById('quick-btns').style.display = '';
-    document.getElementById('history-panel').classList.remove('active');
-    document.getElementById('chat-messages').classList.remove('hidden');
+    hideAllPanels();
+    document.querySelector('.chat-tab').classList.add('active');
 }
 
 function toggleChat() {
@@ -1850,6 +1850,9 @@ function toggleChat() {
 }
 
 function quickAsk(q) {
+    // Switch back to chat view first
+    hideAllPanels();
+    document.querySelector('.chat-tab').classList.add('active');
     document.getElementById('chat-input').value = q;
     sendMsg();
 }

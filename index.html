@@ -873,6 +873,9 @@
         .history-item-meta { font-size:0.68rem; color:var(--text-muted); }
         .history-empty { color:var(--text-muted); font-size:0.82rem; text-align:center; padding:2rem 1rem; }
         .history-actions { padding: 0.75rem; border-top: 1px solid var(--border); display:flex; gap:0.5rem; }
+        .history-delete-btn { background: none; border: none; cursor: pointer; font-size: 0.8rem; opacity: 0.4; transition: opacity 0.2s; padding: 0; margin-left: auto; }
+        .history-delete-btn:hover { opacity: 1; }
+        .history-item-meta { display: flex; align-items: center; gap: 0.5rem; }
         .chat-save-btn { flex:1; background: rgba(76,175,80,0.1); border:1px solid rgba(76,175,80,0.3); color:var(--green-light); border-radius:6px; padding:0.4rem 0; font-size:0.75rem; cursor:pointer; font-family:'Space Mono',monospace; transition:all 0.2s; }
         .chat-save-btn:hover { background: rgba(76,175,80,0.2); border-color:var(--green); }
         .chat-new-btn { flex:1; background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text-muted); border-radius:6px; padding:0.4rem 0; font-size:0.75rem; cursor:pointer; transition:all 0.2s; }
@@ -1724,9 +1727,12 @@ async function loadHistoryList() {
             return;
         }
         container.innerHTML = chats.map(c => `
-            <div class="history-item" onclick="loadSavedChat('${c.id}')">
-                <div class="history-item-title">${c.title}</div>
-                <div class="history-item-meta">${new Date(c.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})} · ${c.messageCount} messages</div>
+            <div class="history-item" id="hist-${c.id}">
+                <div class="history-item-title" onclick="loadSavedChat('${c.id}')">${c.title}</div>
+                <div class="history-item-meta">
+                    <span onclick="loadSavedChat('${c.id}')">${new Date(c.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})} · ${c.messageCount} messages</span>
+                    <button class="history-delete-btn" onclick="deleteChat('${c.id}', event)">🗑</button>
+                </div>
             </div>
         `).join('');
     } catch (err) {
@@ -1761,6 +1767,34 @@ async function loadSavedChat(chatId) {
         msgs.scrollTop = msgs.scrollHeight;
     } catch (err) {
         console.error('Failed to load saved chat:', err);
+    }
+}
+
+// ── DELETE A SAVED CHAT ──
+async function deleteChat(chatId, e) {
+    e.stopPropagation();
+    if (!confirm('Delete this saved conversation? This cannot be undone.')) return;
+    try {
+        const res = await fetch('/api/history?action=delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: SESSION_ID, chatId })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            // Remove from UI instantly without reloading
+            const el = document.getElementById(`hist-${chatId}`);
+            if (el) el.remove();
+            // Show empty state if none left
+            const list = document.getElementById('history-list');
+            if (!list.querySelector('.history-item')) {
+                list.innerHTML = '<div class="history-empty">No saved conversations yet.<br>Send a message then tap 💾 Save Chat.</div>';
+            }
+        } else {
+            alert('Delete failed — try again.');
+        }
+    } catch (err) {
+        alert('Delete failed — check your connection.');
     }
 }
 

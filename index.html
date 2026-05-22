@@ -1106,11 +1106,9 @@
         </div>
         <button class="chat-close" onclick="toggleChat()">✕</button>
     </div>
-    <div class="chat-tabs">
-        <button class="chat-tab active" onclick="switchTab(this,'about')">👤 About</button>
-        <button class="chat-tab" onclick="switchTab(this,'career')">💼 Career</button>
-        <button class="chat-tab" onclick="switchTab(this,'running')">🏃 Running</button>
-        <button class="chat-tab" onclick="switchTab(this,'balance')">⚖️ Balance</button>
+        <div class="chat-tabs">
+        <button class="chat-tab active" onclick="showChatView(this)">💬 Chat</button>
+        <button class="chat-tab" onclick="switchPromptsTab(this)">💡 Prompts</button>
         <button class="chat-tab" onclick="switchHistoryTab(this)">🕓 History</button>
     </div>
     <div class="chat-messages" id="chat-messages">

@@ -1108,10 +1108,11 @@
         </div>
         <button class="chat-close" onclick="toggleChat()">✕</button>
     </div>
-        <div class="chat-tabs">
+    <div class="chat-tabs">
         <button class="chat-tab active" onclick="showChatView(this)">💬 Chat</button>
         <button class="chat-tab" onclick="switchPromptsTab(this)">💡 Prompts</button>
         <button class="chat-tab" onclick="switchHistoryTab(this)">🕓 History</button>
+        <button class="chat-tab save-tab-btn" id="save-tab-btn" onclick="saveCurrentChat()" title="Save current chat">💾</button>
     </div>
     <div class="chat-messages" id="chat-messages">
         <div class="msg bot">Hey! 👋 I'm Yash's AI assistant. I can talk about his projects &amp; skills, give career advice for Data/AI Engineering, running coaching, or tips on balancing a demanding job with your goals. What's on your mind?</div>

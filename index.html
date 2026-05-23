@@ -1183,7 +1183,7 @@
         <span class="badge">Databricks Certified</span>
         <span class="badge">IBM AI Engineering</span>
         <span class="badge">IBM Data Science</span>
-        <span class="badge">Runner</span>
+        <span class="badge">Runner · <span id="weekly-miles-badge">--</span> mi/wk</span>
     </div>
     <div class="header-cta">
         <a href="#projects" class="btn-primary">🚀 View Projects</a>
@@ -1223,7 +1223,7 @@
             <div class="stat-label">Projects</div>
         </div>
         <div class="stat-item">
-            <span class="stat-num" data-target="45">0</span>
+            <span class="stat-num" id="weekly-miles">--</span>
             <div class="stat-label">Miles / Week</div>
         </div>
         <div class="stat-item">
@@ -1447,7 +1447,7 @@
         <div class="training-status">
             <div class="training-dot"></div>
             <div class="training-text">
-                <strong>Currently Training:</strong> 2026 Boulderthon Marathon · Week 3 · 45 miles/week<br>
+                <strong>Currently Training:</strong> 2026 Boulderthon Marathon<br>
                 <span style="font-size:0.8rem; color: var(--text-muted);">Last Race: 2026 NYCRuns Brooklyn Experience Half Marathon — 1:27:41</span>
             </div>
         </div>
@@ -2052,6 +2052,17 @@ async function loadStrava() {
     try {
         const res = await fetch('/api/strava');
         const data = await res.json();
+        // ── Update weekly miles stat live from Strava ──
+        if (typeof data.weekly_miles === 'number') {
+            const el = document.getElementById('weekly-miles');
+            if (el) el.textContent = data.weekly_miles;
+        }
+        if (typeof data.weekly_miles === 'number') {
+            const el = document.getElementById('weekly-miles');
+            if (el) el.textContent = data.weekly_miles;
+            const badge = document.getElementById('weekly-miles-badge');
+            if (badge) badge.textContent = data.weekly_miles;
+        }
         if (!res.ok || !data.activities) {
             grid.innerHTML = '<div class="strava-error">Could not load Strava data. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';
             return;

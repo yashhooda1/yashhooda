@@ -1464,7 +1464,7 @@
             <li>5k Personal Record: 18:15 (2025 Women's Quarter Marathon - Houston Running Co)
                 <a href="https://results.raceroster.com/v2/en-US/results/gmd6pbsxdkfxvzrk/detail/t4zy2fb9zsxzejfg" target="_blank">View Results</a>
             </li>
-            <li>Current Weekly Mileage: 30-40 miles per week - Week 3 for Boulderthon training</li>
+            <li>Current Weekly Mileage: <span id="weekly-miles-running">--</span> miles this week (live from Strava)</li>
             <li>Currently Training For: 2026 Boulderthon Marathon</li>
             <li>Last Race + Time: 2026 NYCRuns Brooklyn Experience Half Marathon - 1:27:41
                 <a href="https://nycruns.com/race-results?race=nycruns-brooklyn-experience-half-marathon-2026&result=2961804" target="_blank">View Results</a>
@@ -2062,6 +2062,9 @@ async function loadStrava() {
             if (el) el.textContent = data.weekly_miles;
             const badge = document.getElementById('weekly-miles-badge');
             if (badge) badge.textContent = data.weekly_miles;
+            const running = document.getElementById('weekly-miles-running');
+            if (running) running.textContent = data.weekly_miles;
+        }
         }
         if (!res.ok || !data.activities) {
             grid.innerHTML = '<div class="strava-error">Could not load Strava data. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';

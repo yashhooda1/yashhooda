@@ -2065,7 +2065,6 @@ async function loadStrava() {
             const running = document.getElementById('weekly-miles-running');
             if (running) running.textContent = data.weekly_miles;
         }
-        }
         if (!res.ok || !data.activities) {
             grid.innerHTML = '<div class="strava-error">Could not load Strava data. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';
             return;

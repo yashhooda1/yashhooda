@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
     // 2. Fetch latest 8 activities
     const actRes = await fetch(
-      'https://www.strava.com/api/v3/athlete/activities?per_page=8&page=1',
+      'https://www.strava.com/api/v3/athlete/activities?per_page=30&page=1',
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     const activities = await actRes.json();
@@ -71,8 +71,29 @@ export default async function handler(req, res) {
     }));
 
     // Cache for 5 minutes
+    // ── WEEKLY MILEAGE (Monday 00:00 → Sunday 23:59 current week) ──
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon ... 6=Sat
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - daysFromMonday);
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    const weeklyMeters = activities
+      .filter(a => {
+        const d = new Date(a.start_date_local);
+        return d >= monday && d <= sunday;
+      })
+      .reduce((sum, a) => sum + (a.distance || 0), 0);
+
+    const weekly_miles = parseFloat((weeklyMeters / 1609.34).toFixed(1));
+
+    // Cache for 5 minutes
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
-    return res.status(200).json({ activities: shaped });
+    return res.status(200).json({ activities: shaped, weekly_miles });
   } catch (err) {
     console.error('Strava handler error:', err);
     return res.status(500).json({ error: 'Internal server error' });

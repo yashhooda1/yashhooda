@@ -1,0 +1,36 @@
+name: GitHub Pages Redirect
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-redirect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create redirect page
+        run: |
+          mkdir -p dist
+          cat > dist/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <meta http-equiv="refresh" content="0; url=https://yashhooda1.vercel.app">
+              <link rel="canonical" href="https://yashhooda1.vercel.app" />
+              <title>Redirecting to Yash Hooda...</title>
+          </head>
+          <body>
+              <script>window.location.replace("https://yashhooda1.vercel.app");</script>
+              <p>Redirecting... <a href="https://yashhooda1.vercel.app">Click here if not redirected.</a></p>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy redirect to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages

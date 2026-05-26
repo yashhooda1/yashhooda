@@ -1072,10 +1072,17 @@
         /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
             .nav-links { display: none; }
+            .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 100%; left: 0; width: 100%; background: rgba(22,27,34,0.98); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0.5rem 0; z-index: 200; }
+            .nav-links.open a { padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+            .nav-hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 1rem; background: none; border: none; }
+            .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--text-muted); border-radius: 2px; transition: all 0.2s; }
             #chat-window { width: calc(100vw - 2rem); right: 1rem; }
             .projects-grid, .cert-grid { grid-template-columns: 1fr; }
         }
-
+        @media (min-width: 769px) {
+            .nav-hamburger { display: none; }
+        }
+        
         /* ── IMAGE PREVIEW ── */
         .img-preview-wrap { padding: 0 1rem 0.5rem; display: none; }
         .img-preview-wrap.has-img { display: block; }
@@ -1203,6 +1210,9 @@
 <nav>
     <div class="nav-inner">
         <a href="#" class="nav-logo">YH_</a>
+        <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
         <div class="nav-links">
             <a href="#about">About</a>
             <a href="#projects">Projects</a>
@@ -2111,10 +2121,10 @@ async function loadStrava() {
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
                     const line = L.polyline(coords, { color: '#fc4c02', weight: 3, opacity: 0.9 }).addTo(map);
                     map.invalidateSize();
-                    map.fitBounds(line.getBounds(), { padding: [10, 10] });
+                    setTimeout(() => map.fitBounds(line.getBounds(), { padding: [10, 10] }), 100);
                 } catch(e) { el.style.display = 'none'; }
             });
-        }, 250);
+        }, 600);
     } catch(err) {
         console.error('Strava error:', err);
         grid.innerHTML = '<div class="strava-error">Could not load activities. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';

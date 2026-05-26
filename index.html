@@ -953,6 +953,8 @@
         .strava-error { color: var(--text-muted); font-size: 0.85rem; padding: 1.5rem; text-align: center; }
         .strava-view-all { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(252,76,2,0.08); border: 1px solid rgba(252,76,2,0.25); color: #fc4c02; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.75rem; font-family: 'Space Mono', monospace; text-decoration: none; transition: all 0.2s; letter-spacing: 0.03em; }
         .strava-view-all:hover { background: rgba(252,76,2,0.15); border-color: #fc4c02; color: #fc4c02; }
+        .strava-map { height: 140px; border-radius: 6px; margin: 0.65rem 0 0.5rem; overflow: hidden; background: rgba(255,255,255,0.04); }
+        .strava-map .leaflet-container { background: #1a1a2e; }
 
         /* ── CONTACT ── */
         .contact-grid {
@@ -1087,6 +1089,10 @@
         }
         .msg-img { max-width: 100%; border-radius: 6px; margin-top: 0.4rem; display: block; }
     </style>
+    <!-- Leaflet for route maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@mapbox/polyline@1.2.1/src/polyline.js"></script>
 </head>
 <body>
 
@@ -2086,12 +2092,26 @@ async function loadStrava() {
                     ${a.elevation_ft > 0 ? `<div class="strava-stat"><span class="strava-stat-val">${a.elevation_ft} ft</span><span class="strava-stat-label">Elevation</span></div>` : ''}
                     ${a.suffer_score ? `<div class="strava-stat"><span class="strava-stat-val">${a.suffer_score}</span><span class="strava-stat-label">Suffer Score</span></div>` : ''}
                 </div>
+                ${a.map_polyline ? `<div class="strava-map" id="map-${a.id}"></div>` : ''}
                 <div class="strava-footer">
                     <span>${fmtDate(a.date)}</span>
                     <span class="strava-kudos">❤️ ${a.kudos} kudos</span>
                 </div>
             </div>
         `).join('');
+        // ── Render route maps ──
+        acts.forEach(a => {
+            if (!a.map_polyline) return;
+            const el = document.getElementById(`map-${a.id}`);
+            if (!el) return;
+            try {
+                const coords = polyline.decode(a.map_polyline);
+                const map = L.map(el, { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, attributionControl: false });
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+                const line = L.polyline(coords, { color: '#fc4c02', weight: 3, opacity: 0.9 }).addTo(map);
+                map.fitBounds(line.getBounds(), { padding: [10, 10] });
+            } catch(e) { el.style.display = 'none'; }
+        });
     } catch(err) {
         console.error('Strava error:', err);
         grid.innerHTML = '<div class="strava-error">Could not load activities. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';

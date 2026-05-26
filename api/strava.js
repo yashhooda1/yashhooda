@@ -85,7 +85,7 @@ export default async function handler(req, res) {
     const weeklyMeters = activities
       .filter(a => {
         const d = new Date(a.start_date_local);
-        return d >= monday && d <= sunday;
+        return d >= monday && d <= sunday && a.type === 'Run';
       })
       .reduce((sum, a) => sum + (a.distance || 0), 0);
 

@@ -2109,22 +2109,30 @@ async function loadStrava() {
                 </div>
             </div>
         `).join('');
-        // ── Render route maps ──
-        setTimeout(() => {
+        // ── Render route maps (desktop only) ──
+        if (window.innerWidth >= 769) {
+            setTimeout(() => {
+                acts.forEach(a => {
+                    if (!a.map_polyline) return;
+                    const el = document.getElementById(`map-${a.id}`);
+                    if (!el) return;
+                    try {
+                        const coords = polyline.decode(a.map_polyline);
+                        const map = L.map(el, { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, attributionControl: false });
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+                        const line = L.polyline(coords, { color: '#fc4c02', weight: 3, opacity: 0.9 }).addTo(map);
+                        map.invalidateSize();
+                        setTimeout(() => map.fitBounds(line.getBounds(), { padding: [10, 10] }), 100);
+                    } catch(e) { el.style.display = 'none'; }
+                });
+            }, 600);
+        } else {
+            // Hide map containers on mobile
             acts.forEach(a => {
-                if (!a.map_polyline) return;
                 const el = document.getElementById(`map-${a.id}`);
-                if (!el) return;
-                try {
-                    const coords = polyline.decode(a.map_polyline);
-                    const map = L.map(el, { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, attributionControl: false });
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-                    const line = L.polyline(coords, { color: '#fc4c02', weight: 3, opacity: 0.9 }).addTo(map);
-                    map.invalidateSize();
-                    setTimeout(() => map.fitBounds(line.getBounds(), { padding: [10, 10] }), 100);
-                } catch(e) { el.style.display = 'none'; }
+                if (el) el.style.display = 'none';
             });
-        }, 600);
+        }
     } catch(err) {
         console.error('Strava error:', err);
         grid.innerHTML = '<div class="strava-error">Could not load activities. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';

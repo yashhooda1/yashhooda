@@ -1134,7 +1134,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@mapbox/polyline@1.2.1/src/polyline.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="chatbot-search-upgrade.js"></script>
 </head>
 <body>
 
@@ -1651,6 +1650,286 @@
 </footer>
 
 <script>
+
+// ── SEARCH TRIGGER DETECTION ──
+const SEARCH_TRIGGERS = [
+    'latest','recent','news','today','current','now','2025','2026', 'weather', 'weather forecast', 'forecast',
+    'just announced','what happened','search for','find me','look up',
+    'article','paper','research','trending','live update','any updates',
+    'marathon results','race results','world record','breaking','release',
+    'what is happening','whats new','new in','announced today'
+];
+ 
+function needsWebSearch(text) {
+    const lower = text.toLowerCase();
+    return SEARCH_TRIGGERS.some(t => lower.includes(t));
+}
+ 
+// ── MEMORY STORE (localStorage) ──
+const YH_MEMORY_KEY = 'yh_article_memory';
+const YH_Memory = {
+    load() {
+        try { return JSON.parse(localStorage.getItem(YH_MEMORY_KEY) || '[]'); }
+        catch { return []; }
+    },
+    save(items) {
+        localStorage.setItem(YH_MEMORY_KEY, JSON.stringify(items.slice(0, 50)));
+    },
+    add(item) {
+        const items = this.load();
+        const exists = items.some(i => (item.url && i.url === item.url) || i.title === item.title);
+        if (!exists) {
+            items.unshift({ ...item, id: Date.now(), savedAt: new Date().toISOString() });
+            this.save(items);
+        }
+        return items;
+    },
+    remove(id) {
+        const items = this.load().filter(i => i.id !== id);
+        this.save(items);
+        return items;
+    },
+    clear() { localStorage.removeItem(YH_MEMORY_KEY); return []; },
+    search(q) {
+        const ql = q.toLowerCase();
+        return this.load().filter(i =>
+            i.title?.toLowerCase().includes(ql) ||
+            i.summary?.toLowerCase().includes(ql) ||
+            (i.tags||[]).some(t => t.toLowerCase().includes(ql))
+        );
+    }
+};
+ 
+// ── PARSE SAVE MARKERS FROM BOT RESPONSE ──
+function parseSaveInstructions(text) {
+    const regex = /\[SAVE_ARTICLE:\s*(\{[\s\S]*?\})\]/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+        try {
+            const item = JSON.parse(match[1]);
+            YH_Memory.add(item);
+            refreshMemoryPanel();
+            showSaveToast(item.title || 'Article saved');
+        } catch(e) { /* malformed JSON, skip */ }
+    }
+    // Strip save markers from displayed text
+    return text.replace(/\[SAVE_ARTICLE:\s*\{[\s\S]*?\}\]/g, '').trim();
+}
+ 
+// ── TOAST ──
+function showSaveToast(title) {
+    const existing = document.getElementById('yh-save-toast');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.id = 'yh-save-toast';
+    t.style.cssText = `
+        position:fixed;bottom:96px;right:80px;z-index:99999;
+        background:#4caf50;color:#000;padding:10px 16px;border-radius:8px;
+        font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
+        box-shadow:0 4px 20px rgba(76,175,80,0.5);max-width:260px;
+        word-break:break-word;animation:yhFadeIn 0.3s ease;`;
+    t.textContent = '💾 Saved: ' + title.slice(0, 40);
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+ 
+// ── MEMORY PANEL STYLES (injected once) ──
+function injectMemoryStyles() {
+    if (document.getElementById('yh-mem-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'yh-mem-styles';
+    s.textContent = `
+        @keyframes yhFadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes yhSlideIn { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
+        #yh-mem-panel {
+            position:fixed;bottom:90px;right:80px;
+            width:320px;max-height:480px;
+            background:#0d1117;border:1px solid #4caf50;border-radius:12px;
+            box-shadow:0 8px 40px rgba(76,175,80,0.2),0 2px 8px rgba(0,0,0,0.6);
+            font-family:'Space Mono',monospace;font-size:12px;color:#e0e0e0;
+            z-index:9998;display:none;flex-direction:column;
+            animation:yhSlideIn 0.22s ease;overflow:hidden;
+        }
+        #yh-mem-panel.open { display:flex; }
+        #yh-mem-hdr {
+            display:flex;align-items:center;justify-content:space-between;
+            padding:11px 14px;border-bottom:1px solid rgba(76,175,80,0.2);
+            background:#0a1a0a;
+        }
+        #yh-mem-hdr h3 { margin:0;font-size:12px;color:#4caf50;letter-spacing:.06em;text-transform:uppercase; }
+        #yh-mem-hdr button { background:none;border:none;color:#666;cursor:pointer;font-size:15px;padding:0; }
+        #yh-mem-hdr button:hover { color:#fff; }
+        #yh-mem-search {
+            margin:10px 12px 6px;padding:7px 10px;
+            background:#161b22;border:1px solid rgba(76,175,80,0.2);
+            border-radius:6px;color:#ccc;font-family:inherit;font-size:11px;
+            outline:none;width:calc(100% - 24px);box-sizing:border-box;
+        }
+        #yh-mem-search::placeholder{color:#444;}
+        #yh-mem-search:focus{border-color:#4caf50;}
+        #yh-mem-list {
+            overflow-y:auto;flex:1;padding:4px 12px 10px;
+            scrollbar-width:thin;scrollbar-color:#1e3a1e #0d1117;
+        }
+        .yh-mi {
+            background:#161b22;border:1px solid rgba(76,175,80,0.1);
+            border-radius:8px;padding:9px 11px;margin-bottom:7px;
+            position:relative;transition:border-color .2s;
+        }
+        .yh-mi:hover{border-color:rgba(76,175,80,0.5);}
+        .yh-mi-title {
+            font-weight:700;color:#81c784;font-size:11px;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;
+        }
+        .yh-mi-title a{color:inherit;text-decoration:none;}
+        .yh-mi-title a:hover{color:#4caf50;}
+        .yh-mi-summary {
+            color:#777;font-size:10px;line-height:1.5;
+            display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+        }
+        .yh-mi-meta {
+            display:flex;justify-content:space-between;align-items:center;margin-top:6px;
+        }
+        .yh-mi-date{color:#444;font-size:9px;}
+        .yh-mi-tags{display:flex;gap:3px;flex-wrap:wrap;}
+        .yh-mi-tag{background:#0a2a0a;color:#4caf50;border:1px solid rgba(76,175,80,0.2);border-radius:3px;padding:1px 5px;font-size:9px;}
+        .yh-mi-del {
+            position:absolute;top:7px;right:8px;
+            background:none;border:none;color:#444;cursor:pointer;
+            font-size:11px;padding:0;display:none;
+        }
+        .yh-mi:hover .yh-mi-del{display:block;}
+        .yh-mi-del:hover{color:#ef4444;}
+        #yh-mem-empty{text-align:center;color:#444;padding:28px 16px;font-size:11px;line-height:1.9;}
+        #yh-mem-empty span{display:block;font-size:22px;margin-bottom:6px;}
+        #yh-mem-foot {
+            padding:8px 12px;border-top:1px solid rgba(76,175,80,0.15);
+            background:#0a1a0a;display:flex;justify-content:space-between;align-items:center;
+        }
+        #yh-mem-count{color:#444;font-size:10px;}
+        #yh-mem-clear{background:none;border:1px solid rgba(180,40,40,0.3);color:#8a4444;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit;}
+        #yh-mem-clear:hover{border-color:#ef4444;color:#ef4444;}
+        #yh-mem-fab {
+            position:fixed;bottom:6px;right:76px;
+            width:44px;height:44px;
+            background:#0d1117;border:2px solid #4caf50;border-radius:50%;
+            cursor:pointer;display:flex;align-items:center;justify-content:center;
+            font-size:18px;box-shadow:0 4px 16px rgba(76,175,80,0.25);
+            z-index:9997;transition:all .2s;color:#4caf50;
+        }
+        #yh-mem-fab:hover{background:#4caf50;color:#000;box-shadow:0 4px 24px rgba(76,175,80,0.5);transform:scale(1.05);}
+        .yh-mem-badge {
+            position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;
+            border-radius:50%;width:15px;height:15px;font-size:8px;
+            display:none;align-items:center;justify-content:center;
+            font-weight:700;border:2px solid #0d1117;
+        }
+        .yh-mem-badge.on{display:flex;}
+        /* Search-in-progress indicator on chat input */
+        .chat-input.searching { border-color: #4caf50 !important; }
+        .search-indicator {
+            font-size:10px;color:#4caf50;font-family:'Space Mono',monospace;
+            padding:2px 12px 0;letter-spacing:.04em;
+        }
+    `;
+    document.head.appendChild(s);
+}
+ 
+// ── INJECT MEMORY FAB + PANEL INTO DOM ──
+function buildMemoryPanel() {
+    if (document.getElementById('yh-mem-fab')) return;
+ 
+    const fab = document.createElement('button');
+    fab.id = 'yh-mem-fab';
+    fab.title = 'Saved Articles & Events';
+    fab.innerHTML = `📚<span class="yh-mem-badge" id="yh-mem-badge"></span>`;
+    fab.onclick = () => document.getElementById('yh-mem-panel').classList.toggle('open');
+    document.body.appendChild(fab);
+ 
+    const panel = document.createElement('div');
+    panel.id = 'yh-mem-panel';
+    panel.innerHTML = `
+        <div id="yh-mem-hdr">
+            <h3>📚 Saved Memory</h3>
+            <button onclick="document.getElementById('yh-mem-panel').classList.remove('open')">✕</button>
+        </div>
+        <input id="yh-mem-search" type="text" placeholder="Search saved items…" autocomplete="off"/>
+        <div id="yh-mem-list"></div>
+        <div id="yh-mem-foot">
+            <span id="yh-mem-count">0 items</span>
+            <button id="yh-mem-clear">Clear All</button>
+        </div>
+    `;
+    document.body.appendChild(panel);
+ 
+    document.getElementById('yh-mem-search').addEventListener('input', e => renderMemList(e.target.value));
+    document.getElementById('yh-mem-clear').addEventListener('click', () => {
+        if (confirm('Clear all saved articles?')) { YH_Memory.clear(); refreshMemoryPanel(); }
+    });
+}
+ 
+function refreshMemoryPanel() {
+    const q = document.getElementById('yh-mem-search')?.value || '';
+    renderMemList(q);
+    const badge = document.getElementById('yh-mem-badge');
+    if (badge) {
+        const n = YH_Memory.load().length;
+        badge.textContent = n > 9 ? '9+' : n;
+        badge.classList.toggle('on', n > 0);
+    }
+}
+ 
+function renderMemList(query = '') {
+    const list = document.getElementById('yh-mem-list');
+    const countEl = document.getElementById('yh-mem-count');
+    if (!list) return;
+    const items = query ? YH_Memory.search(query) : YH_Memory.load();
+    if (!items.length) {
+        list.innerHTML = `<div id="yh-mem-empty">
+            <span>${query ? '🔍' : '💾'}</span>
+            ${query
+                ? `No results for "<strong>${query.slice(0,30)}</strong>"`
+                : `Nothing saved yet.<br>Ask me to search for news<br>or say "save this" to bookmark.`}
+        </div>`;
+    } else {
+        list.innerHTML = items.map(item => `
+            <div class="yh-mi">
+                <div class="yh-mi-title">
+                    ${item.url
+                        ? `<a href="${item.url}" target="_blank" rel="noopener">${escH(item.title||'Untitled')}</a>`
+                        : escH(item.title||'Untitled')}
+                </div>
+                ${item.summary ? `<div class="yh-mi-summary">${escH(item.summary)}</div>` : ''}
+                <div class="yh-mi-meta">
+                    <span class="yh-mi-date">${fmtDate(item.savedAt)}</span>
+                    <div class="yh-mi-tags">${(item.tags||[]).map(t=>`<span class="yh-mi-tag">${escH(t)}</span>`).join('')}</div>
+                </div>
+                <button class="yh-mi-del" onclick="yhDelMem(${item.id})" title="Remove">✕</button>
+            </div>`).join('');
+    }
+    if (countEl) {
+        const total = YH_Memory.load().length;
+        countEl.textContent = `${total} item${total!==1?'s':''} saved`;
+    }
+}
+ 
+function yhDelMem(id) { YH_Memory.remove(id); refreshMemoryPanel(); }
+ 
+function escH(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(iso) {
+    if (!iso) return '';
+    try { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+    catch { return ''; }
+}
+ 
+// ── INIT MEMORY UI ──
+injectMemoryStyles();
+buildMemoryPanel();
+refreshMemoryPanel();
+
+
 // ── PARTICLES ──
 const canvas = document.getElementById('particles');
 const ctx = canvas.getContext('2d');
@@ -2037,72 +2316,104 @@ function addBotMsg(text) {
     msgs.scrollTop = msgs.scrollHeight;
 }
 
+// ── SEND MESSAGE — with web search routing ──
 async function sendMsg() {
-    const input = document.getElementById('chat-input');
-    const text = input.value.trim();
-    if (!text && !pendingImageBase64) return;
-    input.value = '';
-    document.getElementById('quick-btns').style.display = 'none';
-
-    const msgs = document.getElementById('chat-messages');
-
+    const input=document.getElementById('chat-input');
+    const text=input.value.trim();
+    if(!text&&!pendingImageBase64)return;
+    input.value='';
+    document.getElementById('quick-btns').style.display='none';
+ 
+    const msgs=document.getElementById('chat-messages');
+    const userDiv=document.createElement('div');
+    userDiv.className='msg user';
     let userContent;
-    const userDiv = document.createElement('div');
-    userDiv.className = 'msg user';
-
-    if (pendingImageBase64) {
-        userContent = [
-            { type: 'image', source: { type: 'base64', media_type: pendingImageType, data: pendingImageBase64 } },
-            { type: 'text', text: text || 'What do you see in this image? Give me relevant advice.' }
+ 
+    if(pendingImageBase64){
+        userContent=[
+            {type:'image',source:{type:'base64',media_type:pendingImageType,data:pendingImageBase64}},
+            {type:'text',text:text||'What do you see in this image? Give me relevant advice.'}
         ];
-        const imgEl = document.createElement('img');
-        imgEl.src = 'data:' + pendingImageType + ';base64,' + pendingImageBase64;
-        imgEl.className = 'msg-img';
-        if (text) userDiv.textContent = text;
+        const imgEl=document.createElement('img');
+        imgEl.src='data:'+pendingImageType+';base64,'+pendingImageBase64;
+        imgEl.className='msg-img';
+        if(text)userDiv.textContent=text;
         userDiv.appendChild(imgEl);
         removeImage();
-    } else {
-        userContent = text;
-        userDiv.textContent = text;
+    }else{
+        userContent=text;
+        userDiv.textContent=text;
     }
     msgs.appendChild(userDiv);
-
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'msg bot msg-typing';
-    typingDiv.innerHTML = '<span></span><span></span><span></span>';
+ 
+    // Show typing indicator
+    const typingDiv=document.createElement('div');
+    typingDiv.className='msg bot msg-typing';
+    typingDiv.innerHTML='<span></span><span></span><span></span>';
+ 
+    // If web search needed, show a small indicator
+    const useSearch = needsWebSearch(text) && !pendingImageBase64;
+    if(useSearch){
+        const ind=document.createElement('div');
+        ind.className='search-indicator';
+        ind.id='search-ind';
+        ind.textContent='🔍 Searching the web…';
+        msgs.appendChild(ind);
+    }
     msgs.appendChild(typingDiv);
-    msgs.scrollTop = msgs.scrollHeight;
-
-    chatHistory.push({ role: 'user', content: userContent });
-
-    try {
-        const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID })
+    msgs.scrollTop=msgs.scrollHeight;
+ 
+    chatHistory.push({role:'user',content:userContent});
+ 
+    try{
+        // ── ROUTING: web search endpoint vs default ──
+        const endpoint = useSearch ? '/api/chat-search' : '/api/chat';
+ 
+        const res=await fetch(endpoint,{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({messages:chatHistory,sessionId:SESSION_ID})
         });
+ 
+        // Remove search indicator if present
+        const indEl=document.getElementById('search-ind');
+        if(indEl)indEl.remove();
+ 
         let data;
-        try { data = await res.json(); } catch(e) { data = {}; }
-        if (!res.ok) {
-            console.error('API error:', res.status, data);
+        try{data=await res.json();}catch{data={};}
+        if(!res.ok){
+            console.error('API error:',res.status,data);
             typingDiv.remove();
-            addBotMsg('Error ' + res.status + ' — check Vercel logs. Email yash.hooda6@gmail.com if this persists!');
+            addBotMsg('Error '+res.status+' — check Vercel logs. Email yash.hooda6@gmail.com if this persists!');
             return;
         }
-        const reply = data.reply || 'I\'m not sure about that — email yash.hooda6@gmail.com!';
-        chatHistory.push({ role: 'assistant', content: reply });
+ 
+        // Both endpoints return differently — normalize
+        // /api/chat returns { reply: "..." }
+        // /api/chat-search returns { text: "..." }
+        let rawReply = data.reply || data.text || 'I\'m not sure about that — email yash.hooda6@gmail.com!';
+ 
+        // Strip any save markers and process them
+        const cleanReply = parseSaveInstructions(rawReply);
+ 
+        chatHistory.push({role:'assistant',content:cleanReply});
         typingDiv.remove();
-        const botDiv = document.createElement('div');
-        botDiv.className = 'msg bot';
-        botDiv.textContent = reply;
+ 
+        const botDiv=document.createElement('div');
+        botDiv.className='msg bot';
+        botDiv.textContent=cleanReply;
         msgs.appendChild(botDiv);
-    } catch(err) {
-        console.error('Fetch error:', err);
+ 
+    }catch(err){
+        console.error('Fetch error:',err);
+        const indEl=document.getElementById('search-ind');
+        if(indEl)indEl.remove();
         typingDiv.remove();
         addBotMsg('Network error — make sure you are on the live Vercel site, not a local file!');
     }
-    msgs.scrollTop = msgs.scrollHeight;
+    msgs.scrollTop=msgs.scrollHeight;
 }
+    
 // ── RUNNING ANALYTICS ──
 async function loadAnalytics() {
     const container = document.getElementById('analytics-content');

@@ -2316,102 +2316,152 @@ function addBotMsg(text) {
     msgs.scrollTop = msgs.scrollHeight;
 }
 
-// ── SEND MESSAGE — with web search routing ──
+// ── SEND MESSAGE — with SSE streaming for web search ──
 async function sendMsg() {
-    const input=document.getElementById('chat-input');
-    const text=input.value.trim();
-    if(!text&&!pendingImageBase64)return;
-    input.value='';
-    document.getElementById('quick-btns').style.display='none';
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text && !pendingImageBase64) return;
+  input.value = '';
+  document.getElementById('quick-btns').style.display = 'none';
  
-    const msgs=document.getElementById('chat-messages');
-    const userDiv=document.createElement('div');
-    userDiv.className='msg user';
-    let userContent;
+  const msgs = document.getElementById('chat-messages');
+  const userDiv = document.createElement('div');
+  userDiv.className = 'msg user';
+  let userContent;
  
-    if(pendingImageBase64){
-        userContent=[
-            {type:'image',source:{type:'base64',media_type:pendingImageType,data:pendingImageBase64}},
-            {type:'text',text:text||'What do you see in this image? Give me relevant advice.'}
-        ];
-        const imgEl=document.createElement('img');
-        imgEl.src='data:'+pendingImageType+';base64,'+pendingImageBase64;
-        imgEl.className='msg-img';
-        if(text)userDiv.textContent=text;
-        userDiv.appendChild(imgEl);
-        removeImage();
-    }else{
-        userContent=text;
-        userDiv.textContent=text;
-    }
-    msgs.appendChild(userDiv);
+  if (pendingImageBase64) {
+    userContent = [
+      { type: 'image', source: { type: 'base64', media_type: pendingImageType, data: pendingImageBase64 } },
+      { type: 'text', text: text || 'What do you see in this image?' }
+    ];
+    const imgEl = document.createElement('img');
+    imgEl.src = 'data:' + pendingImageType + ';base64,' + pendingImageBase64;
+    imgEl.className = 'msg-img';
+    if (text) userDiv.textContent = text;
+    userDiv.appendChild(imgEl);
+    removeImage();
+  } else {
+    userContent = text;
+    userDiv.textContent = text;
+  }
+  msgs.appendChild(userDiv);
  
-    // Show typing indicator
-    const typingDiv=document.createElement('div');
-    typingDiv.className='msg bot msg-typing';
-    typingDiv.innerHTML='<span></span><span></span><span></span>';
+  // Typing indicator
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg bot msg-typing';
+  typingDiv.innerHTML = '<span></span><span></span><span></span>';
+  msgs.appendChild(typingDiv);
+  msgs.scrollTop = msgs.scrollHeight;
  
-    // If web search needed, show a small indicator
-    const useSearch = needsWebSearch(text) && !pendingImageBase64;
-    if(useSearch){
-        const ind=document.createElement('div');
-        ind.className='search-indicator';
-        ind.id='search-ind';
-        ind.textContent='🔍 Searching the web…';
-        msgs.appendChild(ind);
-    }
-    msgs.appendChild(typingDiv);
-    msgs.scrollTop=msgs.scrollHeight;
+  chatHistory.push({ role: 'user', content: userContent });
  
-    chatHistory.push({role:'user',content:userContent});
+  const useSearch = needsWebSearch(text) && !pendingImageBase64;
  
-    try{
-        // ── ROUTING: web search endpoint vs default ──
-        const endpoint = useSearch ? '/api/chat-search' : '/api/chat';
+  try {
+    if (useSearch) {
+      // ── SSE STREAMING PATH for /api/chat-search ──
+      const res = await fetch('/api/chat-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID })
+      });
  
-        const res=await fetch(endpoint,{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({messages:chatHistory,sessionId:SESSION_ID})
-        });
+      if (!res.ok) {
+        typingDiv.remove();
+        addBotMsg('Search error ' + res.status + ' — try again or email yash.hooda6@gmail.com');
+        return;
+      }
  
-        // Remove search indicator if present
-        const indEl=document.getElementById('search-ind');
-        if(indEl)indEl.remove();
+      // Replace typing dots with a real bot bubble we'll stream into
+      typingDiv.remove();
+      const botDiv = document.createElement('div');
+      botDiv.className = 'msg bot';
+      botDiv.textContent = '';
+      msgs.appendChild(botDiv);
  
-        let data;
-        try{data=await res.json();}catch{data={};}
-        if(!res.ok){
-            console.error('API error:',res.status,data);
-            typingDiv.remove();
-            addBotMsg('Error '+res.status+' — check Vercel logs. Email yash.hooda6@gmail.com if this persists!');
-            return;
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullText = '';
+ 
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+ 
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // keep incomplete line
+ 
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          let evt;
+          try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+ 
+          if (evt.type === 'searching') {
+            // Show "Searching the web…" status inside the bubble
+            botDiv.textContent = evt.message;
+          } else if (evt.type === 'token') {
+            // Replace spinner text once real tokens arrive
+            if (botDiv.textContent === '🔍 Searching the web…') {
+              botDiv.textContent = '';
+            }
+            fullText += evt.text;
+            botDiv.textContent = fullText;
+            msgs.scrollTop = msgs.scrollHeight;
+          } else if (evt.type === 'done') {
+            // Final text — parse save markers
+            fullText = evt.text;
+            const cleanText = parseSaveInstructions(fullText);
+            botDiv.textContent = cleanText || fullText;
+            chatHistory.push({ role: 'assistant', content: cleanText || fullText });
+            msgs.scrollTop = msgs.scrollHeight;
+          } else if (evt.type === 'error') {
+            botDiv.textContent = 'Search failed: ' + (evt.error || 'unknown error') + ' — try again!';
+          }
         }
+      }
  
-        // Both endpoints return differently — normalize
-        // /api/chat returns { reply: "..." }
-        // /api/chat-search returns { text: "..." }
-        let rawReply = data.reply || data.text || 'I\'m not sure about that — email yash.hooda6@gmail.com!';
+      // Fallback if stream ended without done event
+      if (fullText && !chatHistory.find(m => m.role === 'assistant' && m.content === fullText)) {
+        const clean = parseSaveInstructions(fullText);
+        botDiv.textContent = clean || fullText;
+        chatHistory.push({ role: 'assistant', content: clean || fullText });
+      }
  
-        // Strip any save markers and process them
-        const cleanReply = parseSaveInstructions(rawReply);
+    } else {
+      // ── STANDARD PATH for /api/chat (non-search) ──
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID })
+      });
  
-        chatHistory.push({role:'assistant',content:cleanReply});
+      let data;
+      try { data = await res.json(); } catch { data = {}; }
+ 
+      if (!res.ok) {
         typingDiv.remove();
+        addBotMsg('Error ' + res.status + ' — check Vercel logs. Email yash.hooda6@gmail.com if this persists!');
+        return;
+      }
  
-        const botDiv=document.createElement('div');
-        botDiv.className='msg bot';
-        botDiv.textContent=cleanReply;
-        msgs.appendChild(botDiv);
- 
-    }catch(err){
-        console.error('Fetch error:',err);
-        const indEl=document.getElementById('search-ind');
-        if(indEl)indEl.remove();
-        typingDiv.remove();
-        addBotMsg('Network error — make sure you are on the live Vercel site, not a local file!');
+      const rawReply = data.reply || data.text || "I'm not sure about that — email yash.hooda6@gmail.com!";
+      const cleanReply = parseSaveInstructions(rawReply);
+      chatHistory.push({ role: 'assistant', content: cleanReply });
+      typingDiv.remove();
+      const botDiv = document.createElement('div');
+      botDiv.className = 'msg bot';
+      botDiv.textContent = cleanReply;
+      msgs.appendChild(botDiv);
     }
-    msgs.scrollTop=msgs.scrollHeight;
+ 
+  } catch (err) {
+    console.error('Fetch error:', err);
+    typingDiv.remove();
+    addBotMsg('Network error — make sure you are on the live Vercel site, not a local file!');
+  }
+ 
+  msgs.scrollTop = msgs.scrollHeight;
 }
     
 // ── RUNNING ANALYTICS ──

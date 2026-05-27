@@ -932,6 +932,13 @@
             font-size: 1rem;
         }
         .hike-stat span { font-size: 0.72rem; color: var(--text-muted); }
+        <!-- RUNNING ANALYTICS -->
+        <section id="running-analytics">
+            <h2>📊 Strava Intelligence</h2>
+            <div id="analytics-content">
+                <div class="analytics-loading">Analyzing your training data...</div>
+            </div>
+        </section>
         /* ── STRAVA LIVE FEED ── */
         .strava-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
         .strava-live-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.3); color: #fc4c02; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
@@ -955,6 +962,32 @@
         .strava-view-all:hover { background: rgba(252,76,2,0.15); border-color: #fc4c02; color: #fc4c02; }
         .strava-map { height: 140px; border-radius: 6px; margin: 0.65rem 0 0.5rem; overflow: hidden; background: rgba(255,255,255,0.04); }
         .strava-map .leaflet-container { background: #1a1a2e; }
+        /* ── RUNNING ANALYTICS ── */
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .analytics-card { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.1rem; text-align: center; transition: all 0.25s; }
+        .analytics-card:hover { border-color: rgba(252,76,2,0.3); transform: translateY(-2px); }
+        .analytics-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: #fc4c02; font-weight: 700; display: block; }
+        .analytics-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.2rem; }
+        .analytics-sub { font-size: 0.72rem; color: var(--green); margin-top: 0.2rem; font-family: 'Space Mono', monospace; }
+        .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        .chart-box { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.1rem; }
+        .chart-box h4 { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--green); margin-bottom: 0.75rem; letter-spacing: 0.04em; }
+        .predictions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .pred-card { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.1rem; text-align: center; position: relative; overflow: hidden; transition: all 0.25s; }
+        .pred-card:hover { border-color: rgba(76,175,80,0.4); transform: translateY(-2px); }
+        .pred-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--green-dark), var(--green)); }
+        .pred-distance { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+        .pred-time { font-family: 'Space Mono', monospace; font-size: 1.3rem; color: var(--green); font-weight: 700; }
+        .pred-pr { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
+        .pred-gap { font-size: 0.72rem; color: #fc4c02; font-family: 'Space Mono', monospace; margin-top: 0.2rem; }
+        .pred-gap.at-pr { color: var(--green); }
+        .insights-box { background: var(--bg-elevated); border: 1px solid rgba(76,175,80,0.15); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; position: relative; }
+        .insights-box::before { content: '🧠 AI Coach'; font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--green); letter-spacing: 0.06em; display: block; margin-bottom: 0.75rem; }
+        .insights-box p { font-size: 0.85rem; color: var(--text); line-height: 1.7; margin-bottom: 0.75rem; }
+        .insights-box p:last-child { margin-bottom: 0; }
+        .analytics-loading { display: flex; align-items: center; gap: 0.5rem; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; justify-content: center; }
+        .analytics-loading::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(76,175,80,0.3); border-top-color: var(--green); animation: spin 0.8s linear infinite; }
+        @media (max-width: 768px) { .chart-row { grid-template-columns: 1fr; } }
 
         /* ── CONTACT ── */
         .contact-grid {
@@ -1100,6 +1133,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@mapbox/polyline@1.2.1/src/polyline.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -2060,6 +2094,131 @@ async function sendMsg() {
     }
     msgs.scrollTop = msgs.scrollHeight;
 }
+// ── RUNNING ANALYTICS ──
+async function loadAnalytics() {
+    const container = document.getElementById('analytics-content');
+    if (!container) return;
+    try {
+        const res = await fetch('/api/analytics');
+        const data = await res.json();
+        if (!res.ok) { container.innerHTML = '<div class="strava-error">Could not load analytics.</div>'; return; }
+
+        const { weeklyTrend, fitness, paceZones, predictions, insights } = data;
+
+        // Form status label
+        const formLabel = fitness.form > 5 ? '🟢 Peaked' : fitness.form > -10 ? '🟡 Neutral' : '🔴 Fatigued';
+        const formColor = fitness.form > 5 ? 'var(--green)' : fitness.form > -10 ? '#facc15' : '#ef4444';
+
+        container.innerHTML = `
+            <!-- Fitness stat cards -->
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <span class="analytics-val">${fitness.ctl}</span>
+                    <div class="analytics-label">Fitness (CTL)</div>
+                    <div class="analytics-sub">42-day load</div>
+                </div>
+                <div class="analytics-card">
+                    <span class="analytics-val">${fitness.atl}</span>
+                    <div class="analytics-label">Fatigue (ATL)</div>
+                    <div class="analytics-sub">7-day load</div>
+                </div>
+                <div class="analytics-card">
+                    <span class="analytics-val" style="color:${formColor}">${fitness.form > 0 ? '+' : ''}${fitness.form}</span>
+                    <div class="analytics-label">Form Score</div>
+                    <div class="analytics-sub">${formLabel}</div>
+                </div>
+                <div class="analytics-card">
+                    <span class="analytics-val">${paceZones.easy}%</span>
+                    <div class="analytics-label">Easy Runs</div>
+                    <div class="analytics-sub">of last 30</div>
+                </div>
+                <div class="analytics-card">
+                    <span class="analytics-val">${paceZones.threshold + paceZones.hard}%</span>
+                    <div class="analytics-label">Hard Efforts</div>
+                    <div class="analytics-sub">threshold+</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="chart-row">
+                <div class="chart-box">
+                    <h4>📈 Weekly Mileage — Last 8 Weeks</h4>
+                    <canvas id="miles-chart" height="160"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h4>🎯 Pace Zone Distribution</h4>
+                    <canvas id="zones-chart" height="160"></canvas>
+                </div>
+            </div>
+
+            <!-- Race predictions -->
+            <h3 style="font-family:'Space Mono',monospace;color:var(--green);font-size:0.85rem;margin-bottom:0.75rem;letter-spacing:0.04em;">🏁 Predicted Race Times</h3>
+            <div class="predictions-grid">
+                ${Object.entries(predictions).map(([dist, p]) => `
+                <div class="pred-card">
+                    <div class="pred-distance">${dist}</div>
+                    <div class="pred-time">${p.predicted}</div>
+                    <div class="pred-pr">PR: ${p.pr}</div>
+                    ${p.gap ? `<div class="pred-gap ${p.gap.includes('🏆') ? 'at-pr' : ''}">${p.gap}</div>` : ''}
+                </div>`).join('')}
+            </div>
+
+            <!-- AI Insights -->
+            <div class="insights-box">
+                ${insights.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+            </div>
+        `;
+
+        // ── Render weekly mileage chart ──
+        new Chart(document.getElementById('miles-chart'), {
+            type: 'bar',
+            data: {
+                labels: weeklyTrend.map(w => w.week),
+                datasets: [{
+                    label: 'Miles',
+                    data: weeklyTrend.map(w => w.miles),
+                    backgroundColor: 'rgba(252,76,2,0.6)',
+                    borderColor: '#fc4c02',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#9ca3af', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                    y: { ticks: { color: '#9ca3af', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+                }
+            }
+        });
+
+        // ── Render pace zones donut chart ──
+        new Chart(document.getElementById('zones-chart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Easy', 'Moderate', 'Threshold', 'Hard'],
+                datasets: [{
+                    data: [paceZones.easy, paceZones.moderate, paceZones.threshold, paceZones.hard],
+                    backgroundColor: ['#4caf50','#facc15','#f97316','#ef4444'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 10 }, padding: 10 } }
+                },
+                cutout: '65%',
+            }
+        });
+
+    } catch(err) {
+        console.error('Analytics error:', err);
+        container.innerHTML = '<div class="strava-error">Could not load analytics.</div>';
+    }
+}
+loadAnalytics();
 
 // ── STRAVA LIVE FEED (unchanged) ──
 async function loadStrava() {

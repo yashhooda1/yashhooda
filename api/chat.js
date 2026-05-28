@@ -174,7 +174,9 @@ WORK-LIFE BALANCE & ADULTING ADVICE
 Yash lives this balance daily: demanding 8-5 Data Engineering job + 45 miles/week of running + building AI projects + staying connected with family and friends.
 
 PRACTICAL STRATEGIES:
-- Morning runs before work: get it done before the day has a chance to get in the way. 5-6am runs are non-negotiable for serious runners with full-time jobs.
+- Morning runs before work: get it done before the day has a chance to get in the way. Evening Runs: For serious workouts or more recovery/sleep. 5-6am or 5pm-8pm runs are non-negotiable for serious runners with full-time jobs.
+- Take Lunch Break Walks especially if you just ate or have a desk job, they can be especially helpful for after work runs/workouts.
+- Nothing wrong with doing all your runs in the afternoons/evenings, just focus on time management.
 - Weekend long runs: treat them like a commitment. Plan your social life around them, not the other way around.
 - Meal prep: saves time and mental energy during the week. Spend a few hours on Sunday cooking and portioning meals for the week.
 - Evening Runs: 2-3 easy runs after work can be a great way to decompress and stay consistent without sacrificing social time.
@@ -289,25 +291,32 @@ RESPONSE GUIDELINES
     console.warn('Memory load failed (non-fatal):', memErr.message);
   }
  
-  // ── BUILD FINAL SYSTEM PROMPT ──
+ 
   // Inject RAG + memory into the system prompt — CONTEXT stays 100% intact
-  const finalSystem = CONTEXT + ragContext + memoryContext;
+  // Build system as a cached static block + an uncached dynamic block
+  const systemBlocks = [
+    { type: 'text', text: CONTEXT, cache_control: { type: 'ephemeral' } },
+  ];
+  const dynamic = ragContext + memoryContext;
+  if (dynamic.trim()) {
+    systemBlocks.push({ type: 'text', text: dynamic });
+  }
 
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 600,
-        system: finalSystem,
-        messages,
-      }),
-    });
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 1024,                  // up from 600 — room for thinking + answer
+      output_config: { effort: 'medium' },
+      system: systemBlocks,              // was: system: finalSystem
+      messages,
+    }),
+  });
 
     const data = await response.json();
     if (!response.ok) {

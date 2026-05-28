@@ -62,6 +62,7 @@ export default async function handler(req, res) {
           }],
           messages: cleanMessages,
        }),
+    });
  
     if (!anthropicRes.ok) {
       const errText = await anthropicRes.text();

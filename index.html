@@ -2510,7 +2510,7 @@ async function sendMsg() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID })
+        body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID, model: selectedModel })
       });
  
       let data;

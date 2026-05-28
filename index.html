@@ -894,6 +894,19 @@
         .model-item-note { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; }
         .model-check { display: inline-block; margin-top: 0.4rem; font-size: 0.7rem; color: var(--green); font-family: 'Space Mono', monospace; }
 
+        .tts-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0.45;
+            margin-left: 0.4rem;
+            padding: 0;
+            vertical-align: middle;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+        .tts-btn:hover { opacity: 1; transform: scale(1.15); }
+
         /* ── HIKES ── */
         .run-card {
             background: var(--bg-elevated);
@@ -2745,6 +2758,97 @@ async function loadStrava() {
     }
 }
 loadStrava();
+
+// ── VOICE OUTPUT (OpenAI TTS) ──────────────────────────────
+// Adds a 🔊 button to every AI reply. Model-agnostic — speaks whatever
+// the selected model returned. Waits for streaming to settle before attaching.
+let ttsCurrentAudio = null;
+let ttsPlayingNode = null;
+
+function ttsGetText(node) {
+    // Read the bubble's text, excluding the speaker button and any images
+    const clone = node.cloneNode(true);
+    clone.querySelectorAll('.tts-btn, img').forEach(el => el.remove());
+    return clone.textContent.trim();
+}
+
+async function speakMessage(node, btn) {
+    // Clicking the message that's already playing → stop it
+    if (ttsPlayingNode === node && ttsCurrentAudio) {
+        ttsCurrentAudio.pause();
+        ttsCurrentAudio = null;
+        ttsPlayingNode = null;
+        btn.textContent = '🔊';
+        return;
+    }
+    // Stop anything else that's playing
+    if (ttsCurrentAudio) {
+        ttsCurrentAudio.pause();
+        ttsCurrentAudio = null;
+        if (ttsPlayingNode) {
+            const prev = ttsPlayingNode.querySelector('.tts-btn');
+            if (prev) prev.textContent = '🔊';
+        }
+        ttsPlayingNode = null;
+    }
+
+    const text = ttsGetText(node);
+    if (!text) return;
+
+    btn.textContent = '⏳';
+    try {
+        const res = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        if (!res.ok) throw new Error('tts ' + res.status);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        ttsCurrentAudio = audio;
+        ttsPlayingNode = node;
+        btn.textContent = '⏸️';
+        audio.onended = () => {
+            btn.textContent = '🔊';
+            URL.revokeObjectURL(url);
+            if (ttsCurrentAudio === audio) { ttsCurrentAudio = null; ttsPlayingNode = null; }
+        };
+        await audio.play();
+    } catch (e) {
+        console.error('TTS error:', e);
+        btn.textContent = '🔇';
+        setTimeout(() => { btn.textContent = '🔊'; }, 1500);
+    }
+}
+
+function addSpeaker(node) {
+    const btn = document.createElement('button');
+    btn.className = 'tts-btn';
+    btn.title = 'Play / pause (AI-generated voice)';
+    btn.textContent = '🔊';
+    btn.onclick = (e) => { e.stopPropagation(); speakMessage(node, btn); };
+    node.appendChild(btn);
+}
+
+function ensureSpeakerButtons() {
+    document.querySelectorAll('#chat-messages .msg.bot:not(.msg-typing)').forEach(node => {
+        if (!node.querySelector('.tts-btn') && ttsGetText(node)) addSpeaker(node);
+    });
+}
+
+// Debounced: re-checks 500ms after the last DOM change, so streaming replies
+// get their button only once the text has finished arriving.
+(function initVoiceOutput() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    let debounce = null;
+    new MutationObserver(() => {
+        clearTimeout(debounce);
+        debounce = setTimeout(ensureSpeakerButtons, 500);
+    }).observe(container, { childList: true, subtree: true, characterData: true });
+    ensureSpeakerButtons();
+})();
 </script>
 </body>
 </html>

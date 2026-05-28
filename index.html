@@ -1653,11 +1653,18 @@
 
 // ── SEARCH TRIGGER DETECTION ──
 const SEARCH_TRIGGERS = [
-    'latest','recent','news','today','current','now','2025','2026', 'weather', 'weather forecast', 'forecast',
-    'just announced','what happened','search for','find me','look up',
-    'article','paper','research','trending','live update','any updates',
-    'marathon results','race results','world record','breaking','release',
-    'what is happening','whats new','new in','announced today'
+    // recency
+    'latest','recent','news','today','tonight','current','currently','now','right now',
+    'this week','this month','this year','2025','2026','2027','as of','these days',
+    // events / status
+    'just announced','what happened','breaking','live update','any updates','update on',
+    'happening','upcoming','schedule','when is','when does','still',
+    // lookups that go stale
+    'who is','who\'s','who won','score','result','results','race results','marathon results',
+    'world record','price','cost','how much','stock','market','ceo','president',
+    'election','released','release','launch','version','new in','whats new','what\'s new',
+    // info gathering
+    'search for','find me','look up','article','paper','research','trending','forecast','weather'
 ];
  
 function needsWebSearch(text) {

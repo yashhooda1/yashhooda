@@ -893,6 +893,22 @@
         .model-item-provider { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
         .model-item-note { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; }
         .model-check { display: inline-block; margin-top: 0.4rem; font-size: 0.7rem; color: var(--green); font-family: 'Space Mono', monospace; }
+        .vm-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:1.5rem 1rem; gap:1rem; text-align:center; }
+        .vm-orb { width:110px; height:110px; border-radius:50%; border:none; cursor:pointer; font-size:2.4rem; color:#000; background:var(--green); transition:transform .2s; display:flex; align-items:center; justify-content:center; }
+        .vm-orb:hover { transform:scale(1.05); }
+        .vm-listening { animation:vmPulse 1.2s infinite; }
+        .vm-thinking { background:#facc15; animation:vmSpin 1s linear infinite; }
+        .vm-speaking { background:#3b82f6; animation:vmPulse 0.8s infinite; }
+        @keyframes vmPulse { 0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,0.5)} 50%{box-shadow:0 0 0 18px rgba(76,175,80,0)} }
+        @keyframes vmSpin { to { transform:rotate(360deg) } }
+        .vm-status { font-family:'Space Mono',monospace; font-size:0.85rem; color:var(--green); letter-spacing:0.03em; }
+        .vm-transcript { width:100%; display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem; min-height:80px; }
+        .vm-line { background:var(--bg-elevated); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:0.5rem 0.7rem; font-size:0.8rem; text-align:left; color:var(--text); min-height:1.6rem; }
+        .vm-tag { font-family:'Space Mono',monospace; font-size:0.65rem; color:var(--green); margin-right:0.4rem; text-transform:uppercase; }
+        .vm-tag-ai { color:#3b82f6; }
+        .vm-control { background:rgba(76,175,80,0.1); border:1px solid rgba(76,175,80,0.3); color:var(--green-light); border-radius:7px; padding:0.6rem 1rem; font-family:'Space Mono',monospace; font-size:0.8rem; cursor:pointer; transition:all .2s; }
+        .vm-control:hover { background:rgba(76,175,80,0.2); border-color:var(--green); }
+        .vm-note { font-size:0.68rem; color:var(--text-muted); margin-top:0.25rem; }
 
         .tts-btn {
             background: none;
@@ -1183,6 +1199,7 @@
         <button class="chat-tab active" onclick="showChatView(this)">💬 Chat</button>
         <button class="chat-tab" onclick="switchPromptsTab(this)">💡 Prompts</button>
         <button class="chat-tab" onclick="switchModelsTab(this)">🧠 Models</button>
+        <button class="chat-tab" onclick="vmSwitchTab(this)">🎙️ Voice</button>
         <button class="chat-tab" onclick="switchHistoryTab(this)">🕓 History</button>
         <button class="chat-tab save-tab-btn" id="save-tab-btn" onclick="saveCurrentChat()" title="Save current chat">💾</button>
     </div>
@@ -1226,6 +1243,20 @@
     <!-- Models Panel -->
     <div class="chat-history-panel" id="models-panel">
         <div class="history-list" id="models-list"></div>
+    </div>
+
+    <!-- Voice Conversation Panel -->
+    <div class="chat-history-panel" id="voice-panel">
+      <div class="vm-wrap">
+        <button id="vm-orb" class="vm-orb vm-idle" onclick="vmToggle()">🎙️</button>
+        <div id="vm-status" class="vm-status">Tap to start talking</div>
+        <div class="vm-transcript">
+          <div class="vm-line"><span class="vm-tag">You</span><span id="vm-user-text"></span></div>
+          <div class="vm-line"><span class="vm-tag vm-tag-ai">AI</span><span id="vm-ai-text"></span></div>
+        </div>
+        <button class="vm-control" onclick="vmToggle()"><span id="vm-btn-label">Start</span> conversation</button>
+        <div class="vm-note">🔊 Hands-free · uses your selected model · AI-generated voice</div>
+      </div>
     </div>
 
     <!-- quick-btns kept empty/hidden — tabs now handle prompts -->
@@ -2319,6 +2350,8 @@ function selectModel(key) {
     renderModelList();
     // Jump back to chat and confirm the switch
     hideAllPanels();
+    document.getElementById('voice-panel').classList.remove('active');
+    if (typeof VM !== 'undefined' && VM.active) vmStop();
     document.querySelector('.chat-tab').classList.add('active');
     document.getElementById('models-panel').classList.remove('active');
     addBotMsg(`✅ Switched to ${modelName(key)}. Ask me anything!`);
@@ -2849,6 +2882,101 @@ function ensureSpeakerButtons() {
     }).observe(container, { childList: true, subtree: true, characterData: true });
     ensureSpeakerButtons();
 })();
+// ── FULL VOICE CONVERSATION MODE ──
+// listen → /api/chat (selected model) → /api/tts → speak → listen again
+const VM = {
+  active: false, state: 'idle', recognition: null, audio: null, history: [],
+  supported: ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window),
+};
+function vmModel() {
+  return (typeof selectedModel !== 'undefined' && selectedModel) ? selectedModel : 'claude-opus-4-8';
+}
+function vmSetState(s) {
+  VM.state = s;
+  const orb = document.getElementById('vm-orb');
+  const status = document.getElementById('vm-status');
+  if (!orb || !status) return;
+  orb.className = 'vm-orb vm-' + s;
+  const labels = { idle: 'Tap to start talking', listening: '🎧 Listening…', thinking: '💭 Thinking…', speaking: '🔊 Speaking…' };
+  status.textContent = labels[s] || '';
+  const btnLabel = document.getElementById('vm-btn-label');
+  if (btnLabel) btnLabel.textContent = VM.active ? 'Stop' : 'Start';
+}
+function vmSwitchTab(btn) {
+  hideAllPanels();
+  btn.classList.add('active');
+  document.getElementById('chat-messages').classList.add('hidden');
+  document.getElementById('voice-panel').classList.add('active');
+  if (!VM.supported) { document.getElementById('vm-status').textContent = 'Voice mode needs Chrome or Edge.'; }
+  else { vmSetState('idle'); }
+}
+function vmToggle() { if (!VM.supported) return; if (VM.active) vmStop(); else vmStart(); }
+function vmStart() { VM.active = true; vmListen(); }
+function vmStop() {
+  VM.active = false;
+  try { if (VM.recognition) VM.recognition.abort(); } catch (e) {}
+  if (VM.audio) { VM.audio.pause(); VM.audio = null; }
+  vmSetState('idle');
+}
+function vmListen() {
+  if (!VM.active) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new SR();
+  rec.lang = 'en-US'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+  VM.recognition = rec;
+  let finalText = '';
+  rec.onstart = () => vmSetState('listening');
+  rec.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) finalText += t; else interim += t;
+    }
+    const tEl = document.getElementById('vm-user-text');
+    if (tEl) tEl.textContent = (finalText + ' ' + interim).trim();
+  };
+  rec.onerror = (e) => { if (e.error === 'no-speech' && VM.active) { vmListen(); return; } };
+  rec.onend = () => {
+    if (!VM.active) return;
+    const text = finalText.trim();
+    if (text) vmHandle(text); else vmListen();
+  };
+  try { rec.start(); } catch (e) {}
+}
+async function vmHandle(text) {
+  vmSetState('thinking');
+  document.getElementById('vm-user-text').textContent = text;
+  document.getElementById('vm-ai-text').textContent = '';
+  VM.history.push({ role: 'user', content: text });
+  let reply = '';
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: VM.history, sessionId: SESSION_ID, model: vmModel() })
+    });
+    const data = await res.json();
+    reply = data.reply || "Sorry, I didn't catch that.";
+  } catch (e) { reply = "I hit a network error — try again."; }
+  VM.history.push({ role: 'assistant', content: reply });
+  document.getElementById('vm-ai-text').textContent = reply;
+  vmSpeak(reply);
+}
+async function vmSpeak(text) {
+  vmSetState('speaking');
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!res.ok) throw new Error('tts');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    VM.audio = audio;
+    audio.onended = () => { URL.revokeObjectURL(url); VM.audio = null; if (VM.active) vmListen(); else vmSetState('idle'); };
+    await audio.play();
+  } catch (e) { if (VM.active) vmListen(); else vmSetState('idle'); }
+}
 </script>
 </body>
 </html>

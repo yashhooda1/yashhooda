@@ -84,8 +84,8 @@ PERSONAL RECORDS:
 - Last Race: 2026 NYCRuns Brooklyn Experience Half Marathon — 1:27:41
 
 CURRENT TRAINING:
-- Weekly mileage: 45 miles/week
-- Training plan: Week 3 of Boulderthon Marathon training
+- Weekly mileage: 40-45 miles/week
+- Training plan: Early Weeks of Boulderthon Marathon training and summer training
 - Target race: 2026 Boulderthon Marathon (Boulder, CO)
 - Strava: public profile at strava.com/athletes/89409717
 

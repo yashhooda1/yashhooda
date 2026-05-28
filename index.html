@@ -885,6 +885,14 @@
         .chat-save-btn:hover { background: rgba(76,175,80,0.2); border-color:var(--green); }
         .chat-new-btn { flex:1; background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text-muted); border-radius:6px; padding:0.4rem 0; font-size:0.75rem; cursor:pointer; transition:all 0.2s; }
         .chat-new-btn:hover { background: rgba(255,255,255,0.08); color:var(--text); }
+        .model-item { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 0.75rem 0.9rem; margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s; }
+        .model-item:hover { border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.06); }
+        .model-item.selected { border-color: var(--green); background: rgba(76,175,80,0.1); }
+        .model-item-top { display: flex; align-items: center; justify-content: space-between; }
+        .model-item-name { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--text); font-weight: 700; }
+        .model-item-provider { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .model-item-note { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .model-check { display: inline-block; margin-top: 0.4rem; font-size: 0.7rem; color: var(--green); font-family: 'Space Mono', monospace; }
 
         /* ── HIKES ── */
         .run-card {
@@ -1161,6 +1169,7 @@
     <div class="chat-tabs">
         <button class="chat-tab active" onclick="showChatView(this)">💬 Chat</button>
         <button class="chat-tab" onclick="switchPromptsTab(this)">💡 Prompts</button>
+        <button class="chat-tab" onclick="switchModelsTab(this)">🧠 Models</button>
         <button class="chat-tab" onclick="switchHistoryTab(this)">🕓 History</button>
         <button class="chat-tab save-tab-btn" id="save-tab-btn" onclick="saveCurrentChat()" title="Save current chat">💾</button>
     </div>
@@ -1200,6 +1209,10 @@
             <button class="quick-btn wide-btn" onclick="quickAsk('How do I balance a demanding 8-5 job with running and side projects?')">Balance a job, running & side projects</button>
             <button class="quick-btn wide-btn" onclick="quickAsk('How do I avoid burnout while training and working full time?')">Avoid burnout while training full time</button>
         </div>
+    </div>
+    <!-- Models Panel -->
+    <div class="chat-history-panel" id="models-panel">
+        <div class="history-list" id="models-list"></div>
     </div>
 
     <!-- quick-btns kept empty/hidden — tabs now handle prompts -->
@@ -2242,6 +2255,63 @@ function newChat() {
     hideAllPanels();
     document.querySelector('.chat-tab').classList.add('active');
 }
+
+// ── AI MODEL SELECTION ──
+const AI_MODELS = [
+    { key: 'claude-opus-4-8',   name: 'Claude Opus 4.8',   provider: 'Anthropic', note: 'Smartest, best for deep advice' },
+    { key: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', provider: 'Anthropic', note: 'Fast and capable, great default' },
+    { key: 'gpt-5.5',           name: 'ChatGPT 5.5',       provider: 'OpenAI',    note: 'OpenAI flagship' },
+    { key: 'gpt-5.4',           name: 'ChatGPT 5.4',       provider: 'OpenAI',    note: 'Strong all-rounder' },
+    { key: 'gpt-5.4-mini',      name: 'ChatGPT 5.4 mini',  provider: 'OpenAI',    note: 'Fastest, lowest cost' },
+];
+
+let selectedModel = localStorage.getItem('hooda_model') || 'claude-opus-4-8';
+
+function modelName(key) {
+    const m = AI_MODELS.find(x => x.key === key);
+    return m ? m.name : key;
+}
+
+function updateModelLabel() {
+    const sub = document.querySelector('.chat-header-info span');
+    if (sub) sub.textContent = 'Powered by ' + modelName(selectedModel);
+}
+
+function switchModelsTab(btn) {
+    hideAllPanels();
+    btn.classList.add('active');
+    document.getElementById('chat-messages').classList.add('hidden');
+    document.getElementById('models-panel').classList.add('active');
+    renderModelList();
+}
+
+function renderModelList() {
+    const list = document.getElementById('models-list');
+    list.innerHTML = AI_MODELS.map(m => `
+        <div class="model-item ${m.key === selectedModel ? 'selected' : ''}" onclick="selectModel('${m.key}')">
+            <div class="model-item-top">
+                <span class="model-item-name">${m.name}</span>
+                <span class="model-item-provider">${m.provider}</span>
+            </div>
+            <div class="model-item-note">${m.note}</div>
+            ${m.key === selectedModel ? '<span class="model-check">✓ Active</span>' : ''}
+        </div>
+    `).join('');
+}
+
+function selectModel(key) {
+    selectedModel = key;
+    localStorage.setItem('hooda_model', key);
+    updateModelLabel();
+    renderModelList();
+    // Jump back to chat and confirm the switch
+    hideAllPanels();
+    document.querySelector('.chat-tab').classList.add('active');
+    document.getElementById('models-panel').classList.remove('active');
+    addBotMsg(`✅ Switched to ${modelName(key)}. Ask me anything!`);
+}
+
+updateModelLabel();
 
 function toggleChat() {
     chatOpen = !chatOpen;

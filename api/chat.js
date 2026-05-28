@@ -1,21 +1,37 @@
 import { Index } from "@upstash/vector";
 import { Redis } from "@upstash/redis";
-
+ 
+// ── MODEL REGISTRY ── single source of truth for which models are allowed + who serves them
+const MODELS = {
+  'claude-opus-4-8':   { provider: 'anthropic', api: 'claude-opus-4-8' },
+  'claude-sonnet-4-6': { provider: 'anthropic', api: 'claude-sonnet-4-6' },
+  'gpt-5.5':           { provider: 'openai',    api: 'gpt-5.5' },
+  'gpt-5.4':           { provider: 'openai',    api: 'gpt-5.4' },
+  'gpt-5.4-mini':      { provider: 'openai',    api: 'gpt-5.4-mini' },
+};
+const DEFAULT_MODEL = 'claude-opus-4-8';
+ 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
+ 
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  const { messages, sessionId } = req.body;
+ 
+  const { messages, sessionId, model } = req.body;
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages array required' });
   }
-
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
+ 
+  // Pick a model from the registry; fall back to default if missing/unknown
+  const picked = MODELS[model] ? model : DEFAULT_MODEL;
+  const cfg = MODELS[picked];
+ 
+  const apiKey = cfg.provider === 'anthropic'
+    ? process.env.ANTHROPIC_API_KEY
+    : process.env.OPENAI_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: `API key not configured for ${cfg.provider}` });
 
   const CONTEXT = `You are an expert AI assistant embedded in Yash Hooda's personal portfolio website. You have four roles: (1) a knowledgeable spokesperson for Yash, (2) a career advisor for Data Engineering and AI Engineering paths, (3) a running coach and performance advisor, and (4) a life-balance mentor for driven young professionals. You are warm, direct, and practical. Never make up facts about Yash — only use what's provided below.
 
@@ -207,7 +223,7 @@ RESPONSE GUIDELINES
 - If someone sends an image: describe what you see and relate it to running, career, or life advice as appropriate
 - Always end career/running advice with one specific actionable next step
 - If unsure about something specific to Yash, say so and suggest emailing yash.hooda6@gmail.com`;
-
+ 
   // ── RAG: retrieve relevant context from Upstash Vector ──
   let ragContext = '';
   try {
@@ -291,50 +307,76 @@ RESPONSE GUIDELINES
     console.warn('Memory load failed (non-fatal):', memErr.message);
   }
  
+  // RAG + memory get appended to the system prompt. CONTEXT stays 100% intact.
+  const dynamic = ragContext + memoryContext;
  
-  // Inject RAG + memory into the system prompt — CONTEXT stays 100% intact
-  // Build system as a cached static block + an uncached dynamic block
+  // Anthropic: cached static CONTEXT block + uncached dynamic block.
   const systemBlocks = [
     { type: 'text', text: CONTEXT, cache_control: { type: 'ephemeral' } },
   ];
-  const dynamic = ragContext + memoryContext;
   if (dynamic.trim()) {
     systemBlocks.push({ type: 'text', text: dynamic });
   }
-
+  // OpenAI: one plain-string system prompt (it caches long prefixes automatically).
+  const systemText = CONTEXT + dynamic;
+ 
   try {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-opus-4-8',
-      max_tokens: 1024,                  // up from 600 — room for thinking + answer
-      output_config: { effort: 'medium' },
-      system: systemBlocks,              // was: system: finalSystem
-      messages,
-    }),
-  });
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('Anthropic error:', JSON.stringify(data));
-      return res.status(502).json({ error: 'Upstream API error', detail: data });
+    let reply;
+ 
+    if (cfg.provider === 'anthropic') {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: cfg.api,
+          max_tokens: 1024,
+          output_config: { effort: 'medium' },
+          system: systemBlocks,
+          messages,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        console.error('Anthropic error:', JSON.stringify(data));
+        return res.status(502).json({ error: 'Upstream API error', detail: data });
+      }
+      reply = data.content?.[0]?.text ?? "Reach Yash at yash.hooda6@gmail.com!";
+    } else {
+      // ── OpenAI Responses API (GPT-5.x) ──
+      const response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: cfg.api,
+          instructions: systemText,
+          input: toOpenAIInput(messages),
+          reasoning: { effort: 'low' },
+          max_output_tokens: 2048,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        console.error('OpenAI error:', JSON.stringify(data));
+        return res.status(502).json({ error: 'Upstream API error', detail: data });
+      }
+      reply = extractOpenAIText(data) || "Reach Yash at yash.hooda6@gmail.com!";
     }
-
-    const reply = data.content?.[0]?.text ?? "Reach Yash at yash.hooda6@gmail.com!";
-
+ 
     // ── MEMORY: save this exchange to Redis ──
     try {
       if (redis && sessionId) {
         const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
         const userText = typeof lastUserMsg?.content === 'string'
-        ? lastUserMsg.content
-        : lastUserMsg?.content?.find?.(c => c.type === 'text')?.text || '[image/media]';
-
+          ? lastUserMsg.content
+          : lastUserMsg?.content?.find?.(c => c.type === 'text')?.text || '[image/media]';
+ 
         await redis.lpush(SESSION_KEY, JSON.stringify({ role: 'assistant', content: reply.slice(0, 500) }));
         await redis.lpush(SESSION_KEY, JSON.stringify({ role: 'user', content: userText.slice(0, 300) }));
         await redis.ltrim(SESSION_KEY, 0, MAX_MEMORY_PAIRS * 2 - 1);
@@ -343,9 +385,44 @@ RESPONSE GUIDELINES
     } catch (savErr) {
       console.warn('Memory save failed (non-fatal):', savErr.message);
     }
-    return res.status(200).json({ reply });
+    return res.status(200).json({ reply, model: picked });
   } catch (err) {
     console.error('Handler error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
+}
+ 
+// ── Convert Anthropic-style messages into OpenAI Responses `input` format ──
+function toOpenAIInput(messages) {
+  return messages.map(m => {
+    if (typeof m.content === 'string') {
+      return { role: m.role, content: m.content };
+    }
+    if (Array.isArray(m.content)) {
+      const parts = m.content.map(b => {
+        if (b.type === 'text') return { type: 'input_text', text: b.text };
+        if (b.type === 'image' && b.source?.type === 'base64') {
+          return { type: 'input_image', image_url: `data:${b.source.media_type};base64,${b.source.data}` };
+        }
+        return null;
+      }).filter(Boolean);
+      return { role: m.role, content: parts };
+    }
+    return { role: m.role, content: String(m.content) };
+  });
+}
+ 
+// ── Pull the assistant text out of an OpenAI Responses API result ──
+function extractOpenAIText(data) {
+  if (typeof data.output_text === 'string' && data.output_text) return data.output_text;
+  const out = Array.isArray(data.output) ? data.output : [];
+  const texts = [];
+  for (const item of out) {
+    if (item.type === 'message' && Array.isArray(item.content)) {
+      for (const c of item.content) {
+        if (c.type === 'output_text' && c.text) texts.push(c.text);
+      }
+    }
+  }
+  return texts.join('\n');
 }

@@ -48,18 +48,20 @@ export default async function handler(req, res) {
         'anthropic-beta': 'web-search-2025-03-05',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 1024,          // reduced from 2048 — faster, still plenty
-        stream: true,              // ← KEY: streaming so we don't block
-        system: buildSystemPrompt(),
-        tools: [{
-          type: 'web_search_20250305',
-          name: 'web_search',
-          max_uses: 2,             // reduced from 3 — cuts latency ~30%
-        }],
-        messages: cleanMessages,
-      }),
-    });
+          model: 'claude-opus-4-8',
+          max_tokens: 2048,                    // up from 1024 — high effort + search needs headroom
+          output_config: { effort: 'high' },
+          stream: true,
+          system: [
+            { type: 'text', text: buildSystemPrompt(), cache_control: { type: 'ephemeral' } }
+          ],
+          tools: [{
+            type: 'web_search_20250305',
+            name: 'web_search',
+            max_uses: 4,                       // up from 2 — lets it follow up when results are thin
+          }],
+          messages: cleanMessages,
+       }),
  
     if (!anthropicRes.ok) {
       const errText = await anthropicRes.text();

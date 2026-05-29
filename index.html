@@ -3104,78 +3104,28 @@ async function vmPumpTTS(){
   while (VM.ttsQueue.length && VM.active){
     const sentence = VM.ttsQueue.shift();
     try {
-      const res = await fetch('/api/tts',{
-        method: 'POST', headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify({ text: sentence, model:'tts-1', voice:'nova' }),
+      const res = await fetch('/api/tts', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ text: sentence, model: 'tts-1', voice: 'nova' }),
       });
-      if (!res.ok) continue;
+      if (!res.ok){ console.warn('TTS error', res.status); continue; }
 
-      const audio = new Audio();
-      VM.audio    = audio;
+      const blob  = await res.blob();
+      const url   = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      VM.audio = audio;
 
-      if (window.MediaSource && MediaSource.isTypeSupported('audio/mpeg')){
-        const ms = new MediaSource();
-        audio.src = URL.createObjectURL(ms);
+      await new Promise((resolve) => {
+        audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
+        audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+        audio.play().catch(() => resolve());
+      });
 
-        await new Promise((resolve)=>{
-          ms.addEventListener('sourceopen', async ()=>{
-            let sb;
-            try { sb = ms.addSourceBuffer('audio/mpeg'); } catch(e){ resolve(); return; }
-
-            const reader  = res.body.getReader();
-            let   started = false;
-
-            const pump = async ()=>{
-              try {
-                while (true){
-                  const { done, value } = await reader.read();
-                  if (done){ if (ms.readyState === 'open') ms.endOfStream(); break; }
-                  if (!VM.active){ reader.cancel(); break; }
-
-                  // Wait for any in-progress append before queuing the next chunk
-                  if (sb.updating){
-                    await new Promise(r => sb.addEventListener('updateend', r, { once:true }));
-                  }
-                  try {
-                    sb.appendBuffer(value);
-                  } catch(appendErr){
-                    // QuotaExceededError: buffer full — brief wait then retry
-                    await new Promise(r => setTimeout(r, 50));
-                    try { sb.appendBuffer(value); } catch(e2){}
-                  }
-                  if (sb.updating){
-                    await new Promise(r => sb.addEventListener('updateend', r, { once:true }));
-                  }
-
-                  // Only start playback once we have a real buffer — readyState 3 = HAVE_FUTURE_DATA
-                  if (!started && audio.buffered.length > 0 && audio.readyState >= 3){
-                    started = true;
-                    try { await audio.play(); } catch(e){}
-                  }
-                }
-              } catch(e){}
-              resolve();
-            };
-            pump();
-          }, { once:true });
-
-          audio.onended = resolve;
-          audio.onerror = resolve;
-          setTimeout(resolve, 12000); // safety escape hatch if MediaSource stalls
-        });
-
-        URL.revokeObjectURL(audio.src);
-      } else {
-        // Safari fallback
-        const blob = await res.blob();
-        audio.src  = URL.createObjectURL(blob);
-        await new Promise(resolve=>{
-          audio.onended = ()=>{ URL.revokeObjectURL(audio.src); resolve(); };
-          audio.onerror = resolve; audio.play().catch(resolve);
-        });
-      }
       VM.audio = null;
-    } catch(e){ console.warn('TTS sentence error:', e); }
+    } catch(e){
+      console.warn('TTS sentence error:', e);
+    }
   }
 
   VM.ttsBusy  = false;

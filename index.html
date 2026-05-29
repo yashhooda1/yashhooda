@@ -2896,6 +2896,7 @@ const VM = {
   streamDone:   true,
   silenceTimer: null,
   restartTimer: null,
+  noSpeechCount: 0,   // ← add this
   supported:    ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window),
 };
 function vmModel(){ return (typeof selectedModel !== 'undefined' && selectedModel) ? selectedModel : 'claude-sonnet-4-6'; }
@@ -2970,21 +2971,27 @@ function vmKillRec(){
 function vmListen(){
   if (!VM.active)   return;
   if (VM.listening) return;
-  if (VM.speaking)  return;   // mic stays dead while AI is talking
+  if (VM.speaking)  return;
   VM.listening = true;
   vmKillRec();
+
   const SR  = window.SpeechRecognition || window.webkitSpeechRecognition;
   const rec = new SR();
   rec.lang = 'en-US'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
   VM.recognition = rec;
+
   let accumulated  = '';
-  const SILENCE_MS = 1600;
+  const SILENCE_MS = 2500;   // was 1600 — room for natural mid-sentence pauses
+
   function bumpSilence(){
     clearTimeout(VM.silenceTimer);
     VM.silenceTimer = setTimeout(()=>{ VM.listening = false; try { rec.stop(); } catch(e){} }, SILENCE_MS);
   }
-  rec.onstart  = ()=>{ vmSetState('listening'); bumpSilence(); };
+
+  rec.onstart = ()=>{ vmSetState('listening'); VM.noSpeechCount = 0; bumpSilence(); };
+
   rec.onresult = (e)=>{
+    VM.noSpeechCount = 0;
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++){
       const t = e.results[i][0].transcript;
@@ -2994,24 +3001,38 @@ function vmListen(){
     if (el) el.textContent = (accumulated + interim).trim();
     bumpSilence();
   };
-  rec.onerror  = (e)=>{
+
+  rec.onerror = (e)=>{
     clearTimeout(VM.silenceTimer);
-    if (e.error === 'no-speech'){ VM.listening = false; VM.recognition = null; if (VM.active && !VM.speaking) vmListen(); return; }
-    if (e.error === 'aborted')  return;
+    if (e.error === 'no-speech'){
+      VM.noSpeechCount++;
+      VM.listening = false; VM.recognition = null;
+      // Tolerate up to 3 consecutive silent timeouts before going idle
+      if (VM.active && !VM.speaking && VM.noSpeechCount < 3){
+        VM.restartTimer = setTimeout(vmListen, 800);
+      } else {
+        VM.noSpeechCount = 0;
+        vmSetState('idle'); // tap orb to restart after long silence
+      }
+      return;
+    }
+    if (e.error === 'aborted') return;
     console.warn('Speech error:', e.error);
     VM.listening = false;
   };
+
   rec.onend = ()=>{
     clearTimeout(VM.silenceTimer);
-    VM.listening   = false;
-    VM.recognition = null;
+    VM.listening = false; VM.recognition = null;
     if (!VM.active) return;
     const text = accumulated.trim();
-    if (text) vmHandle(text);
-    else if (!VM.speaking) VM.restartTimer = setTimeout(vmListen, 400);
+    if (text){ VM.noSpeechCount = 0; vmHandle(text); }
+    else if (!VM.speaking) VM.restartTimer = setTimeout(vmListen, 600);
   };
-  try { rec.start(); } catch(e){ VM.listening = false; console.warn('rec.start() failed:', e); }
+
+  try { rec.start(); } catch(e){ VM.listening = false; }
 }
+    
 async function vmHandle(text){
   if (!VM.active) return;
   vmSetState('thinking');
@@ -3073,48 +3094,79 @@ async function vmHandle(text){
   vmMaybeFinish();
 }
 function vmEnqueueSentence(s){ s = s.trim(); if (s){ VM.ttsQueue.push(s); vmPumpTTS(); } }
+    
 async function vmPumpTTS(){
   if (VM.ttsBusy) return;
   VM.ttsBusy  = true;
-  VM.speaking = true;   // mic locked out for entire TTS queue
+  VM.speaking = true;
   vmSetState('speaking');
+
   while (VM.ttsQueue.length && VM.active){
     const sentence = VM.ttsQueue.shift();
     try {
       const res = await fetch('/api/tts',{
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: sentence, model: 'tts-1', voice: 'nova' }),
+        method: 'POST', headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ text: sentence, model:'tts-1', voice:'nova' }),
       });
       if (!res.ok) continue;
+
       const audio = new Audio();
-      VM.audio = audio;
+      VM.audio    = audio;
+
       if (window.MediaSource && MediaSource.isTypeSupported('audio/mpeg')){
         const ms = new MediaSource();
         audio.src = URL.createObjectURL(ms);
+
         await new Promise((resolve)=>{
           ms.addEventListener('sourceopen', async ()=>{
             let sb;
             try { sb = ms.addSourceBuffer('audio/mpeg'); } catch(e){ resolve(); return; }
-            const reader = res.body.getReader();
-            let started  = false;
-            const pump   = async ()=>{
+
+            const reader  = res.body.getReader();
+            let   started = false;
+
+            const pump = async ()=>{
               try {
                 while (true){
                   const { done, value } = await reader.read();
                   if (done){ if (ms.readyState === 'open') ms.endOfStream(); break; }
                   if (!VM.active){ reader.cancel(); break; }
-                  await new Promise(r=>{ sb.appendBuffer(value); sb.addEventListener('updateend', r,{ once:true }); });
-                  if (!started && audio.readyState >= 2){ started = true; audio.play().catch(()=>{}); }
+
+                  // Wait for any in-progress append before queuing the next chunk
+                  if (sb.updating){
+                    await new Promise(r => sb.addEventListener('updateend', r, { once:true }));
+                  }
+                  try {
+                    sb.appendBuffer(value);
+                  } catch(appendErr){
+                    // QuotaExceededError: buffer full — brief wait then retry
+                    await new Promise(r => setTimeout(r, 50));
+                    try { sb.appendBuffer(value); } catch(e2){}
+                  }
+                  if (sb.updating){
+                    await new Promise(r => sb.addEventListener('updateend', r, { once:true }));
+                  }
+
+                  // Only start playback once we have a real buffer — readyState 3 = HAVE_FUTURE_DATA
+                  if (!started && audio.buffered.length > 0 && audio.readyState >= 3){
+                    started = true;
+                    try { await audio.play(); } catch(e){}
+                  }
                 }
               } catch(e){}
               resolve();
             };
             pump();
           }, { once:true });
-          audio.onended = resolve; audio.onerror = resolve;
+
+          audio.onended = resolve;
+          audio.onerror = resolve;
+          setTimeout(resolve, 12000); // safety escape hatch if MediaSource stalls
         });
+
         URL.revokeObjectURL(audio.src);
       } else {
+        // Safari fallback
         const blob = await res.blob();
         audio.src  = URL.createObjectURL(blob);
         await new Promise(resolve=>{
@@ -3123,16 +3175,17 @@ async function vmPumpTTS(){
         });
       }
       VM.audio = null;
-    } catch(e){}
+    } catch(e){ console.warn('TTS sentence error:', e); }
   }
+
   VM.ttsBusy  = false;
-  VM.speaking = false;   // all audio done — now mic can activate
+  VM.speaking = false;
   vmMaybeFinish();
 }
 function vmMaybeFinish(){
   if (VM.active && VM.streamDone && !VM.ttsBusy && !VM.speaking &&
       !VM.ttsQueue.length && !VM.listening){
-    VM.restartTimer = setTimeout(vmListen, 800); // 800ms gap after last word fades
+    VM.restartTimer = setTimeout(vmListen, 1200); // was 800 — last word fully fades
   }
 }
 </script>

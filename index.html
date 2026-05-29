@@ -2884,11 +2884,10 @@ function ensureSpeakerButtons() {
 })();
 // ── FULL VOICE CONVERSATION MODE ──
 // ── FULL VOICE CONVERSATION MODE (streaming pipeline) ──
-const VM = {
-  active: false, state: 'idle', recognition: null, audio: null, history: [],
+const VM = { active: false, state: 'idle', recognition: null, audio: null, history: [],
   ttsQueue: [], audioQueue: [], ttsBusy: false, playing: false, streamDone: true,
-  supported: ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window),
-};
+  silenceTimer: null,
+  supported: ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) };
 function vmModel() { return (typeof selectedModel !== 'undefined' && selectedModel) ? selectedModel : 'claude-sonnet-4-6'; }
 function vmSetState(s) {
   VM.state = s;
@@ -2919,34 +2918,81 @@ function vmStart() { VM.active = true; vmResetStreams(); vmListen(); }
 function vmResetStreams() { VM.ttsQueue = []; VM.audioQueue = []; VM.ttsBusy = false; VM.playing = false; VM.streamDone = true; }
 function vmStop() {
   VM.active = false;
+  clearTimeout(VM.silenceTimer);
   try { if (VM.recognition) VM.recognition.abort(); } catch (e) {}
   if (VM.audio) { VM.audio.pause(); VM.audio = null; }
   vmResetStreams(); vmSetState('idle');
 }
 function vmInterrupt() {
+  clearTimeout(VM.silenceTimer);
   if (VM.audio) { VM.audio.pause(); VM.audio = null; }
   VM.ttsQueue = []; VM.audioQueue = []; VM.ttsBusy = false; VM.playing = false;
   vmListen();
 }
 function vmListen() {
   if (!VM.active) return;
+
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const rec = new SR();
-  rec.lang = 'en-US'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+
+  // continuous:true keeps the session alive through natural pauses.
+  // Was false — that's what was cutting you off mid-sentence.
+  rec.lang            = 'en-US';
+  rec.interimResults  = true;
+  rec.continuous      = true;
+  rec.maxAlternatives = 1;
+
   VM.recognition = rec;
-  let finalText = '';
+
+  let finalText    = '';
+  let silenceTimer = null;
+  // 1800ms of silence after your last word = done talking.
+  // Raise to 2200 if you're a slow/deliberate speaker.
+  const SILENCE_MS = 1800;
+
+  function resetSilenceTimer() {
+    clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(() => {
+      const text = finalText.trim();
+      if (!text || !VM.active) return;
+      // Stop mic BEFORE handing off — prevents AI reply feeding back in
+      try { rec.stop(); } catch (e) {}
+      vmHandle(text);
+    }, SILENCE_MS);
+  }
+
   rec.onstart = () => vmSetState('listening');
+
   rec.onresult = (e) => {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) finalText += t; else interim += t;
+      if (e.results[i].isFinal) {
+        finalText += t + ' ';
+      } else {
+        interim += t;
+      }
     }
     const el = document.getElementById('vm-user-text');
-    if (el) el.textContent = (finalText + ' ' + interim).trim();
+    if (el) el.textContent = (finalText + interim).trim();
+    // Every new word resets the countdown — you're still talking
+    resetSilenceTimer();
   };
-  rec.onerror = (e) => { if (e.error === 'no-speech' && VM.active) vmListen(); };
-  rec.onend = () => { if (!VM.active) return; const text = finalText.trim(); if (text) vmHandle(text); else vmListen(); };
+
+  rec.onerror = (e) => {
+    clearTimeout(silenceTimer);
+    if (e.error === 'no-speech') return; // harmless in continuous mode
+    if (e.error === 'aborted')   return; // we stopped it ourselves
+    console.warn('Speech recognition error:', e.error);
+  };
+
+  rec.onend = () => {
+    clearTimeout(silenceTimer);
+    if (!VM.active) return;
+    const text = finalText.trim();
+    if (text) vmHandle(text); else vmListen();
+  };
+
   try { rec.start(); } catch (e) {}
 }
 

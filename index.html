@@ -2886,6 +2886,7 @@ function ensureSpeakerButtons() {
 const VM = {
   active:       false,
   listening:    false,
+  speaking:     false,   // true while TTS audio is playing — mic stays dead
   state:        'idle',
   recognition:  null,
   audio:        null,
@@ -2897,26 +2898,19 @@ const VM = {
   restartTimer: null,
   supported:    ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window),
 };
-function vmModel() {
-  return (typeof selectedModel !== 'undefined' && selectedModel) ? selectedModel : 'claude-sonnet-4-6';
-}
-function vmSetState(s) {
+function vmModel(){ return (typeof selectedModel !== 'undefined' && selectedModel) ? selectedModel : 'claude-sonnet-4-6'; }
+function vmSetState(s){
   VM.state = s;
   const orb = document.getElementById('vm-orb');
   const status = document.getElementById('vm-status');
   if (!orb || !status) return;
   orb.className = 'vm-orb vm-' + s;
-  const labels = {
-    idle:      'Tap to start talking',
-    listening: '🎧 Listening… (pause when done)',
-    thinking:  '💭 Thinking…',
-    speaking:  '🔊 Speaking… (tap orb to interrupt)',
-  };
+  const labels = { idle:'Tap to start talking', listening:'🎧 Listening… (pause when done)', thinking:'💭 Thinking…', speaking:'🔊 Speaking… (tap orb to interrupt)' };
   status.textContent = labels[s] || '';
   const lbl = document.getElementById('vm-btn-label');
   if (lbl) lbl.textContent = VM.active ? 'Stop' : 'Start';
 }
-function vmSwitchTab(btn) {
+function vmSwitchTab(btn){
   hideAllPanels();
   btn.classList.add('active');
   document.getElementById('chat-messages').classList.add('hidden');
@@ -2924,248 +2918,221 @@ function vmSwitchTab(btn) {
   if (!VM.supported) document.getElementById('vm-status').textContent = 'Voice mode needs Chrome or Edge.';
   else vmSetState('idle');
 }
-function vmToggle() {
+function vmToggle(){
   if (!VM.supported) return;
   if (!VM.active)              { vmStart();     return; }
   if (VM.state === 'speaking') { vmInterrupt(); return; }
   vmStop();
 }
-function vmStart() {
-  VM.active  = true;
-  VM.history = [];
+function vmStart(){
+  VM.active   = true;
+  VM.speaking = false;
+  VM.history  = [];
   vmResetStreams();
   vmListen();
 }
-function vmResetStreams() {
-  VM.ttsQueue = []; VM.ttsBusy = false; VM.streamDone = true;
+function vmResetStreams(){
+  VM.ttsQueue   = [];
+  VM.ttsBusy    = false;
+  VM.streamDone = true;
+  VM.speaking   = false;
 }
-function vmStop() {
+function vmStop(){
   VM.active    = false;
   VM.listening = false;
+  VM.speaking  = false;
   clearTimeout(VM.silenceTimer);
   clearTimeout(VM.restartTimer);
   vmKillRec();
-  if (VM.audio) { VM.audio.pause(); VM.audio = null; }
+  if (VM.audio){ VM.audio.pause(); VM.audio = null; }
   vmResetStreams();
   vmSetState('idle');
 }
-function vmInterrupt() {
+function vmInterrupt(){
   clearTimeout(VM.silenceTimer);
   clearTimeout(VM.restartTimer);
-  if (VM.audio) { VM.audio.pause(); VM.audio = null; }
-  VM.ttsQueue = []; VM.ttsBusy = false;
-  setTimeout(vmListen, 300); // small gap so mic doesn't catch audio tail
+  if (VM.audio){ VM.audio.pause(); VM.audio = null; }
+  VM.ttsQueue  = [];
+  VM.ttsBusy   = false;
+  VM.speaking  = false;
+  setTimeout(vmListen, 600);
 }
-function vmKillRec() {
-  if (VM.recognition) {
+function vmKillRec(){
+  if (VM.recognition){
     VM.recognition.onstart  = null;
     VM.recognition.onresult = null;
     VM.recognition.onerror  = null;
     VM.recognition.onend    = null;
-    try { VM.recognition.abort(); } catch (e) {}
+    try { VM.recognition.abort(); } catch(e){}
     VM.recognition = null;
   }
 }
-function vmListen() {
+function vmListen(){
   if (!VM.active)   return;
-  if (VM.listening) return;  // one session at a time — hard guard
+  if (VM.listening) return;
+  if (VM.speaking)  return;   // mic stays dead while AI is talking
   VM.listening = true;
   vmKillRec();
-
   const SR  = window.SpeechRecognition || window.webkitSpeechRecognition;
   const rec = new SR();
-  rec.lang           = 'en-US';
-  rec.interimResults = true;
-  rec.continuous     = false;  // one clean session — no beeping loops
-  rec.maxAlternatives = 1;
+  rec.lang = 'en-US'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
   VM.recognition = rec;
-
-  let accumulated   = '';
-  const SILENCE_MS  = 1500;
-
-  function bumpSilence() {
+  let accumulated  = '';
+  const SILENCE_MS = 1600;
+  function bumpSilence(){
     clearTimeout(VM.silenceTimer);
-    VM.silenceTimer = setTimeout(() => {
-      VM.listening = false;
-      try { rec.stop(); } catch (e) {}
-    }, SILENCE_MS);
+    VM.silenceTimer = setTimeout(()=>{ VM.listening = false; try { rec.stop(); } catch(e){} }, SILENCE_MS);
   }
-
-  rec.onstart = () => { vmSetState('listening'); bumpSilence(); };
-
-  rec.onresult = (e) => {
+  rec.onstart  = ()=>{ vmSetState('listening'); bumpSilence(); };
+  rec.onresult = (e)=>{
     let interim = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
+    for (let i = e.resultIndex; i < e.results.length; i++){
       const t = e.results[i][0].transcript;
       if (e.results[i].isFinal) accumulated += t + ' '; else interim += t;
     }
     const el = document.getElementById('vm-user-text');
     if (el) el.textContent = (accumulated + interim).trim();
-    bumpSilence(); // every word resets the done-talking countdown
+    bumpSilence();
   };
-
-  rec.onerror = (e) => {
+  rec.onerror  = (e)=>{
     clearTimeout(VM.silenceTimer);
-    if (e.error === 'no-speech') {
-      VM.listening = false; VM.recognition = null;
-      if (VM.active) vmListen();
-      return;
-    }
-    if (e.error === 'aborted') return;
+    if (e.error === 'no-speech'){ VM.listening = false; VM.recognition = null; if (VM.active && !VM.speaking) vmListen(); return; }
+    if (e.error === 'aborted')  return;
     console.warn('Speech error:', e.error);
     VM.listening = false;
   };
-
-  rec.onend = () => {
+  rec.onend = ()=>{
     clearTimeout(VM.silenceTimer);
-    VM.listening = false; VM.recognition = null;
+    VM.listening   = false;
+    VM.recognition = null;
     if (!VM.active) return;
     const text = accumulated.trim();
-    if (text) {
-      vmHandle(text);
-    } else {
-      VM.restartTimer = setTimeout(vmListen, 400); // nothing heard — wait then retry
-    }
+    if (text) vmHandle(text);
+    else if (!VM.speaking) VM.restartTimer = setTimeout(vmListen, 400);
   };
-
-  try {
-    rec.start();
-  } catch (e) {
-    VM.listening = false;
-    console.warn('rec.start() failed:', e);
-  }
+  try { rec.start(); } catch(e){ VM.listening = false; console.warn('rec.start() failed:', e); }
 }
-async function vmHandle(text) {
+async function vmHandle(text){
   if (!VM.active) return;
   vmSetState('thinking');
   document.getElementById('vm-user-text').textContent = text;
   document.getElementById('vm-ai-text').textContent   = '';
   VM.history.push({ role: 'user', content: text });
-  VM.streamDone = false;
-  VM.ttsQueue   = [];
+  VM.streamDone = false; VM.ttsQueue = [];
   let sentenceBuf = '', full = '';
-
   try {
-    const res = await fetch('/api/chat-voice', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch('/api/chat-voice',{
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: VM.history, sessionId: SESSION_ID, model: vmModel() }),
     });
-
-    if (!res.ok) {
+    if (!res.ok){
       const errText = await res.text();
       console.error('chat-voice HTTP error:', res.status, errText);
       full = `Error ${res.status} — check Vercel logs.`;
       document.getElementById('vm-ai-text').textContent = full;
       vmEnqueueSentence(full);
       VM.history.push({ role: 'assistant', content: full });
-      VM.streamDone = true;
-      vmMaybeFinish();
-      return;
+      VM.streamDone = true; vmMaybeFinish(); return;
     }
-
     const reader = res.body.getReader();
     const dec    = new TextDecoder();
     let buf = '';
-    while (true) {
+    while (true){
       const { done, value } = await reader.read();
       if (done) break;
       buf += dec.decode(value, { stream: true });
       const lines = buf.split('\n'); buf = lines.pop();
-      for (const line of lines) {
+      for (const line of lines){
         if (!line.startsWith('data: ')) continue;
         let evt; try { evt = JSON.parse(line.slice(6)); } catch { continue; }
-        if (evt.type === 'token') {
+        if (evt.type === 'token'){
           full += evt.text; sentenceBuf += evt.text;
           document.getElementById('vm-ai-text').textContent = full;
           let m;
-          while ((m = sentenceBuf.match(/^[\s\S]*?[.!?…]+["')\]]?\s/))) {
+          while ((m = sentenceBuf.match(/^[\s\S]*?[.!?…]+["')\]]?\s/))){
             vmEnqueueSentence(m[0]); sentenceBuf = sentenceBuf.slice(m[0].length);
           }
-        } else if (evt.type === 'done') {
-          if (evt.text) { full = evt.text; document.getElementById('vm-ai-text').textContent = full; }
-        } else if (evt.type === 'error') {
+        } else if (evt.type === 'done'){
+          if (evt.text){ full = evt.text; document.getElementById('vm-ai-text').textContent = full; }
+        } else if (evt.type === 'error'){
           console.error('chat-voice stream error:', evt.error);
-          full = full || `Sorry, something went wrong: ${evt.error}`;
+          full = full || 'Sorry, something went wrong.';
           document.getElementById('vm-ai-text').textContent = full;
         }
       }
     }
-  } catch (e) {
+  } catch(e){
     console.error('vmHandle fetch error:', e);
-    full = full || "Network error — check your connection and try again.";
+    full = full || "Network error — check your connection.";
     document.getElementById('vm-ai-text').textContent = full;
   }
-
   if (sentenceBuf.trim()) vmEnqueueSentence(sentenceBuf);
   if (!full) full = "I didn't get a response — please try again.";
   VM.history.push({ role: 'assistant', content: full });
   VM.streamDone = true;
   vmMaybeFinish();
 }
-function vmEnqueueSentence(s) { s = s.trim(); if (s) { VM.ttsQueue.push(s); vmPumpTTS(); } }
-async function vmPumpTTS() {
+function vmEnqueueSentence(s){ s = s.trim(); if (s){ VM.ttsQueue.push(s); vmPumpTTS(); } }
+async function vmPumpTTS(){
   if (VM.ttsBusy) return;
-  VM.ttsBusy = true;
-  while (VM.ttsQueue.length && VM.active) {
+  VM.ttsBusy  = true;
+  VM.speaking = true;   // mic locked out for entire TTS queue
+  vmSetState('speaking');
+  while (VM.ttsQueue.length && VM.active){
     const sentence = VM.ttsQueue.shift();
     try {
-      const res = await fetch('/api/tts', {
+      const res = await fetch('/api/tts',{
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: sentence, model: 'tts-1', voice: 'nova' }),
       });
       if (!res.ok) continue;
       const audio = new Audio();
       VM.audio = audio;
-      if (window.MediaSource && MediaSource.isTypeSupported('audio/mpeg')) {
+      if (window.MediaSource && MediaSource.isTypeSupported('audio/mpeg')){
         const ms = new MediaSource();
         audio.src = URL.createObjectURL(ms);
-        await new Promise((resolve) => {
-          ms.addEventListener('sourceopen', async () => {
+        await new Promise((resolve)=>{
+          ms.addEventListener('sourceopen', async ()=>{
             let sb;
-            try { sb = ms.addSourceBuffer('audio/mpeg'); } catch (e) { resolve(); return; }
+            try { sb = ms.addSourceBuffer('audio/mpeg'); } catch(e){ resolve(); return; }
             const reader = res.body.getReader();
             let started  = false;
-            const pump   = async () => {
+            const pump   = async ()=>{
               try {
-                while (true) {
+                while (true){
                   const { done, value } = await reader.read();
-                  if (done) { if (ms.readyState === 'open') ms.endOfStream(); break; }
-                  if (!VM.active) { reader.cancel(); break; }
-                  await new Promise(r => {
-                    sb.appendBuffer(value);
-                    sb.addEventListener('updateend', r, { once: true });
-                  });
-                  if (!started && audio.readyState >= 2) {
-                    started = true; vmSetState('speaking'); audio.play().catch(() => {});
-                  }
+                  if (done){ if (ms.readyState === 'open') ms.endOfStream(); break; }
+                  if (!VM.active){ reader.cancel(); break; }
+                  await new Promise(r=>{ sb.appendBuffer(value); sb.addEventListener('updateend', r,{ once:true }); });
+                  if (!started && audio.readyState >= 2){ started = true; audio.play().catch(()=>{}); }
                 }
-              } catch (e) {}
+              } catch(e){}
               resolve();
             };
             pump();
-          }, { once: true });
+          }, { once:true });
           audio.onended = resolve; audio.onerror = resolve;
         });
         URL.revokeObjectURL(audio.src);
       } else {
         const blob = await res.blob();
         audio.src  = URL.createObjectURL(blob);
-        vmSetState('speaking');
-        await new Promise(resolve => {
-          audio.onended = () => { URL.revokeObjectURL(audio.src); resolve(); };
+        await new Promise(resolve=>{
+          audio.onended = ()=>{ URL.revokeObjectURL(audio.src); resolve(); };
           audio.onerror = resolve; audio.play().catch(resolve);
         });
       }
       VM.audio = null;
-    } catch (e) {}
+    } catch(e){}
   }
-  VM.ttsBusy = false;
+  VM.ttsBusy  = false;
+  VM.speaking = false;   // all audio done — now mic can activate
   vmMaybeFinish();
 }
-function vmMaybeFinish() {
-  if (VM.active && VM.streamDone && !VM.ttsBusy && !VM.ttsQueue.length && !VM.listening) {
-    VM.restartTimer = setTimeout(vmListen, 400);
+function vmMaybeFinish(){
+  if (VM.active && VM.streamDone && !VM.ttsBusy && !VM.speaking &&
+      !VM.ttsQueue.length && !VM.listening){
+    VM.restartTimer = setTimeout(vmListen, 800); // 800ms gap after last word fades
   }
 }
 </script>

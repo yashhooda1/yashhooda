@@ -2883,21 +2883,18 @@ function ensureSpeakerButtons() {
     ensureSpeakerButtons();
 })();
 // ── FULL VOICE CONVERSATION MODE ──
-// ── FULL VOICE CONVERSATION MODE (streaming pipeline) ──
-// ── FULL VOICE CONVERSATION MODE ──
 const VM = {
   active:       false,
-  listening:    false,   // guard — blocks duplicate recognition sessions
+  listening:    false,
   state:        'idle',
   recognition:  null,
   audio:        null,
   history:      [],
   ttsQueue:     [],
-  audioQueue:   [],
   ttsBusy:      false,
-  playing:      false,
   streamDone:   true,
   silenceTimer: null,
+  restartTimer: null,
   supported:    ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window),
 };
 function vmModel() {
@@ -2909,7 +2906,12 @@ function vmSetState(s) {
   const status = document.getElementById('vm-status');
   if (!orb || !status) return;
   orb.className = 'vm-orb vm-' + s;
-  const labels = { idle: 'Tap to start talking', listening: '🎧 Listening…', thinking: '💭 Thinking…', speaking: '🔊 Speaking… (tap orb to interrupt)' };
+  const labels = {
+    idle:      'Tap to start talking',
+    listening: '🎧 Listening… (pause when done)',
+    thinking:  '💭 Thinking…',
+    speaking:  '🔊 Speaking… (tap orb to interrupt)',
+  };
   status.textContent = labels[s] || '';
   const lbl = document.getElementById('vm-btn-label');
   if (lbl) lbl.textContent = VM.active ? 'Stop' : 'Start';
@@ -2928,93 +2930,118 @@ function vmToggle() {
   if (VM.state === 'speaking') { vmInterrupt(); return; }
   vmStop();
 }
-function vmStart() { VM.active = true; vmResetStreams(); vmListen(); }
+function vmStart() {
+  VM.active  = true;
+  VM.history = [];
+  vmResetStreams();
+  vmListen();
+}
 function vmResetStreams() {
-  VM.ttsQueue = []; VM.audioQueue = [];
-  VM.ttsBusy = false; VM.playing = false; VM.streamDone = true;
+  VM.ttsQueue = []; VM.ttsBusy = false; VM.streamDone = true;
 }
 function vmStop() {
   VM.active    = false;
   VM.listening = false;
   clearTimeout(VM.silenceTimer);
-  try { if (VM.recognition) VM.recognition.abort(); } catch (e) {}
-  VM.recognition = null;
+  clearTimeout(VM.restartTimer);
+  vmKillRec();
   if (VM.audio) { VM.audio.pause(); VM.audio = null; }
   vmResetStreams();
   vmSetState('idle');
 }
 function vmInterrupt() {
   clearTimeout(VM.silenceTimer);
-  VM.listening = false;
-  try { if (VM.recognition) VM.recognition.abort(); } catch (e) {}
-  VM.recognition = null;
+  clearTimeout(VM.restartTimer);
   if (VM.audio) { VM.audio.pause(); VM.audio = null; }
-  VM.ttsQueue = []; VM.audioQueue = []; VM.ttsBusy = false; VM.playing = false;
-  vmListen();
+  VM.ttsQueue = []; VM.ttsBusy = false;
+  setTimeout(vmListen, 300); // small gap so mic doesn't catch audio tail
+}
+function vmKillRec() {
+  if (VM.recognition) {
+    VM.recognition.onstart  = null;
+    VM.recognition.onresult = null;
+    VM.recognition.onerror  = null;
+    VM.recognition.onend    = null;
+    try { VM.recognition.abort(); } catch (e) {}
+    VM.recognition = null;
+  }
 }
 function vmListen() {
   if (!VM.active)   return;
-  if (VM.listening) return;   // ← already running — do not start a second session
+  if (VM.listening) return;  // one session at a time — hard guard
   VM.listening = true;
+  vmKillRec();
 
   const SR  = window.SpeechRecognition || window.webkitSpeechRecognition;
   const rec = new SR();
-  rec.lang = 'en-US'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
+  rec.lang           = 'en-US';
+  rec.interimResults = true;
+  rec.continuous     = false;  // one clean session — no beeping loops
+  rec.maxAlternatives = 1;
   VM.recognition = rec;
 
-  let finalText = '';
-  const SILENCE_MS = 1800;
+  let accumulated   = '';
+  const SILENCE_MS  = 1500;
 
-  function resetSilenceTimer() {
+  function bumpSilence() {
     clearTimeout(VM.silenceTimer);
     VM.silenceTimer = setTimeout(() => {
-      const text = finalText.trim();
-      if (!text || !VM.active) return;
-      VM.listening = false;         // clear flag BEFORE stopping so onend doesn't re-trigger
+      VM.listening = false;
       try { rec.stop(); } catch (e) {}
-      vmHandle(text);
     }, SILENCE_MS);
   }
 
-  rec.onstart = () => vmSetState('listening');
+  rec.onstart = () => { vmSetState('listening'); bumpSilence(); };
 
   rec.onresult = (e) => {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) finalText += t + ' '; else interim += t;
+      if (e.results[i].isFinal) accumulated += t + ' '; else interim += t;
     }
     const el = document.getElementById('vm-user-text');
-    if (el) el.textContent = (finalText + interim).trim();
-    resetSilenceTimer();   // every new word resets the done-talking countdown
+    if (el) el.textContent = (accumulated + interim).trim();
+    bumpSilence(); // every word resets the done-talking countdown
   };
 
   rec.onerror = (e) => {
     clearTimeout(VM.silenceTimer);
-    if (e.error === 'no-speech') return;  // harmless in continuous mode
-    if (e.error === 'aborted')   return;  // we stopped it ourselves
-    console.warn('Speech recognition error:', e.error);
+    if (e.error === 'no-speech') {
+      VM.listening = false; VM.recognition = null;
+      if (VM.active) vmListen();
+      return;
+    }
+    if (e.error === 'aborted') return;
+    console.warn('Speech error:', e.error);
+    VM.listening = false;
   };
 
   rec.onend = () => {
     clearTimeout(VM.silenceTimer);
-    VM.listening   = false;   // session is dead — release the guard
-    VM.recognition = null;
+    VM.listening = false; VM.recognition = null;
     if (!VM.active) return;
-    const text = finalText.trim();
-    if (text) vmHandle(text); else vmListen();
+    const text = accumulated.trim();
+    if (text) {
+      vmHandle(text);
+    } else {
+      VM.restartTimer = setTimeout(vmListen, 400); // nothing heard — wait then retry
+    }
   };
 
-  try { rec.start(); } catch (e) { VM.listening = false; }
+  try {
+    rec.start();
+  } catch (e) {
+    VM.listening = false;
+    console.warn('rec.start() failed:', e);
+  }
 }
-
 async function vmHandle(text) {
   if (!VM.active) return;
   vmSetState('thinking');
   document.getElementById('vm-user-text').textContent = text;
   document.getElementById('vm-ai-text').textContent   = '';
   VM.history.push({ role: 'user', content: text });
-  VM.streamDone = false; VM.ttsQueue = []; VM.audioQueue = [];
+  VM.streamDone = false; VM.ttsQueue = [];
   let sentenceBuf = '', full = '';
   try {
     const res = await fetch('/api/chat-voice', {
@@ -3053,9 +3080,7 @@ async function vmHandle(text) {
   VM.streamDone = true;
   vmMaybeFinish();
 }
-
 function vmEnqueueSentence(s) { s = s.trim(); if (s) { VM.ttsQueue.push(s); vmPumpTTS(); } }
-
 async function vmPumpTTS() {
   if (VM.ttsBusy) return;
   VM.ttsBusy = true;
@@ -3084,7 +3109,10 @@ async function vmPumpTTS() {
                   const { done, value } = await reader.read();
                   if (done) { if (ms.readyState === 'open') ms.endOfStream(); break; }
                   if (!VM.active) { reader.cancel(); break; }
-                  await new Promise(r => { sb.appendBuffer(value); sb.addEventListener('updateend', r, { once: true }); });
+                  await new Promise(r => {
+                    sb.appendBuffer(value);
+                    sb.addEventListener('updateend', r, { once: true });
+                  });
                   if (!started && audio.readyState >= 2) {
                     started = true; vmSetState('speaking'); audio.play().catch(() => {});
                   }
@@ -3103,8 +3131,7 @@ async function vmPumpTTS() {
         vmSetState('speaking');
         await new Promise(resolve => {
           audio.onended = () => { URL.revokeObjectURL(audio.src); resolve(); };
-          audio.onerror = resolve;
-          audio.play().catch(resolve);
+          audio.onerror = resolve; audio.play().catch(resolve);
         });
       }
       VM.audio = null;
@@ -3113,11 +3140,9 @@ async function vmPumpTTS() {
   VM.ttsBusy = false;
   vmMaybeFinish();
 }
-
 function vmMaybeFinish() {
-  if (VM.active && VM.streamDone && !VM.ttsBusy &&
-      !VM.ttsQueue.length && !VM.audioQueue.length && !VM.listening) {
-    vmListen();
+  if (VM.active && VM.streamDone && !VM.ttsBusy && !VM.ttsQueue.length && !VM.listening) {
+    VM.restartTimer = setTimeout(vmListen, 400);
   }
 }
 </script>

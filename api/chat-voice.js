@@ -1,5 +1,5 @@
 // api/chat-voice.js — low-latency streaming for the voice tab
-export const maxDuration = 60;
+export const maxDuration = 120;
 export const config = { runtime: 'nodejs' };
 
 const MODELS = {

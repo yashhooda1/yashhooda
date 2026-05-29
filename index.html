@@ -3041,13 +3041,29 @@ async function vmHandle(text) {
   document.getElementById('vm-user-text').textContent = text;
   document.getElementById('vm-ai-text').textContent   = '';
   VM.history.push({ role: 'user', content: text });
-  VM.streamDone = false; VM.ttsQueue = [];
+  VM.streamDone = false;
+  VM.ttsQueue   = [];
   let sentenceBuf = '', full = '';
+
   try {
     const res = await fetch('/api/chat-voice', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: VM.history, sessionId: SESSION_ID, model: vmModel() }),
     });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('chat-voice HTTP error:', res.status, errText);
+      full = `Error ${res.status} — check Vercel logs.`;
+      document.getElementById('vm-ai-text').textContent = full;
+      vmEnqueueSentence(full);
+      VM.history.push({ role: 'assistant', content: full });
+      VM.streamDone = true;
+      vmMaybeFinish();
+      return;
+    }
+
     const reader = res.body.getReader();
     const dec    = new TextDecoder();
     let buf = '';
@@ -3068,14 +3084,21 @@ async function vmHandle(text) {
           }
         } else if (evt.type === 'done') {
           if (evt.text) { full = evt.text; document.getElementById('vm-ai-text').textContent = full; }
+        } else if (evt.type === 'error') {
+          console.error('chat-voice stream error:', evt.error);
+          full = full || `Sorry, something went wrong: ${evt.error}`;
+          document.getElementById('vm-ai-text').textContent = full;
         }
       }
     }
   } catch (e) {
-    full = full || "I hit a network error. Try again.";
+    console.error('vmHandle fetch error:', e);
+    full = full || "Network error — check your connection and try again.";
     document.getElementById('vm-ai-text').textContent = full;
   }
+
   if (sentenceBuf.trim()) vmEnqueueSentence(sentenceBuf);
+  if (!full) full = "I didn't get a response — please try again.";
   VM.history.push({ role: 'assistant', content: full });
   VM.streamDone = true;
   vmMaybeFinish();

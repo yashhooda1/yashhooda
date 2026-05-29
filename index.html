@@ -3095,36 +3095,54 @@ async function vmHandle(text){
 }
 function vmEnqueueSentence(s){ s = s.trim(); if (s){ VM.ttsQueue.push(s); vmPumpTTS(); } }
     
+// Fetches one sentence's TTS audio and returns an object URL ready to play
+async function fetchAudio(sentence){
+  try {
+    const res = await fetch('/api/tts', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ text: sentence, model: 'tts-1', voice: 'nova' }),
+    });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  } catch(e){
+    return null;
+  }
+}
+
 async function vmPumpTTS(){
   if (VM.ttsBusy) return;
   VM.ttsBusy  = true;
   VM.speaking = true;
   vmSetState('speaking');
 
-  while (VM.ttsQueue.length && VM.active){
-    const sentence = VM.ttsQueue.shift();
-    try {
-      const res = await fetch('/api/tts', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ text: sentence, model: 'tts-1', voice: 'nova' }),
-      });
-      if (!res.ok){ console.warn('TTS error', res.status); continue; }
+  // Kick off the first TTS fetch immediately
+  let nextFetch = VM.ttsQueue.length ? fetchAudio(VM.ttsQueue.shift()) : null;
 
-      const blob  = await res.blob();
-      const url   = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      VM.audio = audio;
+  while (nextFetch && VM.active){
+    // Start fetching the NEXT sentence in parallel before this one even plays
+    const currentPromise = nextFetch;
+    nextFetch = VM.ttsQueue.length ? fetchAudio(VM.ttsQueue.shift()) : null;
 
-      await new Promise((resolve) => {
-        audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
-        audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-        audio.play().catch(() => resolve());
-      });
+    const url = await currentPromise;
+    if (!url){ continue; }
 
-      VM.audio = null;
-    } catch(e){
-      console.warn('TTS sentence error:', e);
+    const audio = new Audio(url);
+    VM.audio = audio;
+
+    // Play — while this plays, nextFetch is already downloading
+    await new Promise((resolve) => {
+      audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
+      audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+      audio.play().catch(() => resolve());
+    });
+
+    VM.audio = null;
+
+    // Pick up any sentences that streamed in while we were playing
+    if (!nextFetch && VM.ttsQueue.length){
+      nextFetch = fetchAudio(VM.ttsQueue.shift());
     }
   }
 
@@ -3132,6 +3150,7 @@ async function vmPumpTTS(){
   VM.speaking = false;
   vmMaybeFinish();
 }
+    
 function vmMaybeFinish(){
   if (VM.active && VM.streamDone && !VM.ttsBusy && !VM.speaking &&
       !VM.ttsQueue.length && !VM.listening){

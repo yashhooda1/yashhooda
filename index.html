@@ -2884,11 +2884,25 @@ function ensureSpeakerButtons() {
 })();
 // ── FULL VOICE CONVERSATION MODE ──
 // ── FULL VOICE CONVERSATION MODE (streaming pipeline) ──
-const VM = { active: false, state: 'idle', recognition: null, audio: null, history: [],
-  ttsQueue: [], audioQueue: [], ttsBusy: false, playing: false, streamDone: true,
+// ── FULL VOICE CONVERSATION MODE ──
+const VM = {
+  active:       false,
+  listening:    false,   // guard — blocks duplicate recognition sessions
+  state:        'idle',
+  recognition:  null,
+  audio:        null,
+  history:      [],
+  ttsQueue:     [],
+  audioQueue:   [],
+  ttsBusy:      false,
+  playing:      false,
+  streamDone:   true,
   silenceTimer: null,
-  supported: ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) };
-function vmModel() { return (typeof selectedModel !== 'undefined' && selectedModel) ? selectedModel : 'claude-sonnet-4-6'; }
+  supported:    ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window),
+};
+function vmModel() {
+  return (typeof selectedModel !== 'undefined' && selectedModel) ? selectedModel : 'claude-sonnet-4-6';
+}
 function vmSetState(s) {
   VM.state = s;
   const orb = document.getElementById('vm-orb');
@@ -2910,52 +2924,53 @@ function vmSwitchTab(btn) {
 }
 function vmToggle() {
   if (!VM.supported) return;
-  if (!VM.active) { vmStart(); return; }
+  if (!VM.active)              { vmStart();     return; }
   if (VM.state === 'speaking') { vmInterrupt(); return; }
   vmStop();
 }
 function vmStart() { VM.active = true; vmResetStreams(); vmListen(); }
-function vmResetStreams() { VM.ttsQueue = []; VM.audioQueue = []; VM.ttsBusy = false; VM.playing = false; VM.streamDone = true; }
+function vmResetStreams() {
+  VM.ttsQueue = []; VM.audioQueue = [];
+  VM.ttsBusy = false; VM.playing = false; VM.streamDone = true;
+}
 function vmStop() {
-  VM.active = false;
+  VM.active    = false;
+  VM.listening = false;
   clearTimeout(VM.silenceTimer);
   try { if (VM.recognition) VM.recognition.abort(); } catch (e) {}
+  VM.recognition = null;
   if (VM.audio) { VM.audio.pause(); VM.audio = null; }
-  vmResetStreams(); vmSetState('idle');
+  vmResetStreams();
+  vmSetState('idle');
 }
 function vmInterrupt() {
   clearTimeout(VM.silenceTimer);
+  VM.listening = false;
+  try { if (VM.recognition) VM.recognition.abort(); } catch (e) {}
+  VM.recognition = null;
   if (VM.audio) { VM.audio.pause(); VM.audio = null; }
   VM.ttsQueue = []; VM.audioQueue = []; VM.ttsBusy = false; VM.playing = false;
   vmListen();
 }
 function vmListen() {
-  if (!VM.active) return;
+  if (!VM.active)   return;
+  if (VM.listening) return;   // ← already running — do not start a second session
+  VM.listening = true;
 
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SR  = window.SpeechRecognition || window.webkitSpeechRecognition;
   const rec = new SR();
-
-  // continuous:true keeps the session alive through natural pauses.
-  // Was false — that's what was cutting you off mid-sentence.
-  rec.lang            = 'en-US';
-  rec.interimResults  = true;
-  rec.continuous      = true;
-  rec.maxAlternatives = 1;
-
+  rec.lang = 'en-US'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
   VM.recognition = rec;
 
-  let finalText    = '';
-  let silenceTimer = null;
-  // 1800ms of silence after your last word = done talking.
-  // Raise to 2200 if you're a slow/deliberate speaker.
+  let finalText = '';
   const SILENCE_MS = 1800;
 
   function resetSilenceTimer() {
-    clearTimeout(silenceTimer);
-    silenceTimer = setTimeout(() => {
+    clearTimeout(VM.silenceTimer);
+    VM.silenceTimer = setTimeout(() => {
       const text = finalText.trim();
       if (!text || !VM.active) return;
-      // Stop mic BEFORE handing off — prevents AI reply feeding back in
+      VM.listening = false;         // clear flag BEFORE stopping so onend doesn't re-trigger
       try { rec.stop(); } catch (e) {}
       vmHandle(text);
     }, SILENCE_MS);
@@ -2967,40 +2982,37 @@ function vmListen() {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) {
-        finalText += t + ' ';
-      } else {
-        interim += t;
-      }
+      if (e.results[i].isFinal) finalText += t + ' '; else interim += t;
     }
     const el = document.getElementById('vm-user-text');
     if (el) el.textContent = (finalText + interim).trim();
-    // Every new word resets the countdown — you're still talking
-    resetSilenceTimer();
+    resetSilenceTimer();   // every new word resets the done-talking countdown
   };
 
   rec.onerror = (e) => {
-    clearTimeout(silenceTimer);
-    if (e.error === 'no-speech') return; // harmless in continuous mode
-    if (e.error === 'aborted')   return; // we stopped it ourselves
+    clearTimeout(VM.silenceTimer);
+    if (e.error === 'no-speech') return;  // harmless in continuous mode
+    if (e.error === 'aborted')   return;  // we stopped it ourselves
     console.warn('Speech recognition error:', e.error);
   };
 
   rec.onend = () => {
-    clearTimeout(silenceTimer);
+    clearTimeout(VM.silenceTimer);
+    VM.listening   = false;   // session is dead — release the guard
+    VM.recognition = null;
     if (!VM.active) return;
     const text = finalText.trim();
     if (text) vmHandle(text); else vmListen();
   };
 
-  try { rec.start(); } catch (e) {}
+  try { rec.start(); } catch (e) { VM.listening = false; }
 }
 
-// ── FIX 1: /api/chat-voice (streaming tokens) not /api/chat ──
 async function vmHandle(text) {
+  if (!VM.active) return;
   vmSetState('thinking');
   document.getElementById('vm-user-text').textContent = text;
-  document.getElementById('vm-ai-text').textContent = '';
+  document.getElementById('vm-ai-text').textContent   = '';
   VM.history.push({ role: 'user', content: text });
   VM.streamDone = false; VM.ttsQueue = []; VM.audioQueue = [];
   let sentenceBuf = '', full = '';
@@ -3010,7 +3022,7 @@ async function vmHandle(text) {
       body: JSON.stringify({ messages: VM.history, sessionId: SESSION_ID, model: vmModel() }),
     });
     const reader = res.body.getReader();
-    const dec = new TextDecoder();
+    const dec    = new TextDecoder();
     let buf = '';
     while (true) {
       const { done, value } = await reader.read();
@@ -3032,15 +3044,18 @@ async function vmHandle(text) {
         }
       }
     }
-  } catch (e) { full = full || "I hit a network error. Try again."; document.getElementById('vm-ai-text').textContent = full; }
+  } catch (e) {
+    full = full || "I hit a network error. Try again.";
+    document.getElementById('vm-ai-text').textContent = full;
+  }
   if (sentenceBuf.trim()) vmEnqueueSentence(sentenceBuf);
   VM.history.push({ role: 'assistant', content: full });
-  VM.streamDone = true; vmMaybeFinish();
+  VM.streamDone = true;
+  vmMaybeFinish();
 }
 
 function vmEnqueueSentence(s) { s = s.trim(); if (s) { VM.ttsQueue.push(s); vmPumpTTS(); } }
 
-// ── FIX 2: stream TTS bytes via MediaSource — audio starts before encode finishes ──
 async function vmPumpTTS() {
   if (VM.ttsBusy) return;
   VM.ttsBusy = true;
@@ -3062,15 +3077,17 @@ async function vmPumpTTS() {
             let sb;
             try { sb = ms.addSourceBuffer('audio/mpeg'); } catch (e) { resolve(); return; }
             const reader = res.body.getReader();
-            let started = false;
-            const pump = async () => {
+            let started  = false;
+            const pump   = async () => {
               try {
                 while (true) {
                   const { done, value } = await reader.read();
                   if (done) { if (ms.readyState === 'open') ms.endOfStream(); break; }
                   if (!VM.active) { reader.cancel(); break; }
                   await new Promise(r => { sb.appendBuffer(value); sb.addEventListener('updateend', r, { once: true }); });
-                  if (!started && audio.readyState >= 2) { started = true; vmSetState('speaking'); audio.play().catch(() => {}); }
+                  if (!started && audio.readyState >= 2) {
+                    started = true; vmSetState('speaking'); audio.play().catch(() => {});
+                  }
                 }
               } catch (e) {}
               resolve();
@@ -3082,18 +3099,26 @@ async function vmPumpTTS() {
         URL.revokeObjectURL(audio.src);
       } else {
         const blob = await res.blob();
-        audio.src = URL.createObjectURL(blob);
+        audio.src  = URL.createObjectURL(blob);
         vmSetState('speaking');
-        await new Promise(resolve => { audio.onended = () => { URL.revokeObjectURL(audio.src); resolve(); }; audio.onerror = resolve; audio.play().catch(resolve); });
+        await new Promise(resolve => {
+          audio.onended = () => { URL.revokeObjectURL(audio.src); resolve(); };
+          audio.onerror = resolve;
+          audio.play().catch(resolve);
+        });
       }
       VM.audio = null;
     } catch (e) {}
   }
-  VM.ttsBusy = false; vmMaybeFinish();
+  VM.ttsBusy = false;
+  vmMaybeFinish();
 }
 
 function vmMaybeFinish() {
-  if (VM.active && VM.streamDone && !VM.ttsBusy && !VM.ttsQueue.length && !VM.audioQueue.length) vmListen();
+  if (VM.active && VM.streamDone && !VM.ttsBusy &&
+      !VM.ttsQueue.length && !VM.audioQueue.length && !VM.listening) {
+    vmListen();
+  }
 }
 </script>
 </body>

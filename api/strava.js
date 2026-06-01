@@ -59,8 +59,8 @@ export default async function handler(req, res) {
         ? (() => {
             const secPerMi = 1609.34 / a.average_speed;
             const m = Math.floor(secPerMi / 60);
-            const s = Math.round(secPerMi % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
+            const s = Math.round(secPerMi % 60);
+            return s === 60 ? `${m + 1}:00` : `${m}:${s.toString().padStart(2, '0')}`;
           })()
         : null,
       avg_hr:        a.average_heartrate || null,

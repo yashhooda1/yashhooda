@@ -1003,6 +1003,9 @@
         .snow-nav-btn:hover { background: rgba(255,255,255,0.2); }
         .snow-counter { color: rgba(255,255,255,0.5); font-family: 'Space Mono', monospace; font-size: 0.75rem; min-width: 60px; text-align: center; }
         .snow-location-tag { color: rgba(255,255,255,0.4); font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.05em; }
+        .snow-video-wrap { margin: 1rem 0 1.5rem; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); background: #000; }
+        .snow-video-wrap video { width: 100%; max-height: 480px; display: block; object-fit: cover; }
+        .snow-video-label { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--text-muted); padding: 0.5rem 0.75rem; letter-spacing: 0.05em; background: var(--bg-elevated); }
         /* ── STRAVA LIVE FEED ── */
         .strava-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
         .strava-live-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.3); color: #fc4c02; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
@@ -1691,6 +1694,18 @@
         <h2>❄️ Snow Album</h2>
         <p>A collection of my favorite snow moments — because nothing beats a good snowfall.</p>
 
+        <!-- Snow Highlight Video -->
+        <div class="snow-video-wrap">
+            <video
+                id="snow-video"
+                src="images/snow/snow-highlight.mp4"
+                controls
+                playsinline
+                preload="metadata"
+                poster="images/snow/nyc1.jpg"
+            ></video>
+            <div class="snow-video-label">❄️ Snow Highlight Reel</div>
+        </div>
         <!-- Category Tabs -->
         <div class="snow-tabs">
             <button class="snow-tab active" onclick="switchSnowTab(this, 'texas')">🤠 Texas Snow</button>

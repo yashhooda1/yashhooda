@@ -31,7 +31,9 @@ export default async function handler(req, res) {
     const weeklyTrend = [];
     for (let i = 7; i >= 0; i--) {
       const weekStart = new Date();
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay() - (i * 7) + 1);
+      const day = weekStart.getDay();
+      const daysFromMonday = day === 0 ? 6 : day - 1;
+      weekStart.setDate(weekStart.getDate() - daysFromMonday - (i * 7));
       weekStart.setHours(0,0,0,0);
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
@@ -66,8 +68,8 @@ export default async function handler(req, res) {
     runs.slice(0, 30).forEach(r => {
       if (!r.average_heartrate) return;
       const hr = r.average_heartrate;
-      if (hr < 140) easy++;
-      else if (hr < 155) moderate++;
+      if (hr < 150) easy++;
+      else if (hr < 160) moderate++;
       else if (hr < 170) threshold++;
       else hard++;
     });
@@ -116,7 +118,7 @@ export default async function handler(req, res) {
     const recentRunsSummary = runs.slice(0, 20).map(r => ({
       date: r.start_date_local.split('T')[0],
       miles: (r.distance/1609.34).toFixed(2),
-      pace: r.average_speed > 0 ? `${Math.floor(1609.34/r.average_speed/60)}:${Math.round(1609.34/r.average_speed%60).toString().padStart(2,'0')}/mi` : null,
+      pace: r.average_speed > 0 ? (() => { const secPerMi = 1609.34/r.average_speed; const m = Math.floor(secPerMi/60); const s = Math.round(secPerMi%60); return s === 60 ? `${m+1}:00` : `${m}:${s.toString().padStart(2,'0')}`; })() + '/mi' : null,
       hr: r.average_heartrate || null,
       type: r.name,
     }));

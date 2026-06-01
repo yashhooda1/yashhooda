@@ -976,6 +976,33 @@
                 <div class="analytics-loading">Analyzing your training data...</div>
             </div>
         </section>
+        /* ── SNOW ALBUM ── */
+        .snow-tabs { display: flex; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
+        .snow-tab { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.78rem; transition: all 0.2s; letter-spacing: 0.03em; }
+        .snow-tab:hover { border-color: rgba(76,175,80,0.3); color: var(--text); }
+        .snow-tab.active { background: rgba(76,175,80,0.12); border-color: var(--green); color: var(--green); }
+        .snow-category { display: none; }
+        .snow-category.active { display: block; }
+        .snow-caption { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; font-style: italic; }
+        .snow-event-banner { display: flex; align-items: flex-start; gap: 1rem; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+        .snow-event-icon { font-size: 2rem; flex-shrink: 0; }
+        .snow-event-title { font-family: 'Space Mono', monospace; color: #93c5fd; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.35rem; letter-spacing: 0.03em; }
+        .snow-event-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+        .snow-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 1rem; }
+        .snow-thumb { border-radius: 8px; overflow: hidden; aspect-ratio: 1; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); transition: all 0.25s; }
+        .snow-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .snow-thumb:hover { border-color: rgba(76,175,80,0.4); transform: translateY(-2px); }
+        .snow-thumb:hover img { transform: scale(1.05); }
+        .snow-lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9000; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
+        .snow-lightbox.open { display: flex; }
+        .snow-lightbox img { max-width: 90vw; max-height: 80vh; border-radius: 10px; object-fit: contain; }
+        .snow-lightbox-close { position: absolute; top: 1.5rem; right: 2rem; color: #fff; font-size: 2rem; cursor: pointer; background: none; border: none; opacity: 0.7; transition: opacity 0.2s; }
+        .snow-lightbox-close:hover { opacity: 1; }
+        .snow-lightbox-nav { display: flex; gap: 1rem; align-items: center; }
+        .snow-nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.8rem; transition: all 0.2s; }
+        .snow-nav-btn:hover { background: rgba(255,255,255,0.2); }
+        .snow-counter { color: rgba(255,255,255,0.5); font-family: 'Space Mono', monospace; font-size: 0.75rem; min-width: 60px; text-align: center; }
+        .snow-location-tag { color: rgba(255,255,255,0.4); font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.05em; }
         /* ── STRAVA LIVE FEED ── */
         .strava-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
         .strava-live-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.3); color: #fc4c02; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
@@ -1171,6 +1198,19 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@mapbox/polyline@1.2.1/src/polyline.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Snow Lightbox -->
+    <div class="snow-lightbox" id="snow-lightbox" onclick="closeSnowLightbox()">
+        <button class="snow-lightbox-close" onclick="closeSnowLightbox()">✕</button>
+        <img id="snow-lightbox-img" src="" alt="Snow photo" onclick="event.stopPropagation()">
+        <div class="snow-lightbox-nav" onclick="event.stopPropagation()">
+            <button class="snow-nav-btn" onclick="snowNav(-1)">← Prev</button>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0.25rem;">
+                <span class="snow-counter" id="snow-counter">1 / 15</span>
+                <span class="snow-location-tag" id="snow-location-tag"></span>
+            </div>
+            <button class="snow-nav-btn" onclick="snowNav(1)">Next →</button>
+        </div>
+    </div>
 </head>
 <body>
 
@@ -1311,6 +1351,7 @@
             <a href="#tars">TARS</a>
             <a href="#running">Running</a>
             <a href="#hikes">Hikes</a>
+            <a href="#snow">Snow ❄️</a>
             <a href="#contact">Contact</a>
             <a href="#" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
         </div>
@@ -1643,6 +1684,36 @@
         <p style="margin-top:1.25rem; font-style: italic; color: var(--text-muted);">
             This hike wasn't just exercise — it was a milestone. Being out there alone reminded me of the power of independence. The silence of the forest, the vastness of the mountains, and the rhythm of my footsteps gave me peace and clarity. Taking this hike solo was my own "first step." Just like in <em>Interstellar</em>, sometimes the journey begins when you step into the unknown — and the views at the end are worth it.
         </p>
+    </section>
+
+  <!-- SNOW ALBUM -->
+    <section id="snow">
+        <h2>❄️ Snow Album</h2>
+        <p>A collection of my favorite snow moments — because nothing beats a good snowfall.</p>
+
+        <!-- Category Tabs -->
+        <div class="snow-tabs">
+            <button class="snow-tab active" onclick="switchSnowTab(this, 'texas')">🤠 Texas Snow</button>
+            <button class="snow-tab" onclick="switchSnowTab(this, 'nyc')">🗽 NYC Blizzard</button>
+        </div>
+
+        <!-- Texas -->
+        <div class="snow-category active" id="snow-texas">
+            <p class="snow-caption">Rare snowfall in the Lone Star State — Texas doesn't get snow often, but when it does, it's something special.</p>
+            <div class="snow-grid" id="snow-grid-texas"></div>
+        </div>
+
+        <!-- NYC -->
+        <div class="snow-category" id="snow-nyc">
+            <div class="snow-event-banner">
+                <span class="snow-event-icon">🌨️</span>
+                <div>
+                    <div class="snow-event-title">Historic February 2026 Nor'easter — New York City</div>
+                    <div class="snow-event-desc">One of the most powerful nor'easters on record, dumping 25–30 inches of snow across New York City in February 2026. These photos were taken during the storm and its aftermath.</div>
+                </div>
+            </div>
+            <div class="snow-grid" id="snow-grid-nyc"></div>
+        </div>
     </section>
 
     <!-- CONTACT -->
@@ -2712,6 +2783,76 @@ async function loadAnalytics() {
     }
 }
 loadAnalytics();
+// ── SNOW ALBUM ──
+const SNOW_CATEGORIES = {
+    texas: { folder: 'images/snow/texas', count: 0, label: '🤠 Texas' },
+    nyc:   { folder: 'images/snow/nyc',   count: 0, label: '🗽 NYC'   },
+};
+
+// Set these to your actual photo counts
+const TEXAS_COUNT = 8; // change to however many texas photos you have
+const NYC_COUNT   = 15; // change to however many nyc photos you have
+
+let snowLightboxPhotos = [];
+let snowIndex = 0;
+
+function buildSnowAlbum() {
+    buildSnowGrid('texas', TEXAS_COUNT);
+    buildSnowGrid('nyc', NYC_COUNT);
+}
+
+function buildSnowGrid(category, count) {
+    const grid = document.getElementById(`snow-grid-${category}`);
+    if (!grid) return;
+    const folder = category === 'texas' ? 'images/snow/texas' : 'images/snow/nyc';
+    const prefix = category === 'texas' ? 'texas' : 'nyc';
+    grid.innerHTML = Array.from({length: count}, (_, i) => `
+        <div class="snow-thumb" onclick="openSnowLightbox('${category}', ${i})">
+            <img src="${folder}/${prefix}${i+1}.jpg" alt="${category === 'nyc' ? 'NYC Nor\'easter' : 'Texas Snow'} photo ${i+1}" loading="lazy">
+        </div>
+    `).join('');
+}
+
+function switchSnowTab(btn, category) {
+    document.querySelectorAll('.snow-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.snow-category').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`snow-${category}`).classList.add('active');
+}
+
+function openSnowLightbox(category, index) {
+    const count = category === 'texas' ? TEXAS_COUNT : NYC_COUNT;
+    const folder = category === 'texas' ? 'images/snow/texas' : 'images/snow/nyc';
+    const prefix = category === 'texas' ? 'texas' : 'nyc';
+    snowLightboxPhotos = Array.from({length: count}, (_, i) => `${folder}/${prefix}${i+1}.jpg`);
+    snowIndex = index;
+    const locationLabel = category === 'texas' ? '🤠 Texas' : '🗽 NYC Nor\'easter Feb 2026';
+    document.getElementById('snow-lightbox-img').src = snowLightboxPhotos[snowIndex];
+    document.getElementById('snow-counter').textContent = `${snowIndex+1} / ${count}`;
+    document.getElementById('snow-location-tag').textContent = locationLabel;
+    document.getElementById('snow-lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSnowLightbox() {
+    document.getElementById('snow-lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function snowNav(dir) {
+    snowIndex = (snowIndex + dir + snowLightboxPhotos.length) % snowLightboxPhotos.length;
+    document.getElementById('snow-lightbox-img').src = snowLightboxPhotos[snowIndex];
+    document.getElementById('snow-counter').textContent = `${snowIndex+1} / ${snowLightboxPhotos.length}`;
+}
+
+document.addEventListener('keydown', e => {
+    if (!document.getElementById('snow-lightbox').classList.contains('open')) return;
+    if (e.key === 'ArrowRight') snowNav(1);
+    if (e.key === 'ArrowLeft') snowNav(-1);
+    if (e.key === 'Escape') closeSnowLightbox();
+});
+
+buildSnowAlbum();
 
 // ── STRAVA LIVE FEED (unchanged) ──
 async function loadStrava() {

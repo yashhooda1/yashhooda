@@ -1004,6 +1004,41 @@
         .aviation-loading::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(147,197,253,0.3); border-top-color: #93c5fd; animation: spin 0.8s linear infinite; }
         .flight-popup { font-family: 'Space Mono', monospace; font-size: 0.75rem; line-height: 1.6; }
         .flight-popup strong { color: #3b82f6; }
+        /* ── SPORTS SCORES ── */
+        .sports-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+        .sports-tab { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.78rem; transition: all 0.2s; letter-spacing: 0.03em; display: flex; align-items: center; gap: 0.4rem; }
+        .sports-tab:hover { border-color: rgba(76,175,80,0.3); color: var(--text); }
+        .sports-tab.active { background: rgba(76,175,80,0.12); border-color: var(--green); color: var(--green); }
+        .sports-league { display: none; }
+        .sports-league.active { display: block; }
+        .sports-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+        .score-card { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1rem; transition: all 0.2s; position: relative; overflow: hidden; }
+        .score-card:hover { border-color: rgba(76,175,80,0.3); transform: translateY(-2px); }
+        .score-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; }
+        .score-card.live::before { background: linear-gradient(90deg, #ef4444, #f97316); }
+        .score-card.final::before { background: linear-gradient(90deg, var(--green-dark), var(--green)); }
+        .score-card.scheduled::before { background: linear-gradient(90deg, #3b82f6, #93c5fd); }
+        .score-status { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+        .score-status.live { color: #ef4444; }
+        .score-status.live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #ef4444; animation: pulse 1s infinite; }
+        .score-status.final { color: var(--text-muted); }
+        .score-status.scheduled { color: #93c5fd; }
+        .score-teams { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.5rem; }
+        .score-team-row { display: flex; align-items: center; justify-content: space-between; }
+        .score-team-name { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--text); font-weight: 700; }
+        .score-team-score { font-family: 'Space Mono', monospace; font-size: 1.1rem; color: var(--green); font-weight: 700; }
+        .score-team-score.winner { color: var(--green); }
+        .score-team-score.loser { color: var(--text-muted); }
+        .score-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.4rem; font-family: 'Space Mono', monospace; }
+        .score-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 0.4rem 0; }
+        .sports-live-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; }
+        .sports-live-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #ef4444; animation: pulse 1s infinite; }
+        .sports-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
+        .sports-refresh { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(76,175,80,0.08); border: 1px solid rgba(76,175,80,0.25); color: var(--green); padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.75rem; font-family: 'Space Mono', monospace; cursor: pointer; transition: all 0.2s; }
+        .sports-refresh:hover { background: rgba(76,175,80,0.15); }
+        .sports-loading { display: flex; align-items: center; gap: 0.5rem; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; justify-content: center; }
+        .sports-loading::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(76,175,80,0.3); border-top-color: var(--green); animation: spin 0.8s linear infinite; }
+        .playoff-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: #facc15; background: rgba(250,204,21,0.1); border: 1px solid rgba(250,204,21,0.2); padding: 0.1rem 0.4rem; border-radius: 3px; }
         /* ── WEATHER WIDGET ── */
         .weather-widget { display: flex; align-items: center; gap: 1rem; background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1rem; flex-wrap: wrap; }
         .weather-icon { font-size: 2.5rem; flex-shrink: 0; }
@@ -1425,6 +1460,7 @@
             <a href="#weather">Weather</a>
             <a href="#aviation">Aviation ✈️</a>
             <a href="#network">Network 🔍</a>
+            <a href="#sports">Sports 🏆</a>
             <a href="#contact">Contact</a>
             <a href="#" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
         </div>
@@ -1863,6 +1899,37 @@
         </div>
 
         <div class="network-output" id="network-output">// Select a tool and enter a target to begin...</div>
+    </section>
+
+    <!-- SPORTS SCORES -->
+    <section id="sports">
+        <div class="sports-header">
+            <h2 style="margin-bottom:0;">🏆 Live Sports Scores</h2>
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+                <span class="sports-live-badge">LIVE DATA</span>
+                <button class="sports-refresh" onclick="loadAllSports()">↻ Refresh</button>
+            </div>
+        </div>
+
+        <div class="sports-tabs">
+            <button class="sports-tab active" id="tab-nba" onclick="switchSportsTab('nba', this)">🏀 NBA</button>
+            <button class="sports-tab" id="tab-mlb" onclick="switchSportsTab('mlb', this)">⚾ MLB</button>
+            <button class="sports-tab" id="tab-mls" onclick="switchSportsTab('mls', this)">⚽ MLS</button>
+            <button class="sports-tab" id="tab-nfl" onclick="switchSportsTab('nfl', this)">🏈 NFL</button>
+        </div>
+
+        <div class="sports-league active" id="league-nba">
+            <div class="sports-loading">Loading NBA scores...</div>
+        </div>
+        <div class="sports-league" id="league-mlb">
+            <div class="sports-loading">Loading MLB scores...</div>
+        </div>
+        <div class="sports-league" id="league-mls">
+            <div class="sports-loading">Loading MLS scores...</div>
+        </div>
+        <div class="sports-league" id="league-nfl">
+            <div class="sports-loading">Loading NFL scores...</div>
+        </div>
     </section>
 
     <!-- CONTACT -->
@@ -3406,6 +3473,136 @@ async function loadWeather() {
 }
 
 loadWeather();
+
+// ── SPORTS SCORES ──
+const SPORTS_CONFIG = {
+    nba: { label: 'NBA', emoji: '🏀', color: '#f97316' },
+    mlb: { label: 'MLB', emoji: '⚾', color: '#3b82f6' },
+    mls: { label: 'MLS', emoji: '⚽', color: '#4caf50' },
+    nfl: { label: 'NFL', emoji: '🏈', color: '#8b5cf6' },
+};
+
+let sportsData = {};
+
+function switchSportsTab(league, btn) {
+    document.querySelectorAll('.sports-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.sports-league').forEach(l => l.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`league-${league}`).classList.add('active');
+}
+
+function renderScoreCard(game, league) {
+    const isLive = game.status === 'inprogress' || game.status === 'live';
+    const isFinal = game.status === 'closed' || game.status === 'final';
+    const isScheduled = game.status === 'scheduled';
+
+    const statusLabel = isLive ? 'LIVE' : isFinal ? 'FINAL' : game.local_start || 'Upcoming';
+    const statusClass = isLive ? 'live' : isFinal ? 'final' : 'scheduled';
+
+    const teams = Object.keys(game.teams || {});
+    if (teams.length < 2) return '';
+
+    const homeTeam = game.home;
+    const awayTeam = game.away;
+    const homeScore = game.score?.[homeTeam];
+    const awayScore = game.score?.[awayTeam];
+    const hasScore = homeScore !== undefined && awayScore !== undefined;
+
+    const homeWon = hasScore && isFinal && homeScore > awayScore;
+    const awayWon = hasScore && isFinal && awayScore > homeScore;
+
+    const homeName = game.teams?.[homeTeam]?.name || homeTeam;
+    const awayName = game.teams?.[awayTeam]?.name || awayTeam;
+
+    const isPlayoff = game.title && (game.title.includes('Game') || game.title.includes('Final'));
+
+    return `
+        <div class="score-card ${statusClass}">
+            <div class="score-status ${statusClass}">
+                ${statusLabel}
+                ${isPlayoff ? `<span class="playoff-label">${game.title}</span>` : ''}
+            </div>
+            <div class="score-teams">
+                <div class="score-team-row">
+                    <div class="score-team-name">${awayName}</div>
+                    ${hasScore ? `<div class="score-team-score ${awayWon ? 'winner' : isFinal ? 'loser' : ''}">${awayScore}</div>` : ''}
+                </div>
+                <div class="score-divider"></div>
+                <div class="score-team-row">
+                    <div class="score-team-name">${homeName}</div>
+                    ${hasScore ? `<div class="score-team-score ${homeWon ? 'winner' : isFinal ? 'loser' : ''}">${homeScore}</div>` : ''}
+                </div>
+            </div>
+            ${game.win_probability && isScheduled ? `
+                <div class="score-meta">
+                    Win prob: ${awayTeam} ${game.win_probability[awayTeam]?.toFixed(0)}% · ${homeTeam} ${game.win_probability[homeTeam]?.toFixed(0)}%
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+async function loadLeague(league) {
+    const container = document.getElementById(`league-${league}`);
+    if (!container) return;
+
+    try {
+        const res = await fetch(`/api/sports?league=${league}`);
+        const data = await res.json();
+        if (!res.ok || !data.games) {
+            container.innerHTML = '<div class="strava-error">Could not load scores.</div>';
+            return;
+        }
+
+        sportsData[league] = data;
+
+        // Separate live, recent, upcoming
+        const live = data.games.filter(g => g.status === 'inprogress' || g.status === 'live');
+        const recent = data.games.filter(g => g.status === 'closed' || g.status === 'final').slice(-6);
+        const upcoming = data.games.filter(g => g.status === 'scheduled').slice(0, 6);
+
+        let html = '';
+
+        if (live.length) {
+            html += `<div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:#ef4444;margin-bottom:0.75rem;letter-spacing:0.06em;">● LIVE NOW</div>`;
+            html += `<div class="sports-grid" style="margin-bottom:1.25rem;">${live.map(g => renderScoreCard(g, league)).join('')}</div>`;
+        }
+
+        if (recent.length) {
+            html += `<div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--text-muted);margin-bottom:0.75rem;letter-spacing:0.06em;">RECENT RESULTS</div>`;
+            html += `<div class="sports-grid" style="margin-bottom:1.25rem;">${recent.map(g => renderScoreCard(g, league)).join('')}</div>`;
+        }
+
+        if (upcoming.length) {
+            html += `<div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:#93c5fd;margin-bottom:0.75rem;letter-spacing:0.06em;">UPCOMING</div>`;
+            html += `<div class="sports-grid">${upcoming.map(g => renderScoreCard(g, league)).join('')}</div>`;
+        }
+
+        if (!html) html = '<div class="strava-error">No games found for this period.</div>';
+        container.innerHTML = html;
+
+    } catch(err) {
+        console.error(`Sports error (${league}):`, err);
+        container.innerHTML = '<div class="strava-error">Could not load scores.</div>';
+    }
+}
+
+async function loadAllSports() {
+    await Promise.all(['nba', 'mlb', 'mls', 'nfl'].map(loadLeague));
+}
+
+// Load when section comes into view
+const sportsObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            loadAllSports();
+            sportsObserver.unobserve(e.target);
+        }
+    });
+}, { threshold: 0.1 });
+
+const sportsSection = document.getElementById('sports');
+if (sportsSection) sportsObserver.observe(sportsSection);
 
 // ── STRAVA LIVE FEED (unchanged) ──
 async function loadStrava() {

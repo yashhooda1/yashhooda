@@ -5,27 +5,15 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
 
   const { league } = req.query;
-  const validLeagues = ['nba', 'mlb', 'mls', 'nfl'];
+
+  // ── FIXED: validLeagues now includes all tabs ──
+  const validLeagues = ['nba', 'mlb', 'mls', 'nfl', 'worldcup', 'rockets', 'astros', 'texans'];
   if (!league || !validLeagues.includes(league)) {
-    return res.status(400).json({ error: 'Invalid league. Use: nba, mlb, mls, nfl' });
+    return res.status(400).json({ error: `Invalid league. Use: ${validLeagues.join(', ')}` });
   }
 
   try {
-    // Use the SportRadar-backed internal data source
-    const baseUrl = 'https://api.sofascore.com/api/v1';
-    let url = '';
-    const today = new Date().toISOString().split('T')[0];
-
-    // Map league to Sofascore tournament IDs
-    const tournamentMap = {
-      nba: '/sport/basketball/category/120/seasons',
-      mlb: '/sport/baseball/category/1/seasons',
-      mls: '/sport/football/category/242/seasons',
-      nfl: '/sport/american-football/category/1/seasons',
-    };
-
-    // Use a reliable free sports API — ESPN public endpoints
-      const espnLeagueMap = {
+    const espnLeagueMap = {
       nba:      'basketball/nba',
       mlb:      'baseball/mlb',
       mls:      'soccer/usa.1',
@@ -46,25 +34,28 @@ export default async function handler(req, res) {
     const espnPath = espnLeagueMap[league];
     if (!espnPath) return res.status(400).json({ error: 'Invalid league' });
 
-    // For Houston teams fetch a wider date range
     const isHoustonTeam = !!houstonTeams[league];
+
+    // Houston teams use the schedule endpoint to get past + future games
     const espnUrl = isHoustonTeam
-        ? `https://site.api.espn.com/apis/site/v2/sports/${espnPath}/teams/${houstonTeams[league]}/schedule`
-        : `https://site.api.espn.com/apis/site/v2/sports/${espnPath}/scoreboard`;
-      const response = await fetch(espnUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(8000),
-      });
+      ? `https://site.api.espn.com/apis/site/v2/sports/${espnPath}/teams/${houstonTeams[league]}/schedule`
+      : `https://site.api.espn.com/apis/site/v2/sports/${espnPath}/scoreboard`;
 
-      if (!response.ok) {
-        return res.status(502).json({ error: `ESPN API returned ${response.status}` });
-      }
+    const response = await fetch(espnUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      signal: AbortSignal.timeout(8000),
+    });
 
-      const data = await response.json();
-       // Houston team schedule uses different response shape
-      const events = data.events || data.games || [];
+    if (!response.ok) {
+      return res.status(502).json({ error: `ESPN API returned ${response.status}` });
+    }
 
-      const games = events.map(event => {
+    const data = await response.json();
+
+    // Houston schedule endpoint returns { events: [] }, scoreboard returns { events: [] }
+    const events = data.events || data.games || [];
+
+    const games = events.map(event => {
       const comp = event.competitions?.[0];
       const competitors = comp?.competitors || [];
       const home = competitors.find(c => c.homeAway === 'home');
@@ -74,7 +65,6 @@ export default async function handler(req, res) {
       const status = event.status?.type?.name?.toLowerCase() || 'scheduled';
       const isFinal = status === 'status_final' || status.includes('final');
       const isLive = status === 'status_in_progress' || status.includes('progress');
-      const isScheduled = !isFinal && !isLive;
 
       const homeAbbr = home.team?.abbreviation || 'HOME';
       const awayAbbr = away.team?.abbreviation || 'AWAY';
@@ -87,7 +77,6 @@ export default async function handler(req, res) {
 
       // Win probability
       const winProb = {};
-      const situation = comp?.situation;
       if (home.statistics) {
         const homeWinProb = home.statistics?.find?.(s => s.name === 'winProbability')?.value;
         if (homeWinProb !== undefined) {
@@ -119,9 +108,12 @@ export default async function handler(req, res) {
     }).filter(Boolean);
 
     // For Houston teams filter to only their games
-    const filteredGames = houstonTeams[league]
-        ? games.filter(g => g.home?.toLowerCase() === houstonTeams[league] || g.away?.toLowerCase() === houstonTeams[league])
-        : games;
+    const filteredGames = isHoustonTeam
+      ? games.filter(g =>
+          g.home?.toLowerCase() === houstonTeams[league] ||
+          g.away?.toLowerCase() === houstonTeams[league]
+        )
+      : games;
 
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
     return res.status(200).json({ league, games: filteredGames, total: filteredGames.length });

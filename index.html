@@ -1019,6 +1019,30 @@
         .weather-denied { font-size: 0.82rem; color: var(--text-muted); padding: 1rem; display: flex; align-items: center; gap: 0.5rem; }
         .weather-retry { font-family: 'Space Mono', monospace; font-size: 0.72rem; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: var(--green); padding: 0.25rem 0.65rem; border-radius: 5px; cursor: pointer; transition: all 0.2s; margin-left: auto; }
         .weather-retry:hover { background: rgba(76,175,80,0.2); }
+        /* ── NETWORK ANALYZER ── */
+        .network-tools { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+        .network-tool-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.78rem; transition: all 0.2s; letter-spacing: 0.03em; display: flex; align-items: center; gap: 0.4rem; }
+        .network-tool-btn:hover { border-color: rgba(76,175,80,0.3); color: var(--text); }
+        .network-tool-btn.active { background: rgba(76,175,80,0.12); border-color: var(--green); color: var(--green); }
+        .network-input-row { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+        .network-input { flex: 1; background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.08); border-radius: 7px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.82rem; padding: 0.65rem 1rem; outline: none; transition: border-color 0.2s; }
+        .network-input:focus { border-color: rgba(76,175,80,0.5); }
+        .network-run-btn { background: var(--green); border: none; color: #000; border-radius: 7px; padding: 0.65rem 1.5rem; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.82rem; font-weight: 700; transition: all 0.2s; white-space: nowrap; }
+        .network-run-btn:hover { background: #81c784; transform: translateY(-1px); }
+        .network-run-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .network-output { background: #0d1117; border: 1px solid rgba(76,175,80,0.2); border-radius: 10px; padding: 1.25rem; font-family: 'Space Mono', monospace; font-size: 0.78rem; line-height: 1.8; color: var(--green); min-height: 120px; max-height: 480px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+        .network-output::-webkit-scrollbar { width: 4px; }
+        .network-output::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.3); border-radius: 2px; }
+        .net-key { color: #93c5fd; }
+        .net-val { color: #a3e635; }
+        .net-warn { color: #f97316; }
+        .net-ok { color: #4caf50; }
+        .net-err { color: #ef4444; }
+        .net-dim { color: var(--text-muted); }
+        .net-title { color: #facc15; font-weight: 700; }
+        .network-examples { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+        .net-example { background: rgba(76,175,80,0.06); border: 1px solid rgba(76,175,80,0.15); color: var(--text-muted); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-family: 'Space Mono', monospace; cursor: pointer; transition: all 0.2s; }
+        .net-example:hover { color: var(--green); border-color: rgba(76,175,80,0.4); }
         /* ── SNOW ALBUM ── */
         .snow-tabs { display: flex; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
         .snow-tab { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.78rem; transition: all 0.2s; letter-spacing: 0.03em; }
@@ -1400,6 +1424,7 @@
             <a href="#snow">Snow ❄️</a>
             <a href="#weather">Weather</a>
             <a href="#aviation">Aviation ✈️</a>
+            <a href="#network">Network 🔍</a>
             <a href="#contact">Contact</a>
             <a href="#" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
         </div>
@@ -1815,6 +1840,29 @@
         <div id="flight-cards-container">
             <div class="aviation-loading">Loading live flights...</div>
         </div>
+    </section>
+
+    <!-- NETWORK ANALYZER -->
+    <section id="network">
+        <h2>🔍 Network Analyzer</h2>
+        <p>Professional network reconnaissance tools — DNS lookup, WHOIS, ping, traceroute, and HTTP header inspection.</p>
+
+        <div class="network-tools">
+            <button class="network-tool-btn active" id="tool-dns"     onclick="setTool('dns')">🌐 DNS Lookup</button>
+            <button class="network-tool-btn"        id="tool-whois"   onclick="setTool('whois')">📋 WHOIS</button>
+            <button class="network-tool-btn"        id="tool-ping"    onclick="setTool('ping')">📡 Ping</button>
+            <button class="network-tool-btn"        id="tool-traceroute" onclick="setTool('traceroute')">🗺️ Traceroute</button>
+            <button class="network-tool-btn"        id="tool-headers" onclick="setTool('headers')">🔒 HTTP Headers</button>
+        </div>
+
+        <div class="network-examples" id="net-examples"></div>
+
+        <div class="network-input-row">
+            <input class="network-input" id="network-target" type="text" placeholder="Enter domain or IP (e.g. google.com)" onkeydown="if(event.key==='Enter') runNetworkTool()" />
+            <button class="network-run-btn" id="network-run-btn" onclick="runNetworkTool()">▶ Run</button>
+        </div>
+
+        <div class="network-output" id="network-output">// Select a tool and enter a target to begin...</div>
     </section>
 
     <!-- CONTACT -->
@@ -2954,6 +3002,164 @@ document.addEventListener('keydown', e => {
 });
 
 buildSnowAlbum();
+
+// ── NETWORK ANALYZER ──
+let currentNetTool = 'dns';
+
+const NET_EXAMPLES = {
+    dns:        ['google.com', 'github.com', 'cloudflare.com', 'yashhooda1.vercel.app'],
+    whois:      ['google.com', 'github.com', 'openai.com', 'anthropic.com'],
+    ping:       ['google.com', 'cloudflare.com', 'github.com', 'amazon.com'],
+    traceroute: ['google.com', 'cloudflare.com', 'github.com'],
+    headers:    ['google.com', 'github.com', 'yashhooda1.vercel.app', 'anthropic.com'],
+};
+
+const NET_DESCRIPTIONS = {
+    dns:        '// DNS Lookup — resolves A, AAAA, MX, TXT, NS, CNAME records',
+    whois:      '// WHOIS — domain registration info, registrar, dates, nameservers',
+    ping:       '// Ping — measures host reachability and response time',
+    traceroute: '// Traceroute — maps the network path to a host',
+    headers:    '// HTTP Headers — inspects server response headers + security analysis',
+};
+
+function setTool(tool) {
+    currentNetTool = tool;
+    document.querySelectorAll('.network-tool-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tool-${tool}`).classList.add('active');
+    document.getElementById('network-output').innerHTML = NET_DESCRIPTIONS[tool] || '// Ready';
+    document.getElementById('network-target').placeholder =
+        tool === 'headers' ? 'Enter domain (e.g. github.com)' : 'Enter domain or IP (e.g. google.com)';
+
+    // Update examples
+    const examplesEl = document.getElementById('net-examples');
+    examplesEl.innerHTML = NET_EXAMPLES[tool].map(e =>
+        `<span class="net-example" onclick="document.getElementById('network-target').value='${e}'">${e}</span>`
+    ).join('');
+}
+
+function formatNetOutput(tool, target, result) {
+    let out = '';
+    const dim = s => `<span class="net-dim">${s}</span>`;
+    const key = s => `<span class="net-key">${s}</span>`;
+    const val = s => `<span class="net-val">${s}</span>`;
+    const warn = s => `<span class="net-warn">${s}</span>`;
+    const ok = s => `<span class="net-ok">${s}</span>`;
+    const err = s => `<span class="net-err">${s}</span>`;
+    const title = s => `<span class="net-title">${s}</span>`;
+
+    if (tool === 'dns') {
+        out += title(`DNS LOOKUP: ${target}\n`);
+        out += dim('─'.repeat(50) + '\n');
+        if (result.A?.length)    out += `${key('A Records    ')} ${result.A.map(v => val(v)).join(', ')}\n`;
+        if (result.AAAA?.length) out += `${key('AAAA Records ')} ${result.AAAA.map(v => val(v)).join(', ')}\n`;
+        if (result.MX?.length)   out += `${key('MX Records   ')}\n${result.MX.map(m => `  ${dim('priority:')} ${val(m.priority)} ${dim('exchange:')} ${val(m.exchange)}`).join('\n')}\n`;
+        if (result.NS?.length)   out += `${key('NS Records   ')} ${result.NS.map(v => val(v)).join(', ')}\n`;
+        if (result.TXT?.length)  out += `${key('TXT Records  ')}\n${result.TXT.map(t => `  ${val(t.join(' '))}`).join('\n')}\n`;
+        if (result.CNAME?.length) out += `${key('CNAME        ')} ${result.CNAME.map(v => val(v)).join(', ')}\n`;
+    }
+
+    else if (tool === 'whois') {
+        out += title(`WHOIS: ${target}\n`);
+        out += dim('─'.repeat(50) + '\n');
+        out += `${key('Domain       ')} ${val(result.name)}\n`;
+        out += `${key('Registrar    ')} ${val(result.registrar)}\n`;
+        out += `${key('Status       ')} ${result.status?.map(s => ok(s)).join(', ') || dim('N/A')}\n`;
+        out += `${key('Created      ')} ${val(result.created ? new Date(result.created).toLocaleDateString() : 'N/A')}\n`;
+        out += `${key('Expires      ')} ${val(result.expires ? new Date(result.expires).toLocaleDateString() : 'N/A')}\n`;
+        out += `${key('Updated      ')} ${val(result.updated ? new Date(result.updated).toLocaleDateString() : 'N/A')}\n`;
+        if (result.nameservers?.length) out += `${key('Nameservers  ')}\n${result.nameservers.map(n => `  ${val(n)}`).join('\n')}\n`;
+    }
+
+    else if (tool === 'ping') {
+        if (result.error) { out += err(`PING FAILED: ${result.error}\n`); }
+        else {
+            out += title(`PING: ${target}\n`);
+            out += dim('─'.repeat(50) + '\n');
+            out += `${key('Host         ')} ${val(result.host)}\n`;
+            out += `${key('IP           ')} ${val(result.ip)}\n`;
+            out += dim('─'.repeat(50) + '\n');
+            result.times_ms.forEach((t, i) => {
+                out += `${dim(`seq=${i+1}`)} ${key('time=')}${val(t + 'ms')}\n`;
+            });
+            out += dim('─'.repeat(50) + '\n');
+            out += `${key('Packets      ')} sent=${val(result.packets_sent)} received=${ok(result.packets_received)} loss=${ok(result.packet_loss)}\n`;
+            out += `${key('RTT          ')} min=${val(result.min_ms+'ms')} avg=${val(result.avg_ms+'ms')} max=${val(result.max_ms+'ms')}\n`;
+        }
+    }
+
+    else if (tool === 'traceroute') {
+        if (result.error) { out += err(`TRACEROUTE FAILED: ${result.error}\n`); }
+        else {
+            out += title(`TRACEROUTE: ${target}\n`);
+            out += dim('─'.repeat(50) + '\n');
+            out += `${dim('Note: ')}${warn(result.note)}\n\n`;
+            result.hops.forEach(h => {
+                out += `${key(String(h.hop).padStart(2))}  ${val(h.host.padEnd(35))} ${ok(h.ms + ' ms')}\n`;
+            });
+        }
+    }
+
+    else if (tool === 'headers') {
+        if (result.error) { out += err(`FAILED: ${result.error}\n`); }
+        else {
+            out += title(`HTTP HEADERS: ${result.url}\n`);
+            out += `${key('Status       ')} ${result.status === 200 ? ok(result.status + ' ' + result.status_text) : warn(result.status + ' ' + result.status_text)}\n`;
+            out += dim('─'.repeat(50) + '\n');
+            out += title('RESPONSE HEADERS:\n');
+            Object.entries(result.headers).forEach(([k, v]) => {
+                out += `${key(k.padEnd(30))} ${val(v)}\n`;
+            });
+            out += dim('\n' + '─'.repeat(50) + '\n');
+            out += title('SECURITY ANALYSIS:\n');
+            Object.entries(result.security_headers).forEach(([k, v]) => {
+                const isOk = v.startsWith('✅');
+                out += `${key(k.padEnd(30))} ${isOk ? ok(v) : err(v)}\n`;
+            });
+        }
+    }
+
+    return out;
+}
+
+async function runNetworkTool() {
+    const target = document.getElementById('network-target').value.trim();
+    const output = document.getElementById('network-output');
+    const btn = document.getElementById('network-run-btn');
+
+    if (!target) {
+        output.innerHTML = '<span class="net-err">// Error: Please enter a target domain or IP</span>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Running...';
+    output.innerHTML = `<span class="net-dim">// Running ${currentNetTool.toUpperCase()} on ${target}...</span>`;
+
+    try {
+        const res = await fetch('/api/network', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool: currentNetTool, target }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+            output.innerHTML = `<span class="net-err">// Error: ${data.error || 'Request failed'}</span>`;
+            return;
+        }
+
+        output.innerHTML = formatNetOutput(currentNetTool, data.target, data.result);
+
+    } catch(err) {
+        output.innerHTML = `<span class="net-err">// Network error: ${err.message}</span>`;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '▶ Run';
+    }
+}
+
+// Initialize examples on load
+setTool('dns');
 
 // ── AVIATION TRACKER ──
 let flightMap = null;

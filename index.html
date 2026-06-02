@@ -3063,7 +3063,7 @@ async function loadFlights() {
 
         // Auto-refresh every 60 seconds
         clearTimeout(flightRefreshTimer);
-        flightRefreshTimer = setTimeout(loadFlights, 60000);
+        flightRefreshTimer = setTimeout(loadFlights, 300000);
 
     } catch(err) {
         console.error('Flight tracker error:', err);

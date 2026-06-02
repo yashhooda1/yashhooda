@@ -2,7 +2,8 @@
   "version": 2,
   "functions": {
     "api/chat.js": { "maxDuration": 60 },
-    "api/analytics.js": { "maxDuration": 60 }
+    "api/analytics.js": { "maxDuration": 60 },
+    "api/flights.js": { "maxDuration": 15 }
   },
   "headers": [
     {

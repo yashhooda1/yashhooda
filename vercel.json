@@ -3,7 +3,8 @@
   "functions": {
     "api/chat.js": { "maxDuration": 60 },
     "api/analytics.js": { "maxDuration": 60 },
-    "api/flights.js": { "maxDuration": 15 }
+    "api/flights.js": { "maxDuration": 15 },
+    "api/network.js": { "maxDuration": 15 }
   },
   "headers": [
     {

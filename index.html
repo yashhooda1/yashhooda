@@ -976,6 +976,34 @@
                 <div class="analytics-loading">Analyzing your training data...</div>
             </div>
         </section>
+        /* ── AVIATION TRACKER ── */
+        .aviation-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
+        .aviation-live-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
+        .aviation-live-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #93c5fd; animation: pulse 2s infinite; }
+        .aviation-stats-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .aviation-stat { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 0.6rem 1rem; text-align: center; }
+        .aviation-stat-val { font-family: 'Space Mono', monospace; font-size: 1.2rem; color: #93c5fd; font-weight: 700; display: block; }
+        .aviation-stat-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+        #flight-map { height: 420px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 1.25rem; background: #0d1117; }
+        .flight-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem; max-height: 480px; overflow-y: auto; padding-right: 0.25rem; }
+        .flight-cards::-webkit-scrollbar { width: 4px; }
+        .flight-cards::-webkit-scrollbar-track { background: transparent; }
+        .flight-cards::-webkit-scrollbar-thumb { background: rgba(147,197,253,0.3); border-radius: 2px; }
+        .flight-card { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 0.85rem; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
+        .flight-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, #3b82f6, #93c5fd); }
+        .flight-card:hover { border-color: rgba(147,197,253,0.4); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.08); }
+        .flight-callsign { font-family: 'Space Mono', monospace; font-size: 0.9rem; color: #93c5fd; font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .flight-plane-icon { font-size: 1rem; display: inline-block; }
+        .flight-country { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .flight-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem 0.5rem; }
+        .flight-detail { font-size: 0.75rem; color: var(--text-muted); }
+        .flight-detail strong { color: var(--text); font-weight: 500; }
+        .aviation-refresh { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25); color: #93c5fd; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.75rem; font-family: 'Space Mono', monospace; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; }
+        .aviation-refresh:hover { background: rgba(59,130,246,0.15); border-color: #93c5fd; }
+        .aviation-loading { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 3rem; color: var(--text-muted); font-size: 0.85rem; }
+        .aviation-loading::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(147,197,253,0.3); border-top-color: #93c5fd; animation: spin 0.8s linear infinite; }
+        .flight-popup { font-family: 'Space Mono', monospace; font-size: 0.75rem; line-height: 1.6; }
+        .flight-popup strong { color: #3b82f6; }
         /* ── WEATHER WIDGET ── */
         .weather-widget { display: flex; align-items: center; gap: 1rem; background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1rem; flex-wrap: wrap; }
         .weather-icon { font-size: 2.5rem; flex-shrink: 0; }
@@ -1371,6 +1399,7 @@
             <a href="#hikes">Hikes</a>
             <a href="#snow">Snow ❄️</a>
             <a href="#weather">Weather</a>
+            <a href="#aviation">Aviation ✈️</a>
             <a href="#contact">Contact</a>
             <a href="#" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
         </div>
@@ -1753,6 +1782,38 @@
         <p>Live weather for wherever you're accessing this site from.</p>
         <div id="weather-container">
             <div class="weather-loading">Requesting your location...</div>
+        </div>
+    </section>
+
+    <!-- AVIATION TRACKER -->
+    <section id="aviation">
+        <h2>✈️ Live US Flight Tracker</h2>
+        <p>Real-time flights over the United States powered by OpenSky Network. Updated every 60 seconds.</p>
+
+        <div class="aviation-bar">
+            <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                <span class="aviation-live-badge">LIVE FLIGHTS</span>
+                <div class="aviation-stats-row" style="margin:0;">
+                    <div class="aviation-stat">
+                        <span class="aviation-stat-val" id="flight-count">--</span>
+                        <div class="aviation-stat-label">Flights Shown</div>
+                    </div>
+                    <div class="aviation-stat">
+                        <span class="aviation-stat-val" id="flight-total">--</span>
+                        <div class="aviation-stat-label">Total US Flights</div>
+                    </div>
+                    <div class="aviation-stat">
+                        <span class="aviation-stat-val" id="flight-updated">--</span>
+                        <div class="aviation-stat-label">Last Updated</div>
+                    </div>
+                </div>
+            </div>
+            <button class="aviation-refresh" onclick="loadFlights()">↻ Refresh</button>
+        </div>
+
+        <div id="flight-map"></div>
+        <div id="flight-cards-container">
+            <div class="aviation-loading">Loading live flights...</div>
         </div>
     </section>
 
@@ -2894,6 +2955,149 @@ document.addEventListener('keydown', e => {
 
 buildSnowAlbum();
 
+// ── AVIATION TRACKER ──
+let flightMap = null;
+let flightMarkers = [];
+let flightRefreshTimer = null;
+
+function getHeadingIcon(heading) {
+    // Rotate plane emoji via CSS transform isn't easy, so use arrows
+    const arrows = ['↑','↗','→','↘','↓','↙','←','↖'];
+    return arrows[Math.round(heading / 45) % 8];
+}
+
+function formatAltitude(ft) {
+    if (ft < 1000) return `${ft} ft`;
+    return `${(ft/1000).toFixed(1)}k ft`;
+}
+
+async function loadFlights() {
+    const container = document.getElementById('flight-cards-container');
+    const mapEl = document.getElementById('flight-map');
+    if (!container || !mapEl) return;
+
+    container.innerHTML = '<div class="aviation-loading">Loading live flights...</div>';
+
+    try {
+        const res = await fetch('/api/flights');
+        const data = await res.json();
+        if (!res.ok) { container.innerHTML = '<div class="strava-error">Could not load flight data.</div>'; return; }
+
+        const { flights, total, timestamp } = data;
+
+        // Update stats
+        document.getElementById('flight-count').textContent = flights.length;
+        document.getElementById('flight-total').textContent = total.toLocaleString();
+        document.getElementById('flight-updated').textContent = new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // ── Initialize or reuse Leaflet map ──
+        if (!flightMap) {
+            flightMap = L.map('flight-map', {
+                center: [39.5, -98.35],
+                zoom: 4,
+                zoomControl: true,
+                attributionControl: false,
+            });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 18
+            }).addTo(flightMap);
+        }
+
+        // Clear old markers
+        flightMarkers.forEach(m => flightMap.removeLayer(m));
+        flightMarkers = [];
+
+        // Add plane markers
+        flights.forEach(f => {
+            if (!f.lat || !f.lon) return;
+            const icon = L.divIcon({
+                html: `<div style="
+                    color: #93c5fd;
+                    font-size: 14px;
+                    transform: rotate(${f.heading}deg);
+                    filter: drop-shadow(0 0 3px rgba(147,197,253,0.8));
+                    line-height: 1;
+                ">✈</div>`,
+                className: '',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8],
+            });
+
+            const marker = L.marker([f.lat, f.lon], { icon })
+                .bindPopup(`
+                    <div class="flight-popup">
+                        <strong>✈ ${f.callsign || f.icao || 'Unknown'}</strong><br>
+                        🌍 ${f.country || 'Unknown'}<br>
+                        📏 ${formatAltitude(f.altitude_ft)}<br>
+                        💨 ${f.speed_mph} mph<br>
+                        🧭 ${Math.round(f.heading)}°
+                    </div>
+                `)
+                .addTo(flightMap);
+            flightMarkers.push(marker);
+        });
+
+        // ── Render flight cards ──
+        container.innerHTML = `
+            <div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--text-muted);margin-bottom:0.75rem;letter-spacing:0.04em;">
+                SHOWING ${flights.length} FLIGHTS — CLICK A CARD TO LOCATE ON MAP
+            </div>
+            <div class="flight-cards">
+                ${flights.map(f => `
+                    <div class="flight-card" onclick="locateFlight(${f.lat}, ${f.lon}, '${f.callsign || f.icao}')">
+                        <div class="flight-callsign">
+                            <span class="flight-plane-icon" style="transform:rotate(${f.heading}deg);display:inline-block;">✈</span>
+                            ${f.callsign || f.icao || 'Unknown'}
+                        </div>
+                        <div class="flight-country">🌍 ${f.country || 'Unknown origin'}</div>
+                        <div class="flight-details">
+                            <div class="flight-detail">Alt <strong>${formatAltitude(f.altitude_ft)}</strong></div>
+                            <div class="flight-detail">Speed <strong>${f.speed_mph} mph</strong></div>
+                            <div class="flight-detail">Heading <strong>${Math.round(f.heading)}° ${getHeadingIcon(f.heading)}</strong></div>
+                            <div class="flight-detail">Climb <strong>${f.vertical_ms > 0 ? '↑' : f.vertical_ms < 0 ? '↓' : '→'} ${Math.abs(Math.round(f.vertical_ms * 196.85))} fpm</strong></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // Auto-refresh every 60 seconds
+        clearTimeout(flightRefreshTimer);
+        flightRefreshTimer = setTimeout(loadFlights, 60000);
+
+    } catch(err) {
+        console.error('Flight tracker error:', err);
+        container.innerHTML = '<div class="strava-error">Could not load flight data. <button class="aviation-refresh" onclick="loadFlights()">Retry</button></div>';
+    }
+}
+
+function locateFlight(lat, lon, callsign) {
+    if (!flightMap) return;
+    document.getElementById('flight-map').scrollIntoView({ behavior: 'smooth' });
+    flightMap.setView([lat, lon], 7, { animate: true });
+    // Find and open popup for this flight
+    flightMarkers.forEach(m => {
+        const pos = m.getLatLng();
+        if (Math.abs(pos.lat - lat) < 0.01 && Math.abs(pos.lng - lon) < 0.01) {
+            m.openPopup();
+        }
+    });
+}
+
+// Load flights when section comes into view
+const aviationObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting && !flightMap) {
+            loadFlights();
+            aviationObserver.unobserve(e.target);
+        }
+    });
+}, { threshold: 0.1 });
+
+const aviationSection = document.getElementById('aviation');
+if (aviationSection) aviationObserver.observe(aviationSection);
+
+    
 // ── WEATHER ──
 const WMO_CODES = {
     0: { label: 'Clear Sky', icon: '☀️' },

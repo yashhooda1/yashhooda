@@ -62,9 +62,9 @@ export default async function handler(req, res) {
       const away = competitors.find(c => c.homeAway === 'away');
       if (!home || !away) return null;
 
-      const status = event.status?.type?.name?.toLowerCase() || 'scheduled';
-      const isFinal = status === 'status_final' || status.includes('final');
-      const isLive = status === 'status_in_progress' || status.includes('progress');
+      const status = event.status?.type?.name?.toLowerCase() || event.status?.type?.state?.toLowerCase() || 'scheduled';
+      const isFinal = status === 'status_final' || status.includes('final') || status === 'post';
+      const isLive = status === 'status_in_progress' || status.includes('progress') || status === 'in';
 
       const homeAbbr = home.team?.abbreviation || 'HOME';
       const awayAbbr = away.team?.abbreviation || 'AWAY';
@@ -72,8 +72,15 @@ export default async function handler(req, res) {
       const gameStatus = isFinal ? 'closed' : isLive ? 'inprogress' : 'scheduled';
 
       const score = {};
-      if (home.score !== undefined) score[homeAbbr] = parseInt(home.score);
-      if (away.score !== undefined) score[awayAbbr] = parseInt(away.score);
+      // Schedule endpoint wraps scores differently — handle both formats
+      const homeScoreRaw = home.score ?? comp?.score?.home;
+      const awayScoreRaw = away.score ?? comp?.score?.away;
+      const homeScoreParsed = homeScoreRaw !== undefined && homeScoreRaw !== null && homeScoreRaw !== ''
+        ? parseInt(homeScoreRaw) : undefined;
+      const awayScoreParsed = awayScoreRaw !== undefined && awayScoreRaw !== null && awayScoreRaw !== ''
+        ? parseInt(awayScoreRaw) : undefined;
+      if (!isNaN(homeScoreParsed) && homeScoreParsed !== undefined) score[homeAbbr] = homeScoreParsed;
+      if (!isNaN(awayScoreParsed) && awayScoreParsed !== undefined) score[awayAbbr] = awayScoreParsed;
 
       // Win probability
       const winProb = {};

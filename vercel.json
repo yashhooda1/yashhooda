@@ -5,7 +5,7 @@
     "api/analytics.js": { "maxDuration": 60 },
     "api/flights.js": { "maxDuration": 15 },
     "api/network.js": { "maxDuration": 15 },
-    "api/sports.js": { "maxDuration": 10 }
+    "api/sports.js": { "maxDuration": 15 }
   },
   "headers": [
     {

@@ -25,27 +25,46 @@ export default async function handler(req, res) {
     };
 
     // Use a reliable free sports API — ESPN public endpoints
-    const espnLeagueMap = {
-      nba: 'basketball/nba',
-      mlb: 'baseball/mlb',
-      mls: 'soccer/usa.1',
-      nfl: 'football/nfl',
+      const espnLeagueMap = {
+      nba:      'basketball/nba',
+      mlb:      'baseball/mlb',
+      mls:      'soccer/usa.1',
+      nfl:      'football/nfl',
+      worldcup: 'soccer/fifa.world',
+      rockets:  'basketball/nba',
+      astros:   'baseball/mlb',
+      texans:   'football/nfl',
     };
 
-    const espnUrl = `https://site.api.espn.com/apis/site/v2/sports/${espnLeagueMap[league]}/scoreboard`;
-    const response = await fetch(espnUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-      signal: AbortSignal.timeout(8000),
-    });
+    // Houston team filters
+    const houstonTeams = {
+      rockets: 'hou',
+      astros:  'hou',
+      texans:  'hou',
+    };
 
-    if (!response.ok) {
-      return res.status(502).json({ error: `ESPN API returned ${response.status}` });
-    }
+    const espnPath = espnLeagueMap[league];
+    if (!espnPath) return res.status(400).json({ error: 'Invalid league' });
 
-    const data = await response.json();
-    const events = data.events || [];
+    // For Houston teams fetch a wider date range
+    const isHoustonTeam = !!houstonTeams[league];
+    const espnUrl = isHoustonTeam
+        ? `https://site.api.espn.com/apis/site/v2/sports/${espnPath}/teams/${houstonTeams[league]}/schedule`
+        : `https://site.api.espn.com/apis/site/v2/sports/${espnPath}/scoreboard`;
+      const response = await fetch(espnUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(8000),
+      });
 
-    const games = events.map(event => {
+      if (!response.ok) {
+        return res.status(502).json({ error: `ESPN API returned ${response.status}` });
+      }
+
+      const data = await response.json();
+       // Houston team schedule uses different response shape
+      const events = data.events || data.games || [];
+
+      const games = events.map(event => {
       const comp = event.competitions?.[0];
       const competitors = comp?.competitors || [];
       const home = competitors.find(c => c.homeAway === 'home');
@@ -99,8 +118,13 @@ export default async function handler(req, res) {
       };
     }).filter(Boolean);
 
+    // For Houston teams filter to only their games
+    const filteredGames = houstonTeams[league]
+        ? games.filter(g => g.home?.toLowerCase() === houstonTeams[league] || g.away?.toLowerCase() === houstonTeams[league])
+        : games;
+
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
-    return res.status(200).json({ league, games, total: games.length });
+    return res.status(200).json({ league, games: filteredGames, total: filteredGames.length });
 
   } catch (err) {
     console.error(`Sports handler error (${league}):`, err);

@@ -976,6 +976,21 @@
                 <div class="analytics-loading">Analyzing your training data...</div>
             </div>
         </section>
+        /* ── WEATHER WIDGET ── */
+        .weather-widget { display: flex; align-items: center; gap: 1rem; background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1rem; flex-wrap: wrap; }
+        .weather-icon { font-size: 2.5rem; flex-shrink: 0; }
+        .weather-main { flex: 1; min-width: 140px; }
+        .weather-temp { font-family: 'Space Mono', monospace; font-size: 2rem; color: var(--green); font-weight: 700; line-height: 1; }
+        .weather-desc { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; text-transform: capitalize; }
+        .weather-location { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--green); margin-top: 0.3rem; letter-spacing: 0.04em; }
+        .weather-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1rem; }
+        .weather-detail { font-size: 0.78rem; color: var(--text-muted); }
+        .weather-detail strong { color: var(--text); font-weight: 500; }
+        .weather-loading { color: var(--text-muted); font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem; padding: 1rem; }
+        .weather-loading::before { content: ''; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(76,175,80,0.3); border-top-color: var(--green); animation: spin 0.8s linear infinite; flex-shrink: 0; }
+        .weather-denied { font-size: 0.82rem; color: var(--text-muted); padding: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .weather-retry { font-family: 'Space Mono', monospace; font-size: 0.72rem; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: var(--green); padding: 0.25rem 0.65rem; border-radius: 5px; cursor: pointer; transition: all 0.2s; margin-left: auto; }
+        .weather-retry:hover { background: rgba(76,175,80,0.2); }
         /* ── SNOW ALBUM ── */
         .snow-tabs { display: flex; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
         .snow-tab { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.78rem; transition: all 0.2s; letter-spacing: 0.03em; }
@@ -1355,6 +1370,7 @@
             <a href="#running">Running</a>
             <a href="#hikes">Hikes</a>
             <a href="#snow">Snow ❄️</a>
+            <a href="#weather">Weather</a>
             <a href="#contact">Contact</a>
             <a href="#" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
         </div>
@@ -1728,6 +1744,15 @@
                 </div>
             </div>
             <div class="snow-grid" id="snow-grid-nyc"></div>
+        </div>
+    </section>
+    
+    <!-- WEATHER -->
+    <section id="weather">
+        <h2>🌤️ Your Current Weather</h2>
+        <p>Live weather for wherever you're accessing this site from.</p>
+        <div id="weather-container">
+            <div class="weather-loading">Requesting your location...</div>
         </div>
     </section>
 
@@ -2868,6 +2893,109 @@ document.addEventListener('keydown', e => {
 });
 
 buildSnowAlbum();
+
+// ── WEATHER ──
+const WMO_CODES = {
+    0: { label: 'Clear Sky', icon: '☀️' },
+    1: { label: 'Mainly Clear', icon: '🌤️' },
+    2: { label: 'Partly Cloudy', icon: '⛅' },
+    3: { label: 'Overcast', icon: '☁️' },
+    45: { label: 'Foggy', icon: '🌫️' },
+    48: { label: 'Icy Fog', icon: '🌫️' },
+    51: { label: 'Light Drizzle', icon: '🌦️' },
+    53: { label: 'Drizzle', icon: '🌦️' },
+    55: { label: 'Heavy Drizzle', icon: '🌧️' },
+    61: { label: 'Light Rain', icon: '🌧️' },
+    63: { label: 'Rain', icon: '🌧️' },
+    65: { label: 'Heavy Rain', icon: '🌧️' },
+    71: { label: 'Light Snow', icon: '🌨️' },
+    73: { label: 'Snow', icon: '❄️' },
+    75: { label: 'Heavy Snow', icon: '❄️' },
+    77: { label: 'Snow Grains', icon: '🌨️' },
+    80: { label: 'Light Showers', icon: '🌦️' },
+    81: { label: 'Showers', icon: '🌧️' },
+    82: { label: 'Heavy Showers', icon: '🌧️' },
+    85: { label: 'Snow Showers', icon: '🌨️' },
+    86: { label: 'Heavy Snow Showers', icon: '❄️' },
+    95: { label: 'Thunderstorm', icon: '⛈️' },
+    96: { label: 'Thunderstorm w/ Hail', icon: '⛈️' },
+    99: { label: 'Heavy Thunderstorm', icon: '⛈️' },
+};
+
+async function loadWeather() {
+    const container = document.getElementById('weather-container');
+    if (!container) return;
+
+    if (!navigator.geolocation) {
+        container.innerHTML = '<div class="weather-denied">⚠️ Geolocation is not supported by your browser.</div>';
+        return;
+    }
+
+    container.innerHTML = '<div class="weather-loading">Requesting your location...</div>';
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const { latitude, longitude } = pos.coords;
+            container.innerHTML = '<div class="weather-loading">Fetching weather data...</div>';
+            try {
+                // Reverse geocode for city name using Open-Meteo's free geocoding
+                const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+                const geoData = await geoRes.json();
+                const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county || 'Your Location';
+                const state = geoData.address?.state || '';
+                const country = geoData.address?.country_code?.toUpperCase() || '';
+                const locationLabel = [city, state, country].filter(Boolean).join(', ');
+
+                // Fetch weather from Open-Meteo (free, no API key)
+                const weatherRes = await fetch(
+                    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+                    `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,precipitation` +
+                    `&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto`
+                );
+                const weatherData = await weatherRes.json();
+                const c = weatherData.current;
+
+                const code = c.weather_code;
+                const { label, icon } = WMO_CODES[code] || { label: 'Unknown', icon: '🌡️' };
+
+                // Wind direction label
+                const windDir = (deg) => {
+                    const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+                    return dirs[Math.round(deg / 45) % 8];
+                };
+
+                container.innerHTML = `
+                    <div class="weather-widget">
+                        <div class="weather-icon">${icon}</div>
+                        <div class="weather-main">
+                            <div class="weather-temp">${Math.round(c.temperature_2m)}°F</div>
+                            <div class="weather-desc">${label}</div>
+                            <div class="weather-location">📍 ${locationLabel}</div>
+                        </div>
+                        <div class="weather-details">
+                            <div class="weather-detail">Feels like <strong>${Math.round(c.apparent_temperature)}°F</strong></div>
+                            <div class="weather-detail">Humidity <strong>${c.relative_humidity_2m}%</strong></div>
+                            <div class="weather-detail">Wind <strong>${Math.round(c.wind_speed_10m)} mph ${windDir(c.wind_direction_10m)}</strong></div>
+                            <div class="weather-detail">Precip <strong>${c.precipitation} in</strong></div>
+                        </div>
+                    </div>
+                `;
+            } catch(err) {
+                console.error('Weather fetch error:', err);
+                container.innerHTML = '<div class="weather-denied">⚠️ Could not load weather data. <button class="weather-retry" onclick="loadWeather()">Retry</button></div>';
+            }
+        },
+        (err) => {
+            const msg = err.code === 1
+                ? '📍 Location access denied. Enable location permissions to see your weather.'
+                : '⚠️ Could not get your location.';
+            container.innerHTML = `<div class="weather-denied">${msg} <button class="weather-retry" onclick="loadWeather()">Retry</button></div>`;
+        },
+        { timeout: 10000, maximumAge: 300000 }
+    );
+}
+
+loadWeather();
 
 // ── STRAVA LIVE FEED (unchanged) ──
 async function loadStrava() {

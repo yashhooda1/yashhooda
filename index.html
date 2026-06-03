@@ -3556,6 +3556,7 @@ function renderScoreCard(game, league) {
         <div class="score-card ${statusClass}" ${(homeIsHouston || awayIsHouston) ? `style="border-color:${houstonColor}40"` : ''}>
             <div class="score-status ${statusClass}">
                 ${statusLabel}
+                ${game.live_detail ? `<span style="font-family:'Space Mono',monospace;font-size:0.68rem;color:#facc15;margin-left:0.4rem;">${game.live_detail}</span>` : ''}
                 ${isPlayoff ? `<span class="playoff-label">${game.title}</span>` : ''}
             </div>
             <div class="score-teams">

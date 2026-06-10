@@ -922,6 +922,127 @@
             transition: opacity 0.2s, transform 0.15s;
         }
         .tts-btn:hover { opacity: 1; transform: scale(1.15); }
+        /* ── FEATURE 1: CITATION PILLS ── */
+        .citation-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-top: 0.45rem;
+            padding-top: 0.35rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .citation-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: rgba(76,175,80,0.07);
+            border: 1px solid rgba(76,175,80,0.22);
+            color: #81c784;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+            cursor: default;
+            transition: background 0.15s;
+        }
+        .citation-pill:hover { background: rgba(76,175,80,0.15); }
+        .citation-pill::before { content: '📎'; font-size: 0.65rem; }
+
+        /* ── FEATURE 4: AGENT BADGE ── */
+        .agent-badge {
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 3px;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.3rem;
+            background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.25);
+            color: #93c5fd;
+        }
+        .agent-badge.running { background: rgba(252,76,2,0.08); border-color: rgba(252,76,2,0.25); color: #fc4c02; }
+        .agent-badge.career  { background: rgba(250,204,21,0.08); border-color: rgba(250,204,21,0.2); color: #facc15; }
+        .agent-badge.travel  { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.22); color: #86efac; }
+
+        /* ── FEATURE 5: ANALYTICS PANEL ── */
+        .analytics-dash {
+            padding: 0.75rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .dash-stat-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .dash-stat {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 0.7rem 0.8rem;
+            text-align: center;
+        }
+        .dash-stat-val {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--green);
+            font-weight: 700;
+            display: block;
+        }
+        .dash-stat-label {
+            font-size: 0.63rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.1rem;
+        }
+        .dash-section-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--green);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin: 0.75rem 0 0.4rem;
+        }
+        .dash-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.35rem;
+            font-size: 0.72rem;
+        }
+        .dash-bar-label { color: var(--text-muted); width: 70px; flex-shrink: 0; }
+        .dash-bar-track {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .dash-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--green);
+            transition: width 0.4s ease;
+        }
+        .dash-bar-val { color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.68rem; width: 34px; text-align: right; flex-shrink: 0; }
+        .dash-q-item {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 6px;
+            padding: 0.45rem 0.6rem;
+            margin-bottom: 0.35rem;
+            font-size: 0.75rem;
+            color: var(--text);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+        }
+        .dash-q-agent { flex-shrink: 0; font-size: 0.65rem; color: var(--text-muted); font-family: 'Space Mono', monospace; margin-top: 0.1rem; }
+        .dash-loading { color: var(--text-muted); font-size: 0.78rem; text-align: center; padding: 1.5rem; }
 
         /* ── HIKES ── */
         .run-card {
@@ -1354,6 +1475,7 @@
         <button class="chat-tab" onclick="switchModelsTab(this)">🧠 Models</button>
         <button class="chat-tab" onclick="vmSwitchTab(this)">🎙️ Voice</button>
         <button class="chat-tab" onclick="switchHistoryTab(this)">🕓 History</button>
+        <button class="chat-tab" onclick="switchAnalyticsTab(this)">📊 Analytics</button>
         <button class="chat-tab save-tab-btn" id="save-tab-btn" onclick="saveCurrentChat()" title="Save current chat">💾</button>
     </div>
     <div class="chat-messages" id="chat-messages">
@@ -1410,6 +1532,13 @@
         <button class="vm-control" onclick="vmToggle()"><span id="vm-btn-label">Start</span> conversation</button>
         <div class="vm-note">🔊 Hands-free · uses your selected model · AI-generated voice</div>
       </div>
+    </div>
+
+    <!-- Analytics Dashboard Panel -->
+    <div class="chat-history-panel" id="analytics-panel">
+        <div class="analytics-dash" id="analytics-dash-content">
+            <div class="dash-loading">Loading analytics…</div>
+        </div>
     </div>
 
     <!-- quick-btns kept empty/hidden — tabs now handle prompts -->
@@ -2450,6 +2579,92 @@ function switchHistoryTab(btn) {
     loadHistoryList();
 }
 
+// ── ANALYTICS DASHBOARD TAB ──
+function switchAnalyticsTab(btn) {
+    hideAllPanels();
+    btn.classList.add('active');
+    document.getElementById('chat-messages').classList.add('hidden');
+    document.getElementById('analytics-panel').classList.add('active');
+    loadAnalyticsDashboard();
+}
+
+async function loadAnalyticsDashboard() {
+    const container = document.getElementById('analytics-dash-content');
+    container.innerHTML = '<div class="dash-loading">Loading analytics…</div>';
+    try {
+        const res  = await fetch('/api/analytics-dashboard');
+        const data = await res.json();
+        if (!res.ok || data.error) {
+            container.innerHTML = '<div class="dash-loading">Analytics unavailable.</div>';
+            return;
+        }
+        const { totals, days, questions } = data;
+
+        const agentBars = [
+            { label: 'Running',  val: totals.agent_running,  max: totals.total_requests, color: '#fc4c02' },
+            { label: 'Career',   val: totals.agent_career,   max: totals.total_requests, color: '#facc15' },
+            { label: 'Travel',   val: totals.agent_travel,   max: totals.total_requests, color: '#86efac' },
+            { label: 'General',  val: totals.agent_general,  max: totals.total_requests, color: '#93c5fd' },
+        ];
+
+        container.innerHTML = `
+            <div class="dash-section-title">📈 7-Day Overview</div>
+            <div class="dash-stat-row">
+                <div class="dash-stat">
+                    <span class="dash-stat-val">${totals.total_requests}</span>
+                    <div class="dash-stat-label">Total Questions</div>
+                </div>
+                <div class="dash-stat">
+                    <span class="dash-stat-val">${totals.retrieval_success_pct}%</span>
+                    <div class="dash-stat-label">Retrieval Hit %</div>
+                </div>
+                <div class="dash-stat">
+                    <span class="dash-stat-val">${totals.web_fallback_pct}%</span>
+                    <div class="dash-stat-label">Web Fallback %</div>
+                </div>
+                <div class="dash-stat">
+                    <span class="dash-stat-val">${totals.avg_response_ms > 0 ? (totals.avg_response_ms / 1000).toFixed(1) + 's' : '--'}</span>
+                    <div class="dash-stat-label">Avg Response</div>
+                </div>
+            </div>
+
+            <div class="dash-section-title">🤖 Agent Breakdown</div>
+            ${agentBars.map(a => `
+                <div class="dash-bar-row">
+                    <div class="dash-bar-label">${a.label}</div>
+                    <div class="dash-bar-track">
+                        <div class="dash-bar-fill" style="width:${a.max > 0 ? Math.round((a.val/a.max)*100) : 0}%;background:${a.color}"></div>
+                    </div>
+                    <div class="dash-bar-val">${a.val}</div>
+                </div>
+            `).join('')}
+
+            <div class="dash-section-title">❓ Recent Questions</div>
+            ${questions.length === 0
+                ? '<div class="dash-loading" style="padding:0.5rem">No questions yet.</div>'
+                : questions.slice(0, 15).map(q => `
+                    <div class="dash-q-item">
+                        <span class="dash-q-agent">[${(q.agent||'gen').slice(0,3).toUpperCase()}]</span>
+                        <span>${(q.q || '').slice(0, 90)}</span>
+                    </div>
+                `).join('')}
+
+            <div class="dash-section-title">📅 Daily Requests (last 7 days)</div>
+            ${days.map(d => `
+                <div class="dash-bar-row">
+                    <div class="dash-bar-label" style="font-size:0.6rem">${d.date.slice(5)}</div>
+                    <div class="dash-bar-track">
+                        <div class="dash-bar-fill" style="width:${days.reduce((m,x)=>Math.max(m,x.total_requests),1) > 0 ? Math.round((d.total_requests/Math.max(...days.map(x=>x.total_requests),1))*100) : 0}%"></div>
+                    </div>
+                    <div class="dash-bar-val">${d.total_requests}</div>
+                </div>
+            `).join('')}
+        `;
+    } catch (err) {
+        container.innerHTML = '<div class="dash-loading">Could not load analytics.</div>';
+    }
+}
+
 // ── NEW: Load saved chats from API ──
 async function loadHistoryList() {
     const container = document.getElementById('history-list');
@@ -2895,7 +3110,34 @@ async function sendMsg() {
       typingDiv.remove();
       const botDiv = document.createElement('div');
       botDiv.className = 'msg bot';
-      botDiv.textContent = cleanReply;
+
+      // ── FEATURE 4: Agent badge ──
+      if (data.agent && data.agent !== 'General Agent') {
+        const agentKey = data.agent.toLowerCase().replace(' agent','').trim();
+        const badge = document.createElement('div');
+        badge.className = `agent-badge ${agentKey}`;
+        badge.textContent = data.agent;
+        botDiv.appendChild(badge);
+        botDiv.appendChild(document.createElement('br'));
+      }
+
+      const textNode = document.createTextNode(cleanReply);
+      botDiv.appendChild(textNode);
+
+      // ── FEATURE 1: Citation pills ──
+      if (data.citations && data.citations.length > 0) {
+        const row = document.createElement('div');
+        row.className = 'citation-row';
+        data.citations.forEach(c => {
+          const pill = document.createElement('span');
+          pill.className = 'citation-pill';
+          pill.textContent = c.label;
+          pill.title = c.snippet;
+          row.appendChild(pill);
+        });
+        botDiv.appendChild(row);
+      }
+
       msgs.appendChild(botDiv);
     }
  

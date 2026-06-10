@@ -4,7 +4,10 @@
     "api/chat.js": { "maxDuration": 60 },
     "api/chat-search.js": { "maxDuration": 60 },
     "api/analytics.js": { "maxDuration": 60 },
-    "api/flights.js": { "maxDuration": 15 },
+    "api/tts.js":   { "maxDuration": 30 },
+    "api/strava.js":  { "maxDuration": 30 },
+    "api/history.js":  { "maxDuration": 30 },
+    "api/flights.js": { "maxDuration": 30 },
     "api/network.js": { "maxDuration": 15 },
     "api/sports.js": { "maxDuration": 15 }
   },

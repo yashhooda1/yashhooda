@@ -2552,6 +2552,7 @@ function hideAllPanels() {
     document.getElementById('chat-messages').classList.remove('hidden');
     document.getElementById('history-panel').classList.remove('active');
     document.getElementById('prompts-panel').classList.remove('active');
+    document.getElementById('analytics-panel').classList.remove('active');
     document.getElementById('quick-btns').style.display = 'none';
     document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
 }

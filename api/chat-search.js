@@ -3,7 +3,6 @@
 // maxDuration = 60 solves the 504 timeout (Vercel Pro supports up to 300s)
 
 export const maxDuration = 60; // seconds — requires Vercel Pro (you already have it)
-export const config = { runtime: 'nodejs' };  // ensure Node runtime, not Edge
 
 // ── MODEL REGISTRY ── keep in sync with chat.js
 const MODELS = {

@@ -158,7 +158,147 @@ function checkRateLimit(sessionId) {
   entry.count++;
   return true;
 }
- 
+
+// ══════════════════════════════════════════════════════
+// PHASE 2 — HYBRID RAG: BM25 SPARSE KEYWORD SEARCH
+// Runs alongside dense vector search; results fused via RRF
+// ══════════════════════════════════════════════════════
+
+// Tokenize query into lowercase stemmed terms for BM25 matching
+function tokenize(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t.length > 2);
+}
+
+// Build sparse TF vector from query tokens (weights for Upstash sparse index)
+// Returns array of { index, value } pairs compatible with Upstash sparseValues
+function buildSparseVector(queryText) {
+  const tokens = tokenize(queryText);
+  const freq = {};
+  for (const t of tokens) freq[t] = (freq[t] || 0) + 1;
+  // Simple hash-based dimension assignment (0–29999 range for Upstash)
+  const sparse = [];
+  for (const [term, count] of Object.entries(freq)) {
+    let hash = 0;
+    for (let i = 0; i < term.length; i++) {
+      hash = ((hash << 5) - hash + term.charCodeAt(i)) & 0x7fff;
+    }
+    sparse.push({ index: hash % 30000, value: count / tokens.length });
+  }
+  return sparse;
+}
+
+// Reciprocal Rank Fusion — merges dense + sparse result lists
+// Each result scored as sum of 1/(k + rank). k=60 is standard.
+function reciprocalRankFusion(denseResults, sparseResults, k = 60) {
+  const scores = {};
+  const meta = {};
+
+  denseResults.forEach((r, i) => {
+    const id = r.id ?? r.metadata?.text?.slice(0, 40) ?? `d${i}`;
+    scores[id] = (scores[id] || 0) + 1 / (k + i + 1);
+    meta[id] = meta[id] || r;
+  });
+  sparseResults.forEach((r, i) => {
+    const id = r.id ?? r.metadata?.text?.slice(0, 40) ?? `s${i}`;
+    scores[id] = (scores[id] || 0) + 1 / (k + i + 1);
+    meta[id] = meta[id] || r;
+  });
+
+  return Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .map(([id]) => meta[id])
+    .filter(Boolean);
+}
+
+// ══════════════════════════════════════════════════════
+// PHASE 1 — CORRECTIVE RAG (CRAG)
+// Evaluates retrieval quality; rewrites query or triggers
+// web-search fallback when chunks are poor/ambiguous.
+// ══════════════════════════════════════════════════════
+
+// Quick single-turn Claude call — used only for evaluation/rewriting, not the main response
+async function quickClaudeCall(prompt, apiKey) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001', // cheapest/fastest for eval micro-calls
+      max_tokens: 64,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  const data = await res.json();
+  return data?.content?.[0]?.text?.trim() ?? '';
+}
+
+// CRAG Step 1 — score retrieval quality 1–5
+// Returns numeric grade: 4-5 = good, 3 = ambiguous, 1-2 = irrelevant
+async function evaluateRetrieval(query, chunks, apiKey) {
+  if (!chunks || chunks.length === 0) return 1;
+  const excerpt = chunks.slice(0, 2).join('\n\n').slice(0, 600);
+  const prompt =
+    `You are a retrieval quality judge. Rate 1-5 how well the CONTEXT answers the QUERY.\n` +
+    `1=completely irrelevant, 3=partially relevant, 5=directly answers it.\n` +
+    `Reply with ONLY a single digit (1-5). No explanation.\n\n` +
+    `QUERY: ${query.slice(0, 200)}\n\nCONTEXT:\n${excerpt}`;
+  const result = await quickClaudeCall(prompt, apiKey);
+  const score = parseInt(result.match(/[1-5]/)?.[0] ?? '3', 10);
+  return score;
+}
+
+// CRAG Step 2 — rewrite ambiguous/failed queries for better retrieval
+async function rewriteQuery(originalQuery, apiKey) {
+  const prompt =
+    `Rewrite this search query to be more specific and retrieval-friendly for a personal portfolio knowledge base about Yash Hooda (data engineer, runner, AI projects).\n` +
+    `Original: "${originalQuery.slice(0, 300)}"\n` +
+    `Return ONLY the rewritten query, nothing else.`;
+  const rewritten = await quickClaudeCall(prompt, apiKey);
+  // Fallback to original if rewrite is empty or too long
+  return rewritten && rewritten.length < 400 ? rewritten : originalQuery;
+}
+
+// CRAG Step 3 — lightweight web-search fallback via Anthropic web_search tool
+// Called only when retrieval score <= 2 (clearly irrelevant chunks)
+async function webSearchFallback(query, apiKey) {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{
+          role: 'user',
+          content: `Search for: ${query.slice(0, 300)}. Return a brief 2-3 sentence factual summary only.`,
+        }],
+      }),
+    });
+    const data = await res.json();
+    // Extract text blocks from the response (ignore tool_use blocks)
+    const text = (data?.content ?? [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join(' ')
+      .trim();
+    return text || '';
+  } catch {
+    return ''; // web search fallback is non-fatal
+  }
+}
+
 // ── MODEL REGISTRY ── single source of truth for which models are allowed + who serves them
 const MODELS = {
   'claude-opus-4-8':   { provider: 'anthropic', api: 'claude-opus-4-8' },
@@ -168,15 +308,15 @@ const MODELS = {
   'gpt-5.4-mini':      { provider: 'openai',    api: 'gpt-5.4-mini' },
 };
 const DEFAULT_MODEL = 'claude-opus-4-8';
- 
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
- 
+
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
- 
+
   const { messages, sessionId, model } = req.body;
   // ── LAYER 1: Input Validation ──
   const validationErrors = validateInput(messages, sessionId);
@@ -200,11 +340,11 @@ export default async function handler(req, res) {
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages array required' });
   }
- 
+
   // Pick a model from the registry; fall back to default if missing/unknown
   const picked = MODELS[model] ? model : DEFAULT_MODEL;
   const cfg = MODELS[picked];
- 
+
   const apiKey = cfg.provider === 'anthropic'
     ? process.env.ANTHROPIC_API_KEY
     : process.env.OPENAI_API_KEY;
@@ -224,15 +364,15 @@ ABOUT YASH HOODA — FULL PROFILE
 ═══════════════════════════════════════
 
 PERSONAL:
-- 24 years old, based in Texas
-- BS Computer Science, University of Texas at Dallas (UTD)
-- Passionate about intelligent systems, running, aviation, astronomy, hiking, and travel
+- 24 years old, based in Richmond, Texas
+- BS Computer Science, University of Texas at Dallas (UTD) alumni
+- Passionate about intelligent systems, running, aviation, astronomy, hiking, and travel.
 - Enjoys Netflix/documentaries, spending time with family and friends
 - Reading about AI breakthroughs and the future of intelligent systems in free time
 
 PROFESSIONAL IDENTITY:
 - Current role: Data Engineer
-- Goal: Transition into AI Engineering without a master's degree
+- Goal: Transition into AI Engineering without a master's degree or pursue a career in cybersecurity as an alterative.
 - Philosophy: Certifications + real projects + relentless execution > a graduate degree
 
 TECHNICAL SKILLS:
@@ -361,7 +501,9 @@ BREAKING IN WITHOUT A MASTER'S:
 - Target companies using modern stacks (Databricks, Snowflake, startups) over legacy enterprises
 - Get one real project live and deployed — it outweighs 10 tutorial certificates
 - Network: LinkedIn cold outreach with personalized notes, local meetups, AI/data conferences
-- Freelance (Upwork like Yash) to build a client track record
+- Freelance (Upwork like Yash or utilize Alignerr or Outlier.AI) to build a client track record
+- Utilize 3rd party AI training sites like Alignerr or Outlier.AI to gain exposure and experience and for side hustle money.
+- Utilize Coursera for online training and certifications and remote learning.
 
 INTERVIEW PREP:
 - Data Engineering: SQL window functions, pipeline design questions, system design (design a data warehouse), Python coding
@@ -483,8 +625,16 @@ RESPONSE GUIDELINES
 - If someone sends an image: describe what you see and relate it to running, career, or life advice as appropriate
 - Always end career/running advice with one specific actionable next step
 - If unsure about something specific to Yash, say so and suggest emailing yash.hooda6@gmail.com`;
- 
-  // ── RAG: retrieve relevant context from Upstash Vector ──
+
+  // ── RAG: PHASE 2 (HYBRID) + PHASE 1 (CRAG) ──────────────────────────────
+  // Flow:
+  //   1. Run dense vector search (original) AND sparse BM25 search in parallel
+  //   2. Merge results via Reciprocal Rank Fusion
+  //   3. CRAG: evaluate merged chunks — grade 1-5
+  //      • Score 4-5 → use chunks as-is (CORRECT path)
+  //      • Score 3   → rewrite query, re-retrieve, use new chunks (AMBIGUOUS path)
+  //      • Score 1-2 → trigger web-search fallback (INCORRECT path)
+  // ─────────────────────────────────────────────────────────────────────────
   let ragContext = '';
   try {
     if (
@@ -493,14 +643,18 @@ RESPONSE GUIDELINES
       process.env.UPSTASH_VECTOR_REST_TOKEN &&
       process.env.OPENAI_API_KEY
     ) {
-      // Embed the latest user message
       const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
-      const queryText = typeof lastUserMsg?.content === 'string'
+      let queryText = typeof lastUserMsg?.content === 'string'
         ? lastUserMsg.content
         : lastUserMsg?.content?.find?.(c => c.type === 'text')?.text || '';
- 
+
       if (queryText) {
-        // Get embedding from OpenAI
+        const vectorIndex = new Index({
+          url: process.env.UPSTASH_VECTOR_REST_URL,
+          token: process.env.UPSTASH_VECTOR_REST_TOKEN,
+        });
+
+        // ── PHASE 2: Run dense + sparse searches in parallel ──────────────
         const embedRes = await fetch('https://api.openai.com/v1/embeddings', {
           method: 'POST',
           headers: {
@@ -510,28 +664,88 @@ RESPONSE GUIDELINES
           body: JSON.stringify({ model: 'text-embedding-3-small', input: queryText }),
         });
         const embedData = await embedRes.json();
-        const vector = embedData?.data?.[0]?.embedding;
- 
-        if (vector) {
-          // Query Upstash Vector for top 3 relevant chunks
-          const vectorIndex = new Index({
-            url: process.env.UPSTASH_VECTOR_REST_URL,
-            token: process.env.UPSTASH_VECTOR_REST_TOKEN,
-          });
-          const results = await vectorIndex.query({
-            vector,
-            topK: 3,
-            includeMetadata: true,
-          });
-          const chunks = results
-            .filter(r => r.score > TOOL_PERMISSIONS.rag.minScore) // only use relevant hits
-            .map(r => r.metadata?.text || '')
-            .filter(Boolean);
-          if (chunks.length) {
-           const sanitized = sanitizeRAGContext(chunks);
-           if (sanitized) {
+        const denseVector = embedData?.data?.[0]?.embedding;
+
+        // Sparse vector from BM25 tokenization
+        const sparseValues = buildSparseVector(queryText);
+
+        // Fire both queries concurrently
+        const [denseResults, sparseResults] = await Promise.all([
+          denseVector
+            ? vectorIndex.query({ vector: denseVector, topK: 5, includeMetadata: true })
+            : Promise.resolve([]),
+          sparseValues.length
+            ? vectorIndex.query({ sparseVector: sparseValues, topK: 5, includeMetadata: true })
+                .catch(() => []) // sparse index may not exist yet — non-fatal
+            : Promise.resolve([]),
+        ]);
+
+        // Merge via RRF, filter by min score, take top 5
+        const merged = reciprocalRankFusion(denseResults, sparseResults)
+          .filter(r => (r.score ?? 1) > TOOL_PERMISSIONS.rag.minScore)
+          .slice(0, 5);
+
+        let chunks = merged.map(r => r.metadata?.text || '').filter(Boolean);
+
+        // ── PHASE 1: CRAG — evaluate, correct, or fall back ───────────────
+        if (chunks.length > 0 && process.env.ANTHROPIC_API_KEY) {
+          const evalScore = await evaluateRetrieval(queryText, chunks, process.env.ANTHROPIC_API_KEY);
+          console.log(`[CRAG] retrieval score: ${evalScore} for query: "${queryText.slice(0, 80)}"`);
+
+          if (evalScore <= 2) {
+            // INCORRECT path → web search fallback
+            console.log('[CRAG] Score ≤2 — triggering web search fallback');
+            const webResult = await webSearchFallback(queryText, process.env.ANTHROPIC_API_KEY);
+            if (webResult) {
+              chunks = [webResult];
+              console.log('[CRAG] Web search fallback succeeded');
+            } else {
+              chunks = []; // nothing useful — proceed without RAG context
+            }
+          } else if (evalScore === 3) {
+            // AMBIGUOUS path → rewrite query and re-retrieve with hybrid search
+            console.log('[CRAG] Score=3 — rewriting query and re-retrieving');
+            const rewritten = await rewriteQuery(queryText, process.env.ANTHROPIC_API_KEY);
+            console.log(`[CRAG] Rewritten query: "${rewritten.slice(0, 80)}"`);
+
+            const reEmbedRes = await fetch('https://api.openai.com/v1/embeddings', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              },
+              body: JSON.stringify({ model: 'text-embedding-3-small', input: rewritten }),
+            });
+            const reEmbedData = await reEmbedRes.json();
+            const reDenseVector = reEmbedData?.data?.[0]?.embedding;
+            const reSparseValues = buildSparseVector(rewritten);
+
+            const [reDense, reSparse] = await Promise.all([
+              reDenseVector
+                ? vectorIndex.query({ vector: reDenseVector, topK: 5, includeMetadata: true })
+                : Promise.resolve([]),
+              reSparseValues.length
+                ? vectorIndex.query({ sparseVector: reSparseValues, topK: 5, includeMetadata: true })
+                    .catch(() => [])
+                : Promise.resolve([]),
+            ]);
+
+            const reMerged = reciprocalRankFusion(reDense, reSparse)
+              .filter(r => (r.score ?? 1) > TOOL_PERMISSIONS.rag.minScore)
+              .slice(0, 5);
+
+            const reChunks = reMerged.map(r => r.metadata?.text || '').filter(Boolean);
+            if (reChunks.length > 0) chunks = reChunks;
+            // else keep original chunks — they were at least partially relevant
+          }
+          // Score 4-5: CORRECT path — chunks are good, use as-is (no action needed)
+        }
+        // ── END PHASE 1 / PHASE 2 ────────────────────────────────────────
+
+        if (chunks.length) {
+          const sanitized = sanitizeRAGContext(chunks);
+          if (sanitized) {
             ragContext = '\n\n═══════════════════════════════════════\nADDITIONAL CONTEXT (retrieved from knowledge base):\n═══════════════════════════════════════\n' + chunks.join('\n\n');
-           }
           }
         }
       }
@@ -539,13 +753,13 @@ RESPONSE GUIDELINES
   } catch (ragErr) {
     console.warn('RAG retrieval failed (non-fatal):', ragErr.message);
   }
- 
+
   // ── MEMORY: load past conversation summaries from Redis ──
   let memoryContext = '';
   let redis = null;
   const SESSION_KEY = `hooda_chat:${sessionId || 'anonymous'}`;
   const MAX_MEMORY_PAIRS = 5; // last 5 Q&A pairs stored
- 
+
   try {
     if (
       checkToolPermission('memory') &&
@@ -571,10 +785,10 @@ RESPONSE GUIDELINES
   } catch (memErr) {
     console.warn('Memory load failed (non-fatal):', memErr.message);
   }
- 
+
   // RAG + memory get appended to the system prompt. CONTEXT stays 100% intact.
   const dynamic = ragContext + memoryContext;
- 
+
   // Anthropic: cached static CONTEXT block + uncached dynamic block.
   const systemBlocks = [
     { type: 'text', text: CONTEXT, cache_control: { type: 'ephemeral' } },
@@ -584,10 +798,10 @@ RESPONSE GUIDELINES
   }
   // OpenAI: one plain-string system prompt (it caches long prefixes automatically).
   const systemText = CONTEXT + dynamic;
- 
+
   try {
     let reply;
- 
+
     if (cfg.provider === 'anthropic') {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -633,7 +847,7 @@ RESPONSE GUIDELINES
       }
       reply = filterOutput(extractOpenAIText(data) || "Reach Yash at yash.hooda6@gmail.com!");
     }
- 
+
     // ── MEMORY: save this exchange to Redis ──
     try {
       if (redis && sessionId) {
@@ -641,7 +855,7 @@ RESPONSE GUIDELINES
         const userText = typeof lastUserMsg?.content === 'string'
           ? lastUserMsg.content
           : lastUserMsg?.content?.find?.(c => c.type === 'text')?.text || '[image/media]';
- 
+
         await redis.lpush(SESSION_KEY, JSON.stringify({ role: 'assistant', content: reply.slice(0, 500) }));
         await redis.lpush(SESSION_KEY, JSON.stringify({ role: 'user', content: userText.slice(0, 300) }));
         await redis.ltrim(SESSION_KEY, 0, MAX_MEMORY_PAIRS * 2 - 1);
@@ -656,7 +870,7 @@ RESPONSE GUIDELINES
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
- 
+
 // ── Convert Anthropic-style messages into OpenAI Responses `input` format ──
 function toOpenAIInput(messages) {
   return messages.map(m => {
@@ -676,7 +890,7 @@ function toOpenAIInput(messages) {
     return { role: m.role, content: String(m.content) };
   });
 }
- 
+
 // ── Pull the assistant text out of an OpenAI Responses API result ──
 function extractOpenAIText(data) {
   if (typeof data.output_text === 'string' && data.output_text) return data.output_text;

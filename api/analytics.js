@@ -115,13 +115,126 @@ export default async function handler(req, res) {
     predictions['Half'].gap = timeDiff(predictions['Half'].predicted, '1:24:31');
 
     // 8. ── AI INSIGHTS via Claude ──
-    const recentRunsSummary = runs.slice(0, 20).map(r => ({
-      date: r.start_date_local.split('T')[0],
-      miles: (r.distance/1609.34).toFixed(2),
-      pace: r.average_speed > 0 ? (() => { const secPerMi = 1609.34/r.average_speed; const m = Math.floor(secPerMi/60); const s = Math.round(secPerMi%60); return s === 60 ? `${m+1}:00` : `${m}:${s.toString().padStart(2,'0')}`; })() + '/mi' : null,
-      hr: r.average_heartrate || null,
-      type: r.name,
-    }));
+    // ── Fetch historical weather for each recent run via Open-Meteo Archive API ──
+    async function getRunWeather(lat, lon, dateStr) {
+      try {
+        const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}` +
+          `&start_date=${dateStr}&end_date=${dateStr}` +
+          `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature` +
+          `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
+        const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
+        if (!r.ok) return null;
+        const d = await r.json();
+        // Pick the hour closest to the run (use noon as fallback if no time data)
+        const temps    = d.hourly?.temperature_2m || [];
+        const humidity = d.hourly?.relative_humidity_2m || [];
+        const feelsLike = d.hourly?.apparent_temperature || [];
+        const wind     = d.hourly?.wind_speed_10m || [];
+        // Average over midday hours (10am-2pm) as approximation
+        const slice = (arr) => arr.slice(10, 14).filter(v => v !== null);
+        const avg = (arr) => arr.length ? arr.reduce((a,b) => a+b,0)/arr.length : null;
+        const tempF   = avg(slice(temps));
+        const humidPct = avg(slice(humidity));
+        const feelsF  = avg(slice(feelsLike));
+        const windMph = avg(slice(wind));
+        if (tempF === null) return null;
+        const tempC = (tempF - 32) * 5/9;
+        // Performance impact (El Helou 2012, Ely 2007)
+        let perfImpact = 0;
+        if      (tempC <= 10) perfImpact = 0;
+        else if (tempC <= 15) perfImpact = 0;
+        else if (tempC <= 20) perfImpact = -1.5;
+        else if (tempC <= 25) perfImpact = -4;
+        else if (tempC <= 30) perfImpact = -10;
+        else if (tempC <= 35) perfImpact = -17;
+        else                  perfImpact = -25;
+        // Humidity compounds heat above 70%
+        if (humidPct >= 70 && tempC > 20) perfImpact -= (humidPct - 70) * 0.1;
+        const heatRisk = tempC > 35 ? 'extreme' : tempC > 30 ? 'very high' : tempC > 25 ? 'high' : tempC > 20 ? 'moderate' : 'low';
+        return {
+          tempF: Math.round(tempF),
+          feelsF: feelsF ? Math.round(feelsF) : null,
+          humidity: humidPct ? Math.round(humidPct) : null,
+          windMph: windMph ? Math.round(windMph) : null,
+          tempC: Math.round(tempC),
+          perfImpact: parseFloat(perfImpact.toFixed(1)),
+          heatRisk,
+        };
+      } catch(e) {
+        return null;
+      }
+    }
+
+    // Fetch weather for last 10 runs in parallel (cap at 10 to avoid rate limits)
+    const runsForWeather = runs.slice(0, 10);
+    const weatherResults = await Promise.all(
+      runsForWeather.map(r => {
+        if (!r.start_latlng || r.start_latlng.length < 2) return Promise.resolve(null);
+        const dateStr = r.start_date_local.split('T')[0];
+        return getRunWeather(r.start_latlng[0], r.start_latlng[1], dateStr);
+      })
+    );
+
+    // Build weather-enriched run summary
+    const recentRunsSummary = runs.slice(0, 20).map((r, i) => {
+      const wx = i < 10 ? weatherResults[i] : null;
+      const secPerMi = r.average_speed > 0 ? 1609.34 / r.average_speed : null;
+      const paceStr = secPerMi
+        ? (() => {
+            const m = Math.floor(secPerMi / 60);
+            const s = Math.round(secPerMi % 60);
+            return s === 60 ? `${m+1}:00/mi` : `${m}:${s.toString().padStart(2,'0')}/mi`;
+          })()
+        : null;
+      return {
+        date:     r.start_date_local.split('T')[0],
+        miles:    (r.distance/1609.34).toFixed(2),
+        pace:     paceStr,
+        hr:       r.average_heartrate || null,
+        name:     r.name,
+        location: r.start_latlng ? `${r.start_latlng[0].toFixed(2)},${r.start_latlng[1].toFixed(2)}` : null,
+        weather:  wx ? {
+          tempF:      wx.tempF,
+          feelsF:     wx.feelsF,
+          humidity:   wx.humidity,
+          windMph:    wx.windMph,
+          perfImpact: wx.perfImpact,
+          heatRisk:   wx.heatRisk,
+        } : null,
+      };
+    });
+
+    // Build weather context summary for Claude
+    const runsWithWeather = recentRunsSummary.filter(r => r.weather);
+    const hotRuns = runsWithWeather.filter(r => r.weather.tempF >= 85);
+    const avgTempF = runsWithWeather.length
+      ? Math.round(runsWithWeather.reduce((s,r) => s + r.weather.tempF, 0) / runsWithWeather.length)
+      : null;
+    const avgHumidity = runsWithWeather.length
+      ? Math.round(runsWithWeather.reduce((s,r) => s + (r.weather.humidity||0), 0) / runsWithWeather.length)
+      : null;
+    const avgPerfImpact = runsWithWeather.length
+      ? parseFloat((runsWithWeather.reduce((s,r) => s + r.weather.perfImpact, 0) / runsWithWeather.length).toFixed(1))
+      : null;
+
+    const weatherContext = runsWithWeather.length ? `
+WEATHER CONDITIONS ACROSS RECENT RUNS (actual data per activity location):
+- Runs analyzed with weather data: ${runsWithWeather.length}
+- Average temperature: ${avgTempF}°F
+- Average humidity: ${avgHumidity}%
+- Average performance impact from conditions: ${avgPerfImpact}%
+- Runs in heat (≥85°F): ${hotRuns.length} of ${runsWithWeather.length}
+- Per-run weather breakdown:
+${runsWithWeather.slice(0,8).map(r =>
+  `  ${r.date} | ${r.miles}mi @ ${r.pace || '?'} | ${r.weather.tempF}°F feels ${r.weather.feelsF}°F | ${r.weather.humidity}% humidity | impact: ${r.weather.perfImpact}% | risk: ${r.weather.heatRisk}`
+).join('\n')}
+
+TEMPERATURE SCIENCE (El Helou 2012, Ely 2007):
+- Optimal marathon training: 45-54°F (7-12°C)
+- Performance drops -1.5% at 68°F, -4% at 77°F, -10% at 86°F, -17% at 95°F, -25% at 104°F
+- Humidity ≥70% prevents sweat evaporation — compounds heat stress significantly
+- Houston summers: 90-100°F with 70-85% humidity June-Sept requires 60-90 sec/mile slower on easy runs
+- Boulder altitude (~5,400 ft): additional ~3-5% performance reduction vs sea level` : '';
 
     // ── Fetch current Houston weather for heat-adjusted coaching ──
     let weatherContext = '';
@@ -185,12 +298,12 @@ CURRENT HOUSTON WEATHER CONDITIONS:
         max_tokens: 500,
         messages: [{
           role: 'user',
-          content: `You are a world-class running coach analyzing Yash Hooda's training data.
+          content: content: `You are a world-class running coach analyzing Yash Hooda's training data.
 Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00. Currently training for 2026 Boulderthon Marathon (Boulder, CO — altitude 5,400 ft).
-Recent 20 runs: ${JSON.stringify(recentRunsSummary)}
 CTL (fitness): ${ctlRounded}, ATL (fatigue): ${atlRounded}, Form: ${form}
 Pace zones (last 30 runs): ${JSON.stringify(paceZones)}
 ${weatherContext}
+Recent 20 runs (with actual weather per location): ${JSON.stringify(recentRunsSummary)}
 
 TEMPERATURE SCIENCE CONTEXT:
 - Optimal marathon training temp: 7-12°C (45-54°F)
@@ -237,13 +350,13 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
       }
     } catch(e) { /* non-fatal */ }
 
+    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
     return res.status(200).json({
       weeklyTrend,
       fitness: { ctl: ctlRounded, atl: atlRounded, form },
       paceZones,
       predictions,
       insights,
-      weather: weatherDisplay,
     });
 
   } catch (err) {

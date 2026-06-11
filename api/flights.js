@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
-
+ 
   // ── Shape ADS-B aircraft records ──
   function shapeAdsb(aircraft) {
     return aircraft
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       }))
       .filter(f => f.altitude_ft > 500);
   }
-
+ 
   // ── Fetch route data for a callsign from adsbdb (free, no key) ──
   async function getRoute(callsign) {
     if (!callsign || callsign.length < 4) return null;
@@ -51,12 +51,12 @@ export default async function handler(req, res) {
       };
     } catch { return null; }
   }
-
+ 
   try {
     let flights = [];
     let total = 0;
     let source = '';
-
+ 
     // ── Strategy: fetch multiple regions in parallel for full US coverage ──
     // Split US into quadrants to guarantee geographic spread
     const regions = [
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
       // Southeast
       { lat: 32.0, lon: -83.0,  dist: 700 },
     ];
-
+ 
     const regionResults = await Promise.allSettled(
       regions.map(async ({ lat, lon, dist }) => {
         const r = await fetch(
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
         return d.ac || [];
       })
     );
-
+ 
     // Merge all regions, deduplicate by hex
     const seen = new Set();
     const allAircraft = [];
@@ -102,7 +102,7 @@ export default async function handler(req, res) {
         }
       }
     }
-
+ 
     if (allAircraft.length > 0) {
       source = 'adsb-lol-multiregion';
       total = allAircraft.length;
@@ -129,23 +129,23 @@ export default async function handler(req, res) {
         flights = shapeAdsb(ac).slice(0, 200);
       }
     }
-
+ 
     if (flights.length === 0) {
       return res.status(503).json({
         error: 'Flight data temporarily unavailable. Try again in a moment.',
         flights: [], total: 0,
       });
     }
-
+ 
     // ── Enrich top 30 flights with route data (parallel, capped to avoid rate limits) ──
     const toEnrich = flights
       .filter(f => f.callsign && /^[A-Z]{2,3}\d+/.test(f.callsign)) // airline callsigns only
       .slice(0, 30);
-
+ 
     const routeResults = await Promise.allSettled(
       toEnrich.map(f => getRoute(f.callsign))
     );
-
+ 
     // Map enriched routes back onto flights
     const routeMap = new Map();
     toEnrich.forEach((f, i) => {
@@ -154,7 +154,7 @@ export default async function handler(req, res) {
         routeMap.set(f.callsign, result.value);
       }
     });
-
+ 
     flights = flights.map(f => {
       const route = routeMap.get(f.callsign);
       if (route) {
@@ -169,7 +169,7 @@ export default async function handler(req, res) {
       }
       return f;
     });
-
+ 
     res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
     return res.status(200).json({
       flights,
@@ -177,9 +177,10 @@ export default async function handler(req, res) {
       source,
       timestamp: Date.now(),
     });
-
+ 
   } catch (err) {
     console.error('Flights error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+ 

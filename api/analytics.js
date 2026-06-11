@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     });
     const { access_token } = await tokenRes.json();
 
-    // 2. Fetch last 60 activities for meaningful analytics
+    // 2. Fetch last 60 activities
     const actRes = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=60&page=1', {
       headers: { Authorization: `Bearer ${access_token}` }
     });
@@ -81,9 +81,8 @@ export default async function handler(req, res) {
       hard: Math.round(hard/total*100),
     };
 
-    // 7. ── RACE PREDICTIONS (Riegel formula: T2 = T1 * (D2/D1)^1.06) ──
-    // Use best recent effort as base — find fastest run >= 3 miles
-    const basePRs = { 'mile': 4*60+58, '5K': 18*60+15, 'Half': 84*60+31 }; // your actual PRs in seconds
+    // 7. ── RACE PREDICTIONS (Riegel formula) ──
+    const basePRs = { 'mile': 4*60+58, '5K': 18*60+15, 'Half': 84*60+31 };
     function riegel(baseTimeSec, baseDist, targetDist) {
       return baseTimeSec * Math.pow(targetDist / baseDist, 1.06);
     }
@@ -93,16 +92,13 @@ export default async function handler(req, res) {
       const s = Math.round(sec%60).toString().padStart(2,'0');
       return h > 0 ? `${h}:${m.toString().padStart(2,'0')}:${s}` : `${m}:${s}`;
     }
-
     const predictions = {
-      'mile':    { predicted: fmtTime(basePRs['mile']),                                  pr: '4:58', gap: '0:00' },
-      '5K':      { predicted: fmtTime(basePRs['5K']),                                    pr: '18:15', gap: '0:00' },
-      '10K':     { predicted: fmtTime(riegel(basePRs['5K'], 5000, 10000)),               pr: 'N/A',   gap: null },
-      'Half':    { predicted: fmtTime(basePRs['Half']),                                  pr: '1:24:31', gap: '0:00' },
-      'Marathon':{ predicted: fmtTime(riegel(basePRs['Half'], 21097.5, 42195)),          pr: 'TBD',   gap: null },
+      'mile':    { predicted: fmtTime(basePRs['mile']),                         pr: '4:58',    gap: '0:00' },
+      '5K':      { predicted: fmtTime(basePRs['5K']),                           pr: '18:15',   gap: '0:00' },
+      '10K':     { predicted: fmtTime(riegel(basePRs['5K'], 5000, 10000)),      pr: 'N/A',     gap: null },
+      'Half':    { predicted: fmtTime(basePRs['Half']),                         pr: '1:24:31', gap: '0:00' },
+      'Marathon':{ predicted: fmtTime(riegel(basePRs['Half'], 21097.5, 42195)), pr: 'TBD',     gap: null },
     };
-
-    // Add gap to PR where known
     function timeDiff(a, b) {
       const parse = t => { const p = t.split(':').map(Number); return p.length===3 ? p[0]*3600+p[1]*60+p[2] : p[0]*60+p[1]; };
       const diff = parse(b) - parse(a);
@@ -111,11 +107,10 @@ export default async function handler(req, res) {
       return `+${m}:${s.toString().padStart(2,'0')} from PR`;
     }
     predictions['mile'].gap = timeDiff(predictions['mile'].predicted, '4:58');
-    predictions['5K'].gap = timeDiff(predictions['5K'].predicted, '18:15');
-    predictions['Half'].gap = timeDiff(predictions['Half'].predicted, '1:24:31');
+    predictions['5K'].gap   = timeDiff(predictions['5K'].predicted,   '18:15');
+    predictions['Half'].gap = timeDiff(predictions['Half'].predicted,  '1:24:31');
 
-    // 8. ── AI INSIGHTS via Claude ──
-    // ── Fetch historical weather for each recent run via Open-Meteo Archive API ──
+    // 8. ── WEATHER PER RUN (Open-Meteo Archive API) ──
     async function getRunWeather(lat, lon, dateStr) {
       try {
         const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}` +
@@ -125,21 +120,18 @@ export default async function handler(req, res) {
         const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
         if (!r.ok) return null;
         const d = await r.json();
-        // Pick the hour closest to the run (use noon as fallback if no time data)
-        const temps    = d.hourly?.temperature_2m || [];
-        const humidity = d.hourly?.relative_humidity_2m || [];
+        const temps     = d.hourly?.temperature_2m       || [];
+        const humidity  = d.hourly?.relative_humidity_2m || [];
         const feelsLike = d.hourly?.apparent_temperature || [];
-        const wind     = d.hourly?.wind_speed_10m || [];
-        // Average over midday hours (10am-2pm) as approximation
-        const slice = (arr) => arr.slice(10, 14).filter(v => v !== null);
-        const avg = (arr) => arr.length ? arr.reduce((a,b) => a+b,0)/arr.length : null;
-        const tempF   = avg(slice(temps));
-        const humidPct = avg(slice(humidity));
-        const feelsF  = avg(slice(feelsLike));
-        const windMph = avg(slice(wind));
+        const wind      = d.hourly?.wind_speed_10m       || [];
+        const sliceArr  = (arr) => arr.slice(10, 14).filter(v => v !== null);
+        const avg       = (arr) => arr.length ? arr.reduce((a,b) => a+b,0)/arr.length : null;
+        const tempF    = avg(sliceArr(temps));
+        const humidPct = avg(sliceArr(humidity));
+        const feelsF   = avg(sliceArr(feelsLike));
+        const windMph  = avg(sliceArr(wind));
         if (tempF === null) return null;
         const tempC = (tempF - 32) * 5/9;
-        // Performance impact (El Helou 2012, Ely 2007)
         let perfImpact = 0;
         if      (tempC <= 10) perfImpact = 0;
         else if (tempC <= 15) perfImpact = 0;
@@ -148,15 +140,14 @@ export default async function handler(req, res) {
         else if (tempC <= 30) perfImpact = -10;
         else if (tempC <= 35) perfImpact = -17;
         else                  perfImpact = -25;
-        // Humidity compounds heat above 70%
         if (humidPct >= 70 && tempC > 20) perfImpact -= (humidPct - 70) * 0.1;
         const heatRisk = tempC > 35 ? 'extreme' : tempC > 30 ? 'very high' : tempC > 25 ? 'high' : tempC > 20 ? 'moderate' : 'low';
         return {
-          tempF: Math.round(tempF),
-          feelsF: feelsF ? Math.round(feelsF) : null,
-          humidity: humidPct ? Math.round(humidPct) : null,
-          windMph: windMph ? Math.round(windMph) : null,
-          tempC: Math.round(tempC),
+          tempF:     Math.round(tempF),
+          feelsF:    feelsF   ? Math.round(feelsF)   : null,
+          humidity:  humidPct ? Math.round(humidPct) : null,
+          windMph:   windMph  ? Math.round(windMph)  : null,
+          tempC:     Math.round(tempC),
           perfImpact: parseFloat(perfImpact.toFixed(1)),
           heatRisk,
         };
@@ -165,7 +156,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Fetch weather for last 10 runs in parallel (cap at 10 to avoid rate limits)
+    // Fetch weather for last 10 runs in parallel
     const runsForWeather = runs.slice(0, 10);
     const weatherResults = await Promise.all(
       runsForWeather.map(r => {
@@ -236,56 +227,7 @@ TEMPERATURE SCIENCE (El Helou 2012, Ely 2007):
 - Houston summers: 90-100°F with 70-85% humidity June-Sept requires 60-90 sec/mile slower on easy runs
 - Boulder altitude (~5,400 ft): additional ~3-5% performance reduction vs sea level` : '';
 
-    // ── Fetch current Houston weather for heat-adjusted coaching ──
-    let weatherContext = '';
-    try {
-      const wxRes = await fetch(
-        'https://api.open-meteo.com/v1/forecast?latitude=29.7604&longitude=-95.3698' +
-        '&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code' +
-        '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago',
-        { signal: AbortSignal.timeout(5000) }
-      );
-      if (wxRes.ok) {
-        const wxData = await wxRes.json();
-        const c = wxData.current;
-        const tempF   = Math.round(c.temperature_2m);
-        const feelsF  = Math.round(c.apparent_temperature);
-        const humidity = c.relative_humidity_2m;
-        const wind    = Math.round(c.wind_speed_10m);
-
-        // Heat index + performance impact (based on El Helou 2012, Ely 2007)
-        const tempC = (tempF - 32) * 5/9;
-        let perfImpact = '';
-        let heatRisk = '';
-        if (tempC <= 10)       { perfImpact = '0% (optimal)';    heatRisk = 'low'; }
-        else if (tempC <= 15)  { perfImpact = '0% (optimal)';    heatRisk = 'low'; }
-        else if (tempC <= 20)  { perfImpact = '-1 to -2%';       heatRisk = 'low'; }
-        else if (tempC <= 25)  { perfImpact = '-2 to -5%';       heatRisk = 'moderate'; }
-        else if (tempC <= 30)  { perfImpact = '-5 to -15%';      heatRisk = 'high'; }
-        else if (tempC <= 35)  { perfImpact = '-15 to -25%';     heatRisk = 'very high'; }
-        else                   { perfImpact = '>-25% (dangerous)'; heatRisk = 'extreme'; }
-
-        // Humidity compounds heat stress above 70%
-        const humidityWarning = humidity >= 70
-          ? `High humidity (${humidity}%) severely limits sweat evaporation, making heat stress equivalent to ~${Math.round(tempC + (humidity - 70) * 0.1)}°C dry heat.`
-          : humidity >= 50
-          ? `Moderate humidity (${humidity}%) reduces cooling efficiency.`
-          : `Low humidity (${humidity}%) — sweat evaporation working well.`;
-
-        weatherContext = `
-CURRENT HOUSTON WEATHER CONDITIONS:
-- Temperature: ${tempF}°F (${Math.round(tempC)}°C), feels like ${feelsF}°F
-- Humidity: ${humidity}%
-- Wind: ${wind} mph
-- Estimated performance impact vs optimal (7-12°C): ${perfImpact}
-- Heat risk level: ${heatRisk}
-- ${humidityWarning}
-- Houston summer context: temps regularly 90-100°F with 70-85% humidity June-September, making outdoor marathon training extremely challenging and requiring significant pace adjustments of 60-90 sec/mile slower than race goal pace for easy runs.`;
-      }
-    } catch(wxErr) {
-      console.warn('Weather fetch failed (non-fatal):', wxErr.message);
-    }
-
+    // 9. ── AI INSIGHTS via Claude ──
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -298,7 +240,7 @@ CURRENT HOUSTON WEATHER CONDITIONS:
         max_tokens: 500,
         messages: [{
           role: 'user',
-          content: content: `You are a world-class running coach analyzing Yash Hooda's training data.
+          content: `You are a world-class running coach analyzing Yash Hooda's training data.
 Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00. Currently training for 2026 Boulderthon Marathon (Boulder, CO — altitude 5,400 ft).
 CTL (fitness): ${ctlRounded}, ATL (fatigue): ${atlRounded}, Form: ${form}
 Pace zones (last 30 runs): ${JSON.stringify(paceZones)}
@@ -315,7 +257,7 @@ TEMPERATURE SCIENCE CONTEXT:
 
 Write 3 short sharp coaching insights (2-3 sentences each) about:
 1. Current fitness trend and readiness — reference actual CTL/ATL/form numbers
-2. Weather and heat impact on training — be specific about today's conditions and what pace adjustments are needed
+2. Weather and heat impact on training — be specific about the actual conditions from recent runs and what pace adjustments are needed
 3. One specific actionable recommendation for marathon prep considering both fitness data and current conditions
 
 Be specific, data-driven, and honest. If conditions are brutal, say so clearly. No bullet points — flowing paragraphs separated by newlines.`
@@ -324,31 +266,6 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
     });
     const claudeData = await claudeRes.json();
     const insights = claudeData.content?.[0]?.text || 'Unable to generate insights at this time.';
-
-    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
-    // Parse weather summary for frontend display
-    let weatherDisplay = null;
-    try {
-      const wxRes2 = await fetch(
-        'https://api.open-meteo.com/v1/forecast?latitude=29.7604&longitude=-95.3698' +
-        '&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m' +
-        '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago',
-        { signal: AbortSignal.timeout(4000) }
-      );
-      if (wxRes2.ok) {
-        const wxD = await wxRes2.json();
-        const c = wxD.current;
-        const tempC = (c.temperature_2m - 32) * 5/9;
-        const risk = tempC > 35 ? 'extreme' : tempC > 30 ? 'very high' : tempC > 25 ? 'high' : tempC > 20 ? 'moderate' : 'low';
-        weatherDisplay = {
-          tempF: Math.round(c.temperature_2m),
-          feelsF: Math.round(c.apparent_temperature),
-          humidity: c.relative_humidity_2m,
-          wind: Math.round(c.wind_speed_10m),
-          heatRisk: risk,
-        };
-      }
-    } catch(e) { /* non-fatal */ }
 
     res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
     return res.status(200).json({

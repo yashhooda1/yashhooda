@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   }
 
   // Single master API key for all sports
-  const apiKey = process.env.SPORTRADAR_API_KEY;
+  const apiKey = null;
 
   const sportMap = {
     nba: 'nba', rockets: 'nba',

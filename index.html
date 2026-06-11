@@ -1986,7 +1986,7 @@
     <!-- AVIATION TRACKER -->
     <section id="aviation">
         <h2>✈️ Live Flight Tracker</h2>
-        <p>Real-time flights over the World powered by OpenSky Network. Updated every 60 seconds.</p>
+        <p>Real-time flights across the World powered by ADS-B transponder data. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
 
         <div class="aviation-bar">
             <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
@@ -3594,24 +3594,38 @@ async function loadFlights() {
         // ── Render flight cards ──
         container.innerHTML = `
             <div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--text-muted);margin-bottom:0.75rem;letter-spacing:0.04em;">
-                SHOWING ${flights.length} FLIGHTS — CLICK A CARD TO LOCATE ON MAP
+                ✈ ${flights.length} AIRCRAFT TRACKED — CLICK A CARD TO LOCATE ON MAP
             </div>
             <div class="flight-cards">
-                ${flights.map(f => `
+                ${flights.map(f => {
+                    const hasRoute = f.origin_iata || f.dest_iata;
+                    const routeStr = hasRoute
+                        ? `${f.origin_iata || '???'} → ${f.dest_iata || '???'}`
+                        : null;
+                    const climbDir = f.vertical_ms > 0.5 ? '↑' : f.vertical_ms < -0.5 ? '↓' : '→';
+                    const climbFpm = Math.abs(Math.round(f.vertical_ms * 196.85));
+                    return `
                     <div class="flight-card" onclick="locateFlight(${f.lat}, ${f.lon}, '${f.callsign || f.icao}')">
                         <div class="flight-callsign">
                             <span class="flight-plane-icon" style="transform:rotate(${f.heading}deg);display:inline-block;">✈</span>
                             ${f.callsign || f.icao || 'Unknown'}
+                            ${routeStr ? `<span style="font-size:0.65rem;color:#93c5fd;font-weight:400;margin-left:auto;">${routeStr}</span>` : ''}
                         </div>
-                        <div class="flight-country">🌍 ${f.country || 'Unknown origin'}</div>
+                        ${f.airline ? `<div class="flight-country" style="color:var(--green-light);">🏢 ${f.airline}</div>` : ''}
+                        ${hasRoute ? `
+                        <div style="font-size:0.72rem;color:var(--text-muted);margin:0.3rem 0 0.5rem;font-family:'Space Mono',monospace;">
+                            ${f.origin ? `🛫 ${f.origin}` : ''}
+                            ${f.origin && f.dest ? ' → ' : ''}
+                            ${f.dest ? `🛬 ${f.dest}` : ''}
+                        </div>` : '<div class="flight-country">🌍 Position only</div>'}
                         <div class="flight-details">
                             <div class="flight-detail">Alt <strong>${formatAltitude(f.altitude_ft)}</strong></div>
                             <div class="flight-detail">Speed <strong>${f.speed_mph} mph</strong></div>
                             <div class="flight-detail">Heading <strong>${Math.round(f.heading)}° ${getHeadingIcon(f.heading)}</strong></div>
-                            <div class="flight-detail">Climb <strong>${f.vertical_ms > 0 ? '↑' : f.vertical_ms < 0 ? '↓' : '→'} ${Math.abs(Math.round(f.vertical_ms * 196.85))} fpm</strong></div>
+                            <div class="flight-detail">Climb <strong>${climbDir} ${climbFpm} fpm</strong></div>
                         </div>
-                    </div>
-                `).join('')}
+                    </div>`;
+                }).join('')}
             </div>
         `;
 

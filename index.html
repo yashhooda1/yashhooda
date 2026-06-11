@@ -3222,6 +3222,10 @@ async function loadAnalytics() {
 
             <!-- AI Insights -->
             <div class="insights-box">
+                ${data.weather ? `
+                <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--text-muted);margin-bottom:0.75rem;padding-bottom:0.6rem;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    🌡️ CONDITIONS: ${data.weather.tempF}°F · 💧 ${data.weather.humidity}% humidity · 💨 ${data.weather.wind} mph · Risk: <span style="color:${data.weather.heatRisk === 'extreme' || data.weather.heatRisk === 'very high' ? '#ef4444' : data.weather.heatRisk === 'high' ? '#f97316' : data.weather.heatRisk === 'moderate' ? '#facc15' : 'var(--green)'}">${data.weather.heatRisk.toUpperCase()}</span>
+                </div>` : ''}
                 ${insights.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
             </div>
         `;

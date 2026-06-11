@@ -123,6 +123,56 @@ export default async function handler(req, res) {
       type: r.name,
     }));
 
+    // ── Fetch current Houston weather for heat-adjusted coaching ──
+    let weatherContext = '';
+    try {
+      const wxRes = await fetch(
+        'https://api.open-meteo.com/v1/forecast?latitude=29.7604&longitude=-95.3698' +
+        '&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code' +
+        '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago',
+        { signal: AbortSignal.timeout(5000) }
+      );
+      if (wxRes.ok) {
+        const wxData = await wxRes.json();
+        const c = wxData.current;
+        const tempF   = Math.round(c.temperature_2m);
+        const feelsF  = Math.round(c.apparent_temperature);
+        const humidity = c.relative_humidity_2m;
+        const wind    = Math.round(c.wind_speed_10m);
+
+        // Heat index + performance impact (based on El Helou 2012, Ely 2007)
+        const tempC = (tempF - 32) * 5/9;
+        let perfImpact = '';
+        let heatRisk = '';
+        if (tempC <= 10)       { perfImpact = '0% (optimal)';    heatRisk = 'low'; }
+        else if (tempC <= 15)  { perfImpact = '0% (optimal)';    heatRisk = 'low'; }
+        else if (tempC <= 20)  { perfImpact = '-1 to -2%';       heatRisk = 'low'; }
+        else if (tempC <= 25)  { perfImpact = '-2 to -5%';       heatRisk = 'moderate'; }
+        else if (tempC <= 30)  { perfImpact = '-5 to -15%';      heatRisk = 'high'; }
+        else if (tempC <= 35)  { perfImpact = '-15 to -25%';     heatRisk = 'very high'; }
+        else                   { perfImpact = '>-25% (dangerous)'; heatRisk = 'extreme'; }
+
+        // Humidity compounds heat stress above 70%
+        const humidityWarning = humidity >= 70
+          ? `High humidity (${humidity}%) severely limits sweat evaporation, making heat stress equivalent to ~${Math.round(tempC + (humidity - 70) * 0.1)}°C dry heat.`
+          : humidity >= 50
+          ? `Moderate humidity (${humidity}%) reduces cooling efficiency.`
+          : `Low humidity (${humidity}%) — sweat evaporation working well.`;
+
+        weatherContext = `
+CURRENT HOUSTON WEATHER CONDITIONS:
+- Temperature: ${tempF}°F (${Math.round(tempC)}°C), feels like ${feelsF}°F
+- Humidity: ${humidity}%
+- Wind: ${wind} mph
+- Estimated performance impact vs optimal (7-12°C): ${perfImpact}
+- Heat risk level: ${heatRisk}
+- ${humidityWarning}
+- Houston summer context: temps regularly 90-100°F with 70-85% humidity June-September, making outdoor marathon training extremely challenging and requiring significant pace adjustments of 60-90 sec/mile slower than race goal pace for easy runs.`;
+      }
+    } catch(wxErr) {
+      console.warn('Weather fetch failed (non-fatal):', wxErr.message);
+    }
+
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -132,21 +182,30 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 400,
+        max_tokens: 500,
         messages: [{
           role: 'user',
-          content: `You are a world-class running coach analyzing Yash Hooda's training data. 
-Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Currently training for 2026 Boulderthon Marathon.
+          content: `You are a world-class running coach analyzing Yash Hooda's training data.
+Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00. Currently training for 2026 Boulderthon Marathon (Boulder, CO — altitude 5,400 ft).
 Recent 20 runs: ${JSON.stringify(recentRunsSummary)}
 CTL (fitness): ${ctlRounded}, ATL (fatigue): ${atlRounded}, Form: ${form}
 Pace zones (last 30 runs): ${JSON.stringify(paceZones)}
+${weatherContext}
+
+TEMPERATURE SCIENCE CONTEXT:
+- Optimal marathon training temp: 7-12°C (45-54°F)
+- Performance drops -2 to -5% at 20-25°C, -5 to -15% at 25-30°C, >-15% above 30°C
+- High humidity (≥70%) prevents sweat evaporation — compounds heat stress significantly
+- Houston summers require slowing easy runs 60-90 sec/mile vs goal pace
+- Boulder altitude will slow pace ~3-5% vs sea level Houston training
+- 80/20 rule: 80% easy (conversational), 20% quality — crucial in heat to avoid overtraining
 
 Write 3 short sharp coaching insights (2-3 sentences each) about:
-1. Current fitness trend and readiness
-2. Training pattern strengths or weaknesses
-3. One specific actionable recommendation for marathon prep
+1. Current fitness trend and readiness — reference actual CTL/ATL/form numbers
+2. Weather and heat impact on training — be specific about today's conditions and what pace adjustments are needed
+3. One specific actionable recommendation for marathon prep considering both fitness data and current conditions
 
-Be specific, use the actual data, and be encouraging but honest. No bullet points — write as flowing paragraphs separated by newlines.`
+Be specific, data-driven, and honest. If conditions are brutal, say so clearly. No bullet points — flowing paragraphs separated by newlines.`
         }]
       })
     });

@@ -4,56 +4,125 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
 
-  const apiKey = process.env.AVIATIONSTACK_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'AviationStack API key missing' });
-
   try {
-    // Fetch live flights — filter to US
-    const url = `http://api.aviationstack.com/v1/flights?access_key=${apiKey}&flight_status=active&limit=100`;
-    const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    // ── Primary: OpenSky Network (free, no key, best coverage) ──
+    // US bounding box: lat 24-49, lon -125 to -66
+    const openSkyUrl = 'https://opensky-network.org/api/states/all?lamin=24&lomin=-125&lamax=49&lomax=-66';
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error('AviationStack error:', err);
-      return res.status(502).json({ error: 'AviationStack fetch failed' });
+    let flights = [];
+    let total = 0;
+    let source = 'opensky';
+
+    const openSkyRes = await fetch(openSkyUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'YashHoodaPortfolio/1.0',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (openSkyRes.ok) {
+      const data = await openSkyRes.json();
+      const states = data.states || [];
+      total = states.length;
+
+      flights = states
+        .filter(s => s[5] && s[6] && s[8] === false) // has lon, lat, is airborne
+        .map(s => ({
+          icao:        s[0]?.trim() || null,
+          callsign:    s[1]?.trim() || null,
+          country:     s[2] || null,
+          airline:     null,
+          origin:      null,
+          dest:        null,
+          lat:         s[6],
+          lon:         s[5],
+          altitude_ft: s[7] ? Math.round(s[7] * 3.28084) : 0,
+          speed_mph:   s[9] ? Math.round(s[9] * 2.23694) : 0,
+          heading:     Math.round(s[10] || 0),
+          vertical_ms: s[11] || 0,
+          is_ground:   s[8] || false,
+        }))
+        .filter(f => f.altitude_ft > 1000) // filter out ground-hugging readings
+        .slice(0, 250);
+
+    } else {
+      // ── Fallback: ADS-B Exchange public API (no key needed) ──
+      source = 'adsbexchange';
+      const adsbUrl = 'https://api.adsb.lol/v2/lat/39.5/lon/-98.35/dist/2500';
+      const adsbRes = await fetch(adsbUrl, {
+        headers: { 'User-Agent': 'YashHoodaPortfolio/1.0' },
+        signal: AbortSignal.timeout(8000),
+      });
+
+      if (adsbRes.ok) {
+        const adsbData = await adsbRes.json();
+        const aircraft = adsbData.ac || [];
+        total = aircraft.length;
+
+        flights = aircraft
+          .filter(a => a.lat && a.lon && !a.gnd)
+          .map(a => ({
+            icao:        a.hex || null,
+            callsign:    a.flight?.trim() || a.hex || null,
+            country:     null,
+            airline:     null,
+            origin:      null,
+            dest:        null,
+            lat:         a.lat,
+            lon:         a.lon,
+            altitude_ft: a.alt_baro || a.alt_geom || 0,
+            speed_mph:   a.gs ? Math.round(a.gs) : 0,
+            heading:     Math.round(a.track || 0),
+            vertical_ms: a.baro_rate ? a.baro_rate / 196.85 : 0,
+            is_ground:   a.gnd || false,
+          }))
+          .filter(f => f.altitude_ft > 1000)
+          .slice(0, 250);
+      } else {
+        // ── Final fallback: smaller ADS-B Exchange regional query ──
+        source = 'adsbexchange-regional';
+        const regional = await fetch('https://api.adsb.lol/v2/lat/37.5/lon/-95.0/dist/1500', {
+          headers: { 'User-Agent': 'YashHoodaPortfolio/1.0' },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (regional.ok) {
+          const rData = await regional.json();
+          const aircraft = rData.ac || [];
+          total = aircraft.length;
+          flights = aircraft
+            .filter(a => a.lat && a.lon && !a.gnd)
+            .map(a => ({
+              icao:        a.hex || null,
+              callsign:    a.flight?.trim() || a.hex || null,
+              country:     null,
+              airline:     null,
+              origin:      null,
+              dest:        null,
+              lat:         a.lat,
+              lon:         a.lon,
+              altitude_ft: a.alt_baro || a.alt_geom || 0,
+              speed_mph:   a.gs ? Math.round(a.gs) : 0,
+              heading:     Math.round(a.track || 0),
+              vertical_ms: a.baro_rate ? a.baro_rate / 196.85 : 0,
+              is_ground:   a.gnd || false,
+            }))
+            .filter(f => f.altitude_ft > 1000)
+            .slice(0, 250);
+        }
+      }
     }
 
-    const data = await response.json();
-
-    if (data.error) {
-      console.error('AviationStack API error:', data.error);
-      return res.status(502).json({ error: data.error.info || 'API error' });
+    if (flights.length === 0) {
+      return res.status(503).json({ error: 'All flight data sources unavailable — try again in a moment.' });
     }
 
-    const rawFlights = data.data || [];
-
-    // Shape and filter — only flights with live position data
-    const flights = rawFlights
-      .filter(f => f.live && f.live.latitude && f.live.longitude)
-      .map(f => ({
-        icao:        f.flight?.icao || null,
-        callsign:    f.flight?.iata || f.flight?.icao || null,
-        airline:     f.airline?.name || null,
-        origin:      f.departure?.airport || null,
-        origin_iata: f.departure?.iata || null,
-        dest:        f.arrival?.airport || null,
-        dest_iata:   f.arrival?.iata || null,
-        lat:         f.live?.latitude,
-        lon:         f.live?.longitude,
-        altitude_ft: Math.round((f.live?.altitude || 0) * 3.28084),
-        speed_mph:   Math.round((f.live?.speed_horizontal || 0) * 0.621371),
-        heading:     Math.round(f.live?.direction || 0),
-        vertical_ms: f.live?.speed_vertical || 0,
-        is_ground:   f.live?.is_ground || false,
-        status:      f.flight_status || null,
-      }))
-      .filter(f => !f.is_ground); // airborne only
-
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
+    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
     return res.status(200).json({
       flights,
-      total: rawFlights.length,
-      timestamp: Date.now()
+      total,
+      source,
+      timestamp: Date.now(),
     });
 
   } catch (err) {

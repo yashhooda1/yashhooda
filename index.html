@@ -1125,6 +1125,17 @@
         .aviation-loading::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(147,197,253,0.3); border-top-color: #93c5fd; animation: spin 0.8s linear infinite; }
         .flight-popup { font-family: 'Space Mono', monospace; font-size: 0.75rem; line-height: 1.6; }
         .flight-popup strong { color: #3b82f6; }
+        .flight-airline-logo { width: 24px; height: 24px; object-fit: contain; border-radius: 3px; background: rgba(255,255,255,0.1); padding: 2px; }
+        .flight-route-bar { display: flex; align-items: center; gap: 0.4rem; margin: 0.4rem 0; font-family: 'Space Mono', monospace; font-size: 0.72rem; }
+        .flight-route-iata { color: #93c5fd; font-weight: 700; font-size: 0.8rem; }
+        .flight-route-arrow { color: var(--text-muted); }
+        .flight-route-city { color: var(--text-muted); font-size: 0.65rem; }
+        .flight-progress { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; margin: 0.5rem 0; overflow: hidden; }
+        .flight-progress-bar { height: 100%; background: linear-gradient(90deg, #3b82f6, #93c5fd); border-radius: 2px; transition: width 0.3s; }
+        .flight-status-pill { font-size: 0.62rem; font-family: 'Space Mono', monospace; padding: 0.1rem 0.4rem; border-radius: 3px; letter-spacing: 0.04em; }
+        .flight-status-pill.enroute { background: rgba(76,175,80,0.15); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
+        .flight-status-pill.scheduled { background: rgba(147,197,253,0.1); color: #93c5fd; border: 1px solid rgba(147,197,253,0.2); }
+        .flight-status-pill.landed { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
         /* ── SPORTS SCORES ── */
         .sports-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
         .sports-tab { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.78rem; transition: all 0.2s; letter-spacing: 0.03em; display: flex; align-items: center; gap: 0.4rem; }
@@ -3530,25 +3541,31 @@ async function loadFlights() {
     const mapEl = document.getElementById('flight-map');
     if (!container || !mapEl) return;
 
-    container.innerHTML = '<div class="aviation-loading">Loading live flights...</div>';
+    container.innerHTML = '<div class="aviation-loading">Loading live flights worldwide...</div>';
 
     try {
         const res = await fetch('/api/flights');
         const data = await res.json();
-        if (!res.ok) { container.innerHTML = '<div class="strava-error">Could not load flight data.</div>'; return; }
 
-        const { flights, total, timestamp } = data;
+        if (!res.ok || data.error) {
+            container.innerHTML = `<div class="strava-error">${data.error || 'Could not load flight data.'}</div>`;
+            return;
+        }
+
+        const { flights, total, shown } = data;
 
         // Update stats
-        document.getElementById('flight-count').textContent = flights.length;
-        document.getElementById('flight-total').textContent = total.toLocaleString();
-        document.getElementById('flight-updated').textContent = new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('flight-count').textContent  = shown || flights.length;
+        document.getElementById('flight-total').textContent  = (total || flights.length).toLocaleString();
+        document.getElementById('flight-updated').textContent = new Date(data.timestamp).toLocaleTimeString('en-US', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
 
-        // ── Initialize or reuse Leaflet map ──
+        // ── Init or reuse Leaflet map ──
         if (!flightMap) {
             flightMap = L.map('flight-map', {
-                center: [39.5, -98.35],
-                zoom: 4,
+                center: [30, 0],
+                zoom: 2,
                 zoomControl: true,
                 attributionControl: false,
             });
@@ -3565,26 +3582,38 @@ async function loadFlights() {
         flights.forEach(f => {
             if (!f.lat || !f.lon) return;
             const icon = L.divIcon({
-                html: `<div style="
-                    color: #93c5fd;
-                    font-size: 14px;
-                    transform: rotate(${f.heading}deg);
-                    filter: drop-shadow(0 0 3px rgba(147,197,253,0.8));
-                    line-height: 1;
-                ">✈</div>`,
+                html: `<div style="color:#93c5fd;font-size:14px;transform:rotate(${f.heading}deg);filter:drop-shadow(0 0 3px rgba(147,197,253,0.8));line-height:1;">✈</div>`,
                 className: '',
                 iconSize: [16, 16],
                 iconAnchor: [8, 8],
             });
 
+            const routeStr = f.origin_iata && f.dest_iata
+                ? `${f.origin_iata} → ${f.dest_iata}`
+                : 'Route unknown';
+
             const marker = L.marker([f.lat, f.lon], { icon })
                 .bindPopup(`
-                    <div class="flight-popup">
-                        <strong>✈ ${f.callsign || f.icao || 'Unknown'}</strong><br>
-                        🌍 ${f.country || 'Unknown'}<br>
-                        📏 ${formatAltitude(f.altitude_ft)}<br>
-                        💨 ${f.speed_mph} mph<br>
-                        🧭 ${Math.round(f.heading)}°
+                    <div class="flight-popup" style="min-width:180px;">
+                        <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.4rem;color:#3b82f6;">
+                            ✈ ${f.callsign || f.icao || 'Unknown'}
+                        </div>
+                        ${f.airline ? `<div style="margin-bottom:0.3rem;">🏢 ${f.airline}</div>` : ''}
+                        <div style="font-size:0.8rem;margin-bottom:0.4rem;">
+                            ${f.origin_iata ? `🛫 ${f.origin_iata}` : ''}
+                            ${f.origin_iata && f.dest_iata ? ' → ' : ''}
+                            ${f.dest_iata ? `🛬 ${f.dest_iata}` : ''}
+                        </div>
+                        ${f.origin ? `<div style="font-size:0.7rem;color:#9ca3af;">From: ${f.origin}</div>` : ''}
+                        ${f.dest ? `<div style="font-size:0.7rem;color:#9ca3af;">To: ${f.dest}</div>` : ''}
+                        <hr style="border-color:rgba(255,255,255,0.1);margin:0.4rem 0;">
+                        <div style="font-size:0.75rem;">
+                            📏 ${formatAltitude(f.altitude_ft)}<br>
+                            💨 ${f.speed_mph} mph<br>
+                            🧭 ${Math.round(f.heading)}°
+                            ${f.aircraft_type ? `<br>✈ ${f.aircraft_type}` : ''}
+                            ${f.progress_pct ? `<br>📍 ${f.progress_pct}% complete` : ''}
+                        </div>
                     </div>
                 `)
                 .addTo(flightMap);
@@ -3592,50 +3621,67 @@ async function loadFlights() {
         });
 
         // ── Render flight cards ──
+        const fmtTime = (iso) => {
+            if (!iso) return null;
+            return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Chicago' });
+        };
+
         container.innerHTML = `
             <div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--text-muted);margin-bottom:0.75rem;letter-spacing:0.04em;">
-                ✈ ${flights.length} AIRCRAFT TRACKED — CLICK A CARD TO LOCATE ON MAP
+                ✈ ${flights.length} FLIGHTS TRACKED WORLDWIDE — CLICK A CARD TO LOCATE ON MAP
             </div>
             <div class="flight-cards">
                 ${flights.map(f => {
-                    const hasRoute = f.origin_iata || f.dest_iata;
-                    const routeStr = hasRoute
-                        ? `${f.origin_iata || '???'} → ${f.dest_iata || '???'}`
-                        : null;
-                    const climbDir = f.vertical_ms > 0.5 ? '↑' : f.vertical_ms < -0.5 ? '↓' : '→';
-                    const climbFpm = Math.abs(Math.round(f.vertical_ms * 196.85));
+                    const hasRoute  = f.origin_iata || f.dest_iata;
+                    const climbDir  = f.vertical_fpm > 100 ? '↑' : f.vertical_fpm < -100 ? '↓' : '→';
+                    const statusClass = f.status?.toLowerCase().includes('en route') ? 'enroute'
+                        : f.status?.toLowerCase().includes('land') ? 'landed' : 'scheduled';
                     return `
                     <div class="flight-card" onclick="locateFlight(${f.lat}, ${f.lon}, '${f.callsign || f.icao}')">
                         <div class="flight-callsign">
-                            <span class="flight-plane-icon" style="transform:rotate(${f.heading}deg);display:inline-block;">✈</span>
-                            ${f.callsign || f.icao || 'Unknown'}
-                            ${routeStr ? `<span style="font-size:0.65rem;color:#93c5fd;font-weight:400;margin-left:auto;">${routeStr}</span>` : ''}
+                            ${f.airline_logo
+                                ? `<img src="${f.airline_logo}" class="flight-airline-logo" onerror="this.style.display='none'" alt="${f.airline || ''}">`
+                                : `<span style="transform:rotate(${f.heading}deg);display:inline-block;font-size:1rem;">✈</span>`
+                            }
+                            <span>${f.callsign || f.icao || 'Unknown'}</span>
+                            ${f.status ? `<span class="flight-status-pill ${statusClass}">${f.status}</span>` : ''}
                         </div>
-                        ${f.airline ? `<div class="flight-country" style="color:var(--green-light);">🏢 ${f.airline}</div>` : ''}
+                        ${f.airline ? `<div style="font-size:0.72rem;color:var(--green-light);margin-bottom:0.3rem;">🏢 ${f.airline}</div>` : ''}
                         ${hasRoute ? `
-                        <div style="font-size:0.72rem;color:var(--text-muted);margin:0.3rem 0 0.5rem;font-family:'Space Mono',monospace;">
-                            ${f.origin ? `🛫 ${f.origin}` : ''}
-                            ${f.origin && f.dest ? ' → ' : ''}
-                            ${f.dest ? `🛬 ${f.dest}` : ''}
-                        </div>` : '<div class="flight-country">🌍 Position only</div>'}
-                        <div class="flight-details">
+                        <div class="flight-route-bar">
+                            <span class="flight-route-iata">${f.origin_iata || '???'}</span>
+                            <span class="flight-route-arrow">──✈──</span>
+                            <span class="flight-route-iata">${f.dest_iata || '???'}</span>
+                        </div>
+                        <div class="flight-route-city">
+                            ${f.origin || ''} ${f.origin && f.dest ? '→' : ''} ${f.dest || ''}
+                        </div>
+                        ${f.progress_pct ? `
+                        <div class="flight-progress" title="${f.progress_pct}% complete">
+                            <div class="flight-progress-bar" style="width:${f.progress_pct}%"></div>
+                        </div>` : ''}
+                        ` : `<div class="flight-country">🌍 Route data unavailable</div>`}
+                        <div class="flight-details" style="margin-top:0.5rem;">
                             <div class="flight-detail">Alt <strong>${formatAltitude(f.altitude_ft)}</strong></div>
                             <div class="flight-detail">Speed <strong>${f.speed_mph} mph</strong></div>
                             <div class="flight-detail">Heading <strong>${Math.round(f.heading)}° ${getHeadingIcon(f.heading)}</strong></div>
-                            <div class="flight-detail">Climb <strong>${climbDir} ${climbFpm} fpm</strong></div>
+                            <div class="flight-detail">Climb <strong>${climbDir} ${Math.abs(f.vertical_fpm)} fpm</strong></div>
+                            ${f.aircraft_type ? `<div class="flight-detail">Aircraft <strong>${f.aircraft_type}</strong></div>` : ''}
+                            ${f.departure_time ? `<div class="flight-detail">Dep <strong>${fmtTime(f.departure_time)}</strong></div>` : ''}
+                            ${f.arrival_time ? `<div class="flight-detail">Arr <strong>${fmtTime(f.arrival_time)}</strong></div>` : ''}
                         </div>
                     </div>`;
                 }).join('')}
             </div>
         `;
 
-        // Auto-refresh every 60 seconds
+        // Auto-refresh every 5 minutes
         clearTimeout(flightRefreshTimer);
         flightRefreshTimer = setTimeout(loadFlights, 300000);
 
     } catch(err) {
         console.error('Flight tracker error:', err);
-        container.innerHTML = '<div class="strava-error">Could not load flight data. <button class="aviation-refresh" onclick="loadFlights()">Retry</button></div>';
+        container.innerHTML = `<div class="strava-error">Could not load flight data. <button class="aviation-refresh" onclick="loadFlights()">Retry</button></div>`;
     }
 }
 

@@ -3835,29 +3835,138 @@ function switchSportsTab(league, btn) {
 }
 
 function renderScoreCard(game, league) {
-    const isLive = game.status === 'inprogress' || game.status === 'live';
-    const isFinal = game.status === 'closed' || game.status === 'final';
-    const isScheduled = game.status === 'scheduled';
-    const statusLabel = isLive ? 'LIVE' : isFinal ? 'FINAL' : game.local_start || 'Upcoming';
+    const isLive     = game.status === 'inprogress' || game.status === 'live';
+    const isFinal    = game.status === 'closed' || game.status === 'final';
+    const isScheduled = !isLive && !isFinal;
     const statusClass = isLive ? 'live' : isFinal ? 'final' : 'scheduled';
-    const teams = Object.keys(game.teams || {});
-    if (teams.length < 2) return '';
-    const homeTeam = game.home;
-    const awayTeam = game.away;
-    const homeScore = game.score?.[homeTeam];
-    const awayScore = game.score?.[awayTeam];
-    const hasScore = homeScore !== undefined && awayScore !== undefined;
-    const homeWon = hasScore && isFinal && homeScore > awayScore;
-    const awayWon = hasScore && isFinal && awayScore > homeScore;
-    const homeName = game.teams?.[homeTeam]?.name || homeTeam;
-    const awayName = game.teams?.[awayTeam]?.name || awayTeam;
-    const isPlayoff = game.title && (game.title.includes('Game') || game.title.includes('Final') || game.title.includes('Round'));
+    const statusLabel = isLive ? 'LIVE' : isFinal ? 'FINAL' : game.local_start || 'Upcoming';
 
-    // Highlight Houston teams
+    const homeAbbr = game.home;
+    const awayAbbr = game.away;
+    const homeName = game.home_name || game.teams?.[homeAbbr]?.name || homeAbbr;
+    const awayName = game.away_name || game.teams?.[awayAbbr]?.name || awayAbbr;
+    const homeScore = game.score?.[homeAbbr];
+    const awayScore = game.score?.[awayAbbr];
+    const hasScore  = homeScore !== undefined && awayScore !== undefined;
+    const homeWon   = hasScore && isFinal && homeScore > awayScore;
+    const awayWon   = hasScore && isFinal && awayScore > homeScore;
+
     const cfg = SPORTS_CONFIG[league];
-    const homeIsHouston = cfg?.team && homeTeam?.toLowerCase() === cfg.team;
-    const awayIsHouston = cfg?.team && awayTeam?.toLowerCase() === cfg.team;
-    const houstonColor = cfg?.color || 'var(--green)';
+    const homeIsHouston = cfg?.team && homeAbbr?.toLowerCase() === cfg.team;
+    const awayIsHouston = cfg?.team && awayAbbr?.toLowerCase() === cfg.team;
+    const houstonColor  = cfg?.color || 'var(--green)';
+
+    // Quarter/inning breakdown
+    const hasQuarters = game.quarters?.length > 0;
+    const hasInnings  = game.innings?.length > 0;
+
+    let periodHtml = '';
+    if (hasQuarters) {
+        const labels = game.quarters.map(q => `Q${q.period}`);
+        periodHtml = `
+        <div style="margin:0.5rem 0;overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-family:'Space Mono',monospace;font-size:0.65rem;">
+                <tr>
+                    <td style="color:var(--text-muted);padding:2px 4px;"></td>
+                    ${labels.map(l => `<td style="color:var(--text-muted);padding:2px 4px;text-align:center;">${l}</td>`).join('')}
+                    <td style="color:var(--text-muted);padding:2px 4px;text-align:center;font-weight:700;">T</td>
+                </tr>
+                <tr>
+                    <td style="color:${awayIsHouston ? houstonColor : 'var(--text)'};padding:2px 4px;font-weight:700;">${awayAbbr}</td>
+                    ${game.quarters.map(q => `<td style="color:var(--text-muted);padding:2px 4px;text-align:center;">${q.away !== undefined ? q.away : '-'}</td>`).join('')}
+                    <td style="color:${awayWon ? 'var(--green)' : 'var(--text)'};padding:2px 4px;text-align:center;font-weight:700;">${awayScore ?? '-'}</td>
+                </tr>
+                <tr>
+                    <td style="color:${homeIsHouston ? houstonColor : 'var(--text)'};padding:2px 4px;font-weight:700;">${homeAbbr}</td>
+                    ${game.quarters.map(q => `<td style="color:var(--text-muted);padding:2px 4px;text-align:center;">${q.home !== undefined ? q.home : '-'}</td>`).join('')}
+                    <td style="color:${homeWon ? 'var(--green)' : 'var(--text)'};padding:2px 4px;text-align:center;font-weight:700;">${homeScore ?? '-'}</td>
+                </tr>
+            </table>
+        </div>`;
+    } else if (hasInnings) {
+        const maxInning = Math.max(...game.innings.map(i => i.inning), 9);
+        const inningNums = Array.from({length: maxInning}, (_, i) => i + 1);
+        periodHtml = `
+        <div style="margin:0.5rem 0;overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-family:'Space Mono',monospace;font-size:0.62rem;">
+                <tr>
+                    <td style="color:var(--text-muted);padding:2px 3px;"></td>
+                    ${inningNums.map(n => `<td style="color:var(--text-muted);padding:2px 3px;text-align:center;">${n}</td>`).join('')}
+                    <td style="color:var(--text-muted);padding:2px 3px;text-align:center;font-weight:700;">R</td>
+                </tr>
+                <tr>
+                    <td style="color:${awayIsHouston ? houstonColor : 'var(--text)'};padding:2px 3px;font-weight:700;">${awayAbbr}</td>
+                    ${inningNums.map(n => { const inn = game.innings.find(i=>i.inning===n); return `<td style="color:var(--text-muted);padding:2px 3px;text-align:center;">${inn?.away ?? '-'}</td>`; }).join('')}
+                    <td style="color:${awayWon ? 'var(--green)' : 'var(--text)'};padding:2px 3px;text-align:center;font-weight:700;">${awayScore ?? '-'}</td>
+                </tr>
+                <tr>
+                    <td style="color:${homeIsHouston ? houstonColor : 'var(--text)'};padding:2px 3px;font-weight:700;">${homeAbbr}</td>
+                    ${inningNums.map(n => { const inn = game.innings.find(i=>i.inning===n); return `<td style="color:var(--text-muted);padding:2px 3px;text-align:center;">${inn?.home ?? '-'}</td>`; }).join('')}
+                    <td style="color:${homeWon ? 'var(--green)' : 'var(--text)'};padding:2px 3px;text-align:center;font-weight:700;">${homeScore ?? '-'}</td>
+                </tr>
+            </table>
+        </div>`;
+    } else if (hasScore && !hasQuarters && !hasInnings) {
+        // Simple score display for soccer / fallback
+        periodHtml = `
+        <div class="score-teams" style="margin:0.5rem 0;">
+            <div class="score-team-row">
+                <div class="score-team-name" ${awayIsHouston ? `style="color:${houstonColor}"` : ''}>${awayName}</div>
+                <div class="score-team-score ${awayWon ? 'winner' : isFinal ? 'loser' : ''}">${awayScore}</div>
+            </div>
+            <div class="score-divider"></div>
+            <div class="score-team-row">
+                <div class="score-team-name" ${homeIsHouston ? `style="color:${houstonColor}"` : ''}>${homeName}</div>
+                <div class="score-team-score ${homeWon ? 'winner' : isFinal ? 'loser' : ''}">${homeScore}</div>
+            </div>
+        </div>`;
+    } else {
+        // Upcoming — no score
+        periodHtml = `
+        <div class="score-teams" style="margin:0.5rem 0;">
+            <div class="score-team-row">
+                <div class="score-team-name" ${awayIsHouston ? `style="color:${houstonColor}"` : ''}>${awayName}</div>
+            </div>
+            <div class="score-divider"></div>
+            <div class="score-team-row">
+                <div class="score-team-name" ${homeIsHouston ? `style="color:${houstonColor}"` : ''}>${homeName}</div>
+            </div>
+        </div>`;
+    }
+
+    // Win probability bar
+    const homeProb = game.win_probability?.[homeAbbr];
+    const awayProb = game.win_probability?.[awayAbbr];
+    const winProbHtml = (homeProb && awayProb && isLive) ? `
+        <div style="margin:0.5rem 0;">
+            <div style="font-size:0.62rem;color:var(--text-muted);font-family:'Space Mono',monospace;margin-bottom:2px;">WIN PROBABILITY</div>
+            <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;display:flex;">
+                <div style="width:${awayProb}%;background:#3b82f6;transition:width 0.5s;" title="${awayAbbr} ${awayProb}%"></div>
+                <div style="width:${homeProb}%;background:#ef4444;transition:width 0.5s;" title="${homeAbbr} ${homeProb}%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text-muted);font-family:'Space Mono',monospace;margin-top:2px;">
+                <span>${awayAbbr} ${awayProb}%</span>
+                <span>${homeAbbr} ${homeProb}%</span>
+            </div>
+        </div>` : '';
+
+    // Player stats
+    const playersHtml = game.top_players?.length ? `
+        <div style="margin-top:0.5rem;border-top:1px solid rgba(255,255,255,0.05);padding-top:0.5rem;">
+            <div style="font-size:0.62rem;color:var(--text-muted);font-family:'Space Mono',monospace;margin-bottom:0.35rem;">TOP PERFORMERS</div>
+            ${game.top_players.map(p => `
+                <div style="display:flex;justify-content:space-between;font-size:0.7rem;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
+                    <span style="color:var(--text);font-weight:500;">${p.name} <span style="color:var(--text-muted);font-size:0.62rem;">${p.team}${p.type ? ` · ${p.type}` : ''}</span></span>
+                    <span style="color:var(--green);font-family:'Space Mono',monospace;font-size:0.68rem;">
+                        ${p.pts !== undefined ? `${p.pts}pts ${p.reb}reb ${p.ast}ast` : ''}
+                        ${p.h  !== undefined ? `${p.h}H ${p.hr}HR ${p.rbi}RBI` : ''}
+                        ${p.stat || ''}
+                    </span>
+                </div>
+            `).join('')}
+        </div>` : '';
+
+    const isPlayoff = game.title && (game.title.includes('Game') || game.title.includes('Final') || game.title.includes('Round') || game.title.includes('Cup'));
 
     return `
         <div class="score-card ${statusClass}" ${(homeIsHouston || awayIsHouston) ? `style="border-color:${houstonColor}40"` : ''}>
@@ -3865,21 +3974,12 @@ function renderScoreCard(game, league) {
                 ${statusLabel}
                 ${game.live_detail ? `<span style="font-family:'Space Mono',monospace;font-size:0.68rem;color:#facc15;margin-left:0.4rem;">${game.live_detail}</span>` : ''}
                 ${isPlayoff ? `<span class="playoff-label">${game.title}</span>` : ''}
+                ${game.broadcast ? `<span style="font-size:0.6rem;color:var(--text-muted);margin-left:auto;">📺 ${game.broadcast}</span>` : ''}
             </div>
-            <div class="score-teams">
-                <div class="score-team-row">
-                    <div class="score-team-name" ${awayIsHouston ? `style="color:${houstonColor}"` : ''}>${awayName}</div>
-                    ${hasScore ? `<div class="score-team-score ${awayWon ? 'winner' : isFinal ? 'loser' : ''}">${awayScore}</div>` : ''}
-                </div>
-                <div class="score-divider"></div>
-                <div class="score-team-row">
-                    <div class="score-team-name" ${homeIsHouston ? `style="color:${houstonColor}"` : ''}>${homeName}</div>
-                    ${hasScore ? `<div class="score-team-score ${homeWon ? 'winner' : isFinal ? 'loser' : ''}">${homeScore}</div>` : ''}
-                </div>
-            </div>
-            ${game.win_probability && isScheduled ? `
-                <div class="score-meta">Win prob: ${awayTeam} ${game.win_probability[awayTeam]?.toFixed(0)}% · ${homeTeam} ${game.win_probability[homeTeam]?.toFixed(0)}%</div>
-            ` : ''}
+            ${periodHtml}
+            ${winProbHtml}
+            ${playersHtml}
+            ${game.venue ? `<div style="font-size:0.62rem;color:var(--text-muted);margin-top:0.4rem;font-family:'Space Mono',monospace;">🏟️ ${game.venue}</div>` : ''}
         </div>
     `;
 }

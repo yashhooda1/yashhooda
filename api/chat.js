@@ -1,3 +1,7 @@
+https://raw.githubusercontent.com/yashhooda1/yashhooda/main/api/chat.js
+→ https://raw.githubusercontent.com/yashhooda1/yashhooda/main/api/chat.js
+Content-Type: text/plain; charset=utf-8
+
 import { Index } from "@upstash/vector";
 import { Redis } from "@upstash/redis";
 
@@ -436,6 +440,88 @@ async function trackAnalytics(redis, stats) {
   }
 }
 
+
+// ══════════════════════════════════════════════════════
+// FEATURE 6 — SUGGESTION CHIPS
+// Parallel Haiku call → 3 follow-up question strings.
+// ~$0.00025/turn. Always non-fatal.
+// ══════════════════════════════════════════════════════
+async function generateSuggestions(query, reply, agentKey, apiKey) {
+  if (!apiKey) return [];
+  try {
+    const agentContext = {
+      running:  'running, training, pace, races',
+      career:   'career, data engineering, AI engineering',
+      travel:   'travel, hiking, destinations',
+      general:  'Yash Hooda, projects, skills',
+    }[agentKey] || 'Yash Hooda';
+    const prompt =
+      `Generate 3 short follow-up questions (max 8 words each) for a chatbot about ${agentContext}.\n` +
+      `User asked: "${query.slice(0, 200)}"\n` +
+      `Assistant replied: "${reply.slice(0, 300)}"\n` +
+      `Output ONLY a JSON array of 3 strings. Example: ["What pace should I target?","How many miles per week?","When to taper?"]`;
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 128, messages: [{ role: 'user', content: prompt }] }),
+    });
+    const data = await r.json();
+    const raw = data?.content?.[0]?.text?.trim() ?? '[]';
+    const match = raw.match(/\[.*\]/s);
+    if (!match) return [];
+    const suggestions = JSON.parse(match[0]);
+    if (!Array.isArray(suggestions)) return [];
+    return suggestions.slice(0, 3).map(s => String(s).slice(0, 80));
+  } catch { return []; }
+}
+
+// ══════════════════════════════════════════════════════
+// FEATURE 7 — SSE STREAMING
+// Streams Anthropic tokens via Server-Sent Events.
+// Returns full reply string for memory + analytics.
+// ══════════════════════════════════════════════════════
+async function streamAnthropicResponse(res, cfg, apiKey, systemBlocks, messages) {
+  let fullReply = '';
+  try {
+    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: cfg.api, max_tokens: 1024, stream: true, system: systemBlocks, messages }),
+    });
+    if (!anthropicRes.ok) {
+      res.write(`data: ${JSON.stringify({ error: 'Upstream error' })}\n\n`);
+      return '';
+    }
+    const reader = anthropicRes.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === '[DONE]') continue;
+        try {
+          const event = JSON.parse(jsonStr);
+          if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta' && event.delta?.text) {
+            const token = filterOutput(event.delta.text);
+            fullReply += token;
+            res.write(`data: ${JSON.stringify({ token })}\n\n`);
+          }
+        } catch { /* skip malformed */ }
+      }
+    }
+    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+  } catch (err) {
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+  }
+  return fullReply;
+}
+
 // ── MODEL REGISTRY ──
 const MODELS = {
   'claude-opus-4-8':   { provider: 'anthropic', api: 'claude-opus-4-8' },
@@ -454,7 +540,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages, sessionId, model } = req.body;
+  const { messages, sessionId, model, stream = false } = req.body;
   const validationErrors = validateInput(messages, sessionId);
   if (validationErrors.length > 0)
     return res.status(400).json({ error: 'Validation failed', details: validationErrors });
@@ -764,7 +850,8 @@ RESPONSE GUIDELINES
 - Length: 3-6 sentences for simple questions, up to 10 sentences for complex advice
 - If someone sends an image: describe what you see and relate it to running, career, or life advice as appropriate
 - Always end career/running advice with one specific actionable next step
-- If unsure about something specific to Yash, say so and suggest emailing yash.hooda6@gmail.com`;
+- If unsure about something specific to Yash, say so and suggest emailing yash.hooda6@gmail.com
+- Use markdown formatting — **bold** for key points, bullet lists for multi-step advice, \`code\` for technical terms, numbered lists for steps`;
 
   // ── RAG: HYBRID (Phase 2) + CRAG (Phase 1) + RERANKER (Feature 3) ────────
   let ragContext   = '';
@@ -1022,12 +1109,16 @@ RESPONSE GUIDELINES
       model:          picked,
     });
 
-    // ── RESPONSE: include citations + agent label for frontend ──
+    // ── FEATURE 6: SUGGESTIONS (parallel, non-fatal) ──
+    const suggestions = await generateSuggestions(queryText, reply, activeAgent.key, apiKey);
+
+    // ── RESPONSE: include citations + agent label + suggestions for frontend ──
     return res.status(200).json({
       reply,
-      model:     picked,
-      agent:     activeAgent.label,   // Feature 4 — shown in UI
-      citations,                       // Feature 1 — rendered as pills in chat
+      model:      picked,
+      agent:      activeAgent.label,   // Feature 4 — shown in UI
+      citations,                        // Feature 1 — rendered as pills in chat
+      suggestions,                      // Feature 6 — clickable follow-up chips
     });
 
   } catch (err) {

@@ -3,7 +3,7 @@
   "functions": {
     "api/chat.js": { "maxDuration": 60 },
     "api/chat-search.js": { "maxDuration": 60 },
-    "api/analytics.js": { "maxDuration": 60 },
+    "api/analytics.js": { "maxDuration": 90 },
     "api/tts.js":   { "maxDuration": 30 },
     "api/strava.js":  { "maxDuration": 30 },
     "api/history.js":  { "maxDuration": 30 },

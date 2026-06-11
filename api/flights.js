@@ -3,184 +3,122 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
- 
-  // ── Shape ADS-B aircraft records ──
-  function shapeAdsb(aircraft) {
-    return aircraft
-      .filter(a => a.lat && a.lon && !a.gnd)
-      .map(a => ({
-        icao:        a.hex || null,
-        callsign:    a.flight?.trim() || a.hex || null,
-        country:     null,
-        airline:     null,
-        origin:      null,
-        origin_iata: null,
-        dest:        null,
-        dest_iata:   null,
-        lat:         parseFloat(a.lat),
-        lon:         parseFloat(a.lon),
-        altitude_ft: a.alt_baro || a.alt_geom || 0,
-        speed_mph:   a.gs ? Math.round(a.gs) : 0,
-        heading:     Math.round(a.track || 0),
-        vertical_ms: a.baro_rate ? a.baro_rate / 196.85 : 0,
-        is_ground:   false,
-      }))
-      .filter(f => f.altitude_ft > 500);
-  }
- 
-  // ── Fetch route data for a callsign from adsbdb (free, no key) ──
-  async function getRoute(callsign) {
-    if (!callsign || callsign.length < 4) return null;
-    try {
-      const r = await fetch(`https://api.adsbdb.com/v0/callsign/${callsign}`, {
-        signal: AbortSignal.timeout(3000),
-        headers: { 'User-Agent': 'YashHoodaPortfolio/1.0' },
-      });
-      if (!r.ok) return null;
-      const d = await r.json();
-      const route = d?.response?.flightroute;
-      if (!route) return null;
-      return {
-        airline:     route.airline?.name || null,
-        origin:      route.origin?.name || null,
-        origin_iata: route.origin?.iata_code || null,
-        origin_city: route.origin?.municipality || null,
-        dest:        route.destination?.name || null,
-        dest_iata:   route.destination?.iata_code || null,
-        dest_city:   route.destination?.municipality || null,
-      };
-    } catch { return null; }
-  }
- 
+
+  const apiKey = process.env.FLIGHTAWARE_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'FlightAware API key missing' });
+
   try {
-    let flights = [];
-    let total = 0;
-    let source = '';
- 
-    // ── Strategy: fetch multiple regions in parallel for full US coverage ──
-    // Split US into quadrants to guarantee geographic spread
+    // FlightAware AeroAPI v4 — live flights in bounding box covering full world
+    // We fetch multiple regions to get global coverage
+    const headers = {
+      'x-apikey': apiKey,
+      'Accept': 'application/json; charset=UTF-8',
+    };
+
+    // Fetch live flights across major world regions in parallel
     const regions = [
-      // Northwest
-      { lat: 45.0, lon: -115.0, dist: 800 },
-      // Southwest
-      { lat: 33.0, lon: -115.0, dist: 800 },
-      // North Central
-      { lat: 45.0, lon: -95.0,  dist: 800 },
-      // South Central (Texas/Gulf)
-      { lat: 30.0, lon: -95.0,  dist: 800 },
-      // Northeast
-      { lat: 43.0, lon: -73.0,  dist: 700 },
-      // Southeast
-      { lat: 32.0, lon: -83.0,  dist: 700 },
+      // North America
+      { name: 'North America', url: 'https://aeroapi.flightaware.com/aeroapi/flights/search?query=-latlong+%2224+-125+50+-65%22&max_pages=2' },
+      // Europe
+      { name: 'Europe', url: 'https://aeroapi.flightaware.com/aeroapi/flights/search?query=-latlong+%2235+%20-10+72+40%22&max_pages=2' },
+      // Asia Pacific
+      { name: 'Asia Pacific', url: 'https://aeroapi.flightaware.com/aeroapi/flights/search?query=-latlong+%22-10+100+50+150%22&max_pages=2' },
+      // Middle East / South Asia
+      { name: 'Middle East', url: 'https://aeroapi.flightaware.com/aeroapi/flights/search?query=-latlong+%2210+40+40+80%22&max_pages=1' },
+      // Latin America
+      { name: 'Latin America', url: 'https://aeroapi.flightaware.com/aeroapi/flights/search?query=-latlong+%22-55+-85+15+-35%22&max_pages=1' },
     ];
- 
-    const regionResults = await Promise.allSettled(
-      regions.map(async ({ lat, lon, dist }) => {
-        const r = await fetch(
-          `https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${dist}`,
-          {
-            headers: { 'User-Agent': 'YashHoodaPortfolio/1.0', 'Accept': 'application/json' },
-            signal: AbortSignal.timeout(8000),
-          }
-        );
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+    const results = await Promise.allSettled(
+      regions.map(async (region) => {
+        const r = await fetch(region.url, {
+          headers,
+          signal: AbortSignal.timeout(10000),
+        });
+        if (!r.ok) {
+          console.warn(`[Flights] ${region.name} returned ${r.status}`);
+          return [];
+        }
         const d = await r.json();
-        return d.ac || [];
+        return (d.flights || []).map(f => ({ ...f, _region: region.name }));
       })
     );
- 
-    // Merge all regions, deduplicate by hex
+
+    // Merge + deduplicate by fa_flight_id
     const seen = new Set();
-    const allAircraft = [];
-    for (const result of regionResults) {
+    const allFlights = [];
+    for (const result of results) {
       if (result.status === 'fulfilled') {
-        for (const ac of result.value) {
-          if (ac.hex && !seen.has(ac.hex)) {
-            seen.add(ac.hex);
-            allAircraft.push(ac);
+        for (const f of result.value) {
+          const id = f.fa_flight_id || f.ident;
+          if (id && !seen.has(id)) {
+            seen.add(id);
+            allFlights.push(f);
           }
         }
       }
     }
- 
-    if (allAircraft.length > 0) {
-      source = 'adsb-lol-multiregion';
-      total = allAircraft.length;
-      // Take up to 200 spread across the US — sort by distribution
-      const shaped = shapeAdsb(allAircraft);
-      // Spread selection: sort by longitude to get east-west coverage
-      shaped.sort((a, b) => a.lon - b.lon);
-      const step = Math.max(1, Math.floor(shaped.length / 200));
-      flights = shaped.filter((_, i) => i % step === 0).slice(0, 200);
-    } else {
-      // Fallback: adsb.fi global
-      source = 'adsb-fi';
-      const fallback = await fetch(
-        'https://api.adsb.fi/v1/flights?lat=39.5&lon=-98.35&radius=3000',
-        {
-          headers: { 'User-Agent': 'YashHoodaPortfolio/1.0' },
-          signal: AbortSignal.timeout(8000),
-        }
-      );
-      if (fallback.ok) {
-        const fd = await fallback.json();
-        const ac = fd.ac || fd.aircraft || [];
-        total = ac.length;
-        flights = shapeAdsb(ac).slice(0, 200);
-      }
-    }
- 
-    if (flights.length === 0) {
-      return res.status(503).json({
-        error: 'Flight data temporarily unavailable. Try again in a moment.',
-        flights: [], total: 0,
-      });
-    }
- 
-    // ── Enrich top 30 flights with route data (parallel, capped to avoid rate limits) ──
-    const toEnrich = flights
-      .filter(f => f.callsign && /^[A-Z]{2,3}\d+/.test(f.callsign)) // airline callsigns only
-      .slice(0, 30);
- 
-    const routeResults = await Promise.allSettled(
-      toEnrich.map(f => getRoute(f.callsign))
-    );
- 
-    // Map enriched routes back onto flights
-    const routeMap = new Map();
-    toEnrich.forEach((f, i) => {
-      const result = routeResults[i];
-      if (result.status === 'fulfilled' && result.value) {
-        routeMap.set(f.callsign, result.value);
-      }
-    });
- 
-    flights = flights.map(f => {
-      const route = routeMap.get(f.callsign);
-      if (route) {
+
+    // Shape into clean format
+    const flights = allFlights
+      .filter(f => f.last_position?.latitude && f.last_position?.longitude)
+      .map(f => {
+        const pos = f.last_position;
+        const origin = f.origin;
+        const dest   = f.destination;
+
+        // Airline ICAO prefix for logo lookup
+        const airlineIcao = f.operator_icao || f.ident?.match(/^[A-Z]{3}/)?.[0] || null;
+
         return {
-          ...f,
-          airline:      route.airline,
-          origin:       route.origin_city || route.origin,
-          origin_iata:  route.origin_iata,
-          dest:         route.dest_city || route.dest,
-          dest_iata:    route.dest_iata,
+          fa_flight_id: f.fa_flight_id,
+          icao:         f.ident_icao || null,
+          callsign:     f.ident || f.ident_iata || null,
+          airline:      f.operator || null,
+          airline_icao: airlineIcao,
+          airline_iata: f.operator_iata || null,
+          // Airline logo via Clearbit (free) or airline IATA
+          airline_logo: f.operator_iata
+            ? `https://content.airhex.com/content/logos/airlines_${f.operator_iata}_32_32_s.png`
+            : null,
+          // Origin
+          origin:       origin?.city || origin?.name || null,
+          origin_iata:  origin?.code_iata || null,
+          origin_icao:  origin?.code_icao || null,
+          origin_name:  origin?.name || null,
+          // Destination
+          dest:         dest?.city || dest?.name || null,
+          dest_iata:    dest?.code_iata || null,
+          dest_icao:    dest?.code_icao || null,
+          dest_name:    dest?.name || null,
+          // Position
+          lat:          pos.latitude,
+          lon:          pos.longitude,
+          altitude_ft:  pos.altitude || 0,
+          speed_mph:    pos.groundspeed ? Math.round(pos.groundspeed) : 0,
+          heading:      Math.round(pos.heading || 0),
+          vertical_fpm: pos.vertical_rate || 0,
+          // Flight info
+          aircraft_type: f.aircraft_type || null,
+          status:        f.status || null,
+          departure_time: f.scheduled_out || f.actual_out || null,
+          arrival_time:   f.scheduled_in  || f.estimated_in || null,
+          progress_pct:   f.progress_percent || null,
+          region:         f._region,
         };
-      }
-      return f;
-    });
- 
-    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+      });
+
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
     return res.status(200).json({
       flights,
-      total,
-      source,
+      total: allFlights.length,
+      shown: flights.length,
+      source: 'flightaware-aeroapi',
       timestamp: Date.now(),
     });
- 
+
   } catch (err) {
     console.error('Flights error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
- 

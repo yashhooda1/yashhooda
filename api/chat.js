@@ -1,7 +1,3 @@
-https://raw.githubusercontent.com/yashhooda1/yashhooda/main/api/chat.js
-→ https://raw.githubusercontent.com/yashhooda1/yashhooda/main/api/chat.js
-Content-Type: text/plain; charset=utf-8
-
 import { Index } from "@upstash/vector";
 import { Redis } from "@upstash/redis";
 

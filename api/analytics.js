@@ -213,12 +213,37 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
     const insights = claudeData.content?.[0]?.text || 'Unable to generate insights at this time.';
 
     res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+    // Parse weather summary for frontend display
+    let weatherDisplay = null;
+    try {
+      const wxRes2 = await fetch(
+        'https://api.open-meteo.com/v1/forecast?latitude=29.7604&longitude=-95.3698' +
+        '&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m' +
+        '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago',
+        { signal: AbortSignal.timeout(4000) }
+      );
+      if (wxRes2.ok) {
+        const wxD = await wxRes2.json();
+        const c = wxD.current;
+        const tempC = (c.temperature_2m - 32) * 5/9;
+        const risk = tempC > 35 ? 'extreme' : tempC > 30 ? 'very high' : tempC > 25 ? 'high' : tempC > 20 ? 'moderate' : 'low';
+        weatherDisplay = {
+          tempF: Math.round(c.temperature_2m),
+          feelsF: Math.round(c.apparent_temperature),
+          humidity: c.relative_humidity_2m,
+          wind: Math.round(c.wind_speed_10m),
+          heatRisk: risk,
+        };
+      }
+    } catch(e) { /* non-fatal */ }
+
     return res.status(200).json({
       weeklyTrend,
       fitness: { ctl: ctlRounded, atl: atlRounded, form },
       paceZones,
       predictions,
       insights,
+      weather: weatherDisplay,
     });
 
   } catch (err) {

@@ -8,6 +8,7 @@
     "api/strava.js":  { "maxDuration": 30 },
     "api/history.js":  { "maxDuration": 30 },
     "api/flights.js": { "maxDuration": 30 },
+    "api/analyze.js": { "maxDuration": 60 },
     "api/network.js": { "maxDuration": 15 },
     "api/sports.js": { "maxDuration": 15 }
   },

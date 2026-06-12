@@ -2939,6 +2939,20 @@ function quickAsk(q) {
 function handleImageSelect(e) {
     const file = e.target.files[0];
     if (!file) return;
+    // ── CLIENT-SIDE PRE-FLIGHT (server re-validates everything) ──
+    const ALLOWED_TYPES = new Set(['image/jpeg','image/png','image/webp','image/gif']);
+    if (!ALLOWED_TYPES.has(file.type)) {
+        alert(`❌ File type "${file.type}" is not allowed.\nAccepted: JPEG, PNG, WebP, GIF.`);
+        e.target.value = '';
+        return;
+    }
+    const MAX_MB = 5;
+    if (file.size > MAX_MB * 1024 * 1024) {
+        alert(`❌ Image is too large (${(file.size/1048576).toFixed(1)} MB).\nMaximum allowed size is ${MAX_MB} MB.`);
+        e.target.value = '';
+        return;
+    }
+    // ── END PRE-FLIGHT ──
     const reader = new FileReader();
     reader.onload = ev => {
         const dataUrl = ev.target.result;

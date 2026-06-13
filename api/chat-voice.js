@@ -3,11 +3,17 @@ export const maxDuration = 120;
 export const config = { runtime: 'nodejs' };
 
 const MODELS = {
-  'claude-opus-4-8':   { provider: 'anthropic', api: 'claude-opus-4-8' },
-  'claude-sonnet-4-6': { provider: 'anthropic', api: 'claude-sonnet-4-6' },
-  'gpt-5.5':           { provider: 'openai',    api: 'gpt-5.5' },
-  'gpt-5.4':           { provider: 'openai',    api: 'gpt-5.4' },
-  'gpt-5.4-mini':      { provider: 'openai',    api: 'gpt-5.4-mini' },
+  'claude-opus-4-8':        { provider: 'anthropic', api: 'claude-opus-4-8' },
+  'claude-sonnet-4-6':      { provider: 'anthropic', api: 'claude-sonnet-4-6' },
+  'gpt-5.5':                { provider: 'openai',    api: 'gpt-5.5' },
+  'gpt-5.4':                { provider: 'openai',    api: 'gpt-5.4' },
+  'gpt-5.4-mini':           { provider: 'openai',    api: 'gpt-5.4-mini' },
+  'grok-3':                 { provider: 'xai',       api: 'grok-3' },
+  'grok-3-mini':            { provider: 'xai',       api: 'grok-3-mini' },
+  'gemini-2.5-flash':       { provider: 'google',    api: 'gemini-2.5-flash-preview-05-20' },
+  'gemini-2.5-pro':         { provider: 'google',    api: 'gemini-2.5-pro-preview-06-05' },
+  'llama-4-maverick':       { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
+  'llama-3.3-70b':          { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
 };
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 
@@ -46,10 +52,16 @@ export default async function handler(req, res) {
 
   try {
     if (cfg.provider === 'openai') {
-      await streamOpenAI(cfg.api, cleanMessages, send);
-    } else {
-      await streamAnthropic(cfg.api, cleanMessages, send);
-    }
+    await streamOpenAI(cfg.api, cleanMessages, send);
+  } else if (cfg.provider === 'xai') {
+    await streamOpenAICompat('https://api.x.ai/v1', process.env.XAI_API_KEY, cfg.api, cleanMessages, send);
+  } else if (cfg.provider === 'together') {
+    await streamOpenAICompat('https://api.together.xyz/v1', process.env.TOGETHER_API_KEY, cfg.api, cleanMessages, send);
+  } else if (cfg.provider === 'google') {
+    await streamGemini(cfg.api, cleanMessages, send);
+  } else {
+    await streamAnthropic(cfg.api, cleanMessages, send);
+  }
   } catch (err) {
     console.error('chat-voice top-level error:', err);
     send({ type: 'error', error: err.message });
@@ -191,7 +203,75 @@ async function streamOpenAI(apiModel, messages, send) {
   send({ type: 'done', text: full });
 }
 
-const VOICE_PROMPT = `You are Yash Hooda's AI voice assistant on his portfolio website.
+async function streamOpenAICompat(baseUrl, apiKey, model, messages, send) {
+  if (!apiKey) { send({ type: 'error', error: 'API key not set' }); return; }
+  const r = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model,
+      max_tokens: 300,
+      stream: true,
+      messages: [{ role: 'system', content: VOICE_PROMPT }, ...messages],
+    }),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    send({ type: 'error', error: `${baseUrl} ${r.status}: ${t.slice(0, 200)}` });
+    return;
+  }
+  let full = '';
+  const reader = r.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split('\n'); buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (!raw || raw === '[DONE]') continue;
+      let evt; try { evt = JSON.parse(raw); } catch { continue; }
+      const t = evt.choices?.[0]?.delta?.content;
+      if (typeof t === 'string' && t) { full += t; send({ type: 'token', text: t }); }
+    }
+  }
+  send({ type: 'done', text: full });
+}
+ 
+// ── Google Gemini (non-streaming, push as single done event) ──
+async function streamGemini(model, messages, send) {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) { send({ type: 'error', error: 'GOOGLE_API_KEY not set' }); return; }
+  const contents = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
+  try {
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: VOICE_PROMPT }] },
+          contents,
+          generationConfig: { maxOutputTokens: 300 },
+        }),
+      }
+    );
+    const data = await r.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, no response.';
+    send({ type: 'token', text });
+    send({ type: 'done', text });
+  } catch (e) {
+    send({ type: 'error', error: e.message });
+  }
+}
+ 
+const VOICE_PROMPT = `You are Yash Hooda's AI voice assistant
 
 WHO YASH IS: 24-year-old Data Engineer (UTD CS grad) moving into AI Engineering without a master's degree. Certified: Databricks Data Engineer, IBM AI Engineering, IBM Data Science, Vanderbilt Prompt Engineering, Microsoft Power Platform. Skills: PySpark, Databricks, Microsoft Fabric, SQL, LangChain, RAG, LLMs, Python. Runner — 5K PR 18:15, half marathon PR 1:24:31, training for the 2026 Boulderthon Marathon at 45 miles/week.
 

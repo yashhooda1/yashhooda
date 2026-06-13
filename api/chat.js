@@ -789,14 +789,18 @@ CERTIFICATIONS:
 
 PROJECTS:
 1. HoodaAgents AI Hiring Engine — AI-powered resume analysis system. Parses PDFs, extracts candidate intelligence, matches skills to job descriptions, generates fit reports. Tech: Python, Streamlit, OpenAI API, pdfplumber. Live at Streamlit Cloud.
-2. ClimatePulse — 55-year (1970–2025) NOAA climate analytics pipeline for Houston (IAH) and Newark (EWR). Bronze→Silver→Gold architecture. Key findings: Houston warming +0.805°F/decade, winter nighttime +1.005°F/decade, Feb-Mar 80°F days +1.721/decade, Newark +0.472°F/decade. Tech: Python, pandas, scikit-learn, matplotlib.
-3. HoodaAgents GPT-4 AI Assistant — Custom LangChain agent with conversational memory, live web search via Tavily, calculator tool. Full agentic design and local deployment. Tech: GPT-4, LangChain, Streamlit.
-4. Virtual TA Chatbot — Senior capstone project. NLP-powered chatbot for answering student course queries in real-time.
-5. Liver Cancer Prediction — ML model using patient health data. Feature engineering, preprocessing, model selection for prediction accuracy.
-6. Food Demand Forecasting — ML models to optimize restaurant demand predictions (Foodhub project).
-7. TogetherAI Agent — AI assistant using Together.ai API + meta-llama/Llama-3.3-70B-Instruct-Turbo model.
-8. IBM AI Engineering Capstone — Image recognition and predictive analytics model, deployed end-to-end.
-9. TARS — Custom GPT-4 powered AI assistant built on ChatGPT's custom GPT platform.
+2. HoodaRunners Race Planner Agent — GCP ADK agent deployed to Google Cloud Agent Runtime.
+Fires 6 tools autonomously: Riegel predictor, pace zones, altitude adjuster, race strategy
+builder, heat model, weekly plan generator. Tech: Python, Google ADK, Gemini 2.5 Flash,
+GCP Agent Runtime. Live: https://hooda-race-planner.vercel.app/ and on Google Cloud console at projects/474858024505/locations/us-central1/reasoningEngines/603102468800249856
+3. ClimatePulse — 55-year (1970–2025) NOAA climate analytics pipeline for Houston (IAH) and Newark (EWR). Bronze→Silver→Gold architecture. Key findings: Houston warming +0.805°F/decade, winter nighttime +1.005°F/decade, Feb-Mar 80°F days +1.721/decade, Newark +0.472°F/decade. Tech: Python, pandas, scikit-learn, matplotlib.
+4. HoodaAgents GPT-4 AI Assistant — Custom LangChain agent with conversational memory, live web search via Tavily, calculator tool. Full agentic design and local deployment. Tech: GPT-4, LangChain, Streamlit.
+5. Virtual TA Chatbot — Senior capstone project. NLP-powered chatbot for answering student course queries in real-time.
+6. Liver Cancer Prediction — ML model using patient health data. Feature engineering, preprocessing, model selection for prediction accuracy.
+7. Food Demand Forecasting — ML models to optimize restaurant demand predictions (Foodhub project).
+8. TogetherAI Agent — AI assistant using Together.ai API + meta-llama/Llama-3.3-70B-Instruct-Turbo model.
+9. IBM AI Engineering Capstone — Image recognition and predictive analytics model, deployed end-to-end.
+10. TARS — Custom GPT-4 powered AI assistant built on ChatGPT's custom GPT platform.
 
 CONTACT & LINKS:
 - Email: yash.hooda6@gmail.com

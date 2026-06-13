@@ -6,11 +6,17 @@ export const maxDuration = 60; // seconds — requires Vercel Pro (you already h
 
 // ── MODEL REGISTRY ── keep in sync with chat.js
 const MODELS = {
-  'claude-opus-4-8':   { provider: 'anthropic', api: 'claude-opus-4-8' },
-  'claude-sonnet-4-6': { provider: 'anthropic', api: 'claude-sonnet-4-6' },
-  'gpt-5.5':           { provider: 'openai',    api: 'gpt-5.5' },
-  'gpt-5.4':           { provider: 'openai',    api: 'gpt-5.4' },
-  'gpt-5.4-mini':      { provider: 'openai',    api: 'gpt-5.4-mini' },
+  'claude-opus-4-8':        { provider: 'anthropic', api: 'claude-opus-4-8' },
+  'claude-sonnet-4-6':      { provider: 'anthropic', api: 'claude-sonnet-4-6' },
+  'gpt-5.5':                { provider: 'openai',    api: 'gpt-5.5' },
+  'gpt-5.4':                { provider: 'openai',    api: 'gpt-5.4' },
+  'gpt-5.4-mini':           { provider: 'openai',    api: 'gpt-5.4-mini' },
+  'grok-3':                 { provider: 'xai',       api: 'grok-3' },
+  'grok-3-mini':            { provider: 'xai',       api: 'grok-3-mini' },
+  'gemini-2.5-flash':       { provider: 'google',    api: 'gemini-2.5-flash-preview-05-20' },
+  'gemini-2.5-pro':         { provider: 'google',    api: 'gemini-2.5-pro-preview-06-05' },
+  'llama-4-maverick':       { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
+  'llama-3.3-70b':          { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
 };
 const DEFAULT_MODEL = 'claude-opus-4-8';
 
@@ -51,6 +57,38 @@ export default async function handler(req, res) {
 
   try {
     // ════════════════════════════════════════════════════════
+    // NON-ANTHROPIC PATH: xAI, Google, Together — simple completion, no streaming
+    if (cfg.provider === 'xai' || cfg.provider === 'google' || cfg.provider === 'together') {
+      sendEvent({ type: 'searching', message: '🤖 Generating response…' });
+      let text = '';
+      try {
+        if (cfg.provider === 'xai' || cfg.provider === 'together') {
+          const baseUrl = cfg.provider === 'xai' ? 'https://api.x.ai/v1' : 'https://api.together.xyz/v1';
+          const key     = cfg.provider === 'xai' ? process.env.XAI_API_KEY : process.env.TOGETHER_API_KEY;
+          const r = await fetch(`${baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+            body: JSON.stringify({ model: cfg.api, max_tokens: 1024, messages: [{ role: 'system', content: buildSystemPrompt() }, ...cleanMessages] }),
+          });
+          const d = await r.json();
+          text = d.choices?.[0]?.message?.content || '(no response)';
+        } else {
+          // Google Gemini
+          const key = process.env.GOOGLE_API_KEY;
+          const gemContents = cleanMessages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
+          const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${cfg.api}:generateContent?key=${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ systemInstruction: { parts: [{ text: buildSystemPrompt() }] }, contents: gemContents, generationConfig: { maxOutputTokens: 1024 } }),
+          });
+          const d = await r.json();
+          text = d.candidates?.[0]?.content?.parts?.[0]?.text || '(no response)';
+        }
+      } catch (e) { text = 'Error: ' + e.message; }
+      sendEvent({ type: 'done', text });
+      res.end();
+      return;
+    }
     // OPENAI PATH (GPT-5.x): Responses API + web_search tool.
     // Non-streaming call, then push the finished answer over SSE.
     // ════════════════════════════════════════════════════════

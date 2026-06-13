@@ -792,7 +792,7 @@ PROJECTS:
 2. HoodaRunners Race Planner Agent — GCP ADK agent deployed to Google Cloud Agent Runtime.
 Fires 6 tools autonomously: Riegel predictor, pace zones, altitude adjuster, race strategy
 builder, heat model, weekly plan generator. Tech: Python, Google ADK, Gemini 2.5 Flash,
-GCP Agent Runtime. Live: https://hooda-race-planner.vercel.app/ and on Google Cloud console at projects/474858024505/locations/us-central1/reasoningEngines/603102468800249856
+GCP Agent Runtime. Github Repo available at https://github.com/yashhooda1/HoodaRunners-Race-Planner-Agent. Production App Live: https://hooda-race-planner.vercel.app/ and on Google Cloud console at projects/474858024505/locations/us-central1/reasoningEngines/603102468800249856
 3. ClimatePulse — 55-year (1970–2025) NOAA climate analytics pipeline for Houston (IAH) and Newark (EWR). Bronze→Silver→Gold architecture. Key findings: Houston warming +0.805°F/decade, winter nighttime +1.005°F/decade, Feb-Mar 80°F days +1.721/decade, Newark +0.472°F/decade. Tech: Python, pandas, scikit-learn, matplotlib.
 4. HoodaAgents GPT-4 AI Assistant — Custom LangChain agent with conversational memory, live web search via Tavily, calculator tool. Full agentic design and local deployment. Tech: GPT-4, LangChain, Streamlit.
 5. Virtual TA Chatbot — Senior capstone project. NLP-powered chatbot for answering student course queries in real-time.

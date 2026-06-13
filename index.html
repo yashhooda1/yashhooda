@@ -1446,6 +1446,110 @@
             display: flex; align-items: center; justify-content: center; line-height:1;
         }
         .msg-img { max-width: 100%; border-radius: 6px; margin-top: 0.4rem; display: block; }
+        /* ── FILE ANALYSIS UI ── */
+        .analysis-card {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(76,175,80,0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            line-height: 1.65;
+            color: var(--text);
+            max-width: 100%;
+            align-self: flex-start;
+        }
+        .analysis-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.6rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.04em;
+        }
+        .analysis-agent-pill {
+            padding: 0.15rem 0.55rem;
+            border-radius: 4px;
+            font-size: 0.62rem;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+        }
+        .analysis-filename {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            margin-left: auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+        .analysis-body { white-space: pre-wrap; word-break: break-word; }
+        .analysis-body h2 {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--green);
+            margin: 0.75rem 0 0.35rem;
+            letter-spacing: 0.04em;
+        }
+        .analysis-body h2::after { display: none; }
+        .analysis-body strong { color: var(--text); font-weight: 600; }
+        .analysis-body code {
+            background: rgba(76,175,80,0.08);
+            border: 1px solid rgba(76,175,80,0.2);
+            border-radius: 3px;
+            padding: 0.05rem 0.3rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--green-light);
+        }
+        .analysis-web-context {
+            margin-top: 0.65rem;
+            padding-top: 0.55rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+        .analysis-web-context strong {
+            color: #93c5fd;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.04em;
+        }
+        .analysis-suggestions { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.6rem; }
+        .analysis-suggestion-btn {
+            background: rgba(76,175,80,0.07);
+            border: 1px solid rgba(76,175,80,0.22);
+            color: var(--green-light);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: 0.02em;
+        }
+        .analysis-suggestion-btn:hover { background: rgba(76,175,80,0.18); border-color: var(--green); }
+        .file-upload-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--green);
+            padding: 0.5rem 0;
+        }
+        .file-upload-progress::before {
+            content: '';
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            border: 2px solid rgba(76,175,80,0.3);
+            border-top-color: var(--green);
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
     </style>
     <!-- Leaflet for route maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -1569,7 +1673,7 @@
             <button class="img-preview-remove" onclick="removeImage()">✕</button>
         </div>
     </div>
-    <input type="file" id="img-file-input" accept="image/*" style="display:none" onchange="handleImageSelect(event)" />
+    <input type="file" id="img-file-input" accept="image/*,application/pdf,text/plain,text/csv,text/markdown,.md,.csv,.txt,.pdf" style="display:none" onchange="handleImageSelect(event)" />
     <div class="chat-input-row">
         <button class="chat-icon-btn" id="voice-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
         <button class="chat-icon-btn" onclick="document.getElementById('img-file-input').click()" title="Send image">🖼️</button>
@@ -2936,40 +3040,75 @@ function quickAsk(q) {
 }
 
 // ── IMAGE HANDLING (unchanged) ──
+// ── FILE HANDLING — images, PDFs, text files ──
+let pendingFileName   = null;
+let pendingFileIsAnalyzable = false;
+ 
+const ANALYZE_ALLOWED = new Set([
+  'image/jpeg','image/png','image/webp','image/gif',
+  'application/pdf','text/plain','text/csv','text/markdown',
+]);
+ 
 function handleImageSelect(e) {
     const file = e.target.files[0];
     if (!file) return;
-    // ── CLIENT-SIDE PRE-FLIGHT (server re-validates everything) ──
-    const ALLOWED_TYPES = new Set(['image/jpeg','image/png','image/webp','image/gif']);
-    if (!ALLOWED_TYPES.has(file.type)) {
-        alert(`❌ File type "${file.type}" is not allowed.\nAccepted: JPEG, PNG, WebP, GIF.`);
+ 
+    if (!ANALYZE_ALLOWED.has(file.type)) {
+        addBotMsg('❌ File type "' + file.type + '" is not supported.\nAccepted: JPEG, PNG, WebP, GIF, PDF, TXT, CSV, Markdown.');
         e.target.value = '';
         return;
     }
-    const MAX_MB = 5;
-    if (file.size > MAX_MB * 1024 * 1024) {
-        alert(`❌ Image is too large (${(file.size/1048576).toFixed(1)} MB).\nMaximum allowed size is ${MAX_MB} MB.`);
+    if (file.size > 5 * 1024 * 1024) {
+        addBotMsg('❌ File is too large (' + (file.size/1048576).toFixed(1) + ' MB). Max is 5 MB.');
         e.target.value = '';
         return;
     }
-    // ── END PRE-FLIGHT ──
+ 
+    pendingFileName = file.name;
+    const isImage = file.type.startsWith('image/');
+    pendingFileIsAnalyzable = !isImage;
+ 
     const reader = new FileReader();
     reader.onload = ev => {
         const dataUrl = ev.target.result;
         pendingImageBase64 = dataUrl.split(',')[1];
-        pendingImageType = file.type;
-        document.getElementById('img-preview-img').src = dataUrl;
-        document.getElementById('img-preview-wrap').classList.add('has-img');
+        pendingImageType   = file.type;
+ 
+        if (isImage) {
+            document.getElementById('img-preview-img').src = dataUrl;
+            document.getElementById('img-preview-img').style.display = '';
+            document.getElementById('img-preview-wrap').classList.add('has-img');
+        } else {
+            document.getElementById('img-preview-img').src = '';
+            document.getElementById('img-preview-img').style.display = 'none';
+            const wrap = document.getElementById('img-preview-wrap');
+            wrap.classList.add('has-img');
+            let pill = document.getElementById('file-name-pill');
+            if (!pill) {
+                pill = document.createElement('div');
+                pill.id = 'file-name-pill';
+                pill.style.cssText = 'display:inline-flex;align-items:center;gap:0.4rem;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:var(--green-light);border-radius:6px;padding:0.35rem 0.7rem;font-family:\'Space Mono\',monospace;font-size:0.72rem;max-width:220px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;';
+                document.querySelector('.img-preview').appendChild(pill);
+            }
+            const icons = { 'application/pdf':'📄', 'text/plain':'📝', 'text/csv':'📊', 'text/markdown':'📝' };
+            pill.textContent = (icons[file.type] || '📎') + ' ' + file.name;
+            pill.style.display = 'inline-flex';
+        }
     };
     reader.readAsDataURL(file);
     e.target.value = '';
 }
-
+ 
 function removeImage() {
-    pendingImageBase64 = null;
-    pendingImageType = null;
+    pendingImageBase64      = null;
+    pendingImageType        = null;
+    pendingFileName         = null;
+    pendingFileIsAnalyzable = false;
     document.getElementById('img-preview-wrap').classList.remove('has-img');
-    document.getElementById('img-preview-img').src = '';
+    const img = document.getElementById('img-preview-img');
+    img.src = ''; img.style.display = '';
+    const pill = document.getElementById('file-name-pill');
+    if (pill) { pill.style.display = 'none'; pill.textContent = ''; }
 }
 
 // ── VOICE INPUT (unchanged) ──
@@ -3016,6 +3155,120 @@ function addBotMsg(text) {
     msgs.scrollTop = msgs.scrollHeight;
 }
 
+// ── FILE ANALYSIS ENGINE ──
+async function analyzeFile(userPrompt) {
+    if (!pendingImageBase64 || !pendingImageType) return false;
+    const msgs = document.getElementById('chat-messages');
+    const fileName = pendingFileName || 'file';
+    const mimeType = pendingImageType;
+    const fileData = pendingImageBase64;
+    const isImage  = mimeType.startsWith('image/');
+ 
+    const userDiv = document.createElement('div');
+    userDiv.className = 'msg user';
+    if (isImage) {
+        const imgEl = document.createElement('img');
+        imgEl.src = 'data:' + mimeType + ';base64,' + fileData;
+        imgEl.className = 'msg-img';
+        if (userPrompt) userDiv.textContent = userPrompt;
+        userDiv.appendChild(imgEl);
+    } else {
+        const icons = { 'application/pdf':'📄', 'text/plain':'📝', 'text/csv':'📊', 'text/markdown':'📝' };
+        userDiv.textContent = (icons[mimeType] || '📎') + ' ' + fileName + (userPrompt ? '\n' + userPrompt : '');
+    }
+    msgs.appendChild(userDiv);
+ 
+    const progressDiv = document.createElement('div');
+    progressDiv.className = 'file-upload-progress';
+    progressDiv.textContent = 'Analyzing ' + fileName + '…';
+    msgs.appendChild(progressDiv);
+    msgs.scrollTop = msgs.scrollHeight;
+ 
+    removeImage();
+ 
+    try {
+        const res = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                file: fileData, mimeType, fileName,
+                userPrompt: userPrompt || 'Analyze this file in detail.',
+                sessionId: SESSION_ID,
+                enableWebSearch: needsWebSearch(userPrompt || ''),
+            }),
+        });
+        progressDiv.remove();
+        const data = await res.json();
+        if (!res.ok) { addBotMsg('❌ Analysis failed: ' + (data.error || 'Unknown error')); return true; }
+ 
+        const card = document.createElement('div');
+        card.className = 'analysis-card';
+ 
+        const header = document.createElement('div');
+        header.className = 'analysis-header';
+        const pill = document.createElement('span');
+        pill.className = 'analysis-agent-pill';
+        pill.style.cssText = 'background:' + data.agentColor + '18;border:1px solid ' + data.agentColor + '40;color:' + data.agentColor;
+        pill.textContent = data.agentEmoji + ' ' + data.agentLabel;
+        const fnSpan = document.createElement('span');
+        fnSpan.className = 'analysis-filename';
+        fnSpan.textContent = data.fileName || fileName;
+        fnSpan.title = data.fileName || fileName;
+        header.appendChild(pill); header.appendChild(fnSpan);
+        card.appendChild(header);
+ 
+        const body = document.createElement('div');
+        body.className = 'analysis-body';
+        body.innerHTML = renderAnalysisMarkdown(data.analysis || 'No analysis returned.');
+        card.appendChild(body);
+ 
+        if (data.webContext) {
+            const wc = document.createElement('div');
+            wc.className = 'analysis-web-context';
+            wc.innerHTML = '<strong>🌐 WEB CONTEXT</strong><br>' + escapeHtml(data.webContext);
+            card.appendChild(wc);
+        }
+ 
+        if (data.suggestions && data.suggestions.length > 0) {
+            const suggRow = document.createElement('div');
+            suggRow.className = 'analysis-suggestions';
+            data.suggestions.forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = 'analysis-suggestion-btn';
+                btn.textContent = s;
+                btn.onclick = () => { document.getElementById('chat-input').value = s; sendMsg(); };
+                suggRow.appendChild(btn);
+            });
+            card.appendChild(suggRow);
+        }
+ 
+        msgs.appendChild(card);
+        chatHistory.push({ role: 'user', content: userPrompt || '[Analyzed file: ' + fileName + ']' });
+        chatHistory.push({ role: 'assistant', content: '[File Analysis — ' + data.agentLabel + ']\n' + data.analysis });
+        msgs.scrollTop = msgs.scrollHeight;
+        return true;
+ 
+    } catch (err) {
+        progressDiv.remove();
+        console.error('analyzeFile error:', err);
+        addBotMsg('❌ Analysis failed — check your connection and try again.');
+        return true;
+    }
+}
+ 
+function renderAnalysisMarkdown(text) {
+    return text
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+}
+ 
+function escapeHtml(text) {
+    return String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 // ── SEND MESSAGE — with SSE streaming for web search ──
 async function sendMsg() {
   const input = document.getElementById('chat-input');
@@ -3023,6 +3276,13 @@ async function sendMsg() {
   if (!text && !pendingImageBase64) return;
   input.value = '';
   document.getElementById('quick-btns').style.display = 'none';
+ 
+  // ── ROUTE TO FILE ANALYSIS ──
+  const ANALYZE_TRIGGERS = /\b(analyze|analyse|read|extract|review|summarize|check|scan|parse|tell me about|describe|breakdown|break down)\b/i;
+  if (pendingImageBase64 && (pendingFileIsAnalyzable || ANALYZE_TRIGGERS.test(text))) {
+      const handled = await analyzeFile(text);
+      if (handled) return;
+  }
  
   const msgs = document.getElementById('chat-messages');
   const userDiv = document.createElement('div');

@@ -2969,11 +2969,17 @@ function newChat() {
 
 // ── AI MODEL SELECTION ──
 const AI_MODELS = [
-    { key: 'claude-opus-4-8',   name: 'Claude Opus 4.8',   provider: 'Anthropic', note: 'Smartest, best for deep advice' },
-    { key: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', provider: 'Anthropic', note: 'Fast and capable, great default' },
-    { key: 'gpt-5.5',           name: 'ChatGPT 5.5',       provider: 'OpenAI',    note: 'OpenAI flagship' },
-    { key: 'gpt-5.4',           name: 'ChatGPT 5.4',       provider: 'OpenAI',    note: 'Strong all-rounder' },
-    { key: 'gpt-5.4-mini',      name: 'ChatGPT 5.4 mini',  provider: 'OpenAI',    note: 'Fastest, lowest cost' },
+    { key: 'claude-opus-4-8',   name: 'Claude Opus 4.8',    provider: 'Anthropic', note: 'Smartest, best for deep advice' },
+    { key: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6',  provider: 'Anthropic', note: 'Fast and capable, great default' },
+    { key: 'gpt-5.5',           name: 'ChatGPT 5.5',        provider: 'OpenAI',    note: 'OpenAI flagship' },
+    { key: 'gpt-5.4',           name: 'ChatGPT 5.4',        provider: 'OpenAI',    note: 'Strong all-rounder' },
+    { key: 'gpt-5.4-mini',      name: 'ChatGPT 5.4 mini',   provider: 'OpenAI',    note: 'Fastest, lowest cost' },
+    { key: 'grok-3',            name: 'Grok 3',             provider: 'xAI',       note: 'xAI flagship, great for reasoning' },
+    { key: 'grok-3-mini',       name: 'Grok 3 Mini',        provider: 'xAI',       note: 'Fast and efficient Grok' },
+    { key: 'gemini-2.5-flash',  name: 'Gemini 2.5 Flash',   provider: 'Google',    note: 'Google flagship, fast + multimodal' },
+    { key: 'gemini-2.5-pro',    name: 'Gemini 2.5 Pro',     provider: 'Google',    note: 'Google most capable model' },
+    { key: 'llama-4-maverick',  name: 'Llama 4 Maverick',   provider: 'Meta',      note: 'Meta open-source, via Together.ai' },
+    { key: 'llama-3.3-70b',     name: 'Llama 3.3 70B',      provider: 'Meta',      note: 'Strong open-source model' },
 ];
 
 let selectedModel = localStorage.getItem('hooda_model') || 'claude-opus-4-8';

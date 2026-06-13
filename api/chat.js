@@ -669,12 +669,19 @@ async function streamAnthropicResponse(res, cfg, apiKey, systemBlocks, messages)
 }
 
 // ── MODEL REGISTRY ──
+// ── MODEL REGISTRY ──
 const MODELS = {
-  'claude-opus-4-8':   { provider: 'anthropic', api: 'claude-opus-4-8' },
-  'claude-sonnet-4-6': { provider: 'anthropic', api: 'claude-sonnet-4-6' },
-  'gpt-5.5':           { provider: 'openai',    api: 'gpt-5.5' },
-  'gpt-5.4':           { provider: 'openai',    api: 'gpt-5.4' },
-  'gpt-5.4-mini':      { provider: 'openai',    api: 'gpt-5.4-mini' },
+  'claude-opus-4-8':        { provider: 'anthropic', api: 'claude-opus-4-8' },
+  'claude-sonnet-4-6':      { provider: 'anthropic', api: 'claude-sonnet-4-6' },
+  'gpt-5.5':                { provider: 'openai',    api: 'gpt-5.5' },
+  'gpt-5.4':                { provider: 'openai',    api: 'gpt-5.4' },
+  'gpt-5.4-mini':           { provider: 'openai',    api: 'gpt-5.4-mini' },
+  'grok-3':                 { provider: 'xai',       api: 'grok-3' },
+  'grok-3-mini':            { provider: 'xai',       api: 'grok-3-mini' },
+  'gemini-2.5-flash':       { provider: 'google',    api: 'gemini-2.5-flash-preview-05-20' },
+  'gemini-2.5-pro':         { provider: 'google',    api: 'gemini-2.5-pro-preview-06-05' },
+  'llama-4-maverick':       { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
+  'llama-3.3-70b':          { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
 };
 const DEFAULT_MODEL = 'claude-opus-4-8';
 
@@ -719,9 +726,13 @@ export default async function handler(req, res) {
   const picked = MODELS[model] ? model : DEFAULT_MODEL;
   const cfg    = MODELS[picked];
 
-  const apiKey = cfg.provider === 'anthropic'
-    ? process.env.ANTHROPIC_API_KEY
-    : process.env.OPENAI_API_KEY;
+  const apiKey = {
+    anthropic: process.env.ANTHROPIC_API_KEY,
+    openai:    process.env.OPENAI_API_KEY,
+    xai:       process.env.XAI_API_KEY,
+    google:    process.env.GOOGLE_API_KEY,
+    together:  process.env.TOGETHER_API_KEY,
+  }[cfg.provider];
   if (!apiKey) return res.status(500).json({ error: `API key not configured for ${cfg.provider}` });
 
   const requestStart = Date.now();
@@ -1157,7 +1168,62 @@ RESPONSE GUIDELINES
   try {
     let reply;
 
-    if (cfg.provider === 'anthropic') {
+    if (cfg.provider === 'xai') {
+      // ── xAI (Grok) — OpenAI-compatible endpoint ──
+      const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: cfg.api,
+          max_tokens: 1024,
+          messages: [
+            { role: 'system', content: systemText },
+            ...toOpenAIChat(messages),
+          ],
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) { console.error('xAI error:', JSON.stringify(data)); return res.status(502).json({ error: 'xAI API error', detail: data }); }
+      reply = filterOutput(data.choices?.[0]?.message?.content ?? "Reach Yash at yash.hooda6@gmail.com!");
+ 
+    } else if (cfg.provider === 'google') {
+      // ── Google (Gemini) — Generative Language API ──
+      const geminiMessages = toGeminiMessages(messages);
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${cfg.api}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemText }] },
+            contents: geminiMessages,
+            generationConfig: { maxOutputTokens: 1024 },
+          }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) { console.error('Gemini error:', JSON.stringify(data)); return res.status(502).json({ error: 'Gemini API error', detail: data }); }
+      reply = filterOutput(data.candidates?.[0]?.content?.parts?.[0]?.text ?? "Reach Yash at yash.hooda6@gmail.com!");
+ 
+    } else if (cfg.provider === 'together') {
+      // ── Together.ai (Meta Llama) — OpenAI-compatible endpoint ──
+      const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: cfg.api,
+          max_tokens: 1024,
+          messages: [
+            { role: 'system', content: systemText },
+            ...toOpenAIChat(messages),
+          ],
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) { console.error('Together error:', JSON.stringify(data)); return res.status(502).json({ error: 'Together API error', detail: data }); }
+      reply = filterOutput(data.choices?.[0]?.message?.content ?? "Reach Yash at yash.hooda6@gmail.com!");
+ 
+    } else if (cfg.provider === 'anthropic') {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
@@ -1241,6 +1307,34 @@ function toOpenAIInput(messages) {
       return { role: m.role, content: parts };
     }
     return { role: m.role, content: String(m.content) };
+  });
+}
+
+// ── toOpenAIChat: convert Anthropic-style messages to plain OpenAI chat format ──
+function toOpenAIChat(messages) {
+  return messages.map(m => {
+    if (typeof m.content === 'string') return { role: m.role, content: m.content };
+    if (Array.isArray(m.content)) {
+      const textParts = m.content
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join(' ');
+      return { role: m.role, content: textParts || '[media]' };
+    }
+    return { role: m.role, content: String(m.content) };
+  });
+}
+ 
+// ── toGeminiMessages: convert to Gemini contents format ──
+function toGeminiMessages(messages) {
+  return messages.map(m => {
+    const role = m.role === 'assistant' ? 'model' : 'user';
+    const text = typeof m.content === 'string'
+      ? m.content
+      : Array.isArray(m.content)
+        ? m.content.filter(b => b.type === 'text').map(b => b.text).join(' ') || '[media]'
+        : String(m.content);
+    return { role, parts: [{ text }] };
   });
 }
 

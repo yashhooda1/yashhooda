@@ -1258,6 +1258,14 @@
         .strava-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #fc4c02, #ff6b35); }
         .strava-type-badge { display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.2); color: #fc4c02; padding: 0.15rem 0.55rem; border-radius: 4px; font-size: 0.68rem; font-family: 'Space Mono', monospace; letter-spacing: 0.04em; margin-bottom: 0.5rem; }
         .strava-name { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--text); font-weight: 700; margin-bottom: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .strava-desc {     
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-style: italic;
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+        white-space: pre-line;
+        }
         .strava-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
         .strava-stat-val { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--green); font-weight: 700; display: block; }
         .strava-stat-label { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
@@ -4676,6 +4684,7 @@ async function loadStrava() {
             <div class="strava-card">
                 <div class="strava-type-badge">${typeIcon(a.sport_type || a.type)} ${a.sport_type || a.type}</div>
                 <div class="strava-name" title="${a.name}">${a.name}</div>
+                ${a.description ? `<div class="strava-desc">${a.description}</div>` : ''}
                 <div class="strava-stats">
                     <div class="strava-stat"><span class="strava-stat-val">${a.distance_mi} mi</span><span class="strava-stat-label">Distance</span></div>
                     <div class="strava-stat"><span class="strava-stat-val">${fmtTime(a.moving_time_s)}</span><span class="strava-stat-label">Moving Time</span></div>

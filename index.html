@@ -1271,6 +1271,29 @@
         .strava-view-all:hover { background: rgba(252,76,2,0.15); border-color: #fc4c02; color: #fc4c02; }
         .strava-map { height: 140px; border-radius: 6px; margin: 0.65rem 0 0.5rem; overflow: hidden; background: rgba(255,255,255,0.04); }
         .strava-map .leaflet-container { background: #1a1a2e; }
+        /* ── Dark Web Intel ────────────────────────────────── */
+        .dw-sub-btn {
+        background: rgba(139,0,0,0.08);
+        border: 1px solid rgba(139,0,0,0.25);
+        color: var(--text-muted);
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.72rem;
+        font-family: 'Space Mono', monospace;
+        cursor: pointer;
+        transition: all 0.2s;
+        }
+        .dw-sub-btn:hover { color: #ff4444; border-color: rgba(255,68,68,0.5); }
+        .dw-sub-btn.active {
+        background: rgba(139,0,0,0.18);
+        border-color: #ff4444;
+        color: #ff4444;
+        }
+        .net-risk-critical { color: #ff2222; font-weight: 700; }
+        .net-risk-high     { color: #ff6600; font-weight: 700; }
+        .net-risk-medium   { color: #ffcc00; font-weight: 700; }
+        .net-risk-low      { color: #44ff44; font-weight: 700; }
+        .net-risk-unknown  { color: #888;    font-weight: 700; }
         /* ── RUNNING ANALYTICS ── */
         .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
         .analytics-card { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.1rem; text-align: center; transition: all 0.25s; }
@@ -2173,9 +2196,18 @@
             <button class="network-tool-btn"        id="tool-ping"    onclick="setTool('ping')">📡 Ping</button>
             <button class="network-tool-btn"        id="tool-traceroute" onclick="setTool('traceroute')">🗺️ Traceroute</button>
             <button class="network-tool-btn"        id="tool-headers" onclick="setTool('headers')">🔒 HTTP Headers</button>
+            <button class="network-tool-btn" id="tool-darkweb" onclick="setTool('darkweb')">🕵️ Dark Web Intel</button>
         </div>
 
         <div class="network-examples" id="net-examples"></div>
+
+        <!-- DARK WEB SUB-TOOLS (hidden unless darkweb tool active) -->
+        <div id="darkweb-subtool-bar" style="display:none; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+            <button class="dw-sub-btn active" id="dw-breach"     onclick="setDwTool('breach')">🔓 Breach Check</button>
+            <button class="dw-sub-btn"        id="dw-threat"     onclick="setDwTool('threat')">🚨 Threat Intel</button>
+            <button class="dw-sub-btn"        id="dw-reputation" onclick="setDwTool('reputation')">🌐 Domain Rep</button>
+            <button class="dw-sub-btn"        id="dw-paste"      onclick="setDwTool('paste')">📋 Paste Monitor</button>
+        </div>
 
         <div class="network-input-row">
             <input class="network-input" id="network-target" type="text" placeholder="Enter domain or IP (e.g. google.com)" onkeydown="if(event.key==='Enter') runNetworkTool()" />
@@ -3694,6 +3726,10 @@ const NET_DESCRIPTIONS = {
 };
 
 function setTool(tool) {
+    // Show/hide dark web sub-tool bar
+    const dwBar = document.getElementById('darkweb-subtool-bar');
+    if (dwBar) dwBar.style.display = tool === 'darkweb' ? 'flex' : 'none';
+    if (tool === 'darkweb') { setDwTool(currentDwTool); return; }
     currentNetTool = tool;
     document.querySelectorAll('.network-tool-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`tool-${tool}`).classList.add('active');
@@ -3793,6 +3829,7 @@ function formatNetOutput(tool, target, result) {
 }
 
 async function runNetworkTool() {
+    if (currentNetTool === 'darkweb') { runDarkWebTool(); return; }
     const target = document.getElementById('network-target').value.trim();
     const output = document.getElementById('network-output');
     const btn = document.getElementById('network-run-btn');
@@ -3829,6 +3866,177 @@ async function runNetworkTool() {
     }
 }
 
+// ── Dark Web Intel ──────────────────────────────────────────────────────────
+let currentDwTool = 'breach';
+
+const DW_EXAMPLES = {
+    breach:     ['test@example.com', 'user@gmail.com'],
+    threat:     ['1.1.1.1', '8.8.8.8', '45.33.32.156'],
+    reputation: ['google.com', 'pastebin.com', 'example.net'],
+    paste:      ['user@example.com', 'mydomain.com'],
+};
+
+const DW_PLACEHOLDERS = {
+    breach:     'Enter email address (e.g. user@example.com)',
+    threat:     'Enter IP address (e.g. 192.168.1.1)',
+    reputation: 'Enter domain (e.g. example.com)',
+    paste:      'Enter email or domain to scan',
+};
+
+function setDwTool(tool) {
+    currentDwTool = tool;
+    document.querySelectorAll('.dw-sub-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('dw-' + tool)?.classList.add('active');
+    document.getElementById('network-target').placeholder = DW_PLACEHOLDERS[tool] || 'Enter target...';
+    const exBox = document.getElementById('net-examples');
+    exBox.innerHTML = (DW_EXAMPLES[tool] || [])
+        .map(e => `<span class="net-example" onclick="document.getElementById('network-target').value='${e}'">${e}</span>`)
+        .join('');
+    document.getElementById('network-output').innerHTML =
+        `<span class="net-dim">// Select a target and click Run to scan</span>`;
+}
+
+function riskColor(level) {
+    const map = { CRITICAL:'net-risk-critical', HIGH:'net-risk-high', MEDIUM:'net-risk-medium', LOW:'net-risk-low' };
+    return map[level?.toUpperCase()] || 'net-risk-unknown';
+}
+
+function formatDwOutput(tool, target, result) {
+    if (result.error) return `<span class="net-err">// Error: ${result.error}</span>`;
+
+    const ts = new Date().toISOString();
+    let out = `<span class="net-dim">// Dark Web Intel — ${tool.toUpperCase()} — ${target}</span>\n`;
+    out += `<span class="net-dim">// Scan time: ${ts}</span>\n\n`;
+
+    if (result.aiPowered || result.aiAnalysis) {
+        out += `<span class="net-warn">// ⚠ AI-powered analysis (live API key not configured)</span>\n\n`;
+    }
+
+    if (tool === 'breach') {
+        if (!result.found) {
+            out += `<span class="net-ok">✓ No breaches found for ${target}</span>\n`;
+            out += `<span class="net-dim">// This email does not appear in known breach databases.</span>`;
+        } else {
+            out += `<span class="net-risk-critical">⚠ BREACHED — ${result.count} breach(es) found</span>\n\n`;
+            (result.breaches || []).forEach((b, i) => {
+                out += `<span class="net-label">[${i+1}] ${b.name}</span> — <span class="net-dim">${b.domain} | ${b.date}</span>\n`;
+                if (b.dataClasses?.length) {
+                    out += `    Data exposed: <span class="net-warn">${b.dataClasses.slice(0,6).join(', ')}</span>\n`;
+                }
+                if (b.description) out += `    ${b.description}\n`;
+                out += '\n';
+            });
+        }
+        if (result.riskLevel) {
+            out += `\nRisk Level: <span class="${riskColor(result.riskLevel)}">${result.riskLevel}</span>\n`;
+        }
+        if (result.recommendations?.length) {
+            out += `\nRecommendations:\n`;
+            result.recommendations.forEach(r => { out += `  → ${r}\n`; });
+        }
+    }
+
+    else if (tool === 'threat') {
+        const r = result;
+        if (r.riskLevel) out += `Risk Level: <span class="${riskColor(r.riskLevel)}">${r.riskLevel}</span>\n\n`;
+        if (r.ip) {
+            out += `IP Address : ${r.ip}\n`;
+            out += `Country    : ${r.country || 'Unknown'}\n`;
+            out += `ISP        : ${r.isp || 'Unknown'}\n`;
+            out += `Domain     : ${r.domain || 'N/A'}\n`;
+            out += `Usage Type : ${r.usageType || 'Unknown'}\n`;
+            out += `Is Tor     : <span class="${r.isTor ? 'net-risk-critical' : 'net-ok'}">${r.isTor ? 'YES ⚠' : 'No'}</span>\n`;
+            out += `Is VPN     : <span class="${r.isVpn ? 'net-warn' : 'net-ok'}">${r.isVpn ? 'YES' : 'No'}</span>\n\n`;
+            out += `Abuse Score    : <span class="${riskColor(r.riskLevel)}">${r.abuseScore}/100</span>\n`;
+            out += `Total Reports  : ${r.totalReports ?? 'N/A'}\n`;
+            out += `Last Reported  : ${r.lastReported || 'Never'}\n`;
+        }
+        if (r.analysis) out += `\nAnalysis: ${r.analysis}\n`;
+        if (r.recommendations?.length) {
+            out += `\nRecommendations:\n`;
+            r.recommendations.forEach(rec => { out += `  → ${rec}\n`; });
+        }
+    }
+
+    else if (tool === 'reputation') {
+        const r = result;
+        if (r.riskLevel) out += `Risk Level: <span class="${riskColor(r.riskLevel)}">${r.riskLevel}</span>\n\n`;
+        if (r.domain) {
+            out += `Domain         : ${r.domain}\n`;
+            out += `Reputation     : ${r.reputation ?? 'N/A'}\n`;
+            out += `Last Analysis  : ${r.lastAnalysis || 'N/A'}\n\n`;
+            out += `Malicious Vendors  : <span class="${r.maliciousVendors > 0 ? 'net-risk-critical' : 'net-ok'}">${r.maliciousVendors} / ${r.totalVendors}</span>\n`;
+            out += `Suspicious Vendors : <span class="${r.suspiciousVendors > 0 ? 'net-warn' : 'net-ok'}">${r.suspiciousVendors} / ${r.totalVendors}</span>\n`;
+        }
+        if (r.categories?.length) out += `\nCategories : ${r.categories.join(', ')}\n`;
+        if (r.flaggedVendors?.length) {
+            out += `\nFlagged by:\n`;
+            r.flaggedVendors.forEach(v => { out += `  • ${v}\n`; });
+        }
+        if (r.analysis) out += `\nAnalysis: ${r.analysis}\n`;
+        if (r.recommendations?.length) {
+            out += `\nRecommendations:\n`;
+            r.recommendations.forEach(rec => { out += `  → ${rec}\n`; });
+        }
+    }
+
+    else if (tool === 'paste') {
+        const r = result;
+        if (r.riskLevel) out += `Risk Level: <span class="${riskColor(r.riskLevel)}">${r.riskLevel}</span>\n\n`;
+        if (r.pasteExposure) out += `Paste Exposure : ${r.pasteExposure}\n`;
+        if (r.patterns?.length) {
+            out += `\nCommon Patterns:\n`;
+            r.patterns.forEach(p => { out += `  • ${p}\n`; });
+        }
+        if (r.indicators?.length) {
+            out += `\nDark Web Indicators:\n`;
+            r.indicators.forEach(ind => { out += `  ⚑ ${ind}\n`; });
+        }
+        if (r.recommendations?.length) {
+            out += `\nRecommendations:\n`;
+            r.recommendations.forEach(rec => { out += `  → ${rec}\n`; });
+        }
+        if (r.rawAnalysis) out += `\n${r.rawAnalysis}`;
+    }
+
+    return out;
+}
+
+async function runDarkWebTool() {
+    const target = document.getElementById('network-target').value.trim();
+    const output = document.getElementById('network-output');
+    const btn = document.getElementById('network-run-btn');
+
+    if (!target) {
+        output.innerHTML = '<span class="net-err">// Error: Please enter a target</span>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Scanning...';
+    output.innerHTML = `<span class="net-dim">// 🕵️ Running dark web intelligence scan on ${target}...</span>`;
+
+    try {
+        const res = await fetch('/api/darkweb', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool: currentDwTool, target }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+            output.innerHTML = `<span class="net-err">// Error: ${data.error || 'Request failed'}</span>`;
+            return;
+        }
+
+        output.innerHTML = formatDwOutput(currentDwTool, data.target, data.result);
+    } catch (err) {
+        output.innerHTML = `<span class="net-err">// Network error: ${err.message}</span>`;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '▶ Run';
+    }
+}
 // Initialize examples on load
 setTool('dns');
 

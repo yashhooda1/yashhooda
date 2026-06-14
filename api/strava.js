@@ -65,6 +65,7 @@ export default async function handler(req, res) {
         : null,
       avg_hr:        a.average_heartrate || null,
       max_hr:        a.max_heartrate || null,
+      description:   a.description || null,
       kudos:         a.kudos_count,
       suffer_score:  a.suffer_score || null,
       map_polyline:  a.map?.summary_polyline || null,

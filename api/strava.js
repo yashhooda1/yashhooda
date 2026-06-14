@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     // 3a. Fetch descriptions for top 8 (list endpoint doesn't include description)
     const descriptions = {};
     await Promise.all(
-        activities.slice(0, 8).map(a =>
+        activities.slice(0, 30).map(a =>
             fetch(`https://www.strava.com/api/v3/activities/${a.id}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             })

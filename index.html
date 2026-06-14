@@ -3726,18 +3726,21 @@ const NET_DESCRIPTIONS = {
 };
 
 function setTool(tool) {
+    // Always update active button state first
+    document.querySelectorAll('.network-tool-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tool-${tool}`)?.classList.add('active');
+
     // Show/hide dark web sub-tool bar
     const dwBar = document.getElementById('darkweb-subtool-bar');
     if (dwBar) dwBar.style.display = tool === 'darkweb' ? 'flex' : 'none';
-    if (tool === 'darkweb') { setDwTool(currentDwTool); return; }
+
+    if (tool === 'darkweb') { currentNetTool = 'darkweb'; setDwTool(currentDwTool); return; }
+
     currentNetTool = tool;
-    document.querySelectorAll('.network-tool-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`tool-${tool}`).classList.add('active');
     document.getElementById('network-output').innerHTML = NET_DESCRIPTIONS[tool] || '// Ready';
     document.getElementById('network-target').placeholder =
         tool === 'headers' ? 'Enter domain (e.g. github.com)' : 'Enter domain or IP (e.g. google.com)';
 
-    // Update examples
     const examplesEl = document.getElementById('net-examples');
     examplesEl.innerHTML = NET_EXAMPLES[tool].map(e =>
         `<span class="net-example" onclick="document.getElementById('network-target').value='${e}'">${e}</span>`

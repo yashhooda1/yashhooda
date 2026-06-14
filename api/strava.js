@@ -41,6 +41,19 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: 'Activities fetch failed', detail: activities });
     }
 
+    // 3a. Fetch descriptions for top 8 (list endpoint doesn't include description)
+    const descriptions = {};
+    await Promise.all(
+        activities.slice(0, 8).map(a =>
+            fetch(`https://www.strava.com/api/v3/activities/${a.id}`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            })
+            .then(r => r.json())
+            .then(d => { descriptions[a.id] = d.description || null; })
+            .catch(() => {})
+         )
+     );
+
     // 3. Shape the data
     const shaped = activities.map(a => ({
       id:            a.id,
@@ -65,7 +78,7 @@ export default async function handler(req, res) {
         : null,
       avg_hr:        a.average_heartrate || null,
       max_hr:        a.max_heartrate || null,
-      description:   a.description || null,
+      description:   descriptions[a.id] || null,
       kudos:         a.kudos_count,
       suffer_score:  a.suffer_score || null,
       map_polyline:  a.map?.summary_polyline || null,

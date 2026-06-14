@@ -55,7 +55,7 @@ export default async function handler(req, res) {
         .catch(() => {})
         .finally(() => { clearTimeout(timer); resolve(); });
     });
-    await Promise.all(activities.slice(0, 30).map(a => descTimeout(a.id)));
+    await Promise.all(activities.slice(0, 6).map(a => descTimeout(a.id)));
 
     // 3. Shape the data
     const shaped = activities.map(a => ({

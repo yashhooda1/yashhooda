@@ -41,18 +41,21 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: 'Activities fetch failed', detail: activities });
     }
 
-    // 3a. Fetch descriptions for top 8 (list endpoint doesn't include description)
+    // 3a. Fetch descriptions with timeout to avoid blocking mobile
     const descriptions = {};
-    await Promise.all(
-        activities.slice(0, 30).map(a =>
-            fetch(`https://www.strava.com/api/v3/activities/${a.id}`, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            })
-            .then(r => r.json())
-            .then(d => { descriptions[a.id] = d.description || null; })
-            .catch(() => {})
-         )
-     );
+    const descTimeout = (id) => new Promise(resolve => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => { controller.abort(); resolve(); }, 3000);
+        fetch(`https://www.strava.com/api/v3/activities/${id}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal
+        })
+        .then(r => r.json())
+        .then(d => { descriptions[id] = d.description || null; })
+        .catch(() => {})
+        .finally(() => { clearTimeout(timer); resolve(); });
+    });
+    await Promise.all(activities.slice(0, 30).map(a => descTimeout(a.id)));
 
     // 3. Shape the data
     const shaped = activities.map(a => ({

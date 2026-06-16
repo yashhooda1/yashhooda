@@ -25,12 +25,5 @@
         { "key": "Content-Type", "value": "text/plain" }
       ]
     }
-  ],
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "destination": "https://www.yashhooda.ai/$1",
-      "permanent": true
-    }
   ]
 }

@@ -1,35 +1,36 @@
 {
   "version": 2,
   "functions": {
-    "api/chat.js": { "maxDuration": 60 },
+    "api/chat.js":        { "maxDuration": 60 },
     "api/chat-search.js": { "maxDuration": 60 },
-    "api/analytics.js": { "maxDuration": 90 },
-    "api/tts.js":   { "maxDuration": 60 },
-    "api/strava.js":  { "maxDuration": 30 },
-    "api/history.js":  { "maxDuration": 30 },
-    "api/flights.js": { "maxDuration": 30 },
-    "api/analyze.js": { "maxDuration": 60 },
-    "api/network.js": { "maxDuration": 15 },
-    "api/sports.js": { "maxDuration": 15 }
+    "api/analytics.js":   { "maxDuration": 90 },
+    "api/tts.js":         { "maxDuration": 60 },
+    "api/strava.js":      { "maxDuration": 30 },
+    "api/history.js":     { "maxDuration": 30 },
+    "api/flights.js":     { "maxDuration": 30 },
+    "api/analyze.js":     { "maxDuration": 60 },
+    "api/network.js":     { "maxDuration": 15 },
+    "api/sports.js":      { "maxDuration": 15 }
   },
   "headers": [
     {
       "source": "/sitemap.xml",
       "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/xml"
-        }
+        { "key": "Content-Type", "value": "application/xml" }
       ]
     },
     {
       "source": "/robots.txt",
       "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/plain"
-        }
+        { "key": "Content-Type", "value": "text/plain" }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://www.yashhooda.ai/$1",
+      "permanent": true
     }
   ]
 }

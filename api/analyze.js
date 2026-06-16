@@ -13,7 +13,7 @@
 // Response shape:
 //   { analysis, agent, agentLabel, suggestions, citations, webContext }
 // ══════════════════════════════════════════════════════════════════════════════
-
+import { notifyFailure } from './_notify.js';
 export const maxDuration = 60;
 
 // ── ALLOWED FILE TYPES ──────────────────────────────────────────────────────

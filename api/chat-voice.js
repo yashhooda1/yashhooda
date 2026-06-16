@@ -1,4 +1,5 @@
 // api/chat-voice.js — low-latency streaming for the voice tab
+import { notifyFailure } from './_notify.js';
 export const maxDuration = 120;
 export const config = { runtime: 'nodejs' };
 
@@ -64,6 +65,14 @@ export default async function handler(req, res) {
   }
   } catch (err) {
     console.error('chat-voice top-level error:', err);
+    const lastUserMsg = cleanMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+    await notifyFailure({
+      route:       '/api/chat-voice',
+      model:       picked,
+      error:       err,
+      userMessage: lastUserMsg.slice(0, 200),
+      sessionId:   req.body?.sessionId,
+    });
     send({ type: 'error', error: err.message });
   }
 
@@ -99,6 +108,7 @@ async function streamAnthropic(apiModel, messages, send) {
   if (!r.ok) {
     const t = await r.text();
     console.error('Anthropic voice error:', r.status, t);
+    await notifyFailure({ route: '/api/chat-voice [Anthropic]', model: apiModel, error: `${r.status}: ${t.slice(0, 200)}`, userMessage: messages.slice(-1)[0]?.content?.slice(0, 150) });
     send({ type: 'error', error: `Anthropic ${r.status}: ${t.slice(0, 200)}` });
     return;
   }
@@ -160,6 +170,7 @@ async function streamOpenAI(apiModel, messages, send) {
   if (!r.ok) {
     const t = await r.text();
     console.error('OpenAI voice error:', r.status, t);
+    await notifyFailure({ route: '/api/chat-voice [OpenAI]', model: apiModel, error: `${r.status}: ${t.slice(0, 200)}`, userMessage: messages.slice(-1)[0]?.content?.slice(0, 150) });
     send({ type: 'error', error: `OpenAI ${r.status}: ${t.slice(0, 200)}` });
     return;
   }
@@ -217,6 +228,7 @@ async function streamOpenAICompat(baseUrl, apiKey, model, messages, send) {
   });
   if (!r.ok) {
     const t = await r.text();
+    await notifyFailure({ route: `/api/chat-voice [${baseUrl}]`, model, error: `${r.status}: ${t.slice(0, 200)}`, userMessage: messages.slice(-1)[0]?.content?.slice(0, 150) });
     send({ type: 'error', error: `${baseUrl} ${r.status}: ${t.slice(0, 200)}` });
     return;
   }
@@ -267,6 +279,7 @@ async function streamGemini(model, messages, send) {
     send({ type: 'token', text });
     send({ type: 'done', text });
   } catch (e) {
+    await notifyFailure({ route: '/api/chat-voice [Gemini]', model, error: e, userMessage: messages.slice(-1)[0]?.content?.slice(0, 150) });
     send({ type: 'error', error: e.message });
   }
 }

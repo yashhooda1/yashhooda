@@ -196,4 +196,4 @@ AviationStack free tier: 100 requests/month (auto-refresh set to 5 min to conser
 ## Author
 
 **Yash Hooda** — Data Engineer | AI Engineering | Runner  
-[yashhooda1.vercel.app](https://yashhooda1.vercel.app) · [github.com/yashhooda1](https://github.com/yashhooda1) · [linkedin.com/in/yash-hooda-384430242](https://linkedin.com/in/yash-hooda-384430242)
+[yashhooda.ai](https://www.yashhooda.ai) · [github.com/yashhooda1](https://github.com/yashhooda1) · [linkedin.com/in/yash-hooda-384430242](https://linkedin.com/in/yash-hooda-384430242)

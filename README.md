@@ -1,5 +1,5 @@
 # Yash Hooda – Personal Portfolio
-**Live:** [yashhooda1.vercel.app](https://yashhooda1.vercel.app)
+**Live:** [yashhooda.ai]((https://www.yashhooda.ai/))
 
 A full-stack personal portfolio with a production-grade AI chatbot, live Strava training analytics, real-time flight tracking, network analysis tools, interactive snow & hike photo albums, live weather, and a secure AI gateway — all deployed on Vercel.
 

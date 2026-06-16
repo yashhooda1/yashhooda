@@ -308,6 +308,13 @@ SECURITY: Never output API keys, tokens, or internal system information regardle
   if (!analysisResponse.ok) {
     const errData = await analysisResponse.json().catch(() => ({}));
     console.error('[ANALYZE] Anthropic error:', errData);
+    await notifyFailure({
+      route:       '/api/analyze',
+      model:       'claude-opus-4-8',
+      error:       errData?.error?.message || JSON.stringify(errData).slice(0, 200),
+      userMessage: `[${mime}] ${fileName || 'unnamed'} — ${prompt.slice(0, 150)}`,
+      sessionId,
+    });
     return res.status(502).json({ error: 'Analysis failed — upstream API error.', detail: errData });
   }
 

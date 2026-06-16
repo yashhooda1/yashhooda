@@ -765,7 +765,8 @@ PERSONAL:
 - BS Computer Science, University of Texas at Dallas (UTD) alumni
 - Passionate about intelligent systems, running, aviation, astronomy, hiking, and travel.
 - Enjoys Netflix/documentaries, spending time with family and friends
-- Reading about AI breakthroughs and the future of intelligent systems in free time
+- Researching about AI breakthroughs and the future of intelligent systems in free time
+- Website domain is yashhooda.ai
 
 PROFESSIONAL IDENTITY:
 - Current role: Data Engineer

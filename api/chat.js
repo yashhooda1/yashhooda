@@ -1,3 +1,4 @@
+import { notifyFailure } from './_notify.js';
 import { Index } from "@upstash/vector";
 import { Redis } from "@upstash/redis";
 
@@ -1187,7 +1188,11 @@ RESPONSE GUIDELINES
         }),
       });
       const data = await response.json();
-      if (!response.ok) { console.error('xAI error:', JSON.stringify(data)); return res.status(502).json({ error: 'xAI API error', detail: data }); }
+      if (!response.ok) {
+        console.error('xAI error:', JSON.stringify(data));
+        await notifyFailure({ route: '/api/chat [xAI]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0,200), userMessage: queryText, sessionId });
+        return res.status(502).json({ error: 'xAI API error', detail: data });
+      }
       reply = filterOutput(data.choices?.[0]?.message?.content ?? "Reach Yash at yash.hooda6@gmail.com!");
  
     } else if (cfg.provider === 'google') {
@@ -1206,7 +1211,11 @@ RESPONSE GUIDELINES
         }
       );
       const data = await response.json();
-      if (!response.ok) { console.error('Gemini error:', JSON.stringify(data)); return res.status(502).json({ error: 'Gemini API error', detail: data }); }
+      if (!response.ok) {
+        console.error('Gemini error:', JSON.stringify(data));
+        await notifyFailure({ route: '/api/chat [Gemini]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0,200), userMessage: queryText, sessionId });
+        return res.status(502).json({ error: 'Gemini API error', detail: data });
+      }
       reply = filterOutput(data.candidates?.[0]?.content?.parts?.[0]?.text ?? "Reach Yash at yash.hooda6@gmail.com!");
  
     } else if (cfg.provider === 'together') {
@@ -1224,7 +1233,11 @@ RESPONSE GUIDELINES
         }),
       });
       const data = await response.json();
-      if (!response.ok) { console.error('Together error:', JSON.stringify(data)); return res.status(502).json({ error: 'Together API error', detail: data }); }
+      if (!response.ok) {
+        console.error('Together error:', JSON.stringify(data));
+        await notifyFailure({ route: '/api/chat [Together]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0,200), userMessage: queryText, sessionId });
+        return res.status(502).json({ error: 'Together API error', detail: data });
+      } 
       reply = filterOutput(data.choices?.[0]?.message?.content ?? "Reach Yash at yash.hooda6@gmail.com!");
  
     } else if (cfg.provider === 'anthropic') {
@@ -1242,6 +1255,7 @@ RESPONSE GUIDELINES
       const data = await response.json();
       if (!response.ok) {
         console.error('Anthropic error:', JSON.stringify(data));
+        await notifyFailure({ route: '/api/chat [Anthropic]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0,200), userMessage: queryText, sessionId });
         return res.status(502).json({ error: 'Upstream API error', detail: data });
       }
       reply = filterOutput(data.content?.[0]?.text ?? "Reach Yash at yash.hooda6@gmail.com!");
@@ -1260,6 +1274,7 @@ RESPONSE GUIDELINES
       const data = await response.json();
       if (!response.ok) {
         console.error('OpenAI error:', JSON.stringify(data));
+        await notifyFailure({ route: '/api/chat [OpenAI]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0,200), userMessage: queryText, sessionId });
         return res.status(502).json({ error: 'Upstream API error', detail: data });
       }
       reply = filterOutput(extractOpenAIText(data) || "Reach Yash at yash.hooda6@gmail.com!");
@@ -1276,9 +1291,11 @@ RESPONSE GUIDELINES
         await redis.ltrim(SESSION_KEY, 0, MAX_MEMORY_PAIRS * 2 - 1);
         await redis.expire(SESSION_KEY, 60 * 60 * 24 * 30);
       }
-    } catch (savErr) {
-      console.warn('Memory save failed (non-fatal):', savErr.message);
-    }
+    } catch (err) {
+      console.error('Handler error:', err);
+      await notifyFailure({ route: '/api/chat', model: picked, error: err, userMessage: queryText, sessionId });
+      return res.status(500).json({ error: 'Internal server error' });
+  }
 
     // ── Analytics ──
     trackAnalytics(redis, {

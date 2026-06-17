@@ -55,7 +55,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: 'dall-e-3',
+        model: 'dall-e-3-20250311',
         prompt: safePrompt,
         n: 1,
         size: '1024x1024',

@@ -16,7 +16,9 @@
     "api/code-agent.js":     { "maxDuration": 120 },
     "api/agent-learn.js":    { "maxDuration": 90 },
     "api/agent-research.js": { "maxDuration": 90 },
-    "api/agent-log.js":      { "maxDuration": 90 }
+    "api/agent-log.js":      { "maxDuration": 90 },
+    "api/gmail-agent.js":     { "maxDuration": 30 },
+    "api/calendar-agent.js":  { "maxDuration": 30 }
   },
   "headers": [
     {

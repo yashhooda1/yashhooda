@@ -831,6 +831,20 @@ CURRENT TRAINING:
 - Target race: 2026 Boulderthon Marathon (Boulder, CO) and also targetting sub 3 hour marathon and massive marathon PR at 2027 Chevron Houston Marathon on January 17, 2027
 - Strava: public profile at strava.com/athletes/89409717
 
+YASH'S RACE CALENDAR 2026-2027: (SUBJECT TO CHANGE)
+2026
+- Boulderthon Marathon - September 27
+- New York Road Runners 5k - October 31st (Goal: Sub 17 5k)
+- Philadelphia Half Marathon - November 21
+- Coach Andy Sugar Land 8k turkey trot (EASY RUN tribute or all out 8k PR attempt) - November 26
+- Houston Harriers 1-mile race or solo 1 mile time trial - (November/December 2026) Goal: SUB 5 minute mile
+- Coach Andy Sugar Land 30k (EASY/Tempo LONG RUN) - December 13
+
+2027 
+- 2027 Chevron Houston Marathon - empty the tank GO ALL IN - goal sub 3 marathon 🔥
+- Will plan for more 2027 races as the year gets closer.
+
+
 RUNNING ADVICE YOU CAN GIVE (as a knowledgeable coach):
 
 Speed improvement:

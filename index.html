@@ -1252,8 +1252,8 @@
         .strava-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
         .strava-live-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.3); color: #fc4c02; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
         .strava-live-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fc4c02; animation: pulse 2s infinite; }
-        .strava-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-        .strava-card { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.1rem; transition: all 0.25s; position: relative; overflow: hidden; }
+        .strava-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; position: relative; z-index: 1; }
+        .strava-card { position: relative; z-index: 2; background: var(--bg-elevated) !important; color: var(--text) !important; visibility: visible !important; opacity: 1 !important; }
         .strava-card:hover { border-color: rgba(252,76,2,0.4); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(252,76,2,0.07); }
         .strava-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #fc4c02, #ff6b35); }
         .strava-type-badge { display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.2); color: #fc4c02; padding: 0.15rem 0.55rem; border-radius: 4px; font-size: 0.68rem; font-family: 'Space Mono', monospace; letter-spacing: 0.04em; margin-bottom: 0.5rem; }
@@ -1265,6 +1265,10 @@
         margin-bottom: 0.5rem;
         line-height: 1.5;
         white-space: pre-line;
+        }
+        #strava-feed {
+        position: relative;
+        z-index: 1;
         }
         .strava-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
         .strava-stat-val { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--green); font-weight: 700; display: block; }

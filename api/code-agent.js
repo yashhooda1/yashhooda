@@ -138,7 +138,7 @@ async function writeCode(prompt, plan, language, taskType, existingCode, model) 
   const humanMsg = new HumanMessage(
     `Task: ${prompt}\n\n` +
     `Plan to follow:\n${plan}\n\n` +
-    ${existingCode ? `Existing code to work with:\n\`\`\`${language}\n${existingCode}\n\`\`\`\n\n` : ''} +
+    (existingCode ? `Existing code to work with:\n\`\`\`${language}\n${existingCode}\n\`\`\`\n\n` : '') +
     `Write the complete, working ${language} code now. Include all imports. Make it production-ready.`
   );
 

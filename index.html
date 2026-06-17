@@ -1641,6 +1641,99 @@
             flex-shrink: 0;
         }
 
+        /* ── ACTION RECOMMENDATIONS ── */
+        #action-recommendations {
+            padding: 0.5rem 0.75rem 0;
+            display: none;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        #action-recommendations.has-recs { display: flex; }
+        .action-rec-card {
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: var(--bg-elevated);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-rec-card:hover { transform: translateX(2px); }
+        .action-rec-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+        }
+        .action-rec-emoji { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
+        .action-rec-content { flex: 1; min-width: 0; }
+        .action-rec-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.15rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .action-rec-body {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .action-rec-action {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            margin-top: 0.25rem;
+            letter-spacing: 0.03em;
+        }
+        .action-rec-dismiss {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 0;
+            flex-shrink: 0;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            align-self: flex-start;
+        }
+        .action-rec-dismiss:hover { opacity: 1; }
+        .action-rec-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.3rem 0.8rem 0;
+        }
+        .action-rec-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.58rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .action-rec-refresh {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.65rem;
+            padding: 0;
+            font-family: 'Space Mono', monospace;
+            transition: color 0.2s;
+        }
+        .action-rec-refresh:hover { color: var(--green); }
+
         /* ── AGENT ACTIVITY LOG ── */
         .agent-log-panel {
             display: none;
@@ -2215,6 +2308,13 @@
             </button>
         </div>
     </div>
+
+    <!-- Action Recommendations -->
+    <div class="action-rec-header" id="action-rec-header" style="display:none">
+        <span class="action-rec-label">🤖 Agent Recommendations</span>
+        <button class="action-rec-refresh" onclick="loadActionRecommendations()" title="Refresh">↻ refresh</button>
+    </div>
+    <div id="action-recommendations"></div>
 
     <!-- quick-btns kept empty/hidden — tabs now handle prompts -->
     <div class="chat-quick-btns" id="quick-btns" style="display:none"></div>
@@ -3145,6 +3245,84 @@ function fmtDate(iso) {
     catch { return ''; }
 }
 
+// ── ACTION RECOMMENDATIONS ──
+let recsLoaded = false;
+
+async function loadActionRecommendations() {
+    const container = document.getElementById('action-recommendations');
+    const header    = document.getElementById('action-rec-header');
+    if (!container) return;
+
+    try {
+        const res  = await fetch('/api/agent-actions');
+        const data = await res.json();
+        const recs = data.recommendations || [];
+
+        if (!recs.length) {
+            container.classList.remove('has-recs');
+            header.style.display = 'none';
+            return;
+        }
+
+        container.classList.add('has-recs');
+        header.style.display = 'flex';
+
+        container.innerHTML = recs.map((r, i) => `
+            <div class="action-rec-card" id="rec-${i}" style="border-color:${r.color}22"
+                 onclick="handleRecClick('${r.action.replace(/'/g, '')}', ${i})"
+                 onmouseover="this.style.borderColor='${r.color}55'"
+                 onmouseout="this.style.borderColor='${r.color}22'">
+                <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${r.color}"></div>
+                <span class="action-rec-emoji">${r.emoji}</span>
+                <div class="action-rec-content">
+                    <div class="action-rec-title">${r.title}</div>
+                    <div class="action-rec-body">${r.body}</div>
+                    <div class="action-rec-action" style="color:${r.color}">→ ${r.action}</div>
+                </div>
+                <button class="action-rec-dismiss" onclick="dismissRec(event, ${i})" title="Dismiss">✕</button>
+            </div>
+        `).join('');
+
+        recsLoaded = true;
+    } catch (err) {
+        console.warn('[RECS] Failed to load:', err.message);
+    }
+}
+
+function handleRecClick(action, idx) {
+    // Pre-fill chat input with the action as a question
+    const actionMap = {
+        'Take an easy day or rest':       'What should my easy recovery run look like today?',
+        'Schedule a quality workout':      'What quality workout should I do today given my fitness?',
+        'Begin taper protocol':            'Give me a taper plan for the Boulderthon Marathon',
+        'Check training plan':             'How is my Boulderthon training going and what should I focus on?',
+        'Adjust run time or go to treadmill': 'How do I adjust my run for extreme heat today?',
+        'Adjust run pace for conditions':  'What pace adjustment should I make for today\'s heat and humidity?',
+        'Push a commit today':             'What should I work on and commit to GitHub today?',
+        'Post an update on LinkedIn':      'Help me write a LinkedIn post about what I built this week',
+        'Write your weekly priorities':    'Help me set my 3 priorities for this week',
+        'Deploy + post on LinkedIn':       'Help me write a LinkedIn post about my latest yashhooda.ai updates',
+        'Log a run on Strava':             'What run should I do today based on my training?',
+    };
+    const prompt = actionMap[action] || action;
+    hideAllPanels();
+    document.querySelector('.chat-tab').classList.add('active');
+    document.getElementById('chat-input').value = prompt;
+    document.getElementById('chat-input').focus();
+}
+
+function dismissRec(e, idx) {
+    e.stopPropagation();
+    const card = document.getElementById(`rec-${idx}`);
+    if (card) card.style.display = 'none';
+    // If all dismissed, hide header
+    const visible = document.querySelectorAll('.action-rec-card:not([style*="display: none"])');
+    if (!visible.length) {
+        document.getElementById('action-rec-header').style.display = 'none';
+        document.getElementById('action-recommendations').classList.remove('has-recs');
+    }
+}
+
 // ── AGENT ACTIVITY LOG ──
 function switchAgentTab(btn) {
     hideAllPanels();
@@ -3740,6 +3918,8 @@ function toggleMaximize() {
 function toggleChat() {
     chatOpen = !chatOpen;
     document.getElementById('chat-window').classList.toggle('open', chatOpen);
+    // Load recommendations first time chat opens
+    if (chatOpen && !recsLoaded) loadActionRecommendations();
     // On mobile, always open maximized
     if (chatOpen && window.innerWidth < 769 && !chatMaximized) {
         toggleMaximize();

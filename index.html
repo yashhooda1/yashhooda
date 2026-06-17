@@ -1640,6 +1640,89 @@
             animation: spin 0.8s linear infinite;
             flex-shrink: 0;
         }
+        /* ── MARKDOWN RENDERING IN CHAT ── */
+        .msg.bot.markdown-body h1,
+        .msg.bot.markdown-body h2,
+        .msg.bot.markdown-body h3 {
+            font-family: 'Space Mono', monospace;
+            color: var(--green);
+            font-size: 0.88rem;
+            margin: 0.75rem 0 0.35rem;
+            letter-spacing: 0.03em;
+        }
+        .msg.bot.markdown-body h2::after { display: none; }
+        .msg.bot.markdown-body p { margin: 0.4rem 0; color: var(--text); }
+        .msg.bot.markdown-body ul,
+        .msg.bot.markdown-body ol {
+            padding-left: 1.25rem;
+            margin: 0.4rem 0;
+        }
+        .msg.bot.markdown-body li {
+            padding: 0.15rem 0;
+            border-bottom: none;
+            color: var(--text);
+            font-size: 0.82rem;
+        }
+        .msg.bot.markdown-body li::before { display: none; }
+        .msg.bot.markdown-body code {
+            background: rgba(76,175,80,0.1);
+            border: 1px solid rgba(76,175,80,0.2);
+            border-radius: 3px;
+            padding: 0.05rem 0.35rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--green-light);
+        }
+        .msg.bot.markdown-body pre {
+            background: #0d1117;
+            border: 1px solid rgba(76,175,80,0.2);
+            border-radius: 8px;
+            padding: 0.9rem;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+        }
+        .msg.bot.markdown-body pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 0.75rem;
+            color: #e0e0e0;
+        }
+        .msg.bot.markdown-body strong { color: var(--text); font-weight: 600; }
+        .msg.bot.markdown-body em { color: var(--text-muted); }
+        .msg.bot.markdown-body blockquote {
+            border-left: 3px solid var(--green);
+            margin: 0.5rem 0;
+            padding: 0.25rem 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .msg.bot.markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.5rem 0;
+            font-size: 0.75rem;
+        }
+        .msg.bot.markdown-body th {
+            background: rgba(76,175,80,0.1);
+            color: var(--green);
+            padding: 0.4rem 0.6rem;
+            text-align: left;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            border: 1px solid rgba(76,175,80,0.2);
+        }
+        .msg.bot.markdown-body td {
+            padding: 0.35rem 0.6rem;
+            border: 1px solid rgba(255,255,255,0.06);
+            color: var(--text);
+        }
+        .msg.bot.markdown-body a { color: var(--green-light); }
+        .msg.bot.markdown-body hr {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin: 0.75rem 0;
+        }
         /* ── CODE AGENT BUBBLE ── */
         .code-agent-card {
             background: #0d1117;
@@ -3659,6 +3742,27 @@ function escapeHtml(text) {
     return String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── MARKDOWN RENDERER ──
+function renderMarkdown(text) {
+    if (!text) return '';
+    try {
+        if (window.marked) {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                highlight: function(code, lang) {
+                    if (window.hljs && lang && hljs.getLanguage(lang)) {
+                        try { return hljs.highlight(code, { language: lang }).value; } catch {}
+                    }
+                    return window.hljs ? hljs.highlightAuto(code).value : code;
+                }
+            });
+            return marked.parse(text);
+        }
+    } catch(e) {}
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 // ── CODING AGENT TRIGGER ──
 const CODE_AGENT_TRIGGERS = /\b(write|build|create|generate|make|code|implement|develop|program|script)\b.{0,40}\b(function|class|script|code|api|endpoint|pipeline|query|algorithm|bot|agent|tool|app|component|module|snippet|program)\b|\b(debug|fix|refactor|optimize|review|explain|analyze|improve|clean up)\b.{0,30}\b(code|function|script|error|bug|class|query|this)\b|\b(how (do|does|can|to)|show me how)\b.{0,40}\b(implement|code|write|build|create|use)\b/i;
 
@@ -4132,7 +4236,7 @@ async function sendMsg() {
       chatHistory.push({ role: 'assistant', content: cleanReply });
       typingDiv.remove();
       const botDiv = document.createElement('div');
-      botDiv.className = 'msg bot';
+      botDiv.className = 'msg bot markdown-body';
 
       // ── FEATURE 4: Agent badge ──
       if (data.agent && data.agent !== 'General Agent') {
@@ -4141,11 +4245,11 @@ async function sendMsg() {
         badge.className = `agent-badge ${agentKey}`;
         badge.textContent = data.agent;
         botDiv.appendChild(badge);
-        botDiv.appendChild(document.createElement('br'));
       }
 
-      const textNode = document.createTextNode(cleanReply);
-      botDiv.appendChild(textNode);
+      const mdDiv = document.createElement('div');
+      mdDiv.innerHTML = renderMarkdown(cleanReply);
+      botDiv.appendChild(mdDiv);
 
       // ── FEATURE 1: Citation pills ──
       if (data.citations && data.citations.length > 0) {

@@ -12,7 +12,8 @@
     "api/network.js":     { "maxDuration": 15 },
     "api/sports.js":      { "maxDuration": 15 },
     "api/imagine.js":     { "maxDuration": 60 },
-    "api/runway.js":      { "maxDuration": 120 }
+    "api/runway.js":      { "maxDuration": 120 },
+    "api/code-agent.js":  { "maxDuration": 90 }
   },
   "headers": [
     {

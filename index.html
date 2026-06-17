@@ -1458,12 +1458,71 @@
             .nav-links.open a { padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
             .nav-hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 1rem; background: none; border: none; }
             .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--text-muted); border-radius: 2px; transition: all 0.2s; }
-            #chat-window { width: calc(100vw - 2rem); right: 1rem; }
+            #chat-window { width: 100vw !important; height: 100vh !important; max-height: 100vh !important; bottom: 0 !important; right: 0 !important; border-radius: 0 !important; }
+            #chat-window.open { transform: translateY(0) scale(1) !important; }
             .projects-grid, .cert-grid { grid-template-columns: 1fr; }
+            .chat-tab { font-size: 0.68rem; padding: 0.6rem 0.5rem; }
+            .chat-input-row { padding: 0.75rem; gap: 0.4rem; }
+            .chat-input { font-size: 0.9rem; padding: 0.65rem 0.8rem; }
+            .chat-send { width: 42px; height: 42px; }
+            .chat-icon-btn { width: 36px; height: 36px; font-size: 1rem; }
         }
         @media (min-width: 769px) {
             .nav-hamburger { display: none; }
         }
+
+        /* ── CHAT MAXIMIZE ── */
+        #chat-window.maximized {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            bottom: 0 !important;
+            right: 0 !important;
+            border-radius: 0 !important;
+            z-index: 9990 !important;
+            transition: all 0.2s ease !important;
+        }
+        #chat-window.maximized .chat-messages {
+            font-size: 0.92rem;
+        }
+        #chat-window.maximized .msg {
+            max-width: 72%;
+            font-size: 0.9rem;
+            line-height: 1.65;
+        }
+        .chat-maximize-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.2rem 0.35rem;
+            transition: color 0.2s;
+            margin-left: 0.25rem;
+        }
+        .chat-maximize-btn:hover { color: #fff; }
+        /* hide custom cursor + back-to-top when chat is maximized */
+        body.chat-maximized .cursor,
+        body.chat-maximized .cursor-ring,
+        body.chat-maximized #back-to-top { display: none !important; }
+        /* icon button base style (mic + image) */
+        .chat-icon-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            border-radius: 7px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .chat-icon-btn:hover { background: rgba(76,175,80,0.15); border-color: rgba(76,175,80,0.4); color: var(--green); }
+        .chat-icon-btn.recording { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #ef4444; animation: pulse 1s infinite; }
         
         /* ── IMAGE PREVIEW ── */
         .img-preview-wrap { padding: 0 1rem 0.5rem; display: none; }
@@ -1622,6 +1681,7 @@
             <h4>Yash's AI Assistant</h4>
             <span>Ask me anything about Yash</span>
         </div>
+        <button class="chat-maximize-btn" id="chat-maximize-btn" onclick="toggleMaximize()" title="Maximize / minimize">⛶</button>
         <button class="chat-close" onclick="toggleChat()">✕</button>
     </div>
     <div class="chat-tabs">
@@ -3089,9 +3149,37 @@ function selectModel(key) {
 
 updateModelLabel();
 
+let chatMaximized = false;
+
+function toggleMaximize() {
+    const win = document.getElementById('chat-window');
+    const btn = document.getElementById('chat-maximize-btn');
+    chatMaximized = !chatMaximized;
+    win.classList.toggle('maximized', chatMaximized);
+    document.body.classList.toggle('chat-maximized', chatMaximized);
+    btn.textContent = chatMaximized ? '⊡' : '⛶';
+    btn.title = chatMaximized ? 'Minimize' : 'Maximize';
+    // Invalidate any Leaflet maps inside chat that need resize
+    if (chatMaximized) setTimeout(() => window.dispatchEvent(new Event('resize')), 250);
+}
+
 function toggleChat() {
     chatOpen = !chatOpen;
     document.getElementById('chat-window').classList.toggle('open', chatOpen);
+    // On mobile, always open maximized
+    if (chatOpen && window.innerWidth < 769 && !chatMaximized) {
+        toggleMaximize();
+    }
+    // When closing, also un-maximize
+    if (!chatOpen && chatMaximized) {
+        const win = document.getElementById('chat-window');
+        const btn = document.getElementById('chat-maximize-btn');
+        chatMaximized = false;
+        win.classList.remove('maximized');
+        document.body.classList.remove('chat-maximized');
+        btn.textContent = '⛶';
+        btn.title = 'Maximize';
+    }
 }
 
 function quickAsk(q) {

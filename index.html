@@ -1640,6 +1640,167 @@
             animation: spin 0.8s linear infinite;
             flex-shrink: 0;
         }
+        /* ── CODE AGENT BUBBLE ── */
+        .code-agent-card {
+            background: #0d1117;
+            border: 1px solid rgba(76,175,80,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+            max-width: 100%;
+            align-self: flex-start;
+            width: 100%;
+        }
+        .code-agent-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0.9rem;
+            background: rgba(76,175,80,0.08);
+            border-bottom: 1px solid rgba(76,175,80,0.15);
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .code-agent-badges {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .code-lang-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(76,175,80,0.15);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: var(--green);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .code-task-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(147,197,253,0.1);
+            border: 1px solid rgba(147,197,253,0.2);
+            color: #93c5fd;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .code-model-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.58rem;
+            color: var(--text-muted);
+            letter-spacing: 0.03em;
+        }
+        .code-copy-btn {
+            background: rgba(76,175,80,0.1);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: var(--green-light);
+            border-radius: 5px;
+            padding: 0.2rem 0.6rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .code-copy-btn:hover { background: rgba(76,175,80,0.2); border-color: var(--green); }
+        .code-copy-btn.copied { color: var(--green); border-color: var(--green); }
+        .code-agent-block {
+            overflow-x: auto;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+        .code-agent-block pre {
+            margin: 0;
+            padding: 1rem;
+            font-size: 0.78rem;
+            line-height: 1.65;
+            font-family: 'Space Mono', monospace;
+        }
+        .code-agent-block::-webkit-scrollbar { width: 4px; height: 4px; }
+        .code-agent-block::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.3); border-radius: 2px; }
+        .code-agent-footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 0.75rem 0.9rem;
+        }
+        .code-agent-explanation {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 0.6rem;
+        }
+        .code-agent-plan-toggle {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            padding: 0;
+            transition: color 0.2s;
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+        .code-agent-plan-toggle:hover { color: var(--green); }
+        .code-agent-plan {
+            display: none;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            white-space: pre-wrap;
+            margin-bottom: 0.5rem;
+        }
+        .code-agent-plan.open { display: block; }
+        .code-review-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .code-review-score {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--green);
+        }
+        .code-review-issue {
+            font-size: 0.68rem;
+            color: #f97316;
+            font-family: 'Space Mono', monospace;
+        }
+        .code-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-top: 0.5rem;
+        }
+        .code-suggestion-btn {
+            background: rgba(76,175,80,0.07);
+            border: 1px solid rgba(76,175,80,0.22);
+            color: var(--green-light);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .code-suggestion-btn:hover { background: rgba(76,175,80,0.18); border-color: var(--green); }
+        .code-agent-timing {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.58rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
         /* ── AI GENERATED MEDIA ── */
         .gen-media-card {
             background: var(--bg-elevated);
@@ -3498,6 +3659,174 @@ function escapeHtml(text) {
     return String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── CODING AGENT TRIGGER ──
+const CODE_AGENT_TRIGGERS = /\b(write|build|create|generate|make|code|implement|develop|program|script)\b.{0,40}\b(function|class|script|code|api|endpoint|pipeline|query|algorithm|bot|agent|tool|app|component|module|snippet|program)\b|\b(debug|fix|refactor|optimize|review|explain|analyze|improve|clean up)\b.{0,30}\b(code|function|script|error|bug|class|query|this)\b|\b(how (do|does|can|to)|show me how)\b.{0,40}\b(implement|code|write|build|create|use)\b/i;
+
+async function runCodeAgent(prompt, sessionId) {
+    const msgs = document.getElementById('chat-messages');
+
+    const progressDiv = document.createElement('div');
+    progressDiv.className = 'gen-progress';
+    progressDiv.textContent = '🧠 Coding agent thinking…';
+    msgs.appendChild(progressDiv);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    // Animate progress steps
+    const steps = [
+        '🔍 Detecting language + task…',
+        '📋 Planning solution…',
+        '⌨️ Writing code…',
+        '🔬 Reviewing + iterating…',
+        '📝 Generating explanation…',
+    ];
+    let stepIdx = 0;
+    const stepTimer = setInterval(() => {
+        stepIdx = (stepIdx + 1) % steps.length;
+        if (progressDiv.parentNode) progressDiv.textContent = steps[stepIdx];
+    }, 3000);
+
+    try {
+        // Extract any code block the user may have pasted
+        const codeMatch = prompt.match(/```[\w]*\n?([\s\S]*?)```/) ||
+                          prompt.match(/`([\s\S]{20,})`/);
+        const existingCode = codeMatch ? codeMatch[1].trim() : null;
+
+        const res = await fetch('/api/code-agent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, existingCode, sessionId }),
+        });
+
+        clearInterval(stepTimer);
+        progressDiv.remove();
+
+        const data = await res.json();
+        if (!res.ok) { addBotMsg('❌ Code agent failed: ' + (data.error || 'Unknown error')); return; }
+
+        const { code, language, taskType, plan, explanation, review, suggestions, modelUsed, elapsed } = data;
+
+        // ── Build the card ──
+        const card = document.createElement('div');
+        card.className = 'code-agent-card';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'code-agent-header';
+        const badges = document.createElement('div');
+        badges.className = 'code-agent-badges';
+        badges.innerHTML = `
+            <span class="code-lang-badge">${language}</span>
+            <span class="code-task-badge">${taskType}</span>
+            <span class="code-model-badge">via ${modelUsed}</span>
+        `;
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'code-copy-btn';
+        copyBtn.textContent = '📋 Copy';
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(code).then(() => {
+                copyBtn.textContent = '✅ Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => { copyBtn.textContent = '📋 Copy'; copyBtn.classList.remove('copied'); }, 2000);
+            });
+        };
+        header.appendChild(badges);
+        header.appendChild(copyBtn);
+        card.appendChild(header);
+
+        // Code block with syntax highlighting
+        const codeBlock = document.createElement('div');
+        codeBlock.className = 'code-agent-block';
+        const pre  = document.createElement('pre');
+        const codeEl = document.createElement('code');
+        codeEl.className = `language-${language}`;
+        codeEl.textContent = code;
+        pre.appendChild(codeEl);
+        codeBlock.appendChild(pre);
+        card.appendChild(codeBlock);
+
+        // Apply highlight.js if available
+        if (window.hljs) {
+            try { window.hljs.highlightElement(codeEl); } catch(e) {}
+        }
+
+        // Footer: explanation + plan + review + suggestions
+        const footer = document.createElement('div');
+        footer.className = 'code-agent-footer';
+
+        // Explanation
+        if (explanation) {
+            const exp = document.createElement('div');
+            exp.className = 'code-agent-explanation';
+            exp.textContent = explanation;
+            footer.appendChild(exp);
+        }
+
+        // Plan toggle
+        if (plan) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'code-agent-plan-toggle';
+            toggleBtn.textContent = '▸ Show plan';
+            const planDiv = document.createElement('div');
+            planDiv.className = 'code-agent-plan';
+            planDiv.textContent = plan;
+            toggleBtn.onclick = () => {
+                planDiv.classList.toggle('open');
+                toggleBtn.textContent = planDiv.classList.contains('open') ? '▾ Hide plan' : '▸ Show plan';
+            };
+            footer.appendChild(toggleBtn);
+            footer.appendChild(planDiv);
+        }
+
+        // Review score + issues
+        if (review) {
+            const reviewRow = document.createElement('div');
+            reviewRow.className = 'code-review-row';
+            reviewRow.innerHTML = `<span class="code-review-score">Quality score: ${review.score}/10</span>`;
+            if (review.improvements?.length > 0) {
+                const imp = document.createElement('span');
+                imp.className = 'code-review-issue';
+                imp.textContent = '💡 ' + review.improvements[0];
+                reviewRow.appendChild(imp);
+            }
+            footer.appendChild(reviewRow);
+        }
+
+        // Suggestion chips
+        if (suggestions?.length > 0) {
+            const suggRow = document.createElement('div');
+            suggRow.className = 'code-suggestions';
+            suggestions.forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = 'code-suggestion-btn';
+                btn.textContent = s;
+                btn.onclick = () => {
+                    document.getElementById('chat-input').value = s;
+                    sendMsg();
+                };
+                suggRow.appendChild(btn);
+            });
+            footer.appendChild(suggRow);
+        }
+
+        // Timing
+        const timing = document.createElement('div');
+        timing.className = 'code-agent-timing';
+        timing.textContent = `⚡ ${(elapsed / 1000).toFixed(1)}s · ${language} · ${taskType}`;
+        footer.appendChild(timing);
+
+        card.appendChild(footer);
+        msgs.appendChild(card);
+
+        chatHistory.push({ role: 'assistant', content: `[Code Agent — ${language} ${taskType}]\n\`\`\`${language}\n${code}\n\`\`\`\n\n${explanation}` });
+        msgs.scrollTop = msgs.scrollHeight;
+
+    } catch (err) {
+        clearInterval(stepTimer);
+        progressDiv.remove();
+        addBotMsg('❌ Code agent error — check your connection and try again.');
+    }
+}
+
 // ── IMAGE + VIDEO GENERATION TRIGGERS ──
 const IMAGE_GEN_TRIGGERS = /\b(generate|create|draw|make|design|produce|render|show me)\s+(an?\s+)?(image|photo|picture|illustration|artwork|portrait|painting|sketch|drawing|wallpaper|thumbnail|logo|banner|meme|diagram)\b/i;
 const VIDEO_GEN_TRIGGERS = /\b(generate|create|make|produce|animate|render)\s+(an?\s+)?(video|animation|clip|reel|motion|movie|film|timelapse)\b|\banimate\s+(this|the|my)\b|\bmake\s+(this|it|the)\s+(move|animate|into\s+a\s+video)\b/i;
@@ -3612,6 +3941,18 @@ async function sendMsg() {
   if (!text && !pendingImageBase64) return;
   input.value = '';
   document.getElementById('quick-btns').style.display = 'none';
+
+  // ── CODE AGENT ROUTE ──
+  if (CODE_AGENT_TRIGGERS.test(text) && !pendingImageBase64) {
+      input.value = '';
+      const userDiv = document.createElement('div');
+      userDiv.className = 'msg user';
+      userDiv.textContent = text;
+      document.getElementById('chat-messages').appendChild(userDiv);
+      chatHistory.push({ role: 'user', content: text });
+      await runCodeAgent(text, SESSION_ID);
+      return;
+  }
  
   // ── ROUTE TO IMAGE GENERATION ──
   if (IMAGE_GEN_TRIGGERS.test(text) && !pendingFileIsAnalyzable) {

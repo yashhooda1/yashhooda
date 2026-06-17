@@ -4,7 +4,7 @@
 
 import { Redis } from '@upstash/redis';
 
-export const maxDuration = 15;
+export const maxDuration = 90;
 
 const AGENT_LOG_KEY = 'hooda_agent:activity_log';
 
@@ -20,13 +20,23 @@ export default async function handler(req, res) {
     if (action === 'trigger_learn') {
       try {
         const secret = process.env.CRON_SECRET || 'hooda-cron-2026';
-        const res2   = await fetch(`${process.env.VERCEL_URL || 'https://www.yashhooda.ai'}/api/agent-learn`, {
+        // Create a mock req/res to call agent-learn handler directly
+        const mockReq = {
           method:  'GET',
-          headers: { 'Authorization': `Bearer ${secret}` },
-        });
-        const data = await res2.json();
-        return res.status(200).json({ ok: true, triggered: true, result: data });
+          headers: { 'authorization': `Bearer ${secret}` },
+          query:   { secret },
+        };
+        let responseData = {};
+        const mockRes = {
+          status: (code) => ({
+            json: (data) => { responseData = { code, ...data }; return mockRes; }
+          }),
+        };
+        const { default: learnHandler } = await import('./agent-learn.js');
+        await learnHandler(mockReq, mockRes);
+        return res.status(200).json({ ok: true, triggered: true, result: responseData });
       } catch (err) {
+        console.error('[AGENT-LOG] trigger_learn error:', err);
         return res.status(500).json({ error: err.message });
       }
     }

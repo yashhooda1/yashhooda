@@ -1,19 +1,22 @@
 {
   "version": 2,
   "functions": {
-    "api/chat.js":        { "maxDuration": 60 },
-    "api/chat-search.js": { "maxDuration": 60 },
-    "api/analytics.js":   { "maxDuration": 90 },
-    "api/tts.js":         { "maxDuration": 120 },
-    "api/strava.js":      { "maxDuration": 30 },
-    "api/history.js":     { "maxDuration": 30 },
-    "api/flights.js":     { "maxDuration": 30 },
-    "api/analyze.js":     { "maxDuration": 60 },
-    "api/network.js":     { "maxDuration": 15 },
-    "api/sports.js":      { "maxDuration": 15 },
-    "api/imagine.js":     { "maxDuration": 60 },
-    "api/runway.js":      { "maxDuration": 120 },
-    "api/code-agent.js":  { "maxDuration": 120 }
+    "api/chat.js":           { "maxDuration": 60 },
+    "api/chat-search.js":    { "maxDuration": 60 },
+    "api/analytics.js":      { "maxDuration": 90 },
+    "api/tts.js":            { "maxDuration": 120 },
+    "api/strava.js":         { "maxDuration": 30 },
+    "api/history.js":        { "maxDuration": 30 },
+    "api/flights.js":        { "maxDuration": 30 },
+    "api/analyze.js":        { "maxDuration": 60 },
+    "api/network.js":        { "maxDuration": 15 },
+    "api/sports.js":         { "maxDuration": 15 },
+    "api/imagine.js":        { "maxDuration": 60 },
+    "api/runway.js":         { "maxDuration": 120 },
+    "api/code-agent.js":     { "maxDuration": 120 },
+    "api/agent-learn.js":    { "maxDuration": 90 },
+    "api/agent-research.js": { "maxDuration": 90 },
+    "api/agent-log.js":      { "maxDuration": 15 }
   },
   "headers": [
     {
@@ -27,6 +30,12 @@
       "headers": [
         { "key": "Content-Type", "value": "text/plain" }
       ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/agent-learn?secret=hooda-cron-2026",
+      "schedule": "0 6 * * *"
     }
   ]
 }

@@ -55,11 +55,11 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: 'dall-e-3-20250311',
+        model: 'gpt-image-2',
         prompt: safePrompt,
         n: 1,
         size: '1024x1024',
-        quality: 'standard',
+        quality: 'low',
       }),
     });
 
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
 
     if (!genRes.ok) {
       console.error('[IMAGINE] DALL-E error:', genData);
-      await notifyFailure({ route: '/api/imagine', model: 'dall-e-3', error: genData?.error?.message || JSON.stringify(genData).slice(0, 200), userMessage: finalPrompt, sessionId });
+      await notifyFailure({ route: '/api/imagine', model: 'gpt-image-2', error: genData?.error?.message || JSON.stringify(genData).slice(0, 200), userMessage: finalPrompt, sessionId });
       return res.status(502).json({ error: genData?.error?.message || 'Image generation failed' });
     }
 
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('[IMAGINE] Error:', err);
-    await notifyFailure({ route: '/api/imagine', model: 'dall-e-3', error: err, userMessage: prompt, sessionId });
+    await notifyFailure({ route: '/api/imagine', model: 'gpt-image-2', error: err, userMessage: prompt, sessionId });
     return res.status(500).json({ error: 'Internal server error' });
   }
 }

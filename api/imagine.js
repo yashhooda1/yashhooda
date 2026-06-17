@@ -60,7 +60,6 @@ export default async function handler(req, res) {
         n: 1,
         size: '1024x1024',
         quality: 'low',
-        response_format: 'b64_json',
       }),
     });
 

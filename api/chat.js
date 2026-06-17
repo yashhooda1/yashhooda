@@ -790,7 +790,7 @@ CERTIFICATIONS:
 5. Microsoft Certified: Power Platform Fundamentals — Power Apps, Power Automate, Power Pages
 
 PROJECTS:
-1. HoodaAgents AI Hiring Engine — AI-powered resume analysis system. Parses PDFs, extracts candidate intelligence, matches skills to job descriptions, generates fit reports. Tech: Python, Streamlit, OpenAI API, pdfplumber. Live at Streamlit Cloud.
+1. HoodaAgents AI Hiring Engine — AI-powered resume analysis system. Parses PDFs, extracts candidate intelligence, matches skills to job descriptions, generates fit reports. Tech: Python, Streamlit, OpenAI API, pdfplumber. Live at https://hoodahiring.ai/
 2. HoodaRunners Race Planner Agent — GCP ADK agent deployed to Google Cloud Agent Runtime.
 Fires 6 tools autonomously: Riegel predictor, pace zones, altitude adjuster, race strategy
 builder, heat model, weekly plan generator. Tech: Python, Google ADK, Gemini 2.5 Flash,

@@ -60,6 +60,7 @@ export default async function handler(req, res) {
         n: 1,
         size: '1024x1024',
         quality: 'low',
+        response_format: 'b64_json',
       }),
     });
 
@@ -71,12 +72,13 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: genData?.error?.message || 'Image generation failed' });
     }
 
-    const imageUrl      = genData?.data?.[0]?.url;
-    const revisedPrompt = genData?.data?.[0]?.revised_prompt;
+    const b64    = genData?.data?.[0]?.b64_json;
+    const revised = genData?.data?.[0]?.revised_prompt;
 
-    if (!imageUrl) return res.status(502).json({ error: 'No image returned from DALL-E' });
+    if (!b64) return res.status(502).json({ error: 'No image returned from gpt-image-2' });
 
-    return res.status(200).json({ imageUrl, revisedPrompt, prompt: safePrompt });
+    const imageUrl = `data:image/png;base64,${b64}`;
+    return res.status(200).json({ imageUrl, revisedPrompt: revised, prompt: safePrompt });
 
   } catch (err) {
     console.error('[IMAGINE] Error:', err);

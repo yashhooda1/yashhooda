@@ -3921,7 +3921,8 @@ async function runCodeAgent(prompt, sessionId) {
         card.appendChild(footer);
         msgs.appendChild(card);
 
-        chatHistory.push({ role: 'assistant', content: `[Code Agent — ${language} ${taskType}]\n\`\`\`${language}\n${code}\n\`\`\`\n\n${explanation}` });
+        // Store a truncated summary in history — not the full code (avoids 8000 char validation limit)
+        chatHistory.push({ role: 'assistant', content: `[Code Agent — ${language} ${taskType}] Generated ${code.split('\n').length} lines of ${language} code. ${explanation.slice(0, 300)}` });
         msgs.scrollTop = msgs.scrollHeight;
 
     } catch (err) {

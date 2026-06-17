@@ -1640,6 +1640,131 @@
             animation: spin 0.8s linear infinite;
             flex-shrink: 0;
         }
+
+        /* ── AGENT ACTIVITY LOG ── */
+        .agent-log-panel {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+        .agent-log-panel.active { display: flex; }
+        .agent-log-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
+        }
+        .agent-log-container::-webkit-scrollbar { width: 4px; }
+        .agent-log-container::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.3); border-radius: 2px; }
+        .agent-log-entry {
+            background: #0d1117;
+            border: 1px solid rgba(76,175,80,0.2);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+        .agent-log-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 0.8rem;
+            background: rgba(76,175,80,0.06);
+            border-bottom: 1px solid rgba(76,175,80,0.1);
+        }
+        .agent-log-type-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 3px;
+            letter-spacing: 0.04em;
+            font-weight: 700;
+        }
+        .agent-log-type-badge.learn {
+            background: rgba(76,175,80,0.15);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: var(--green);
+        }
+        .agent-log-type-badge.research {
+            background: rgba(147,197,253,0.1);
+            border: 1px solid rgba(147,197,253,0.2);
+            color: #93c5fd;
+        }
+        .agent-log-time {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+        .agent-log-elapsed {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--green);
+        }
+        .agent-log-body { padding: 0.6rem 0.8rem; }
+        .agent-log-query {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: #93c5fd;
+            margin-bottom: 0.4rem;
+        }
+        .agent-log-finding {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            padding: 0.15rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+        }
+        .agent-log-finding:last-child { border-bottom: none; }
+        .agent-log-tools {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+            margin-top: 0.4rem;
+        }
+        .agent-log-tool-pill {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            background: rgba(250,204,21,0.08);
+            border: 1px solid rgba(250,204,21,0.2);
+            color: #facc15;
+        }
+        .agent-log-vectors {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            color: var(--green);
+            margin-top: 0.4rem;
+        }
+        .agent-log-empty {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+        .agent-log-footer {
+            padding: 0.6rem 0.75rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+        }
+        .agent-trigger-btn {
+            flex: 1;
+            background: rgba(76,175,80,0.1);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: var(--green-light);
+            border-radius: 6px;
+            padding: 0.4rem 0;
+            font-size: 0.72rem;
+            cursor: pointer;
+            font-family: 'Space Mono', monospace;
+            transition: all 0.2s;
+        }
+        .agent-trigger-btn:hover { background: rgba(76,175,80,0.2); border-color: var(--green); }
+        .agent-trigger-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         /* ── MARKDOWN RENDERING IN CHAT ── */
         .msg.bot.markdown-body h1,
         .msg.bot.markdown-body h2,
@@ -2013,6 +2138,7 @@
         <button class="chat-tab" onclick="vmSwitchTab(this)">🎙️ Voice</button>
         <button class="chat-tab" onclick="switchHistoryTab(this)">🕓 History</button>
         <button class="chat-tab" onclick="switchAnalyticsTab(this)">📊 Analytics</button>
+        <button class="chat-tab" onclick="switchAgentTab(this)">🤖 Agent</button>
         <button class="chat-tab save-tab-btn" id="save-tab-btn" onclick="saveCurrentChat()" title="Save current chat">💾</button>
     </div>
     <div class="chat-messages" id="chat-messages">
@@ -2075,6 +2201,18 @@
     <div class="chat-history-panel" id="analytics-panel">
         <div class="analytics-dash" id="analytics-dash-content">
             <div class="dash-loading">Loading analytics…</div>
+        </div>
+    </div>
+
+    <!-- Agent Activity Log Panel -->
+    <div class="agent-log-panel" id="agent-panel">
+        <div class="agent-log-container" id="agent-log-container">
+            <div class="agent-log-empty">Loading agent activity...</div>
+        </div>
+        <div class="agent-log-footer">
+            <button class="agent-trigger-btn" id="agent-trigger-btn" onclick="triggerLearnCycle()">
+                🧠 Run Learning Cycle Now
+            </button>
         </div>
     </div>
 
@@ -3006,7 +3144,120 @@ function fmtDate(iso) {
     try { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
     catch { return ''; }
 }
- 
+
+// ── AGENT ACTIVITY LOG ──
+function switchAgentTab(btn) {
+    hideAllPanels();
+    btn.classList.add('active');
+    document.getElementById('chat-messages').classList.add('hidden');
+    document.getElementById('agent-panel').classList.add('active');
+    loadAgentLog();
+}
+
+async function loadAgentLog() {
+    const container = document.getElementById('agent-log-container');
+    if (!container) return;
+    container.innerHTML = '<div class="agent-log-empty">Loading agent activity...</div>';
+    try {
+        const res  = await fetch('/api/agent-log');
+        const data = await res.json();
+        const entries = data.entries || [];
+
+        if (!entries.length) {
+            container.innerHTML = `
+                <div class="agent-log-empty">
+                    🤖 No agent activity yet.<br><br>
+                    Click "Run Learning Cycle Now" to trigger<br>
+                    the autonomous learning loop manually.<br><br>
+                    <span style="font-size:0.7rem;color:var(--text-muted)">
+                        Auto-runs daily at 6:00 AM UTC via Vercel Cron
+                    </span>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = entries.map(entry => {
+            const isLearn    = entry.type === 'BACKGROUND_LEARNING';
+            const isResearch = entry.type === 'ON_DEMAND_RESEARCH';
+            const ts         = new Date(entry.timestamp).toLocaleString('en-US', {
+                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+
+            if (isLearn) {
+                const sources = entry.sources || [];
+                return `
+                    <div class="agent-log-entry">
+                        <div class="agent-log-header">
+                            <span class="agent-log-type-badge learn">🟢 BACKGROUND LEARNING</span>
+                            <span class="agent-log-elapsed">⏱ ${entry.elapsed}</span>
+                            <span class="agent-log-time">${ts}</span>
+                        </div>
+                        <div class="agent-log-body">
+                            ${sources.map(s => `
+                                <div style="margin-bottom:0.5rem;">
+                                    <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--green);margin-bottom:0.25rem;">
+                                        ${s.source} ${s.vectors > 0 ? `· ${s.vectors} vectors added` : ''}
+                                    </div>
+                                    ${(s.findings || []).map(f => `
+                                        <div class="agent-log-finding">${f}</div>
+                                    `).join('')}
+                                </div>
+                            `).join('')}
+                            ${entry.vectors > 0 ? `<div class="agent-log-vectors">✅ Total: ${entry.vectors} new knowledge vectors stored in RAG</div>` : ''}
+                        </div>
+                    </div>`;
+            }
+
+            if (isResearch) {
+                return `
+                    <div class="agent-log-entry">
+                        <div class="agent-log-header">
+                            <span class="agent-log-type-badge research">🔵 ON-DEMAND RESEARCH</span>
+                            <span class="agent-log-elapsed">⏱ ${entry.elapsed} · ${entry.steps} steps</span>
+                            <span class="agent-log-time">${ts}</span>
+                        </div>
+                        <div class="agent-log-body">
+                            <div class="agent-log-query">Query: "${entry.query}"</div>
+                            ${(entry.tools || []).length > 0 ? `
+                                <div class="agent-log-tools">
+                                    ${entry.tools.map(t => `<span class="agent-log-tool-pill">🔧 ${t}</span>`).join('')}
+                                </div>` : ''}
+                            ${entry.vectorStored ? '<div class="agent-log-vectors">✅ Finding stored to RAG permanently</div>' : ''}
+                        </div>
+                    </div>`;
+            }
+
+            return '';
+        }).join('');
+    } catch (err) {
+        container.innerHTML = '<div class="agent-log-empty">Could not load agent log.</div>';
+    }
+}
+
+async function triggerLearnCycle() {
+    const btn = document.getElementById('agent-trigger-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Running learning cycle...';
+    try {
+        const res  = await fetch('/api/agent-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'trigger_learn' }),
+        });
+        const data = await res.json();
+        btn.textContent = `✅ Done! ${data.result?.vectors || 0} vectors added`;
+        setTimeout(() => {
+            btn.textContent = '🧠 Run Learning Cycle Now';
+            btn.disabled = false;
+            loadAgentLog(); // refresh log
+        }, 3000);
+    } catch (err) {
+        btn.textContent = '❌ Failed — check Vercel logs';
+        btn.disabled = false;
+        setTimeout(() => { btn.textContent = '🧠 Run Learning Cycle Now'; }, 2000);
+    }
+}
+    
 // ── INIT MEMORY UI ──
 injectMemoryStyles();
 buildMemoryPanel();
@@ -3122,6 +3373,7 @@ function hideAllPanels() {
     document.getElementById('history-panel').classList.remove('active');
     document.getElementById('prompts-panel').classList.remove('active');
     document.getElementById('analytics-panel').classList.remove('active');
+    document.getElementById('agent-panel').classList.remove('active');
     document.getElementById('quick-btns').style.display = 'none';
     document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
 }

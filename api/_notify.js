@@ -52,14 +52,16 @@ async function sendEmail(subject, body) {
 async function sendPush(subject, body) {
   const topic = process.env.NTFY_TOPIC || 'yash-agent-alerts';
   try {
+    // Strip non-ASCII chars from headers — ntfy requires ByteString (0-255 only)
+    const safeSubject = subject.replace(/[^\x00-\xFF]/g, '?');
     await fetch(`https://ntfy.sh/${topic}`, {
       method:  'POST',
       headers: {
-        'Title':    subject,
+        'Title':    safeSubject,
         'Priority': 'high',
         'Tags':     'warning,robot',
       },
-      body,
+      body: body.replace(/[^\x00-\xFF]/g, '?'),
     });
   } catch (e) {
     console.error('[NOTIFY] Push failed:', e.message);

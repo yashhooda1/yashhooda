@@ -22,6 +22,7 @@ function selectModel(language, taskType) {
       apiKey: anthropicKey,
       model: 'claude-opus-4-8',
       maxTokens: 4096,
+      topP: 1,
     });
   }
 
@@ -40,6 +41,7 @@ function selectModel(language, taskType) {
       apiKey: anthropicKey,
       model: 'claude-opus-4-8',
       maxTokens: 8000,
+      topP: 1,
     });
   }
 
@@ -48,6 +50,7 @@ function selectModel(language, taskType) {
     apiKey: anthropicKey,
     model: 'claude-sonnet-4-6',
     maxTokens: 4096,
+    topP: 1,
   });
 }
 
@@ -57,6 +60,7 @@ async function detectLanguage(prompt, code) {
     apiKey: process.env.ANTHROPIC_API_KEY,
     model: 'claude-haiku-4-5-20251001',
     maxTokens: 64,
+    topP: 1,
   });
 
   const parser = new StringOutputParser();
@@ -80,6 +84,7 @@ async function classifyTask(prompt) {
     apiKey: process.env.ANTHROPIC_API_KEY,
     model: 'claude-haiku-4-5-20251001',
     maxTokens: 32,
+    topP: 1,
   });
   const parser = new StringOutputParser();
   const chain  = model.pipe(parser);
@@ -187,6 +192,7 @@ async function explainCode(code, language, plan, taskType) {
     apiKey: process.env.ANTHROPIC_API_KEY,
     model: 'claude-sonnet-4-6',
     maxTokens: 1024,
+    topP: 1,
   });
   const parser = new StringOutputParser();
   const chain  = model.pipe(parser);
@@ -211,6 +217,7 @@ async function generateCodingSuggestions(prompt, language, taskType) {
     apiKey: process.env.ANTHROPIC_API_KEY,
     model: 'claude-haiku-4-5-20251001',
     maxTokens: 128,
+    topP: 1,
   });
   const parser = new StringOutputParser();
   const chain  = model.pipe(parser);

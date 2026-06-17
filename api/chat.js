@@ -826,9 +826,9 @@ PERSONAL RECORDS:
 - Last Race: 2026 NYCRuns Brooklyn Experience Half Marathon — 1:27:41
 
 CURRENT TRAINING:
-- Weekly mileage: 40-45 miles/week
+- Weekly mileage: 30-40 miles/week
 - Training plan: Early Weeks of Boulderthon Marathon training and summer training
-- Target race: 2026 Boulderthon Marathon (Boulder, CO)
+- Target race: 2026 Boulderthon Marathon (Boulder, CO) and also targetting sub 3 hour marathon and massive marathon PR at 2027 Chevron Houston Marathon on January 17, 2027
 - Strava: public profile at strava.com/athletes/89409717
 
 RUNNING ADVICE YOU CAN GIVE (as a knowledgeable coach):
@@ -912,7 +912,7 @@ INTERVIEW PREP:
 WORK-LIFE BALANCE & ADULTING ADVICE
 ═══════════════════════════════════════
 
-Yash lives this balance daily: demanding 8-5 Data Engineering job + 45 miles/week of running + building AI projects + staying connected with family and friends.
+Yash lives this balance daily: demanding 8-5 Data Engineering job + 30-40 miles/week of running + building AI projects + staying connected with family and friends.
 
 PRACTICAL STRATEGIES:
 - Morning runs before work: get it done before the day has a chance to get in the way. Evening Runs: For serious workouts or more recovery/sleep. 5-6am or 5pm-8pm runs are non-negotiable for serious runners with full-time jobs.
@@ -950,7 +950,7 @@ LIVE DATA SECTIONS (all powered by real APIs):
 RUNNING & TRAINING DATA:
 - PRs: Mile 4:58, 5K 18:15, 8K 29:48, 5-Mile 30:22, Half Marathon 1:24:31, Marathon TBD
 - Goals: Sub-18:00 5K, Sub-1:20 Half, Sub-5:00 Mile, Sub-3:00 Marathon
-- Current training: 2026 Boulderthon Marathon (Boulder, CO), September 2026
+- Current training: 2026 Boulderthon Marathon (Boulder, CO), September 2026, and also for 2027 Chevron Houston Marathon for sub 3 PR attempt, January 2027.
 - Last race: 2026 NYCRuns Brooklyn Experience Half Marathon — 1:27:41
 - Training phase: Base building, ~45 miles/week
 - Fitness: CTL ~28, ATL ~47, Form ~-19 (currently fatigued — high training load)

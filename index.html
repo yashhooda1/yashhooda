@@ -1640,6 +1640,84 @@
             animation: spin 0.8s linear infinite;
             flex-shrink: 0;
         }
+        /* ── AI GENERATED MEDIA ── */
+        .gen-media-card {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(76,175,80,0.25);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+            max-width: 100%;
+            align-self: flex-start;
+        }
+        .gen-media-card img {
+            width: 100%;
+            max-width: 420px;
+            display: block;
+            border-radius: 8px 8px 0 0;
+        }
+        .gen-media-card video {
+            width: 100%;
+            max-width: 420px;
+            display: block;
+            border-radius: 8px 8px 0 0;
+            background: #000;
+        }
+        .gen-media-footer {
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .gen-media-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .gen-media-download {
+            background: rgba(76,175,80,0.1);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: var(--green-light);
+            border-radius: 5px;
+            padding: 0.2rem 0.6rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .gen-media-download:hover { background: rgba(76,175,80,0.2); border-color: var(--green); }
+        .gen-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--green);
+            padding: 0.6rem 0.9rem;
+            background: var(--bg-elevated);
+            border: 1px solid rgba(76,175,80,0.2);
+            border-radius: 10px;
+            align-self: flex-start;
+            margin-top: 0.25rem;
+        }
+        .gen-progress::before {
+            content: '';
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            border: 2px solid rgba(76,175,80,0.3);
+            border-top-color: var(--green);
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
     </style>
     <!-- Leaflet for route maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -3420,6 +3498,113 @@ function escapeHtml(text) {
     return String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── IMAGE + VIDEO GENERATION TRIGGERS ──
+const IMAGE_GEN_TRIGGERS = /\b(generate|create|draw|make|design|produce|render|show me)\s+(an?\s+)?(image|photo|picture|illustration|artwork|portrait|painting|sketch|drawing|wallpaper|thumbnail|logo|banner|meme|diagram)\b/i;
+const VIDEO_GEN_TRIGGERS = /\b(generate|create|make|produce|animate|render)\s+(an?\s+)?(video|animation|clip|reel|motion|movie|film|timelapse)\b|\banimate\s+(this|the|my)\b|\bmake\s+(this|it|the)\s+(move|animate|into\s+a\s+video)\b/i;
+const IMAGE_ANIMATE_TRIGGERS = /\b(animate\s+(this|it)|make\s+(this|it)\s+(a\s+video|move|come\s+alive)|turn\s+(this|it)\s+into\s+(a\s+)?video|video\s+from\s+(this|image))\b/i;
+
+async function generateImage(prompt, imageBase64, imageMime, sessionId) {
+    const msgs = document.getElementById('chat-messages');
+
+    const progressDiv = document.createElement('div');
+    progressDiv.className = 'gen-progress';
+    progressDiv.textContent = imageBase64 ? '🎨 Generating image from your photo…' : '🎨 Generating image…';
+    msgs.appendChild(progressDiv);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    try {
+        const res = await fetch('/api/imagine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, imageBase64: imageBase64 || null, imageMime: imageMime || null, sessionId }),
+        });
+        progressDiv.remove();
+        const data = await res.json();
+        if (!res.ok) { addBotMsg('❌ Image generation failed: ' + (data.error || 'Unknown error')); return; }
+
+        const card = document.createElement('div');
+        card.className = 'gen-media-card';
+        const img = document.createElement('img');
+        img.src = data.imageUrl;
+        img.alt = prompt;
+        img.loading = 'lazy';
+        const footer = document.createElement('div');
+        footer.className = 'gen-media-footer';
+        const label = document.createElement('span');
+        label.className = 'gen-media-label';
+        label.textContent = '🎨 DALL-E 3 · ' + (data.revisedPrompt || prompt).slice(0, 80);
+        const dl = document.createElement('a');
+        dl.className = 'gen-media-download';
+        dl.href = data.imageUrl;
+        dl.target = '_blank';
+        dl.download = 'generated-image.png';
+        dl.textContent = '⬇ Save';
+        footer.appendChild(label);
+        footer.appendChild(dl);
+        card.appendChild(img);
+        card.appendChild(footer);
+        msgs.appendChild(card);
+
+        chatHistory.push({ role: 'assistant', content: `[Generated image for: "${prompt}"]` });
+        msgs.scrollTop = msgs.scrollHeight;
+    } catch (err) {
+        progressDiv.remove();
+        addBotMsg('❌ Image generation failed — check your connection.');
+    }
+}
+
+async function generateVideo(prompt, imageBase64, imageMime, sessionId) {
+    const msgs = document.getElementById('chat-messages');
+
+    const progressDiv = document.createElement('div');
+    progressDiv.className = 'gen-progress';
+    progressDiv.textContent = imageBase64 ? '🎬 Animating your image (30-90 sec)…' : '🎬 Generating video (30-90 sec)…';
+    msgs.appendChild(progressDiv);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    try {
+        const res = await fetch('/api/runway', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, imageBase64: imageBase64 || null, imageMime: imageMime || null, sessionId }),
+        });
+        progressDiv.remove();
+        const data = await res.json();
+        if (!res.ok) { addBotMsg('❌ Video generation failed: ' + (data.error || 'Unknown error')); return; }
+
+        const card = document.createElement('div');
+        card.className = 'gen-media-card';
+        const video = document.createElement('video');
+        video.src = data.videoUrl;
+        video.controls = true;
+        video.autoplay = false;
+        video.loop = false;
+        video.style.maxWidth = '420px';
+        const footer = document.createElement('div');
+        footer.className = 'gen-media-footer';
+        const label = document.createElement('span');
+        label.className = 'gen-media-label';
+        label.textContent = '🎬 Runway Gen-4 · ' + (prompt || 'video').slice(0, 80);
+        const dl = document.createElement('a');
+        dl.className = 'gen-media-download';
+        dl.href = data.videoUrl;
+        dl.target = '_blank';
+        dl.download = 'generated-video.mp4';
+        dl.textContent = '⬇ Save';
+        footer.appendChild(label);
+        footer.appendChild(dl);
+        card.appendChild(video);
+        card.appendChild(footer);
+        msgs.appendChild(card);
+
+        chatHistory.push({ role: 'assistant', content: `[Generated video for: "${prompt}"]` });
+        msgs.scrollTop = msgs.scrollHeight;
+    } catch (err) {
+        progressDiv.remove();
+        addBotMsg('❌ Video generation failed — check your connection.');
+    }
+}
+
 // ── SEND MESSAGE — with SSE streaming for web search ──
 async function sendMsg() {
   const input = document.getElementById('chat-input');
@@ -3428,6 +3613,51 @@ async function sendMsg() {
   input.value = '';
   document.getElementById('quick-btns').style.display = 'none';
  
+  // ── ROUTE TO IMAGE GENERATION ──
+  if (IMAGE_GEN_TRIGGERS.test(text) && !pendingFileIsAnalyzable) {
+      const userDiv = document.createElement('div');
+      userDiv.className = 'msg user';
+      userDiv.textContent = text;
+      document.getElementById('chat-messages').appendChild(userDiv);
+      input.value = '';
+      const b64 = pendingImageBase64;
+      const mime = pendingImageType;
+      if (b64) removeImage();
+      await generateImage(text, b64, mime, SESSION_ID);
+      chatHistory.push({ role: 'user', content: text });
+      return;
+  }
+
+  // ── ROUTE TO VIDEO GENERATION ──
+  if (VIDEO_GEN_TRIGGERS.test(text) && !pendingFileIsAnalyzable) {
+      const userDiv = document.createElement('div');
+      userDiv.className = 'msg user';
+      userDiv.textContent = text;
+      document.getElementById('chat-messages').appendChild(userDiv);
+      input.value = '';
+      const b64 = pendingImageBase64;
+      const mime = pendingImageType;
+      if (b64) removeImage();
+      await generateVideo(text, b64, mime, SESSION_ID);
+      chatHistory.push({ role: 'user', content: text });
+      return;
+  }
+
+  // ── ROUTE TO ANIMATE IMAGE (upload + animate trigger) ──
+  if (pendingImageBase64 && IMAGE_ANIMATE_TRIGGERS.test(text)) {
+      const userDiv = document.createElement('div');
+      userDiv.className = 'msg user';
+      userDiv.textContent = text;
+      document.getElementById('chat-messages').appendChild(userDiv);
+      input.value = '';
+      const b64 = pendingImageBase64;
+      const mime = pendingImageType;
+      removeImage();
+      await generateVideo(text, b64, mime, SESSION_ID);
+      chatHistory.push({ role: 'user', content: text });
+      return;
+  }
+
   // ── ROUTE TO FILE ANALYSIS ──
   const ANALYZE_TRIGGERS = /\b(analyze|analyse|read|extract|review|summarize|check|scan|parse|tell me about|describe|breakdown|break down)\b/i;
   if (pendingImageBase64 && (pendingFileIsAnalyzable || ANALYZE_TRIGGERS.test(text))) {

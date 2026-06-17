@@ -18,8 +18,8 @@ function validateInput(messages, sessionId) {
   for (const msg of (messages || [])) {
     if (!['user', 'assistant'].includes(msg.role))
       errors.push(`invalid role: ${msg.role}`);
-    if (typeof msg.content === 'string' && msg.content.length > 8000)
-      errors.push('message too long — max 8000 chars');
+    if (typeof msg.content === 'string' && msg.content.length > 32000)
+      errors.push('message too long — max 32000 chars');
     if (Array.isArray(msg.content)) {
       for (const block of msg.content) {
         if (block.type === 'text' && block.text?.length > 8000)

@@ -140,16 +140,16 @@ function buildRecommendations(strava, github, weather, timeCtx) {
     }
 
     // Race countdown
-    const raceDate  = new Date('2026-09-06'); // Boulderthon
+    const raceDate  = new Date('2027-01-17'); // Houston Marathon
     const daysToRace = Math.floor((raceDate - new Date()) / 86400000);
     if (daysToRace > 0 && daysToRace <= 90) {
       recs.push({
         priority: daysToRace <= 14 ? 'high' : 'medium',
         category: 'running',
-        emoji:    '🏔️',
-        title:    `Boulderthon in ${daysToRace} days`,
+        emoji:    '🏃🏽',
+        title:    `Houston Marathon in ${daysToRace} days`,
         body:     daysToRace <= 14
-          ? `Taper time. Reduce mileage 20-30%, keep intensity, prioritize sleep. Boulder altitude = 5,400ft — factor in 3-5% slower paces.`
+          ? `Taper time. Reduce mileage 20-30%, keep intensity, prioritize sleep.`
           : `On track for sub-3:00 marathon goal. Current weekly mileage: ${weekly}mi. Target: 50-55mpw peak.`,
         action:   daysToRace <= 14 ? 'Begin taper protocol' : 'Check training plan',
         color:    '#f97316',

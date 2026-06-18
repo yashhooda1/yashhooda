@@ -4479,27 +4479,6 @@ async function sendMsg() {
   input.value = '';
   document.getElementById('quick-btns').style.display = 'none';
 
-  // ── GMAIL ROUTE ──
-  if (GMAIL_TRIGGERS.test(text) && !pendingImageBase64) {
-      const userDiv = document.createElement('div');
-      userDiv.className = 'msg user';
-      userDiv.textContent = text;
-      document.getElementById('chat-messages').appendChild(userDiv);
-      chatHistory.push({ role: 'user', content: text });
-      await handleGmailRequest(text);
-      return;
-  }
-
-  // ── CALENDAR ROUTE ──
-  if (CALENDAR_TRIGGERS.test(text) && !pendingImageBase64) {
-      const userDiv = document.createElement('div');
-      userDiv.className = 'msg user';
-      userDiv.textContent = text;
-      document.getElementById('chat-messages').appendChild(userDiv);
-      chatHistory.push({ role: 'user', content: text });
-      await handleCalendarRequest(text);
-      return;
-  }
 
   // ── CODE AGENT ROUTE ──
   if (CODE_AGENT_TRIGGERS.test(text) && !pendingImageBase64) {

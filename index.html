@@ -5529,7 +5529,12 @@ async function loadWeather() {
                 );
                 const weatherData = await weatherRes.json();
                 const c = weatherData.current;
-                const code = c.weather_code;
+                let code = c.weather_code;
+                const currentPrecip = c.precipitation;
+                // Downgrade thunderstorm if no active precipitation
+                if ((code === 95 || code === 96 || code === 99) && currentPrecip === 0) {
+                    code = 3; // overcast
+                }
                 const { label, icon } = WMO_CODES[code] || { label: 'Unknown', icon: '🌡️' };
                 const windDir = (deg) => { const dirs = ['N','NE','E','SE','S','SW','W','NW']; return dirs[Math.round(deg/45)%8]; };
 
@@ -5549,6 +5554,7 @@ async function loadWeather() {
                         </div>
                     </div>
                 `;
+                loadTropicalAlert();
             } catch(err) {
                 container.innerHTML = '<div class="weather-denied">⚠️ Could not load weather data. <button class="weather-retry" onclick="loadWeather()">Retry</button></div>';
             }
@@ -5671,7 +5677,6 @@ async function loadTropicalAlert() {
 }
 
 loadWeather();
-loadTropicalAlert();
 
 // ── SPORTS SCORES ──
 const SPORTS_CONFIG = {

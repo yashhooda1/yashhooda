@@ -5624,8 +5624,10 @@ async function loadForecast(lat, lon, locationLabel) {
 }
 
 async function loadTropicalAlert() {
+    if (!cachedWeatherCoords) return; // wait for coords from loadWeather()
+    const { lat, lon } = cachedWeatherCoords;
     try {
-        const res = await fetch('https://api.weather.gov/alerts/active?area=TX');
+        const res = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`);
         const data = await res.json();
         const tropical = data.features?.filter(f => 
             f.properties.event?.toLowerCase().includes('hurricane') ||

@@ -5595,7 +5595,6 @@ async function loadForecast(lat, lon, locationLabel) {
                     }
                     const { icon, label } = WMO_CODES[weatherCode] || { icon: '🌡️', label: 'Unknown' };
                     const day = i === 0 ? 'Today' : days[new Date(date).getDay()];
-                    const precip = d.precipitation_probability_max[i];
                     return `
                     <div style="background:var(--bg-elevated);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:1rem;text-align:center;transition:all 0.2s;"
                          onmouseover="this.style.borderColor='rgba(76,175,80,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)'">

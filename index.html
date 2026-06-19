@@ -5466,6 +5466,25 @@ const WMO_CODES = {
     95: { label: 'Thunderstorm', icon: '⛈️' },
     96: { label: 'Thunderstorm w/ Hail', icon: '⛈️' },
     99: { label: 'Heavy Thunderstorm', icon: '⛈️' },
+    56: { label: 'Freezing Drizzle', icon: '🌨️' },
+    57: { label: 'Heavy Freezing Drizzle', icon: '🌨️' },
+    66: { label: 'Freezing Rain', icon: '🌧️❄️' },
+    67: { label: 'Heavy Freezing Rain', icon: '🌧️❄️' },
+    79: { label: 'Ice Pellets', icon: '🧊' },
+    81: { label: 'Rain Showers', icon: '🌧️' },
+    82: { label: 'Violent Rain Showers', icon: '🌧️' },
+    83: { label: 'Snow/Rain Mix', icon: '🌨️' },
+    84: { label: 'Heavy Snow/Rain Mix', icon: '🌨️' },
+    87: { label: 'Hail Showers', icon: '🌨️' },
+    88: { label: 'Heavy Hail', icon: '⛈️🧊' },
+    89: { label: 'Hail', icon: '🧊' },
+    90: { label: 'Heavy Hail', icon: '🧊⚠️' },
+    91: { label: 'Thunderstorm + Rain', icon: '⛈️' },
+    92: { label: 'Heavy Thunderstorm', icon: '⛈️' },
+    93: { label: 'Thunderstorm + Snow', icon: '⛈️❄️' },
+    94: { label: 'Heavy Thunderstorm + Snow', icon: '⛈️❄️' },
+    97: { label: 'Heavy Thunderstorm', icon: '⛈️⚡' },
+    98: { label: 'Thunderstorm + Sandstorm', icon: '⛈️🌪️' },
 };
 
 let cachedWeatherCoords = null;
@@ -5599,7 +5618,61 @@ async function loadForecast(lat, lon, locationLabel) {
     }
 }
 
+async function loadTropicalAlert() {
+    try {
+        const res = await fetch('https://api.weather.gov/alerts/active?area=TX');
+        const data = await res.json();
+        const tropical = data.features?.filter(f => 
+            f.properties.event?.toLowerCase().includes('hurricane') ||
+            f.properties.event?.toLowerCase().includes('tropical') ||
+            f.properties.event?.toLowerCase().includes('storm surge') ||
+            f.properties.event?.toLowerCase().includes('tornado') ||
+            f.properties.event?.toLowerCase().includes('wind advisory') ||
+            f.properties.event?.toLowerCase().includes('heat advisory') ||
+            f.properties.event?.toLowerCase().includes('winter storm') ||
+            f.properties.event?.toLowerCase().includes('winter weather') ||
+            f.properties.event?.toLowerCase().includes('ice storm') ||
+            f.properties.event?.toLowerCase().includes('freeze') ||
+            f.properties.event?.toLowerCase().includes('frost') ||
+            f.properties.event?.toLowerCase().includes('blizzard') ||
+            f.properties.event?.toLowerCase().includes('snow') ||
+            f.properties.event?.toLowerCase().includes('flood') ||
+            f.properties.event?.toLowerCase().includes('flash flood')
+        );
+        
+        if (tropical?.length > 0) {
+            const alert = tropical[0].properties;
+            const event = alert.event?.toLowerCase();
+            const color = event.includes('hurricane') || event.includes('tornado') || event.includes('storm surge')
+                ? '239,68,68'      // red
+                : event.includes('winter') || event.includes('freeze') || event.includes('ice') || event.includes('blizzard')
+                ? '147,197,253'    // blue
+                : event.includes('heat') || event.includes('fire')
+                ? '249,115,22'     // orange
+                : event.includes('flood')
+                ? '234,179,8'      // yellow
+                : '239,68,68';     // default red
+
+            const banner = document.createElement('div');
+            banner.style.cssText = `
+                background: rgba(${color},0.15);
+                border: 1px solid rgba(${color},0.5);
+                border-radius: 8px;
+                padding: 0.75rem 1rem;
+                margin-bottom: 1rem;
+                font-family: 'Space Mono', monospace;
+                font-size: 0.78rem;
+                color: rgb(${color});
+            `;
+            banner.innerHTML = `⚠️ <strong>${alert.event}</strong> — ${alert.headline}<br>
+                <span style="color:var(--text-muted);font-size:0.68rem;">${alert.description?.slice(0,150)}...</span>`;
+            document.getElementById('weather-container').prepend(banner);
+        }
+    } catch(e) { /* silent fail */ }
+}
+
 loadWeather();
+loadTropicalAlert();
 
 // ── SPORTS SCORES ──
 const SPORTS_CONFIG = {

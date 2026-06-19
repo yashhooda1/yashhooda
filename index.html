@@ -5564,7 +5564,17 @@ async function loadForecast(lat, lon, locationLabel) {
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;">
                 ${d.time.map((date, i) => {
-                    const { icon, label } = WMO_CODES[d.weather_code[i]] || { icon: '🌡️', label: 'Unknown' };
+                    let weatherCode = d.weather_code[i];
+                    const precip = d.precipitation_probability_max[i];
+                    // Downgrade thunderstorm to partly cloudy if precip chance < 30%
+                    if ((weatherCode === 95 || weatherCode === 96 || weatherCode === 99) && precip < 30) {
+                        weatherCode = 2; // partly cloudy
+                    }
+                    // Downgrade rain to drizzle if precip chance < 20%
+                    if ((weatherCode === 61 || weatherCode === 63) && precip < 20) {
+                        weatherCode = 51;
+                    }
+                    const { icon, label } = WMO_CODES[weatherCode] || { icon: '🌡️', label: 'Unknown' };
                     const day = i === 0 ? 'Today' : days[new Date(date).getDay()];
                     const precip = d.precipitation_probability_max[i];
                     return `

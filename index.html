@@ -2679,106 +2679,106 @@
     </section>
 
     <section id="climate">
-    <h2>🌡️ ClimatePulse — Live Dashboard</h2>
+        <h2>🌡️ ClimatePulse — Live Dashboard</h2>
  
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
-        <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-            55 years (1970–2025) of NOAA daily station data · Houston (IAH) vs Newark (EWR) · Bronze → Silver → Gold pipeline
-        </p>
-        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-            <span class="cp-refresh-badge" id="cp-last-updated">Updated weekly</span>
-            <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                55 years (1970–2025) of NOAA daily station data · Houston (IAH) vs Newark (EWR) · Bronze → Silver → Gold pipeline
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="cp-last-updated">Updated weekly</span>
+                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+            </div>
         </div>
-    </div>
  
-    <!-- KPI strip — same pattern as your stats-bar -->
-    <div class="cp-kpi-row">
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val hot" id="cp-hou-annual">—</span>
-            <span class="cp-kpi-label">Houston °F / decade</span>
+        <!-- KPI strip — same pattern as your stats-bar -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="cp-hou-annual">—</span>
+                <span class="cp-kpi-label">Houston °F / decade</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="cp-ewr-annual">—</span>
+                <span class="cp-kpi-label">Newark °F / decade</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="cp-hou-winter">—</span>
+                <span class="cp-kpi-label">HOU winter nights / dec</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="cp-80f">—</span>
+                <span class="cp-kpi-label">Extra 80°F days / decade</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="cp-years">55</span>
+                <span class="cp-kpi-label">Years of data</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="cp-stations">2</span>
+                <span class="cp-kpi-label">NOAA stations</span>
+            </div>
         </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val blue" id="cp-ewr-annual">—</span>
-            <span class="cp-kpi-label">Newark °F / decade</span>
-        </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val hot" id="cp-hou-winter">—</span>
-            <span class="cp-kpi-label">HOU winter nights / dec</span>
-        </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val" id="cp-80f">—</span>
-            <span class="cp-kpi-label">Extra 80°F days / decade</span>
-        </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val" id="cp-years">55</span>
-            <span class="cp-kpi-label">Years of data</span>
-        </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val" id="cp-stations">2</span>
-            <span class="cp-kpi-label">NOAA stations</span>
-        </div>
-    </div>
  
-    <!-- Tab nav -->
-    <div class="cp-tabs">
-        <button class="cp-tab active" onclick="cpTab(this,'trend')">📈 Annual Trend</button>
-        <button class="cp-tab" onclick="cpTab(this,'seasonal')">📅 Seasonal</button>
-        <button class="cp-tab" onclick="cpTab(this,'heat')">🔥 Heat Days</button>
-        <button class="cp-tab" onclick="cpTab(this,'winter')">❄️ Winter Lows</button>
-    </div>
+        <!-- Tab nav -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="cpTab(this,'trend')">📈 Annual Trend</button>
+            <button class="cp-tab" onclick="cpTab(this,'seasonal')">📅 Seasonal</button>
+            <button class="cp-tab" onclick="cpTab(this,'heat')">🔥 Heat Days</button>
+            <button class="cp-tab" onclick="cpTab(this,'winter')">❄️ Winter Lows</button>
+        </div>
  
-    <!-- Annual Trend -->
-    <div class="cp-panel active" id="cp-panel-trend">
-        <div class="cp-legend">
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston actual</span>
-            <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#f87171"></span>Houston trend</span>
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark actual</span>
-            <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#60a5fa"></span>Newark trend</span>
+        <!-- Annual Trend -->
+        <div class="cp-panel active" id="cp-panel-trend">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston actual</span>
+                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#f87171"></span>Houston trend</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark actual</span>
+                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#60a5fa"></span>Newark trend</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="cp-trend-chart" role="img" aria-label="Annual mean temperature 1970–2025 for Houston and Newark, both showing upward warming trends.">Both cities show significant warming from 1970 to 2025.</canvas></div>
+            <p class="cp-insight"><strong>Signal:</strong> Houston runs ~13°F warmer than Newark year-round. Houston's warming slope (+0.806°F/decade) is nearly double Newark's — urban heat island effects compounded by Gulf Coast climate dynamics.</p>
         </div>
-        <div class="cp-chart-wrap"><canvas id="cp-trend-chart" role="img" aria-label="Annual mean temperature 1970–2025 for Houston and Newark, both showing upward warming trends.">Both cities show significant warming from 1970 to 2025.</canvas></div>
-        <p class="cp-insight"><strong>Signal:</strong> Houston runs ~13°F warmer than Newark year-round. Houston's warming slope (+0.806°F/decade) is nearly double Newark's — urban heat island effects compounded by Gulf Coast climate dynamics.</p>
-    </div>
  
-    <!-- Seasonal -->
-    <div class="cp-panel" id="cp-panel-seasonal">
-        <div class="cp-controls">
-            <label for="cp-metric-sel">Metric</label>
-            <select id="cp-metric-sel" onchange="cpDrawSeasonal()">
-                <option value="avg_tmean">Mean temp</option>
-                <option value="avg_tmax">Max temp</option>
-                <option value="avg_tmin">Min temp</option>
-            </select>
+        <!-- Seasonal -->
+        <div class="cp-panel" id="cp-panel-seasonal">
+            <div class="cp-controls">
+                <label for="cp-metric-sel">Metric</label>
+                <select id="cp-metric-sel" onchange="cpDrawSeasonal()">
+                    <option value="avg_tmean">Mean temp</option>
+                    <option value="avg_tmax">Max temp</option>
+                    <option value="avg_tmin">Min temp</option>
+                </select>
+            </div>
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston (IAH)</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark (EWR)</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="cp-seasonal-chart" role="img" aria-label="Monthly temperature climatology for Houston and Newark.">Monthly average temperatures for both cities across all 12 months.</canvas></div>
+            <p class="cp-insight"><strong>Signal:</strong> Houston's summer (Jun–Sep) averages 82–84°F mean. The gap between cities compresses in spring and widens dramatically in summer, tracking Gulf humidity and solar angle.</p>
         </div>
-        <div class="cp-legend">
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston (IAH)</span>
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark (EWR)</span>
-        </div>
-        <div class="cp-chart-wrap"><canvas id="cp-seasonal-chart" role="img" aria-label="Monthly temperature climatology for Houston and Newark.">Monthly average temperatures for both cities across all 12 months.</canvas></div>
-        <p class="cp-insight"><strong>Signal:</strong> Houston's summer (Jun–Sep) averages 82–84°F mean. The gap between cities compresses in spring and widens dramatically in summer, tracking Gulf humidity and solar angle.</p>
-    </div>
  
-    <!-- Heat Days -->
-    <div class="cp-panel" id="cp-panel-heat">
-        <div class="cp-legend">
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston (IAH)</span>
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark (EWR)</span>
+        <!-- Heat Days -->
+        <div class="cp-panel" id="cp-panel-heat">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston (IAH)</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark (EWR)</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="cp-heat-chart" role="img" aria-label="Annual count of days above 80°F for Houston and Newark, 1970–2025.">Houston averages 200+ days above 80°F. Newark averages roughly 90–130.</canvas></div>
+            <p class="cp-insight"><strong>Signal:</strong> Houston averages 200+ days above 80°F per year. The Feb–March surge (+1.72 extra days/decade) signals extreme heat arriving earlier — a critical climate shift indicator for marathon training planning.</p>
         </div>
-        <div class="cp-chart-wrap"><canvas id="cp-heat-chart" role="img" aria-label="Annual count of days above 80°F for Houston and Newark, 1970–2025.">Houston averages 200+ days above 80°F. Newark averages roughly 90–130.</canvas></div>
-        <p class="cp-insight"><strong>Signal:</strong> Houston averages 200+ days above 80°F per year. The Feb–March surge (+1.72 extra days/decade) signals extreme heat arriving earlier — a critical climate shift indicator for marathon training planning.</p>
-    </div>
  
-    <!-- Winter Lows -->
-    <div class="cp-panel" id="cp-panel-winter">
-        <div class="cp-legend">
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston winter lows</span>
-            <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#f87171"></span>Trend</span>
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark winter lows</span>
-            <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#60a5fa"></span>Trend</span>
+        <!-- Winter Lows -->
+        <div class="cp-panel" id="cp-panel-winter">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston winter lows</span>
+                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#f87171"></span>Trend</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark winter lows</span>
+                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#60a5fa"></span>Trend</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="cp-winter-chart" role="img" aria-label="Winter minimum temperature trend for Houston and Newark, 1970–2025.">Winter nighttime lows are warming faster than annual averages — a greenhouse gas fingerprint.</canvas></div>
+            <p class="cp-insight"><strong>Signal:</strong> Houston's winter nights warm at +1.013°F/decade — faster than the annual average. Nights warming faster than days is a classic greenhouse gas signature distinct from urban heat island effects.</p>
         </div>
-        <div class="cp-chart-wrap"><canvas id="cp-winter-chart" role="img" aria-label="Winter minimum temperature trend for Houston and Newark, 1970–2025.">Winter nighttime lows are warming faster than annual averages — a greenhouse gas fingerprint.</canvas></div>
-        <p class="cp-insight"><strong>Signal:</strong> Houston's winter nights warm at +1.013°F/decade — faster than the annual average. Nights warming faster than days is a classic greenhouse gas signature distinct from urban heat island effects.</p>
-    </div>
-</section>
+    </section>
         
 
     <!-- CERTIFICATIONS -->

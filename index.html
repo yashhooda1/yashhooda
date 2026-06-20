@@ -6243,178 +6243,6 @@ async function loadStrava() {
 }
 loadStrava();
 
-// ── CLIMATEPULSE DASHBOARD ──
-(function () {
-    'use strict';
- 
-    const CP = {
-        data:    null,
-        charts:  {},
-        MONTHS:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-        loaded:  false,
-    };
- 
-    // ── Load data from /api/climate ──────────────────────────────────────
-    async function cpLoad() {
-        if (CP.loaded) return;
-        try {
-            const res  = await fetch('/api/climate');
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            CP.data   = await res.json();
-            CP.loaded = true;
-            cpPopulateKPIs();
-            cpDrawTrend();   // draw the active panel immediately
-        } catch (err) {
-            console.error('[ClimatePulse] Failed to load data:', err);
-        }
-    }
- 
-    // ── KPI strip ─────────────────────────────────────────────────────────
-    function cpPopulateKPIs() {
-        const hou = CP.data.IAH;
-        const ewr = CP.data.EWR;
-        set('cp-hou-annual', '+' + hou.slope_annual.toFixed(2) + '°F');
-        set('cp-ewr-annual', '+' + ewr.slope_annual.toFixed(2) + '°F');
-        set('cp-hou-winter', '+' + hou.slope_winter.toFixed(2) + '°F');
-        set('cp-80f',        '+' + hou.slope_80f_febmar.toFixed(2) + ' days');
-        if (CP.data.generated_at) {
-            const d = CP.data.generated_at.slice(0, 10);
-            const el = document.getElementById('cp-last-updated');
-            if (el) el.textContent = 'Data: ' + d;
-        }
-    }
- 
-    function set(id, val) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = val;
-    }
- 
-    // ── Tab switching — same pattern as your snow/sports tabs ─────────────
-    window.cpTab = function (btn, id) {
-        document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.cp-panel').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('cp-panel-' + id).classList.add('active');
-        if (!CP.loaded) { cpLoad(); return; }
-        if (id === 'trend'   && !CP.charts.trend)    cpDrawTrend();
-        if (id === 'seasonal'&& !CP.charts.seasonal) cpDrawSeasonal();
-        if (id === 'heat'    && !CP.charts.heat)     cpDrawHeat();
-        if (id === 'winter'  && !CP.charts.winter)   cpDrawWinter();
-    };
- 
-    // ── Shared Chart.js options ───────────────────────────────────────────
-    const BASE_OPTS = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-            x: { ticks: { color: '#9ca3af', maxTicksLimit: 10, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { ticks: { color: '#9ca3af', font: { size: 10 } },                    grid: { color: 'rgba(255,255,255,0.05)' } },
-        },
-    };
- 
-    function mergeOpts(extra) {
-        return {
-            ...BASE_OPTS, ...extra,
-            plugins:  { ...BASE_OPTS.plugins, ...(extra.plugins || {}) },
-            scales: {
-                x: { ...BASE_OPTS.scales.x, ...((extra.scales || {}).x || {}) },
-                y: { ...BASE_OPTS.scales.y, ...((extra.scales || {}).y || {}) },
-            },
-        };
-    }
- 
-    // ── Annual trend ──────────────────────────────────────────────────────
-    function cpDrawTrend() {
-        if (!CP.data) return;
-        const hou    = CP.data.IAH.yearly;
-        const ewr    = CP.data.EWR.yearly;
-        const labels = hou.map(r => r.year);
-        CP.charts.trend = new Chart(document.getElementById('cp-trend-chart'), {
-            type: 'line',
-            data: { labels, datasets: [
-                { label: 'Houston actual', data: hou.map(r => r.avg_tmean), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.07)', borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3, fill: true },
-                { label: 'Houston trend',  data: hou.map(r => r.trend),     borderColor: '#f87171', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Newark actual',  data: ewr.map(r => r.avg_tmean), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.07)', borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3, fill: true },
-                { label: 'Newark trend',   data: ewr.map(r => r.trend),     borderColor: '#60a5fa', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
-            ]},
-            options: mergeOpts({
-                plugins: { tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
-                scales:  { y: { ticks: { callback: v => v + '°F' } } },
-            }),
-        });
-    }
- 
-    // ── Seasonal climatology ──────────────────────────────────────────────
-    window.cpDrawSeasonal = function () {
-        if (!CP.data) return;
-        if (CP.charts.seasonal) { CP.charts.seasonal.destroy(); delete CP.charts.seasonal; }
-        const metric = document.getElementById('cp-metric-sel').value;
-        CP.charts.seasonal = new Chart(document.getElementById('cp-seasonal-chart'), {
-            type: 'line',
-            data: { labels: CP.MONTHS, datasets: [
-                { label: 'Houston', data: CP.data.IAH.monthly.map(r => r[metric]), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.12)', fill: true, borderWidth: 2, pointRadius: 4, tension: 0.4 },
-                { label: 'Newark',  data: CP.data.EWR.monthly.map(r => r[metric]), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.1)',  fill: true, borderWidth: 2, pointRadius: 4, tension: 0.4 },
-            ]},
-            options: mergeOpts({
-                plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
-                scales:  { y: { ticks: { callback: v => v + '°F' } } },
-            }),
-        });
-    };
- 
-    // ── Heat days ─────────────────────────────────────────────────────────
-    function cpDrawHeat() {
-        if (!CP.data) return;
-        const hou = CP.data.IAH.yearly;
-        const ewr = CP.data.EWR.yearly;
-        CP.charts.heat = new Chart(document.getElementById('cp-heat-chart'), {
-            type: 'bar',
-            data: { labels: hou.map(r => r.year), datasets: [
-                { label: 'Houston', data: hou.map(r => r.count_80f), backgroundColor: 'rgba(248,113,113,0.7)', borderColor: '#f87171', borderWidth: 0.5 },
-                { label: 'Newark',  data: ewr.map(r => r.count_80f), backgroundColor: 'rgba(96,165,250,0.6)',  borderColor: '#60a5fa', borderWidth: 0.5 },
-            ]},
-            options: mergeOpts({
-                plugins: { tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + ' days' } } },
-                scales:  { x: { ticks: { maxTicksLimit: 10 } }, y: { title: { display: true, text: 'Days ≥ 80°F', color: '#9ca3af', font: { size: 11 } } } },
-            }),
-        });
-    }
- 
-    // ── Winter lows ───────────────────────────────────────────────────────
-    function cpDrawWinter() {
-        if (!CP.data) return;
-        const hou    = CP.data.IAH.winter;
-        const ewr    = CP.data.EWR.winter;
-        const labels = hou.map(r => r.year);
-        CP.charts.winter = new Chart(document.getElementById('cp-winter-chart'), {
-            type: 'line',
-            data: { labels, datasets: [
-                { label: 'Houston lows',  data: hou.map(r => r.avg_tmin), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.07)', fill: true, borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3 },
-                { label: 'Houston trend', data: hou.map(r => r.trend),    borderColor: '#f87171', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Newark lows',   data: ewr.map(r => r.avg_tmin), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.07)',  fill: true, borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3 },
-                { label: 'Newark trend',  data: ewr.map(r => r.trend),    borderColor: '#60a5fa', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
-            ]},
-            options: mergeOpts({
-                plugins: { tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
-                scales:  { y: { ticks: { callback: v => v + '°F' } } },
-            }),
-        });
-    }
- 
-    // ── Intersection observer — load data only when section scrolls into view ──
-    // Same pattern you use for aviation / sports sections
-    const cpSection = document.getElementById('climate');
-    if (cpSection) {
-        new IntersectionObserver((entries) => {
-            entries.forEach(e => {
-                if (e.isIntersecting) {
-                    cpLoad();
-                }
-            });
-        }, { threshold: 0.1 }).observe(cpSection);
-    }
-    )();
 
 // ── VOICE OUTPUT (OpenAI TTS) ──────────────────────────────
 // Adds a 🔊 button to every AI reply. Model-agnostic — speaks whatever
@@ -6781,6 +6609,178 @@ function vmMaybeFinish(){
     VM.restartTimer = setTimeout(vmListen, 1200); // was 800 — last word fully fades
   }
 }
+    // ── CLIMATEPULSE DASHBOARD ──
+(function () {
+    'use strict';
+ 
+    const CP = {
+        data:    null,
+        charts:  {},
+        MONTHS:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        loaded:  false,
+    };
+ 
+    // ── Load data from /api/climate ──────────────────────────────────────
+    async function cpLoad() {
+        if (CP.loaded) return;
+        try {
+            const res  = await fetch('/api/climate');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            CP.data   = await res.json();
+            CP.loaded = true;
+            cpPopulateKPIs();
+            cpDrawTrend();   // draw the active panel immediately
+        } catch (err) {
+            console.error('[ClimatePulse] Failed to load data:', err);
+        }
+    }
+ 
+    // ── KPI strip ─────────────────────────────────────────────────────────
+    function cpPopulateKPIs() {
+        const hou = CP.data.IAH;
+        const ewr = CP.data.EWR;
+        set('cp-hou-annual', '+' + hou.slope_annual.toFixed(2) + '°F');
+        set('cp-ewr-annual', '+' + ewr.slope_annual.toFixed(2) + '°F');
+        set('cp-hou-winter', '+' + hou.slope_winter.toFixed(2) + '°F');
+        set('cp-80f',        '+' + hou.slope_80f_febmar.toFixed(2) + ' days');
+        if (CP.data.generated_at) {
+            const d = CP.data.generated_at.slice(0, 10);
+            const el = document.getElementById('cp-last-updated');
+            if (el) el.textContent = 'Data: ' + d;
+        }
+    }
+ 
+    function set(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+ 
+    // ── Tab switching — same pattern as your snow/sports tabs ─────────────
+    window.cpTab = function (btn, id) {
+        document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.cp-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('cp-panel-' + id).classList.add('active');
+        if (!CP.loaded) { cpLoad(); return; }
+        if (id === 'trend'   && !CP.charts.trend)    cpDrawTrend();
+        if (id === 'seasonal'&& !CP.charts.seasonal) cpDrawSeasonal();
+        if (id === 'heat'    && !CP.charts.heat)     cpDrawHeat();
+        if (id === 'winter'  && !CP.charts.winter)   cpDrawWinter();
+    };
+ 
+    // ── Shared Chart.js options ───────────────────────────────────────────
+    const BASE_OPTS = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { color: '#9ca3af', maxTicksLimit: 10, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#9ca3af', font: { size: 10 } },                    grid: { color: 'rgba(255,255,255,0.05)' } },
+        },
+    };
+ 
+    function mergeOpts(extra) {
+        return {
+            ...BASE_OPTS, ...extra,
+            plugins:  { ...BASE_OPTS.plugins, ...(extra.plugins || {}) },
+            scales: {
+                x: { ...BASE_OPTS.scales.x, ...((extra.scales || {}).x || {}) },
+                y: { ...BASE_OPTS.scales.y, ...((extra.scales || {}).y || {}) },
+            },
+        };
+    }
+ 
+    // ── Annual trend ──────────────────────────────────────────────────────
+    function cpDrawTrend() {
+        if (!CP.data) return;
+        const hou    = CP.data.IAH.yearly;
+        const ewr    = CP.data.EWR.yearly;
+        const labels = hou.map(r => r.year);
+        CP.charts.trend = new Chart(document.getElementById('cp-trend-chart'), {
+            type: 'line',
+            data: { labels, datasets: [
+                { label: 'Houston actual', data: hou.map(r => r.avg_tmean), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.07)', borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3, fill: true },
+                { label: 'Houston trend',  data: hou.map(r => r.trend),     borderColor: '#f87171', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
+                { label: 'Newark actual',  data: ewr.map(r => r.avg_tmean), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.07)', borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3, fill: true },
+                { label: 'Newark trend',   data: ewr.map(r => r.trend),     borderColor: '#60a5fa', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
+            ]},
+            options: mergeOpts({
+                plugins: { tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
+                scales:  { y: { ticks: { callback: v => v + '°F' } } },
+            }),
+        });
+    }
+ 
+    // ── Seasonal climatology ──────────────────────────────────────────────
+    window.cpDrawSeasonal = function () {
+        if (!CP.data) return;
+        if (CP.charts.seasonal) { CP.charts.seasonal.destroy(); delete CP.charts.seasonal; }
+        const metric = document.getElementById('cp-metric-sel').value;
+        CP.charts.seasonal = new Chart(document.getElementById('cp-seasonal-chart'), {
+            type: 'line',
+            data: { labels: CP.MONTHS, datasets: [
+                { label: 'Houston', data: CP.data.IAH.monthly.map(r => r[metric]), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.12)', fill: true, borderWidth: 2, pointRadius: 4, tension: 0.4 },
+                { label: 'Newark',  data: CP.data.EWR.monthly.map(r => r[metric]), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.1)',  fill: true, borderWidth: 2, pointRadius: 4, tension: 0.4 },
+            ]},
+            options: mergeOpts({
+                plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
+                scales:  { y: { ticks: { callback: v => v + '°F' } } },
+            }),
+        });
+    };
+ 
+    // ── Heat days ─────────────────────────────────────────────────────────
+    function cpDrawHeat() {
+        if (!CP.data) return;
+        const hou = CP.data.IAH.yearly;
+        const ewr = CP.data.EWR.yearly;
+        CP.charts.heat = new Chart(document.getElementById('cp-heat-chart'), {
+            type: 'bar',
+            data: { labels: hou.map(r => r.year), datasets: [
+                { label: 'Houston', data: hou.map(r => r.count_80f), backgroundColor: 'rgba(248,113,113,0.7)', borderColor: '#f87171', borderWidth: 0.5 },
+                { label: 'Newark',  data: ewr.map(r => r.count_80f), backgroundColor: 'rgba(96,165,250,0.6)',  borderColor: '#60a5fa', borderWidth: 0.5 },
+            ]},
+            options: mergeOpts({
+                plugins: { tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + ' days' } } },
+                scales:  { x: { ticks: { maxTicksLimit: 10 } }, y: { title: { display: true, text: 'Days ≥ 80°F', color: '#9ca3af', font: { size: 11 } } } },
+            }),
+        });
+    }
+ 
+    // ── Winter lows ───────────────────────────────────────────────────────
+    function cpDrawWinter() {
+        if (!CP.data) return;
+        const hou    = CP.data.IAH.winter;
+        const ewr    = CP.data.EWR.winter;
+        const labels = hou.map(r => r.year);
+        CP.charts.winter = new Chart(document.getElementById('cp-winter-chart'), {
+            type: 'line',
+            data: { labels, datasets: [
+                { label: 'Houston lows',  data: hou.map(r => r.avg_tmin), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.07)', fill: true, borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3 },
+                { label: 'Houston trend', data: hou.map(r => r.trend),    borderColor: '#f87171', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
+                { label: 'Newark lows',   data: ewr.map(r => r.avg_tmin), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.07)',  fill: true, borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3 },
+                { label: 'Newark trend',  data: ewr.map(r => r.trend),    borderColor: '#60a5fa', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
+            ]},
+            options: mergeOpts({
+                plugins: { tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
+                scales:  { y: { ticks: { callback: v => v + '°F' } } },
+            }),
+        });
+    }
+ 
+    // ── Intersection observer — load data only when section scrolls into view ──
+    // Same pattern you use for aviation / sports sections
+    const cpSection = document.getElementById('climate');
+    if (cpSection) {
+        new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    cpLoad();
+                }
+            });
+        }, { threshold: 0.1 }).observe(cpSection);
+    }
+})();
 </script>
 </body>
 </html>

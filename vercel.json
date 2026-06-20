@@ -19,9 +19,6 @@
     "api/agent-log.js":      { "maxDuration": 90 },
     "api/agent-actions.js":   { "maxDuration": 30 }
   },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
   "headers": [
     {
       "source": "/sitemap.xml",

@@ -562,7 +562,7 @@ const MODELS = {
     'llama-4-maverick':   { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
     'llama-3.3-70b':      { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
 };
-const DEFAULT_MODEL = 'claude-opus-4-8';
+const DEFAULT_MODEL = 'gpt-5.5';
 
 // ══════════════════════════════════════════════════════
 // MESSAGE FORMAT CONVERTERS

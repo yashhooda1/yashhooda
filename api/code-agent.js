@@ -27,6 +27,16 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 export const maxDuration = 90;
 
+const BLOCKED_IPS = ['65.50.144.128'];
+
+export default async function handler(req, res) {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim();
+    if (BLOCKED_IPS.includes(ip)) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+    // rest of handler
+}
+
 // ── DYNAMIC MODEL SELECTOR ──────────────────────────────────────────────────
 function selectModel(language, taskType) {
   if (['javascript', 'typescript', 'jsx', 'tsx', 'node'].includes(language?.toLowerCase())) {

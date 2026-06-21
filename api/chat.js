@@ -42,6 +42,9 @@ export default async function handler(req, res) {
     });
     if (!allowed) return;
 
+    if (text.length < 3 || text.length > 8000) {
+    return res.status(400).json({ error: 'Invalid message length.' }); }
+
     // rest of handler...
 }
 

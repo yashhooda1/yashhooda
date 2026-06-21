@@ -17,6 +17,7 @@
 import { notifyFailure } from './_notify.js';
 import { rateLimit }     from '../lib/rateLimit.js';
 import { validateFile }  from '../lib/fileGuard.js';
+import { checkUsageLimit } from '../lib/usageLimit.js';
 
 export const maxDuration = 60;
 

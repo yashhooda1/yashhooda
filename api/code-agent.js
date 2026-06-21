@@ -8,6 +8,19 @@ const redis = new Redis({
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
+import { rateLimit } from '../lib/rateLimit.js';
+
+export default async function handler(req, res) {
+    const allowed = await rateLimit(req, res, {
+        maxPerMinute: 2,
+        maxPerHour: 10,
+        maxDailyGlobal: 50,
+        endpoint: 'code-agent',
+    });
+    if (!allowed) return;
+    // rest of handler...
+}
+
 export default async function handler(req, res) {
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
     const key = `rate:code-agent:${ip}`;

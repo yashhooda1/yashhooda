@@ -192,12 +192,22 @@ export default async function handler(req, res) {
     if (!allowed) return;
 
     // ── 2. Payload size cap ──────────────────────────────────────────────────
+    // ── 2. Payload size cap ──────────────────────────────────────────────────
     const bodySize = JSON.stringify(req.body).length;
     if (bodySize > 8 * 1024 * 1024) {
         return res.status(413).json({ error: 'Request too large.' });
     }
 
-    const { file, mimeType, fileName, userPrompt, sessionId, enableWebSearch = false } = req.body;
+    const { file, mimeType, fileName, userPrompt, sessionId, adminPassword, enableWebSearch = false } = req.body;
+
+    // ── USAGE LIMIT CHECK ─────────────────────────────────────────────────────
+    const usage = await checkUsageLimit(sessionId, null, adminPassword || null);
+    if (!usage.allowed) {
+        return res.status(402).json({
+            error:   'free_limit_reached',
+            message: `You've used all ${usage.limit} free messages this month. Upgrade for unlimited access!`,
+        });
+    }
 
     // ── 3. Input presence check ──────────────────────────────────────────────
     if (!file || typeof file !== 'string') {

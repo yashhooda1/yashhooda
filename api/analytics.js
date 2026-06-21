@@ -228,13 +228,18 @@ TEMPERATURE SCIENCE (El Helou 2012, Ely 2007):
 
     // 9. ── AI INSIGHTS via Claude ──
     // AFTER — Gemini Flash, free, works now
-const geminiRes = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${process.env.GOOGLE_API_KEY}`,
-  {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: `You are a world-class running coach analyzing Yash Hooda's training data.
+const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+  },
+  body: JSON.stringify({
+    model: 'gpt-4o',
+    max_tokens: 500,
+    messages: [{
+      role: 'user',
+      content: `You are a world-class running coach analyzing Yash Hooda's training data.
 Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00. Currently training for 2026 Boulderthon Marathon (Boulder, CO — altitude 5,400 ft).
 CTL (fitness): ${ctlRounded}, ATL (fatigue): ${atlRounded}, Form: ${form}
 Pace zones (last 30 runs): ${JSON.stringify(paceZones)}
@@ -254,13 +259,12 @@ Write 3 short sharp coaching insights (2-3 sentences each) about:
 2. Weather and heat impact on training — be specific about the actual conditions from recent runs and what pace adjustments are needed
 3. One specific actionable recommendation for marathon prep considering both fitness data and current conditions
 
-Be specific, data-driven, and honest. If conditions are brutal, say so clearly. No bullet points — flowing paragraphs separated by newlines.` }] }],
-      generationConfig: { maxOutputTokens: 500 },
-    }),
-  }
-);
-const geminiData = await geminiRes.json();
-const insights = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'Unable to generate insights at this time.';
+Be specific, data-driven, and honest. If conditions are brutal, say so clearly. No bullet points — flowing paragraphs separated by newlines.`
+    }]
+  }),
+});
+const openaiData = await openaiRes.json();
+const insights = openaiData.choices?.[0]?.message?.content || 'Unable to generate insights at this time.';
 
     res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
     return res.status(200).json({

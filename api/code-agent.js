@@ -2,6 +2,24 @@
 // Full agentic coding loop — direct API calls, no LangChain model wrappers
 // Steps: DETECT → PLAN → WRITE → REVIEW → EXPLAIN
 
+import { Redis } from '@upstash/redis';
+const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+export default async function handler(req, res) {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
+    const key = `rate:code-agent:${ip}`;
+    
+    const count = await redis.incr(key);
+    if (count === 1) await redis.expire(key, 60); // 1 minute window
+    
+    if (count > 3) { // max 3 requests per minute per IP
+        return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.' });
+    }
+}
+
 // Simple IP-based rate limit
 const rateMap = new Map();
 export default async function handler(req, res) {

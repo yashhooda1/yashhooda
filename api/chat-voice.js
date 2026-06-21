@@ -22,10 +22,19 @@ const DEFAULT_MODEL = 'claude-sonnet-4-6';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages, model } = req.body || {};
-  if (!messages || !Array.isArray(messages)) {
+  cconst { messages, model, sessionId, adminPassword } = req.body || {};
+if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages array required' });
-  }
+}
+
+// ── USAGE LIMIT CHECK ─────────────────────────────────────────────────────
+const usage = await checkUsageLimit(sessionId, null, adminPassword || null);
+if (!usage.allowed) {
+    return res.status(402).json({
+        error:   'free_limit_reached',
+        message: `You've used all ${usage.limit} free messages this month. Upgrade for unlimited access!`,
+    });
+}
 
   const picked = MODELS[model] ? model : DEFAULT_MODEL;
   const cfg    = MODELS[picked];

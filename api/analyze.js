@@ -13,8 +13,42 @@
 // Response shape:
 //   { analysis, agent, agentLabel, suggestions, citations, webContext }
 // ══════════════════════════════════════════════════════════════════════════════
+
+
 import { notifyFailure } from './_notify.js';
 export const maxDuration = 60;
+
+import { rateLimit } from '../lib/rateLimit.js';
+import { validateFile } from '../lib/fileGuard.js';
+
+export default async function handler(req, res) {
+    // 1. Rate limit first
+    const allowed = await rateLimit(req, res, {
+        maxPerMinute: 3,
+        maxPerHour: 15,
+        maxDailyGlobal: 100,
+        endpoint: 'analyze',
+    });
+    if (!allowed) return;
+
+    const { file, mimeType, fileName } = req.body;
+
+    // 2. File validation
+    const { valid, errors } = validateFile(file, mimeType, fileName);
+    if (!valid) {
+        return res.status(400).json({ 
+            error: 'File rejected', 
+            reasons: errors 
+        });
+    }
+
+    // 3. Additional payload size check on entire request body
+    const bodySize = JSON.stringify(req.body).length;
+    if (bodySize > 8 * 1024 * 1024) { // 8MB total request cap
+        return res.status(413).json({ error: 'Request too large' });
+    }
+
+}
 
 // ── ALLOWED FILE TYPES ──────────────────────────────────────────────────────
 const ALLOWED_TYPES = new Set([

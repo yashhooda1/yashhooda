@@ -15,6 +15,36 @@ export default async function handler(req, res) {
     if (!allowed) return;
 }
 
+const BOT_PATTERNS = [
+    /write python i can copy for/i,
+    /write code i can copy for/i,
+    /write .{0,20} i can copy for/i,
+];
+
+export default async function handler(req, res) {
+    const messages = req.body.messages || [];
+    const lastMsg = messages[messages.length - 1]?.content || '';
+    const text = typeof lastMsg === 'string' ? lastMsg : lastMsg[0]?.text || '';
+
+    // Block bot pattern
+    for (const pattern of BOT_PATTERNS) {
+        if (pattern.test(text)) {
+            return res.status(429).json({ error: 'Request blocked.' });
+        }
+    }
+
+    // Rate limiting next
+    const allowed = await rateLimit(req, res, {
+        maxPerMinute: 10,
+        maxPerHour: 60,
+        maxDailyGlobal: 1000,
+        endpoint: 'chat',
+    });
+    if (!allowed) return;
+
+    // rest of handler...
+}
+
 // ══════════════════════════════════════════════════════
 // SECURITY LAYER 1 — USER INPUT VALIDATION
 // ══════════════════════════════════════════════════════

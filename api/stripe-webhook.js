@@ -1,23 +1,21 @@
 // api/stripe-webhook.js
 // ══════════════════════════════════════════════════════════════════════════════
-// STRIPE WEBHOOK — Activates premium when payment is confirmed
-// Set this URL in Stripe Dashboard → Webhooks:
+// STRIPE WEBHOOK — Activates premium when payment confirmed
+// Stores premium against BOTH email (cross-device) and sessionId (current device)
+// Webhook URL to set in Stripe Dashboard:
 //   https://yashhooda.ai/api/stripe-webhook
-// Events to listen for: checkout.session.completed
+// Events: checkout.session.completed
 // ══════════════════════════════════════════════════════════════════════════════
 
 import Stripe from 'stripe';
-import { activatePremium } from '../lib/usageLimit.js';
+import { activatePremium, activatePremiumByEmail } from '../lib/usageLimit.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const config = {
-    api: {
-        bodyParser: false, // Required — Stripe needs raw body for signature verification
-    },
+    api: { bodyParser: false }, // Required for Stripe signature verification
 };
 
-// Read raw body for Stripe signature verification
 async function getRawBody(req) {
     return new Promise((resolve, reject) => {
         let data = '';
@@ -38,27 +36,29 @@ export default async function handler(req, res) {
         const rawBody = await getRawBody(req);
         event = stripe.webhooks.constructEvent(rawBody, sig, webhookKey);
     } catch (err) {
-        console.error('[STRIPE WEBHOOK] Signature verification failed:', err.message);
+        console.error('[STRIPE WEBHOOK] Signature failed:', err.message);
         return res.status(400).json({ error: `Webhook error: ${err.message}` });
     }
 
-    // ── PAYMENT CONFIRMED ────────────────────────────────────────────────────
     if (event.type === 'checkout.session.completed') {
         const session   = event.data.object;
+        const email     = session.customer_details?.email?.toLowerCase().trim();
         const sessionId = session.metadata?.sessionId;
         const months    = parseInt(session.metadata?.months || '1', 10);
         const plan      = session.metadata?.plan;
 
-        if (!sessionId) {
-            console.error('[STRIPE WEBHOOK] No sessionId in metadata');
-            return res.status(200).end(); // Return 200 to stop Stripe retrying
+        console.log(`[STRIPE] Payment confirmed — email: ${email} | plan: ${plan} | months: ${months}`);
+
+        // Activate against email (works on any device)
+        if (email) {
+            await activatePremiumByEmail(email, months);
+            console.log(`[STRIPE] Premium activated for email: ${email}`);
         }
 
-        try {
+        // Also activate against current session (instant access on this device)
+        if (sessionId) {
             await activatePremium(sessionId, months);
-            console.log(`[STRIPE] Premium activated — session: ${sessionId} | plan: ${plan} | months: ${months}`);
-        } catch (err) {
-            console.error('[STRIPE] Failed to activate premium:', err.message);
+            console.log(`[STRIPE] Premium activated for session: ${sessionId}`);
         }
     }
 

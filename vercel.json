@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/chat.js":           { "maxDuration": 60 },
+    "api/chat.js":           { "maxDuration": 60, "memory": 1024 },
     "api/chat-search.js":    { "maxDuration": 60 },
     "api/analytics.js":      { "maxDuration": 90 },
     "api/tts.js":            { "maxDuration": 120 },
@@ -21,7 +21,7 @@
       "memory": 1024
     },
     "api/code-agent.js": {
-      "maxDuration": 120
+      "maxDuration": 120, "memory": 1024
     }
   },
   "headers": [

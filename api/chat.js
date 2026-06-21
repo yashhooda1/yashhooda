@@ -450,6 +450,7 @@ async function webSearchFallback(query, apiKey) {
   }
 }
 
+
 // ══════════════════════════════════════════════════════
 // FEATURE 1 — SOURCE CITATIONS
 // ══════════════════════════════════════════════════════
@@ -704,6 +705,13 @@ export default async function handler(req, res) {
   // ── LAYER 6: Rate Limiting ──
   if (!checkRateLimit(sessionId))
     return res.status(429).json({ error: 'Too many requests — please wait a moment.' });
+
+  const dayKey = `daily:code-agent:${new Date().toISOString().slice(0,10)}`;
+  const daily = await redis.incr(dayKey);
+  if (daily === 1) await redis.expire(dayKey, 86400);
+  if (daily > 100) { // max 100 code-agent calls per day globally
+    return res.status(429).json({ error: 'Daily limit reached.' });
+  }
 
   // ── LAYER 2: Jailbreak Detection ──
   if (checkAllMessages(messages)) {

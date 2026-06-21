@@ -8,16 +8,21 @@
     "api/strava.js":         { "maxDuration": 30 },
     "api/history.js":        { "maxDuration": 30 },
     "api/flights.js":        { "maxDuration": 30 },
-    "api/analyze.js":        { "maxDuration": 60 },
     "api/network.js":        { "maxDuration": 15 },
     "api/sports.js":         { "maxDuration": 15 },
     "api/imagine.js":        { "maxDuration": 60 },
     "api/runway.js":         { "maxDuration": 120 },
-    "api/code-agent.js":     { "maxDuration": 120 },
     "api/agent-learn.js":    { "maxDuration": 90 },
     "api/agent-research.js": { "maxDuration": 90 },
     "api/agent-log.js":      { "maxDuration": 90 },
-    "api/agent-actions.js":   { "maxDuration": 30 }
+    "api/agent-actions.js":   { "maxDuration": 30 },
+    "api/analyze.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "api/code-agent.js": {
+      "maxDuration": 120
+    }
   },
   "headers": [
     {
@@ -30,6 +35,15 @@
       "source": "/robots.txt",
       "headers": [
         { "key": "Content-Type", "value": "text/plain" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'" }
       ]
     }
   ],

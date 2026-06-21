@@ -2,6 +2,26 @@
 // Full agentic coding loop — direct API calls, no LangChain model wrappers
 // Steps: DETECT → PLAN → WRITE → REVIEW → EXPLAIN
 
+// Simple IP-based rate limit
+const rateMap = new Map();
+export default async function handler(req, res) {
+    const ip = req.headers['x-forwarded-for'] || 'unknown';
+    const now = Date.now();
+    const windowMs = 60 * 1000; // 1 minute
+    const maxRequests = 5;
+    
+    const record = rateMap.get(ip) || { count: 0, start: now };
+    if (now - record.start > windowMs) {
+        record.count = 0;
+        record.start = now;
+    }
+    record.count++;
+    rateMap.set(ip, record);
+    
+    if (record.count > maxRequests) {
+        return res.status(429).json({ error: 'Rate limit exceeded' });
+    }
+
 import { notifyFailure } from './_notify.js';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 

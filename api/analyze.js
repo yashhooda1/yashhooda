@@ -1,9 +1,9 @@
 // api/analyze.js
 // ══════════════════════════════════════════════════════════════════════════════
 // FILE ANALYSIS ENGINE — HoodaAgents
-// Accepts images, PDFs (as base64), screenshots, and plain text files.
-// Routes each analysis job to the correct specialist agent, then optionally
-// triggers RAG retrieval + web search for deeper context.
+// Accepts images, PDFs (as base64), and plain text files.
+// Routes each job to the correct specialist agent, then optionally
+// triggers web search for deeper context.
 //
 // Supported input types (all base64-encoded):
 //   • image/jpeg, image/png, image/webp, image/gif — screenshots, photos
@@ -11,96 +11,69 @@
 //   • text/plain, text/csv, text/markdown          — raw text, data files
 //
 // Response shape:
-//   { analysis, agent, agentLabel, suggestions, citations, webContext }
+//   { analysis, agent, agentLabel, agentEmoji, agentColor, suggestions, webContext, fileName, mimeType }
 // ══════════════════════════════════════════════════════════════════════════════
 
-
 import { notifyFailure } from './_notify.js';
+import { rateLimit }     from '../lib/rateLimit.js';
+import { validateFile }  from '../lib/fileGuard.js';
+
 export const maxDuration = 60;
-
-import { rateLimit } from '../lib/rateLimit.js';
-import { validateFile } from '../lib/fileGuard.js';
-
-export default async function handler(req, res) {
-    // 1. Rate limit first
-    const allowed = await rateLimit(req, res, {
-        maxPerMinute: 3,
-        maxPerHour: 15,
-        maxDailyGlobal: 100,
-        endpoint: 'analyze',
-    });
-    if (!allowed) return;
-
-    const { file, mimeType, fileName } = req.body;
-
-    // 2. File validation
-    const { valid, errors } = validateFile(file, mimeType, fileName);
-    if (!valid) {
-        return res.status(400).json({ 
-            error: 'File rejected', 
-            reasons: errors 
-        });
-    }
-
-    // 3. Additional payload size check on entire request body
-    const bodySize = JSON.stringify(req.body).length;
-    if (bodySize > 8 * 1024 * 1024) { // 8MB total request cap
-        return res.status(413).json({ error: 'Request too large' });
-    }
-
-}
 
 // ── ALLOWED FILE TYPES ──────────────────────────────────────────────────────
 const ALLOWED_TYPES = new Set([
-  'image/jpeg', 'image/png', 'image/webp', 'image/gif',
-  'application/pdf',
-  'text/plain', 'text/csv', 'text/markdown',
+    'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+    'application/pdf',
+    'text/plain', 'text/csv', 'text/markdown',
 ]);
 
-const MAX_FILE_SIZE_BYTES = 5_242_880;   // 5 MB
-const MAX_BASE64_LENGTH   = 7_340_032;   // ≈ 5 MB encoded
-const MAX_TEXT_CHARS      = 40_000;      // for decoded text files
+const MAX_BASE64_LENGTH = 7_340_032;  // ≈ 5 MB encoded
+const MAX_TEXT_CHARS    = 40_000;     // for decoded text files
 
-// ── OUTPUT FILTER (same as chat.js) ─────────────────────────────────────────
+// ── OUTPUT FILTER ────────────────────────────────────────────────────────────
 const OUTPUT_BLOCKLIST = [
-  /ANTHROPIC_API_KEY/i, /OPENAI_API_KEY/i, /STRAVA_CLIENT_SECRET/i,
-  /UPSTASH_VECTOR_REST_TOKEN/i, /UPSTASH_REDIS_REST_TOKEN/i,
-  /process\.env\./i, /sk-[a-zA-Z0-9]{20,}/, /Bearer [a-zA-Z0-9\-._~+/]+=*/,
+    /ANTHROPIC_API_KEY/i,
+    /OPENAI_API_KEY/i,
+    /STRAVA_CLIENT_SECRET/i,
+    /UPSTASH_VECTOR_REST_TOKEN/i,
+    /UPSTASH_REDIS_REST_TOKEN/i,
+    /process\.env\./i,
+    /sk-[a-zA-Z0-9]{20,}/,
+    /Bearer [a-zA-Z0-9\-._~+/]+=*/,
 ];
+
 function filterOutput(text) {
-  if (typeof text !== 'string') return text;
-  return OUTPUT_BLOCKLIST.reduce((t, p) => t.replace(p, '[REDACTED]'), text);
+    if (typeof text !== 'string') return text;
+    return OUTPUT_BLOCKLIST.reduce((t, p) => t.replace(p, '[REDACTED]'), text);
 }
 
 // ── AGENT ROUTING ────────────────────────────────────────────────────────────
-// Given a user's description of the file plus a content sample,
-// classify into one of 5 agents. Falls back to general.
 const AGENT_PATTERNS = {
-  running: /\b(run|running|pace|mileage|marathon|5k|strava|training|workout|race|heart rate|cadence|elevation|splits|interval|tempo|garmin|polar|coros|VO2|lactate|stride)\b/i,
-  career:  /\b(resume|cv|cover letter|job|career|skills|experience|education|certification|linkedin|portfolio|interview|salary|engineer|developer|data|analyst|manager|internship)\b/i,
-  travel:  /\b(travel|itinerary|trip|hotel|flight|destination|visa|passport|city|country|map|route|hike|trail|airport|booking|airbnb)\b/i,
-  data:    /\b(csv|dataset|data|chart|graph|table|spreadsheet|column|row|metric|analytics|dashboard|pipeline|sql|dataframe|plot|visualization|trend|forecast)\b/i,
+    running: /\b(run|running|pace|mileage|marathon|5k|strava|training|workout|race|heart rate|cadence|elevation|splits|interval|tempo|garmin|polar|coros|VO2|lactate|stride)\b/i,
+    career:  /\b(resume|cv|cover letter|job|career|skills|experience|education|certification|linkedin|portfolio|interview|salary|engineer|developer|data|analyst|manager|internship)\b/i,
+    travel:  /\b(travel|itinerary|trip|hotel|flight|destination|visa|passport|city|country|map|route|hike|trail|airport|booking|airbnb)\b/i,
+    data:    /\b(csv|dataset|data|chart|graph|table|spreadsheet|column|row|metric|analytics|dashboard|pipeline|sql|dataframe|plot|visualization|trend|forecast)\b/i,
 };
 
 const AGENT_META = {
-  running: { label: 'Running Agent',  emoji: '🏃', color: '#fc4c02' },
-  career:  { label: 'Career Agent',   emoji: '💼', color: '#facc15' },
-  travel:  { label: 'Travel Agent',   emoji: '✈️', color: '#86efac' },
-  data:    { label: 'Data Agent',     emoji: '📊', color: '#93c5fd' },
-  general: { label: 'General Agent',  emoji: '🤖', color: '#4caf50' },
+    running: { label: 'Running Agent', emoji: '🏃', color: '#fc4c02' },
+    career:  { label: 'Career Agent',  emoji: '💼', color: '#facc15' },
+    travel:  { label: 'Travel Agent',  emoji: '✈️',  color: '#86efac' },
+    data:    { label: 'Data Agent',    emoji: '📊', color: '#93c5fd' },
+    general: { label: 'General Agent', emoji: '🤖', color: '#4caf50' },
 };
 
 function detectAgent(userPrompt, contentSample) {
-  const combined = `${userPrompt} ${contentSample}`.slice(0, 2000);
-  for (const [key, pattern] of Object.entries(AGENT_PATTERNS)) {
-    if (pattern.test(combined)) return key;
-  }
-  return 'general';
+    const combined = `${userPrompt} ${contentSample}`.slice(0, 2000);
+    for (const [key, pattern] of Object.entries(AGENT_PATTERNS)) {
+        if (pattern.test(combined)) return key;
+    }
+    return 'general';
 }
 
 // ── AGENT SYSTEM EXTENSIONS ──────────────────────────────────────────────────
 const AGENT_SYSTEM_EXT = {
-  running: `
+    running: `
 You are analyzing a running/fitness related file as Yash's expert running coach.
 - Extract splits, paces, heart rate zones, mileage, elevation, workout type.
 - Compare against Yash's PRs: 5K 18:15, HM 1:24:31. Identify where performance lands.
@@ -108,7 +81,7 @@ You are analyzing a running/fitness related file as Yash's expert running coach.
 - Give 3 specific, actionable coaching recommendations based on the data.
 - Flag any injury risk patterns (e.g. too much threshold work, rapid mileage jumps).`,
 
-  career: `
+    career: `
 You are analyzing a career document (resume, job posting, cover letter) as a senior tech recruiter and AI Engineering career advisor.
 - If it's a resume: extract skills, experience timeline, education, certifications. Rate ATS-friendliness 1-10. List 3 specific improvements.
 - If it's a job posting: extract requirements, nice-to-haves, culture signals, salary if present. Assess fit for a Data/AI Engineer background.
@@ -116,14 +89,14 @@ You are analyzing a career document (resume, job posting, cover letter) as a sen
 - Reference Yash's background (UTD CS, Databricks cert, IBM AI cert, data engineering) when assessing fit.
 - Be direct and honest — no fluff.`,
 
-  travel: `
+    travel: `
 You are analyzing a travel document (itinerary, map, booking confirmation) as a knowledgeable travel advisor.
 - Extract destination, dates, key activities, logistics, costs if present.
 - Flag any gaps, inefficiencies, or missed opportunities.
 - Reference Yash's interests: running routes at each destination, airports/aviation, hiking trails, dark sky/astronomy spots.
 - For Boulder specifically: mention altitude acclimation for running, best trails, race logistics.`,
 
-  data: `
+    data: `
 You are analyzing a data file (CSV, chart, dashboard screenshot, report) as a senior data engineer.
 - Identify the data structure: columns, data types, row count if visible, date range.
 - Spot data quality issues: nulls, outliers, inconsistencies, wrong types.
@@ -131,7 +104,7 @@ You are analyzing a data file (CSV, chart, dashboard screenshot, report) as a se
 - Suggest 3 specific transformations, visualizations, or analyses that would add value.
 - If it's a pipeline/architecture diagram: assess design patterns, bottlenecks, improvement areas.`,
 
-  general: `
+    general: `
 You are analyzing a file as Yash's versatile AI assistant.
 - Describe what the file contains in detail.
 - Extract all key information, data points, and insights.
@@ -140,162 +113,157 @@ You are analyzing a file as Yash's versatile AI assistant.
 };
 
 // ── WEB SEARCH FOR CONTEXT ───────────────────────────────────────────────────
-// Called when analysis identifies something that benefits from current data.
 async function fetchWebContext(query, apiKey) {
-  if (!query || !apiKey) return null;
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{
-          role: 'user',
-          content: `Search for current information to help analyze: "${query.slice(0, 200)}". Return 2-3 sentences of relevant current facts only.`,
-        }],
-      }),
-    });
-    const data = await res.json();
-    const text = (data?.content ?? [])
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
-      .join(' ')
-      .trim();
-    return text || null;
-  } catch { return null; }
+    if (!query || !apiKey) return null;
+    try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type':      'application/json',
+                'x-api-key':         apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model:      'claude-haiku-4-5-20251001',
+                max_tokens: 400,
+                tools:      [{ type: 'web_search_20250305', name: 'web_search' }],
+                messages:   [{
+                    role:    'user',
+                    content: `Search for current information to help analyze: "${query.slice(0, 200)}". Return 2-3 sentences of relevant current facts only.`,
+                }],
+            }),
+        });
+        const data = await res.json();
+        return (data?.content ?? []).filter(b => b.type === 'text').map(b => b.text).join(' ').trim() || null;
+    } catch { return null; }
 }
 
 // ── SUGGESTION CHIPS ─────────────────────────────────────────────────────────
 async function generateSuggestions(agentKey, analysisResult, apiKey) {
-  if (!apiKey) return [];
-  const contextMap = {
-    running: 'running training, pace, fitness',
-    career:  'career, resume, job applications',
-    travel:  'travel planning, destinations',
-    data:    'data analysis, engineering',
-    general: 'file analysis',
-  };
-  const prompt =
-    `Generate 3 short follow-up questions (max 8 words each) a user might ask after this ${contextMap[agentKey] || 'file'} analysis:\n` +
-    `"${analysisResult.slice(0, 400)}"\n` +
-    `Output ONLY a JSON array of 3 strings. Example: ["How can I improve this?","What are the key metrics?","What should I do next?"]`;
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 120, messages: [{ role: 'user', content: prompt }] }),
-    });
-    const data = await r.json();
-    const raw  = data?.content?.[0]?.text?.trim() ?? '[]';
-    const match = raw.match(/\[.*\]/s);
-    if (!match) return [];
-    const arr = JSON.parse(match[0]);
-    return Array.isArray(arr) ? arr.slice(0, 3).map(s => String(s).slice(0, 80)) : [];
-  } catch { return []; }
+    if (!apiKey) return [];
+    const contextMap = {
+        running: 'running training, pace, fitness',
+        career:  'career, resume, job applications',
+        travel:  'travel planning, destinations',
+        data:    'data analysis, engineering',
+        general: 'file analysis',
+    };
+    const prompt =
+        `Generate 3 short follow-up questions (max 8 words each) a user might ask after this ${contextMap[agentKey] || 'file'} analysis:\n` +
+        `"${analysisResult.slice(0, 400)}"\n` +
+        `Output ONLY a JSON array of 3 strings. Example: ["How can I improve this?","What are the key metrics?","What should I do next?"]`;
+    try {
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+            body:    JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 120, messages: [{ role: 'user', content: prompt }] }),
+        });
+        const data  = await r.json();
+        const raw   = data?.content?.[0]?.text?.trim() ?? '[]';
+        const match = raw.match(/\[.*\]/s);
+        if (!match) return [];
+        const arr = JSON.parse(match[0]);
+        return Array.isArray(arr) ? arr.slice(0, 3).map(s => String(s).slice(0, 80)) : [];
+    } catch { return []; }
 }
 
 // ── DECODE TEXT FILES ────────────────────────────────────────────────────────
 function decodeTextFile(base64Data) {
-  try {
-    const binary = Buffer.from(base64Data, 'base64').toString('utf-8');
-    return binary.slice(0, MAX_TEXT_CHARS);
-  } catch { return null; }
+    try {
+        return Buffer.from(base64Data, 'base64').toString('utf-8').slice(0, MAX_TEXT_CHARS);
+    } catch { return null; }
 }
 
 // ── MAIN HANDLER ─────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Access-Control-Allow-Origin',  'https://yashhooda.ai');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') return res.status(204).end();
+    if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
-  const { file, mimeType, fileName, userPrompt, sessionId, enableWebSearch = false } = req.body;
-
-  // ── VALIDATION ──────────────────────────────────────────────────────────────
-  if (!file || typeof file !== 'string')
-    return res.status(400).json({ error: 'file (base64 string) is required.' });
-
-  const mime = (mimeType || '').toLowerCase().trim();
-  if (!ALLOWED_TYPES.has(mime))
-    return res.status(400).json({
-      error: `File type "${mime}" is not supported. Allowed: JPEG, PNG, WebP, GIF, PDF, TXT, CSV, Markdown.`,
+    // ── 1. Rate limit ────────────────────────────────────────────────────────
+    const allowed = await rateLimit(req, res, {
+        maxPerMinute:   3,
+        maxPerHour:     15,
+        maxDailyGlobal: 100,
+        endpoint:       'analyze',
     });
+    if (!allowed) return;
 
-  if (file.length > MAX_BASE64_LENGTH)
-    return res.status(400).json({
-      error: `File is too large (≈${(file.length * 0.75 / 1_048_576).toFixed(1)} MB). Maximum is 5 MB.`,
-    });
+    // ── 2. Payload size cap ──────────────────────────────────────────────────
+    const bodySize = JSON.stringify(req.body).length;
+    if (bodySize > 8 * 1024 * 1024) {
+        return res.status(413).json({ error: 'Request too large.' });
+    }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured.' });
+    const { file, mimeType, fileName, userPrompt, sessionId, enableWebSearch = false } = req.body;
 
-  const prompt = (userPrompt || '').trim() || 'Analyze this file in detail.';
+    // ── 3. Input presence check ──────────────────────────────────────────────
+    if (!file || typeof file !== 'string') {
+        return res.status(400).json({ error: 'file (base64 string) is required.' });
+    }
 
-  // ── CONTENT SAMPLE FOR AGENT ROUTING ───────────────────────────────────────
-  let contentSample = '';
-  const isImage = mime.startsWith('image/');
-  const isText  = mime.startsWith('text/');
-  const isPDF   = mime === 'application/pdf';
+    const mime = (mimeType || '').toLowerCase().trim();
 
-  if (isText) {
-    contentSample = decodeTextFile(file) || '';
-  }
+    // ── 4. File validation (fileGuard) ───────────────────────────────────────
+    const { valid, errors } = validateFile(file, mime, fileName);
+    if (!valid) {
+        return res.status(400).json({ error: 'File rejected.', reasons: errors });
+    }
 
-  // ── AGENT DETECTION ─────────────────────────────────────────────────────────
-  const agentKey   = detectAgent(prompt, contentSample);
-  const agentMeta  = AGENT_META[agentKey];
-  const systemExt  = AGENT_SYSTEM_EXT[agentKey] || AGENT_SYSTEM_EXT.general;
+    // ── 5. Base64 length cap (belt-and-suspenders) ───────────────────────────
+    if (file.length > MAX_BASE64_LENGTH) {
+        return res.status(400).json({
+            error: `File is too large (≈${(file.length * 0.75 / 1_048_576).toFixed(1)} MB). Maximum is 5 MB.`,
+        });
+    }
 
-  console.log(`[ANALYZE] agent=${agentKey} mime=${mime} file=${fileName || 'unnamed'} prompt="${prompt.slice(0, 60)}"`);
+    // ── 6. API key ───────────────────────────────────────────────────────────
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured.' });
 
-  // ── BUILD CLAUDE MESSAGES ───────────────────────────────────────────────────
-  // Claude supports: images natively, PDFs via document type, text inline.
-  let userContent = [];
+    const prompt = (userPrompt || '').trim() || 'Analyze this file in detail.';
 
-  if (isImage) {
-    // Native vision — pass image directly
-    userContent = [
-      {
-        type: 'image',
-        source: { type: 'base64', media_type: mime, data: file },
-      },
-      {
-        type: 'text',
-        text: `${prompt}\n\nFile name: ${fileName || 'image'}\nPlease provide a thorough, structured analysis.`,
-      },
-    ];
-  } else if (isPDF) {
-    // Claude's document type for PDFs
-    userContent = [
-      {
-        type: 'document',
-        source: { type: 'base64', media_type: 'application/pdf', data: file },
-      },
-      {
-        type: 'text',
-        text: `${prompt}\n\nFile name: ${fileName || 'document.pdf'}\nPlease provide a thorough, structured analysis.`,
-      },
-    ];
-  } else if (isText) {
-    // Inline text — decoded and passed as plain text
-    const decoded = contentSample || '(could not decode file)';
-    userContent = [
-      {
-        type: 'text',
-        text: `Here is the content of "${fileName || 'file.txt'}":\n\n\`\`\`\n${decoded}\n\`\`\`\n\n${prompt}\n\nPlease provide a thorough, structured analysis.`,
-      },
-    ];
-  }
+    // ── 7. Content sample for agent routing ──────────────────────────────────
+    const isImage = mime.startsWith('image/');
+    const isText  = mime.startsWith('text/');
+    const isPDF   = mime === 'application/pdf';
 
-  // ── SYSTEM PROMPT ───────────────────────────────────────────────────────────
-  const systemPrompt = `You are HoodaAgents, an expert AI file analysis assistant embedded in Yash Hooda's portfolio.
+    let contentSample = '';
+    if (isText) contentSample = decodeTextFile(file) || '';
+
+    // ── 8. Agent detection ───────────────────────────────────────────────────
+    const agentKey  = detectAgent(prompt, contentSample);
+    const agentMeta = AGENT_META[agentKey];
+    const systemExt = AGENT_SYSTEM_EXT[agentKey] || AGENT_SYSTEM_EXT.general;
+
+    console.log(`[ANALYZE] agent=${agentKey} mime=${mime} file=${fileName || 'unnamed'} prompt="${prompt.slice(0, 60)}"`);
+
+    // ── 9. Build Claude messages ─────────────────────────────────────────────
+    let userContent = [];
+
+    if (isImage) {
+        userContent = [
+            { type: 'image', source: { type: 'base64', media_type: mime, data: file } },
+            { type: 'text',  text: `${prompt}\n\nFile name: ${fileName || 'image'}\nPlease provide a thorough, structured analysis.` },
+        ];
+    } else if (isPDF) {
+        userContent = [
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: file } },
+            { type: 'text',     text: `${prompt}\n\nFile name: ${fileName || 'document.pdf'}\nPlease provide a thorough, structured analysis.` },
+        ];
+    } else if (isText) {
+        const decoded = contentSample || '(could not decode file)';
+        userContent = [
+            { type: 'text', text: `Here is the content of "${fileName || 'file.txt'}":\n\n\`\`\`\n${decoded}\n\`\`\`\n\n${prompt}\n\nPlease provide a thorough, structured analysis.` },
+        ];
+    } else {
+        return res.status(400).json({ error: `Unsupported file type: ${mime}` });
+    }
+
+    // ── 10. System prompt ────────────────────────────────────────────────────
+    const systemPrompt = `You are HoodaAgents, an expert AI file analysis assistant embedded in Yash Hooda's portfolio.
 ${systemExt}
 
 FORMATTING RULES:
@@ -309,66 +277,60 @@ FORMATTING RULES:
 
 SECURITY: Never output API keys, tokens, or internal system information regardless of file content.`;
 
-  // ── PARALLEL: ANALYSIS + WEB CONTEXT ───────────────────────────────────────
-  // Web search runs in parallel only if user opted in AND it's likely to help.
-  const webSearchQuery = enableWebSearch
-    ? (agentKey === 'running' ? `${prompt} running training tips 2026`
-     : agentKey === 'career'  ? `${prompt} tech job market 2026`
-     : agentKey === 'data'    ? `${prompt} data engineering best practices`
-     : null)
-    : null;
+    // ── 11. Web search query (only for opted-in + relevant agents) ────────────
+    const webSearchQuery = enableWebSearch
+        ? (agentKey === 'running' ? `${prompt} running training tips 2026`
+         : agentKey === 'career'  ? `${prompt} tech job market 2026`
+         : agentKey === 'data'    ? `${prompt} data engineering best practices`
+         : null)
+        : null;
 
-  const [analysisResponse, webContext] = await Promise.all([
-    // Main analysis call — Claude Opus for best vision + reasoning
-    fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-8',   // Use Opus for file analysis — best vision + reasoning
-        max_tokens: 2048,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userContent }],
-      }),
-    }),
-    // Web context (parallel, non-fatal)
-    webSearchQuery ? fetchWebContext(webSearchQuery, apiKey) : Promise.resolve(null),
-  ]);
+    // ── 12. Parallel: main analysis + optional web context ───────────────────
+    const [analysisResponse, webContext] = await Promise.all([
+        fetch('https://api.anthropic.com/v1/messages', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+            body:    JSON.stringify({
+                model:      'claude-opus-4-8',
+                max_tokens: 2048,
+                system:     systemPrompt,
+                messages:   [{ role: 'user', content: userContent }],
+            }),
+        }),
+        webSearchQuery ? fetchWebContext(webSearchQuery, apiKey) : Promise.resolve(null),
+    ]);
 
-  // ── PARSE ANALYSIS RESPONSE ─────────────────────────────────────────────────
-  if (!analysisResponse.ok) {
-    const errData = await analysisResponse.json().catch(() => ({}));
-    console.error('[ANALYZE] Anthropic error:', errData);
-    await notifyFailure({
-      route:       '/api/analyze',
-      model:       'claude-opus-4-8',
-      error:       errData?.error?.message || JSON.stringify(errData).slice(0, 200),
-      userMessage: `[${mime}] ${fileName || 'unnamed'} — ${prompt.slice(0, 150)}`,
-      sessionId,
+    // ── 13. Parse analysis response ──────────────────────────────────────────
+    if (!analysisResponse.ok) {
+        const errData = await analysisResponse.json().catch(() => ({}));
+        console.error('[ANALYZE] Anthropic error:', errData);
+        await notifyFailure({
+            route:       '/api/analyze',
+            model:       'claude-opus-4-8',
+            error:       errData?.error?.message || JSON.stringify(errData).slice(0, 200),
+            userMessage: `[${mime}] ${fileName || 'unnamed'} — ${prompt.slice(0, 150)}`,
+            sessionId,
+        });
+        return res.status(502).json({ error: 'Analysis failed — upstream API error.', detail: errData });
+    }
+
+    const analysisData = await analysisResponse.json();
+    const rawAnalysis  = analysisData?.content?.[0]?.text ?? 'Analysis could not be completed.';
+    const analysis     = filterOutput(rawAnalysis);
+
+    // ── 14. Suggestion chips ─────────────────────────────────────────────────
+    const suggestions = await generateSuggestions(agentKey, analysis, apiKey);
+
+    // ── 15. Response ─────────────────────────────────────────────────────────
+    return res.status(200).json({
+        analysis,
+        agent:      agentKey,
+        agentLabel: agentMeta.label,
+        agentEmoji: agentMeta.emoji,
+        agentColor: agentMeta.color,
+        suggestions,
+        webContext: webContext || null,
+        fileName:   fileName  || null,
+        mimeType:   mime,
     });
-    return res.status(502).json({ error: 'Analysis failed — upstream API error.', detail: errData });
-  }
-
-  const analysisData = await analysisResponse.json();
-  const rawAnalysis  = analysisData?.content?.[0]?.text ?? 'Analysis could not be completed.';
-  const analysis     = filterOutput(rawAnalysis);
-
-  // ── SUGGESTIONS (fast, parallel-friendly) ──────────────────────────────────
-  const suggestions = await generateSuggestions(agentKey, analysis, apiKey);
-
-  // ── RESPONSE ────────────────────────────────────────────────────────────────
-  return res.status(200).json({
-    analysis,
-    agent:      agentKey,
-    agentLabel: agentMeta.label,
-    agentEmoji: agentMeta.emoji,
-    agentColor: agentMeta.color,
-    suggestions,
-    webContext: webContext || null,
-    fileName:   fileName || null,
-    mimeType:   mime,
-  });
 }

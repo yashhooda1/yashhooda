@@ -986,7 +986,7 @@ export default async function handler(req, res) {
     if (checkAllMessages(messages)) {
         console.warn(`[SECURITY] Jailbreak attempt — session: ${sessionId}`);
         return res.status(200).json({
-            reply: "I'm not able to follow instructions that ask me to change my behavior, reveal my configuration, or act outside my defined role. I'm here to help with questions about Yash, Data/AI Engineering, running coaching, and work-life balance. What can I help you with?",
+            reply: "⚠️ This request has been flagged and logged. Attempts to manipulate, jailbreak, or abuse this AI system are prohibited. Your IP address has been recorded and repeated violations will result in a permanent ban and referral to local law enforcement and the FBI Cyber Division (IC3.gov) for investigation under the Computer Fraud and Abuse Act (18 U.S.C. § 1030). I'm here to help with questions about Yash, Data/AI Engineering, running coaching, and work-life balance. What can I help you with?",
             model: DEFAULT_MODEL,
         });
     }

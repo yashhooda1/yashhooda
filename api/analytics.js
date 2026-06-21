@@ -7,6 +7,7 @@ export default async function handler(req, res) {
   const clientId     = process.env.STRAVA_CLIENT_ID;
   const clientSecret = process.env.STRAVA_CLIENT_SECRET;
   const refreshToken = process.env.STRAVA_REFRESH_TOKEN;
+  const openaikey = process.env.OPENAI_API_KEY;
 
   try {
     // 1. Get Strava access token

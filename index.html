@@ -4909,6 +4909,31 @@ async function sendMsg() {
       }
  
       const rawReply = data.reply || data.text || "I'm not sure about that — email yash.hooda6@gmail.com!";
+      // ── USAGE WARNING ──────────────────────────────────────────────────────
+        if (data.usageWarning) {
+            const warnDiv = document.createElement('div');
+            warnDiv.style.cssText = `
+                font-family: 'Space Mono', monospace;
+                font-size: 0.68rem;
+                color: #facc15;
+                padding: 0.3rem 0.9rem;
+                text-align: center;
+            `;
+            warnDiv.textContent = data.usageWarning;
+            msgs.appendChild(warnDiv);
+        }
+ 
+        // ── USAGE LIMIT HIT (402) ──────────────────────────────────────────────
+        // Replace the existing !res.ok error handler with:
+        if (!res.ok) {
+            typingDiv.remove();
+            if (res.status === 402) {
+                showUpgradeModal();
+            } else {
+                addBotMsg('Error ' + res.status + ' — check Vercel logs.');
+            }
+            return;
+        }
       const cleanReply = parseSaveInstructions(rawReply);
       chatHistory.push({ role: 'assistant', content: cleanReply });
       typingDiv.remove();

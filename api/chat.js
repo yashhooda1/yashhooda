@@ -290,10 +290,10 @@ function validateFileUploads(messages, sessionId) {
 // REQUEST SIGNING VERIFICATION
 // ══════════════════════════════════════════════════════
 function verifyRequestToken(sessionId, timestamp, token) {
-    if (!sessionId || !timestamp || !token) return false;
-    if (Date.now() - timestamp > 5 * 60 * 1000) return false; // 5-min window
     const signingKey = process.env.REQUEST_SIGNING_KEY;
-    if (!signingKey) return true; // key not configured — skip verification
+    if (!signingKey) return true; // skip if key not configured
+    if (!sessionId || !timestamp || !token) return false;
+    if (Date.now() - timestamp > 5 * 60 * 1000) return false;
     const payload  = `${sessionId}:${timestamp}`;
     const expected = crypto
         .createHmac('sha256', signingKey)

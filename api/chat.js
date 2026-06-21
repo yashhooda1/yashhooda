@@ -982,6 +982,19 @@ export default async function handler(req, res) {
         return res.status(429).json({ error: 'Too many requests — please wait a moment.' });
     }
 
+    // After rate limit check, add this:
+    const usageKey = `usage:${sessionId}`;
+    const usageCount = await redis.incr(usageKey);
+    if (usageCount === 1) await redis.expire(usageKey, 60 * 60 * 24 * 30); // 30 days
+
+    const FREE_LIMIT = 20; // 20 free messages per month
+    if (usageCount > FREE_LIMIT) {
+        return res.status(402).json({ 
+            error: 'free_limit_reached',
+            message: 'You have used your 20 free messages this month.'
+        });
+    }
+
     // ── LAYER 2: Jailbreak Detection ──────────────────────────────────────────
     if (checkAllMessages(messages)) {
         console.warn(`[SECURITY] Jailbreak attempt — session: ${sessionId}`);

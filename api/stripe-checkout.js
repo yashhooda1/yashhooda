@@ -2,8 +2,8 @@
 // ══════════════════════════════════════════════════════════════════════════════
 // STRIPE CHECKOUT — Creates a payment session for premium access
 // Plans:
-//   - monthly: $5/month — 500 messages (or just use unlimited for simplicity)
-//   - unlimited: $15/month — no cap
+//   - pro:       $20/month  — unlimited messages
+//   - supporter: $50/3 months — unlimited messages + supporter status
 // ══════════════════════════════════════════════════════════════════════════════
 
 import Stripe from 'stripe';
@@ -13,14 +13,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const PLANS = {
     pro: {
         name:        'Pro — Unlimited AI Chat',
-        description: '1 month of unlimited access to Yash\'s AI Assistant',
-        price:       500,  // $5.00 in cents
+        description: '1 month of unlimited access to Yash\'s AI Assistant across all models',
+        price:       2000,  // $20.00 in cents
         months:      1,
     },
-    unlimited: {
-        name:        'Supporter — Unlimited Forever (3 months)',
-        description: '3 months of unlimited access + support the site',
-        price:       1200, // $12.00 in cents
+    supporter: {
+        name:        'Supporter — 3 Months Unlimited',
+        description: '3 months of unlimited access + supporter status on yashhooda.ai',
+        price:       5000,  // $50.00 in cents
         months:      3,
     },
 };
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     const { plan, sessionId } = req.body;
 
     if (!plan || !PLANS[plan]) {
-        return res.status(400).json({ error: 'Invalid plan. Choose: pro or unlimited' });
+        return res.status(400).json({ error: 'Invalid plan. Choose: pro or supporter' });
     }
     if (!sessionId) {
         return res.status(400).json({ error: 'sessionId is required' });
@@ -58,8 +58,7 @@ export default async function handler(req, res) {
                 },
                 quantity: 1,
             }],
-            mode:        'payment',
-            // Pass sessionId + plan in metadata so webhook can activate premium
+            mode:     'payment',
             metadata: {
                 sessionId,
                 plan,

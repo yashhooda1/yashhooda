@@ -947,8 +947,8 @@ export default async function handler(req, res) {
     const { messages, sessionId, model, requestToken, requestTimestamp } = req.body;
 
     // ── REQUEST SIGNING ───────────────────────────────────────────────────────
-    if (!verifyRequestToken(sessionId, requestTimestamp, requestToken)) {
-        return res.status(403).json({ error: 'Invalid request signature.' });
+    if (process.env.REQUEST_SIGNING_KEY && !verifyRequestToken(sessionId, requestTimestamp, requestToken)) {
+    return res.status(403).json({ error: 'Invalid request signature.' });
     }
 
     // ── LAYER 1: Input Validation ─────────────────────────────────────────────

@@ -125,6 +125,104 @@ function checkAllMessages(messages) {
   return false;
 }
 
+const INJECTION_SIGNATURES = [
+    /write .{0,30} i can copy for/i,      // their exact template
+    /ignore previous instructions/i,        // classic prompt injection
+    /you are now/i,                         // persona hijacking
+    /act as/i,                              // role override
+    /jailbreak/i,
+    /bypass/i,
+    /disregard/i,
+    /pretend you/i,
+    /forget your/i,
+    /new instructions/i,
+];
+
+function detectPromptInjection(text) {
+    return INJECTION_SIGNATURES.some(p => p.test(text));
+}
+
+
+// Hash the prompt structure, not the content
+const promptSignature = text
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, '')
+    .split(' ')
+    .slice(0, 5)  // first 5 words
+    .join('-');
+
+const sigKey = `sig:${ip}:${promptSignature}`;
+const sigCount = await redis.incr(sigKey);
+if (sigCount === 1) await redis.expire(sigKey, 3600);
+
+if (sigCount > 3) {
+    // Same template 3+ times = bot
+    return res.status(429).json({ error: 'Repetitive pattern detected.' });
+}
+
+
+const ua = req.headers['user-agent'] || '';
+const SUSPICIOUS_UA = [
+    /python-requests/i,
+    /curl/i,
+    /wget/i,
+    /axios/i,
+    /bot/i,
+    /scraper/i,
+    /^$/,  // empty user agent
+];
+
+if (SUSPICIOUS_UA.some(p => p.test(ua))) {
+    return res.status(403).json({ error: 'Forbidden.' });
+}
+
+// Generate a page session token on load
+const PAGE_TOKEN = btoa(Date.now() + ':' + Math.random());
+localStorage.setItem('page_token', PAGE_TOKEN);
+
+// Send it with every chat request
+body: JSON.stringify({ 
+    messages: chatHistory, 
+    sessionId: SESSION_ID,
+    pageToken: localStorage.getItem('page_token'),
+    model: selectedModel 
+})
+
+const { pageToken } = req.body;
+if (!pageToken || pageToken.length < 10) {
+    return res.status(403).json({ error: 'Invalid session.' });
+}
+
+function botScore(text) {
+    let score = 0;
+    if (text.length < 20) score += 2;           // too short
+    if (text.length > 500) score += 1;           // suspiciously long
+    if (/^write .+ for .+$/i.test(text)) score += 5;  // template pattern
+    if (!/[.!?,]/.test(text)) score += 1;        // no punctuation
+    if ((text.match(/\bi\b/gi) || []).length > 3) score += 2; // spam words
+    return score;
+}
+
+if (botScore(text) >= 5) {
+    return res.status(429).json({ error: 'Request blocked.' });
+}
+
+const velocityKey = `vel:${ip}`;
+const velocity = await redis.incr(velocityKey);
+if (velocity === 1) await redis.expire(velocityKey, 300); // 5 min window
+
+if (velocity > 10) {
+    // Ban the IP for 24 hours automatically
+    await redis.set(`banned:${ip}`, '1', { ex: 86400 });
+    return res.status(403).json({ error: 'IP banned for 24 hours.' });
+}
+
+// Check if already banned
+const banned = await redis.get(`banned:${ip}`);
+if (banned) return res.status(403).json({ error: 'Forbidden.' });
+
+
+
 // ══════════════════════════════════════════════════════
 // SECURITY LAYER 3 — RAG SANITIZATION
 // ══════════════════════════════════════════════════════

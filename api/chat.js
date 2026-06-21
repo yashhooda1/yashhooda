@@ -5,6 +5,28 @@ import { Redis } from "@upstash/redis";
 
 import { rateLimit } from '../lib/rateLimit.js';
 
+import crypto from 'crypto';
+
+function verifyRequestToken(sessionId, timestamp, token) {
+    // Reject requests older than 5 minutes
+    if (Date.now() - timestamp > 5 * 60 * 1000) return false;
+    
+    const payload = `${sessionId}:${timestamp}`;
+    const expected = crypto
+        .createHmac('sha256', process.env.REQUEST_SIGNING_KEY)
+        .update(payload)
+        .digest('base64');
+    return expected === token;
+}
+
+export default async function handler(req, res) {
+    const { sessionId, requestToken, requestTimestamp } = req.body;
+    if (!verifyRequestToken(sessionId, requestTimestamp, requestToken)) {
+        return res.status(403).json({ error: 'Invalid request signature.' });
+    }
+    // ...
+}
+
 export default async function handler(req, res) {
     const allowed = await rateLimit(req, res, {
         maxPerMinute: 10,

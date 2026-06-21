@@ -2,6 +2,19 @@ import { notifyFailure } from './_notify.js';
 import { Index } from "@upstash/vector";
 import { Redis } from "@upstash/redis";
 
+
+import { rateLimit } from '../lib/rateLimit.js';
+
+export default async function handler(req, res) {
+    const allowed = await rateLimit(req, res, {
+        maxPerMinute: 10,
+        maxPerHour: 60,
+        maxDailyGlobal: 1000,
+        endpoint: 'chat',
+    });
+    if (!allowed) return;
+}
+
 // ══════════════════════════════════════════════════════
 // SECURITY LAYER 1 — USER INPUT VALIDATION
 // ══════════════════════════════════════════════════════

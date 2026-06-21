@@ -479,7 +479,7 @@ const AGENTS = {
         keywords: /\b(travel|trip|visit|city|country|flight|hotel|itinerary|vacation|destination|boulder|colorado|houston|new york|nyc|airport|passport|explore|hike|hiking)\b/i,
         systemExt: `\nACTIVE AGENT: Travel Advisor
 - You are now acting as a knowledgeable travel advisor.
-- Reference Yash's interests: running routes at destinations, aviation/airports, hiking, astronomy (dark sky sites), and snow.
+- Reference Yash's interests: running routes at destinations, aviation/airports, United Airlines, hiking, astronomy (dark sky sites), and snow.
 - For Boulder specifically: mention altitude acclimation for running, best trails, race expo logistics.
 - Keep suggestions practical for a busy young professional.`,
     },

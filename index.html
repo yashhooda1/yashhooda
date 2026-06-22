@@ -2347,6 +2347,7 @@
             <span>Ask me anything about Yash</span>
         </div>
         <button class="chat-maximize-btn" id="chat-maximize-btn" onclick="toggleMaximize()" title="Maximize / minimize">⛶</button>
+        <button onclick="showUserMenu()" id="user-menu-btn" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:0.75rem;padding:0.2rem 0.5rem;font-family:'Space Mono',monospace;transition:color 0.2s;">👤</button>
         <button class="chat-close" onclick="toggleChat()">✕</button>
     </div>
     <div class="chat-tabs">
@@ -5453,7 +5454,8 @@ async function sendMsg() {
       // ── SSE STREAMING PATH for /api/chat-search ──
       const res = await fetch('/api/chat-search', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+    'Authorization': AUTH_TOKEN ? `Bearer ${AUTH_TOKEN}` : '', },
         body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID, model: selectedModel, requestToken: token, requestTimestamp: timestamp, adminPassword: ADMIN_PASSWORD_SESSION || undefined })
       });
  
@@ -5523,7 +5525,8 @@ async function sendMsg() {
       // ── STANDARD PATH for /api/chat (non-search) ──
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+    'Authorization': AUTH_TOKEN ? `Bearer ${AUTH_TOKEN}` : '', },
         body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID, model: selectedModel, requestToken: token, requestTimestamp: timestamp })
       });
  
@@ -5531,10 +5534,16 @@ async function sendMsg() {
       try { data = await res.json(); } catch { data = {}; }
  
       if (!res.ok) {
-        typingDiv.remove();
-        addBotMsg('Error ' + res.status + ' — check Vercel logs. Email yash.hooda6@gmail.com if this persists!');
-        return;
-      }
+          typingDiv.remove();
+          if (res.status === 401) {
+              showAuthModal('login');
+          } else if (res.status === 402) {
+              showUpgradeModal();
+          } else {
+              addBotMsg('Error ' + res.status + ' — try again or email yash.hooda6@gmail.com');
+          }
+          return;
+       }
  
       const rawReply = data.reply || data.text || "I'm not sure about that — email yash.hooda6@gmail.com!";
       // ── USAGE WARNING ──────────────────────────────────────────────────────

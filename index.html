@@ -3929,7 +3929,7 @@ async function submitAdminLogin() {
         const res = await fetch('/api/admin-verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password, sessionId: SESSION_ID }),
+            body:    JSON.stringify({ password }),
         });
         const data = await res.json();
         if (data.ok) {

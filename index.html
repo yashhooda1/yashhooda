@@ -5028,7 +5028,7 @@ async function sendMsg() {
       const res = await fetch('/api/chat-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID, requestToken: token, requestTimestamp: timestamp })
+        body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID, model: selectedModel, requestToken: token, requestTimestamp: timestamp, adminPassword: ADMIN_PASSWORD_SESSION || undefined })
       });
  
       if (!res.ok) {

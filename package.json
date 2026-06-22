@@ -9,6 +9,8 @@
     "stripe": "^17.0.0",
     "@langchain/core": "^0.3.0",
     "@langchain/openai": "^0.3.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
     "langchain": "^0.3.0"
   }
 }

@@ -954,7 +954,7 @@ export default async function handler(req, res) {
     });
     if (!rlAllowed) return;
 
-    const { messages, sessionId, model, requestToken, requestTimestamp } = req.body;
+    const { messages, sessionId, model, requestToken, requestTimestamp, adminPassword } = req.body;
 
     // ── REQUEST SIGNING ───────────────────────────────────────────────────────
     if (process.env.REQUEST_SIGNING_KEY && !verifyRequestToken(sessionId, requestTimestamp, requestToken)) {
@@ -1001,37 +1001,11 @@ export default async function handler(req, res) {
         });
     }
 
-    // ── USAGE LIMIT CHECK ─────────────────────────────────────────────────────
-    const usage = await checkUsageLimit(sessionId);
-    if (!usage.allowed) {
-        return res.status(402).json({
-            error:      'free_limit_reached',
-            message:    `You've used all ${usage.limit} free messages this month. Upgrade for unlimited access!`,
-            count:      usage.count,
-            limit:      usage.limit,
-            upgradeUrl: '/api/stripe-checkout',
-        });
-    }
     // Warn when getting close (last 5 messages)
     const usageWarning = !usage.premium && usage.remaining <= 5
         ? `⚠️ You have ${usage.remaining} free message${usage.remaining === 1 ? '' : 's'} remaining this month.`
         : null;
  
-// Then in the final return, add usageWarning to the response:
-    return res.status(200).json({
-        reply,
-        model:        picked,
-        agent:        activeAgent.label,
-        citations,
-        suggestions,
-        usageWarning, // ← ADD THIS
-        usage: {      // ← ADD THIS
-            count:     usage.count,
-            remaining: usage.remaining,
-            limit:     usage.limit,
-            premium:   usage.premium,
-        },
-    });
 
     // ── LAYER 7: File Upload Security ─────────────────────────────────────────
     const fileCheck = validateFileUploads(messages, sessionId);
@@ -1336,6 +1310,13 @@ export default async function handler(req, res) {
             agent:       activeAgent.label,
             citations,
             suggestions,
+            usageWarning,
+            usage: {
+                count:     usage.count,
+                remaining: usage.remaining,
+                limit:     usage.limit,
+                premium:   usage.premium,
+            },
         });
 
     } catch (err) {

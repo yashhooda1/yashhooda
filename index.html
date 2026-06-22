@@ -3965,12 +3965,438 @@ let isRecording = false;
 let pendingImageBase64 = null;
 let pendingImageType = null;
 
-// Persistent session ID for cross-visit memory
-const SESSION_ID = (() => {
-    let id = localStorage.getItem('hooda_session_id');
-    if (!id) { id = crypto.randomUUID(); localStorage.setItem('hooda_session_id', id); }
-    return id;
+// ── AUTH STATE ────────────────────────────────────────────────────────────────
+let AUTH_USER  = null;  // { email, name, verified, plan }
+let AUTH_TOKEN = null;  // JWT string
+ 
+// ── LOAD TOKEN FROM LOCALSTORAGE ON PAGE LOAD ─────────────────────────────────
+(async function initAuth() {
+    const stored = localStorage.getItem('hooda_auth_token');
+    if (!stored) { showAuthRequired(); return; }
+ 
+    try {
+        const res  = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${stored}` }
+        });
+        const data = await res.json();
+ 
+        if (data.ok) {
+            AUTH_TOKEN = stored;
+            AUTH_USER  = data.user;
+            onAuthSuccess(data.user, data.usage);
+        } else {
+            localStorage.removeItem('hooda_auth_token');
+            showAuthRequired();
+        }
+    } catch {
+        // Network error — allow access but usage will be checked server-side
+        AUTH_TOKEN = stored;
+    }
+ 
+    // Handle email verification redirect
+    const params  = new URLSearchParams(window.location.search);
+    const authParam = params.get('auth');
+    const resetParam = params.get('reset');
+ 
+    if (authParam === 'verified') {
+        window.history.replaceState({}, '', window.location.pathname);
+        setTimeout(() => {
+            showAuthModal('login');
+            showAuthMessage('✅ Email verified! You can now log in.', 'success');
+        }, 500);
+    } else if (authParam === 'verify-expired') {
+        window.history.replaceState({}, '', window.location.pathname);
+        showAuthModal('login');
+        showAuthMessage('⚠️ Verification link expired. Please log in and we\'ll send a new one.', 'error');
+    } else if (resetParam) {
+        window.history.replaceState({}, '', window.location.pathname);
+        showAuthModal('reset', resetParam);
+    }
 })();
+ 
+// ── CALLED AFTER SUCCESSFUL LOGIN/SIGNUP ──────────────────────────────────────
+function onAuthSuccess(user, usage) {
+    AUTH_USER  = user;
+    // Update chat header
+    const sub = document.querySelector('.chat-header-info span');
+    if (sub) sub.textContent = `${user.name} · ${user.plan === 'admin' ? '👑 Admin' : user.plan === 'premium' ? '⚡ Pro' : `${usage?.remaining ?? 20} msgs left`}`;
+ 
+    // Remove auth modal if open
+    const modal = document.getElementById('auth-modal');
+    if (modal) modal.remove();
+ 
+    // Show unverified warning if needed
+    if (!user.verified && user.plan !== 'admin') {
+        setTimeout(() => showUnverifiedBanner(), 1000);
+    }
+}
+ 
+// ── AUTH MODAL ────────────────────────────────────────────────────────────────
+function showAuthModal(mode = 'login', resetToken = null) {
+    const existing = document.getElementById('auth-modal');
+    if (existing) existing.remove();
+ 
+    const modal = document.createElement('div');
+    modal.id = 'auth-modal';
+    modal.style.cssText = `
+        position:fixed;inset:0;z-index:99999;
+        background:rgba(0,0,0,0.92);
+        display:flex;align-items:center;justify-content:center;
+        padding:1rem;`;
+ 
+    modal.innerHTML = `
+        <div style="
+            background:#12181f;
+            border:1px solid rgba(76,175,80,0.4);
+            border-radius:16px;padding:2rem;
+            max-width:400px;width:100%;
+            font-family:'DM Sans',sans-serif;">
+ 
+            <!-- Logo -->
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <div style="font-family:'Space Mono',monospace;color:#4caf50;font-size:1.1rem;font-weight:700;letter-spacing:0.05em;">YH_</div>
+                <div style="color:#9ca3af;font-size:0.8rem;margin-top:0.25rem;">yashhooda.ai</div>
+            </div>
+ 
+            <!-- Auth message area -->
+            <div id="auth-message" style="display:none;margin-bottom:1rem;padding:0.65rem 0.9rem;border-radius:8px;font-size:0.82rem;"></div>
+ 
+            <!-- LOGIN VIEW -->
+            <div id="auth-view-login" style="display:${mode === 'login' ? 'block' : 'none'}">
+                <h3 style="font-family:'Space Mono',monospace;color:#fff;font-size:0.95rem;margin-bottom:1.5rem;text-align:center;">Welcome back</h3>
+                <input id="auth-login-email" type="email" placeholder="Email address" autocomplete="email"
+                    style="${inputStyle()}" />
+                <input id="auth-login-password" type="password" placeholder="Password" autocomplete="current-password"
+                    style="${inputStyle()}"
+                    onkeydown="if(event.key==='Enter') submitLogin()" />
+                <button onclick="submitLogin()" style="${btnPrimary()}">Sign In</button>
+                <div style="text-align:center;margin-top:0.75rem;">
+                    <button onclick="showAuthModal('forgot')" style="${btnLink()}">Forgot password?</button>
+                </div>
+                <div style="${divider()}">don't have an account?</div>
+                <button onclick="showAuthModal('signup')" style="${btnSecondary()}">Create Account</button>
+            </div>
+ 
+            <!-- SIGNUP VIEW -->
+            <div id="auth-view-signup" style="display:${mode === 'signup' ? 'block' : 'none'}">
+                <h3 style="font-family:'Space Mono',monospace;color:#fff;font-size:0.95rem;margin-bottom:1.5rem;text-align:center;">Create your account</h3>
+                <input id="auth-signup-name" type="text" placeholder="Your name" autocomplete="name"
+                    style="${inputStyle()}" />
+                <input id="auth-signup-email" type="email" placeholder="Email address" autocomplete="email"
+                    style="${inputStyle()}" />
+                <input id="auth-signup-password" type="password" placeholder="Password (8+ chars, 1 uppercase, 1 number)" autocomplete="new-password"
+                    style="${inputStyle()}"
+                    onkeydown="if(event.key==='Enter') submitSignup()" />
+                <button onclick="submitSignup()" style="${btnPrimary()}">Create Account — Free</button>
+                <div style="font-size:0.72rem;color:#4b5563;text-align:center;margin-top:0.5rem;">20 free messages/month · No credit card needed</div>
+                <div style="${divider()}">already have an account?</div>
+                <button onclick="showAuthModal('login')" style="${btnSecondary()}">Sign In</button>
+            </div>
+ 
+            <!-- FORGOT PASSWORD VIEW -->
+            <div id="auth-view-forgot" style="display:${mode === 'forgot' ? 'block' : 'none'}">
+                <h3 style="font-family:'Space Mono',monospace;color:#fff;font-size:0.95rem;margin-bottom:0.5rem;text-align:center;">Reset Password</h3>
+                <p style="color:#9ca3af;font-size:0.82rem;text-align:center;margin-bottom:1.5rem;">Enter your email and we'll send a reset link.</p>
+                <input id="auth-forgot-email" type="email" placeholder="Email address"
+                    style="${inputStyle()}"
+                    onkeydown="if(event.key==='Enter') submitForgot()" />
+                <button onclick="submitForgot()" style="${btnPrimary()}">Send Reset Link</button>
+                <div style="text-align:center;margin-top:0.75rem;">
+                    <button onclick="showAuthModal('login')" style="${btnLink()}">← Back to login</button>
+                </div>
+            </div>
+ 
+            <!-- RESET PASSWORD VIEW -->
+            <div id="auth-view-reset" style="display:${mode === 'reset' ? 'block' : 'none'}">
+                <h3 style="font-family:'Space Mono',monospace;color:#fff;font-size:0.95rem;margin-bottom:1.5rem;text-align:center;">Set New Password</h3>
+                <input id="auth-reset-password" type="password" placeholder="New password (8+ chars, 1 uppercase, 1 number)"
+                    style="${inputStyle()}"
+                    onkeydown="if(event.key==='Enter') submitReset('${resetToken}')" />
+                <input id="auth-reset-confirm" type="password" placeholder="Confirm new password"
+                    style="${inputStyle()}"
+                    onkeydown="if(event.key==='Enter') submitReset('${resetToken}')" />
+                <button onclick="submitReset('${resetToken}')" style="${btnPrimary()}">Reset Password</button>
+            </div>
+        </div>
+    `;
+ 
+    document.body.appendChild(modal);
+ 
+    // Focus first input
+    setTimeout(() => {
+        const first = modal.querySelector('input');
+        if (first) first.focus();
+    }, 100);
+}
+ 
+// ── STYLE HELPERS ─────────────────────────────────────────────────────────────
+function inputStyle() {
+    return `width:100%;box-sizing:border-box;background:#1e293b;border:1px solid rgba(255,255,255,0.1);
+            border-radius:8px;color:#e0e0e0;font-family:'DM Sans',sans-serif;font-size:0.85rem;
+            padding:0.75rem 1rem;outline:none;margin-bottom:0.75rem;display:block;
+            transition:border-color 0.2s;`;
+}
+function btnPrimary() {
+    return `width:100%;background:#4caf50;color:#000;border:none;border-radius:8px;
+            padding:0.85rem;cursor:pointer;font-family:'Space Mono',monospace;
+            font-size:0.82rem;font-weight:700;letter-spacing:0.03em;margin-bottom:0.5rem;
+            transition:all 0.2s;`;
+}
+function btnSecondary() {
+    return `width:100%;background:transparent;color:#4caf50;border:1px solid rgba(76,175,80,0.4);
+            border-radius:8px;padding:0.75rem;cursor:pointer;font-family:'Space Mono',monospace;
+            font-size:0.82rem;letter-spacing:0.03em;transition:all 0.2s;`;
+}
+function btnLink() {
+    return `background:none;border:none;color:#4b5563;cursor:pointer;font-size:0.78rem;
+            font-family:'Space Mono',monospace;transition:color 0.2s;`;
+}
+function divider() {
+    return `display:flex;align-items:center;gap:0.75rem;color:#374151;font-size:0.72rem;
+            margin:1rem 0;`;
+}
+ 
+// ── SHOW AUTH MESSAGE ─────────────────────────────────────────────────────────
+function showAuthMessage(msg, type = 'error') {
+    const el = document.getElementById('auth-message');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.background = type === 'success' ? 'rgba(76,175,80,0.1)' : 'rgba(239,68,68,0.1)';
+    el.style.border     = type === 'success' ? '1px solid rgba(76,175,80,0.3)' : '1px solid rgba(239,68,68,0.3)';
+    el.style.color      = type === 'success' ? '#4caf50' : '#ef4444';
+    el.textContent      = msg;
+}
+ 
+// ── SUBMIT HANDLERS ───────────────────────────────────────────────────────────
+async function submitLogin() {
+    const email    = document.getElementById('auth-login-email')?.value?.trim();
+    const password = document.getElementById('auth-login-password')?.value;
+    if (!email || !password) { showAuthMessage('Please fill in all fields.'); return; }
+ 
+    const btn = document.querySelector('#auth-view-login button');
+    if (btn) { btn.textContent = '⏳ Signing in...'; btn.disabled = true; }
+ 
+    try {
+        const res  = await fetch('/api/auth/login', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+ 
+        if (data.ok) {
+            AUTH_TOKEN = data.token;
+            localStorage.setItem('hooda_auth_token', data.token);
+            onAuthSuccess(data.user, null);
+        } else {
+            showAuthMessage(data.error || 'Login failed.');
+            if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+        }
+    } catch {
+        showAuthMessage('Network error — please try again.');
+        if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+    }
+}
+ 
+async function submitSignup() {
+    const name     = document.getElementById('auth-signup-name')?.value?.trim();
+    const email    = document.getElementById('auth-signup-email')?.value?.trim();
+    const password = document.getElementById('auth-signup-password')?.value;
+    if (!name || !email || !password) { showAuthMessage('Please fill in all fields.'); return; }
+ 
+    const btn = document.querySelector('#auth-view-signup button');
+    if (btn) { btn.textContent = '⏳ Creating account...'; btn.disabled = true; }
+ 
+    try {
+        const res  = await fetch('/api/auth/signup', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ name, email, password }),
+        });
+        const data = await res.json();
+ 
+        if (data.ok) {
+            AUTH_TOKEN = data.token;
+            localStorage.setItem('hooda_auth_token', data.token);
+            onAuthSuccess(data.user, null);
+            if (!data.user.verified) {
+                showAuthMessage('✅ Account created! Check your email to verify your account.', 'success');
+            }
+        } else {
+            showAuthMessage(data.error || 'Signup failed.');
+            if (btn) { btn.textContent = 'Create Account — Free'; btn.disabled = false; }
+        }
+    } catch {
+        showAuthMessage('Network error — please try again.');
+        if (btn) { btn.textContent = 'Create Account — Free'; btn.disabled = false; }
+    }
+}
+ 
+async function submitForgot() {
+    const email = document.getElementById('auth-forgot-email')?.value?.trim();
+    if (!email) { showAuthMessage('Please enter your email.'); return; }
+ 
+    const btn = document.querySelector('#auth-view-forgot button');
+    if (btn) { btn.textContent = '⏳ Sending...'; btn.disabled = true; }
+ 
+    try {
+        await fetch('/api/auth/forgot-password', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ email }),
+        });
+        showAuthMessage('✅ If that email exists, a reset link has been sent. Check your inbox.', 'success');
+        if (btn) { btn.textContent = 'Send Reset Link'; btn.disabled = false; }
+    } catch {
+        showAuthMessage('Network error — please try again.');
+        if (btn) { btn.textContent = 'Send Reset Link'; btn.disabled = false; }
+    }
+}
+ 
+async function submitReset(token) {
+    const password = document.getElementById('auth-reset-password')?.value;
+    const confirm  = document.getElementById('auth-reset-confirm')?.value;
+    if (!password || !confirm) { showAuthMessage('Please fill in both fields.'); return; }
+    if (password !== confirm)  { showAuthMessage('Passwords do not match.'); return; }
+ 
+    const btn = document.querySelector('#auth-view-reset button');
+    if (btn) { btn.textContent = '⏳ Resetting...'; btn.disabled = true; }
+ 
+    try {
+        const res  = await fetch('/api/auth/reset-password', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ token, newPassword: password }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+            showAuthMessage('✅ Password reset! You can now log in.', 'success');
+            setTimeout(() => showAuthModal('login'), 2000);
+        } else {
+            showAuthMessage(data.error || 'Reset failed.');
+            if (btn) { btn.textContent = 'Reset Password'; btn.disabled = false; }
+        }
+    } catch {
+        showAuthMessage('Network error — please try again.');
+        if (btn) { btn.textContent = 'Reset Password'; btn.disabled = false; }
+    }
+}
+ 
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+function logout() {
+    AUTH_TOKEN = null;
+    AUTH_USER  = null;
+    localStorage.removeItem('hooda_auth_token');
+    showAuthModal('login');
+    showAuthMessage('You have been signed out.', 'success');
+}
+ 
+// ── UNVERIFIED EMAIL BANNER ───────────────────────────────────────────────────
+function showUnverifiedBanner() {
+    if (document.getElementById('unverified-banner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'unverified-banner';
+    banner.style.cssText = `
+        position:fixed;top:0;left:0;right:0;z-index:9999;
+        background:rgba(250,204,21,0.1);border-bottom:1px solid rgba(250,204,21,0.3);
+        color:#facc15;font-family:'Space Mono',monospace;font-size:0.72rem;
+        padding:0.5rem 1rem;text-align:center;letter-spacing:0.03em;`;
+    banner.innerHTML = `⚠️ Please verify your email to unlock full access.
+        <button onclick="resendVerification()" style="background:none;border:none;color:#facc15;cursor:pointer;font-family:'Space Mono',monospace;font-size:0.72rem;text-decoration:underline;margin-left:0.5rem;">Resend email</button>
+        <button onclick="document.getElementById('unverified-banner').remove()" style="background:none;border:none;color:#facc15;cursor:pointer;margin-left:1rem;font-size:0.9rem;">✕</button>`;
+    document.body.prepend(banner);
+}
+ 
+async function resendVerification() {
+    if (!AUTH_USER?.email) return;
+    try {
+        await fetch('/api/auth/signup', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AUTH_TOKEN}` },
+            body:    JSON.stringify({ resend: true, email: AUTH_USER.email }),
+        });
+        const banner = document.getElementById('unverified-banner');
+        if (banner) banner.innerHTML = '✅ Verification email resent! Check your inbox.';
+    } catch { /* silent */ }
+}
+ 
+// ── SHOW AUTH REQUIRED (chat widget asks to log in) ───────────────────────────
+function showAuthRequired() {
+    // Replace first bot message with login prompt
+    const msgs = document.getElementById('chat-messages');
+    if (!msgs) return;
+    msgs.innerHTML = `
+        <div class="msg bot">
+            👋 Welcome to Yash's AI assistant! Create a free account to start chatting.
+        </div>
+        <div style="padding:0.75rem;display:flex;flex-direction:column;gap:0.5rem;">
+            <button onclick="showAuthModal('signup')" style="
+                background:#4caf50;color:#000;border:none;border-radius:8px;
+                padding:0.75rem;cursor:pointer;font-family:'Space Mono',monospace;
+                font-size:0.8rem;font-weight:700;letter-spacing:0.03em;">
+                🚀 Create Free Account
+            </button>
+            <button onclick="showAuthModal('login')" style="
+                background:transparent;color:#4caf50;
+                border:1px solid rgba(76,175,80,0.4);border-radius:8px;
+                padding:0.65rem;cursor:pointer;font-family:'Space Mono',monospace;
+                font-size:0.78rem;letter-spacing:0.03em;">
+                Sign In
+            </button>
+            <div style="font-size:0.68rem;color:#4b5563;text-align:center;font-family:'Space Mono',monospace;">
+                20 free messages/month · No credit card needed
+            </div>
+        </div>`;
+}
+ 
+ 
+function showUserMenu() {
+    if (!AUTH_USER) { showAuthModal('login'); return; }
+    const existing = document.getElementById('user-menu');
+    if (existing) { existing.remove(); return; }
+ 
+    const menu = document.createElement('div');
+    menu.id = 'user-menu';
+    menu.style.cssText = `
+        position:fixed;top:4rem;right:1rem;z-index:99998;
+        background:#12181f;border:1px solid rgba(76,175,80,0.3);
+        border-radius:10px;padding:1rem;min-width:220px;
+        font-family:'Space Mono',monospace;font-size:0.78rem;
+        box-shadow:0 8px 30px rgba(0,0,0,0.5);`;
+    menu.innerHTML = `
+        <div style="color:#4caf50;font-weight:700;margin-bottom:0.25rem;">${AUTH_USER.name}</div>
+        <div style="color:#4b5563;font-size:0.68rem;margin-bottom:0.75rem;">${AUTH_USER.email}</div>
+        <div style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.2);
+            border-radius:5px;padding:0.35rem 0.6rem;margin-bottom:0.75rem;font-size:0.7rem;">
+            ${AUTH_USER.plan === 'admin' ? '👑 Admin — Unlimited' :
+              AUTH_USER.plan === 'premium' ? '⚡ Pro — Unlimited' :
+              '🆓 Free Plan — 20 msgs/month'}
+        </div>
+        ${AUTH_USER.plan === 'free' ? `
+        <button onclick="showUpgradeModal();document.getElementById('user-menu')?.remove()" style="
+            width:100%;background:#4caf50;color:#000;border:none;border-radius:6px;
+            padding:0.5rem;cursor:pointer;font-family:'Space Mono',monospace;
+            font-size:0.72rem;font-weight:700;margin-bottom:0.5rem;">
+            ⚡ Upgrade to Pro
+        </button>` : ''}
+        <button onclick="logout();document.getElementById('user-menu')?.remove()" style="
+            width:100%;background:transparent;color:#4b5563;
+            border:1px solid rgba(255,255,255,0.08);border-radius:6px;
+            padding:0.5rem;cursor:pointer;font-family:'Space Mono',monospace;font-size:0.72rem;">
+            Sign Out
+        </button>`;
+ 
+    document.body.appendChild(menu);
+    // Close on outside click
+    setTimeout(() => {
+        document.addEventListener('click', function handler(e) {
+            if (!menu.contains(e.target) && e.target.id !== 'user-menu-btn') {
+                menu.remove();
+                document.removeEventListener('click', handler);
+            }
+        });
+    }, 100);
+}
 
 // ── Helper: reset all panels to hidden ──
 function hideAllPanels() {

@@ -17,24 +17,24 @@ const MODELS = {
   'llama-4-maverick':       { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
   'llama-3.3-70b':          { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
 };
-const DEFAULT_MODEL = 'claude-sonnet-4-6';
+const DEFAULT_MODEL = 'gpt-5.5';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  cconst { messages, model, sessionId, adminPassword } = req.body || {};
-if (!messages || !Array.isArray(messages)) {
+  const { messages, model, sessionId, adminPassword } = req.body || {};
+  if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages array required' });
-}
+  }
 
-// ── USAGE LIMIT CHECK ─────────────────────────────────────────────────────
-const usage = await checkUsageLimit(sessionId, null, adminPassword || null);
-if (!usage.allowed) {
+  // ── USAGE LIMIT CHECK ─────────────────────────────────────────────────────
+  const usage = await checkUsageLimit(sessionId, null, adminPassword || null);
+  if (!usage.allowed) {
     return res.status(402).json({
-        error:   'free_limit_reached',
-        message: `You've used all ${usage.limit} free messages this month. Upgrade for unlimited access!`,
+      error:   'free_limit_reached',
+      message: `You've used all ${usage.limit} free messages this month. Upgrade for unlimited access!`,
     });
-}
+  }
 
   const picked = MODELS[model] ? model : DEFAULT_MODEL;
   const cfg    = MODELS[picked];
@@ -63,16 +63,16 @@ if (!usage.allowed) {
 
   try {
     if (cfg.provider === 'openai') {
-    await streamOpenAI(cfg.api, cleanMessages, send);
-  } else if (cfg.provider === 'xai') {
-    await streamOpenAICompat('https://api.x.ai/v1', process.env.XAI_API_KEY, cfg.api, cleanMessages, send);
-  } else if (cfg.provider === 'together') {
-    await streamOpenAICompat('https://api.together.xyz/v1', process.env.TOGETHER_API_KEY, cfg.api, cleanMessages, send);
-  } else if (cfg.provider === 'google') {
-    await streamGemini(cfg.api, cleanMessages, send);
-  } else {
-    await streamAnthropic(cfg.api, cleanMessages, send);
-  }
+      await streamOpenAI(cfg.api, cleanMessages, send);
+    } else if (cfg.provider === 'xai') {
+      await streamOpenAICompat('https://api.x.ai/v1', process.env.XAI_API_KEY, cfg.api, cleanMessages, send);
+    } else if (cfg.provider === 'together') {
+      await streamOpenAICompat('https://api.together.xyz/v1', process.env.TOGETHER_API_KEY, cfg.api, cleanMessages, send);
+    } else if (cfg.provider === 'google') {
+      await streamGemini(cfg.api, cleanMessages, send);
+    } else {
+      await streamAnthropic(cfg.api, cleanMessages, send);
+    }
   } catch (err) {
     console.error('chat-voice top-level error:', err);
     const lastUserMsg = cleanMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
@@ -94,8 +94,6 @@ async function streamAnthropic(apiModel, messages, send) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) { send({ type: 'error', error: 'ANTHROPIC_API_KEY not set' }); return; }
 
-  // Build body — only add output_config for models that support it
-  const supportsEffort = ['claude-opus-4-8', 'claude-sonnet-4-6'].includes(apiModel);
   const body = {
     model:      apiModel,
     max_tokens: 300,
@@ -103,13 +101,12 @@ async function streamAnthropic(apiModel, messages, send) {
     system: [{ type: 'text', text: VOICE_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages,
   };
-  if (supportsEffort) body.output_config = { effort: 'low' };
 
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method:  'POST',
     headers: {
-      'Content-Type':    'application/json',
-      'x-api-key':       apiKey,
+      'Content-Type':      'application/json',
+      'x-api-key':         apiKey,
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify(body),
@@ -152,7 +149,6 @@ async function streamAnthropic(apiModel, messages, send) {
       }
     }
   }
-  // Fallback done in case message_stop was missed
   send({ type: 'done', text: full });
 }
 
@@ -203,11 +199,10 @@ async function streamOpenAI(apiModel, messages, send) {
       let evt;
       try { evt = JSON.parse(raw); } catch { continue; }
 
-      // Handle both possible delta event shapes from OpenAI Responses API
       const t =
-        evt.delta                              ??  // response.output_text.delta
-        evt.output_text_delta?.text            ??  // alternate shape
-        evt.choices?.[0]?.delta?.content       ??  // chat-completions fallback
+        evt.delta                              ??
+        evt.output_text_delta?.text            ??
+        evt.choices?.[0]?.delta?.content       ??
         null;
 
       if (typeof t === 'string' && t) {
@@ -224,6 +219,7 @@ async function streamOpenAI(apiModel, messages, send) {
   send({ type: 'done', text: full });
 }
 
+// ── OPENAI COMPAT (xAI, Together) ──
 async function streamOpenAICompat(baseUrl, apiKey, model, messages, send) {
   if (!apiKey) { send({ type: 'error', error: 'API key not set' }); return; }
   const r = await fetch(`${baseUrl}/chat/completions`, {
@@ -262,8 +258,8 @@ async function streamOpenAICompat(baseUrl, apiKey, model, messages, send) {
   }
   send({ type: 'done', text: full });
 }
- 
-// ── Google Gemini (non-streaming, push as single done event) ──
+
+// ── GEMINI ──
 async function streamGemini(model, messages, send) {
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) { send({ type: 'error', error: 'GOOGLE_API_KEY not set' }); return; }
@@ -293,7 +289,7 @@ async function streamGemini(model, messages, send) {
     send({ type: 'error', error: e.message });
   }
 }
- 
+
 const VOICE_PROMPT = `You are Yash Hooda's AI voice assistant
 
 WHO YASH IS: 24-year-old Data Engineer (UTD CS grad) moving into AI Engineering without a master's degree. Certified: Databricks Data Engineer, IBM AI Engineering, IBM Data Science, Vanderbilt Prompt Engineering, Microsoft Power Platform. Skills: PySpark, Databricks, Microsoft Fabric, SQL, LangChain, RAG, LLMs, Python. Runner — 5K PR 18:15, half marathon PR 1:24:31, training for the 2026 Boulderthon Marathon at 45 miles/week.

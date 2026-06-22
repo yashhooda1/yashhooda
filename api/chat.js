@@ -8,6 +8,7 @@ import { Index }         from '@upstash/vector';
 import { Redis }         from '@upstash/redis';
 import { rateLimit }     from '../lib/rateLimit.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
+import { getAuthUser } from '../lib/auth.js';
 import crypto            from 'crypto';
 
 export const maxDuration = 60;
@@ -983,14 +984,28 @@ export default async function handler(req, res) {
         return res.status(429).json({ error: 'Too many requests — please wait a moment.' });
     }
 
-    // ── USAGE LIMIT CHECK ─────────────────────────────────────────────────────
-    const usage = await checkUsageLimit(sessionId, null, adminPassword || null);
+    // ── AUTH + USAGE CHECK ────────────────────────────────────────────────────
+    const authUser  = getAuthUser(req);   // extracts + verifies JWT
+    const userEmail = authUser?.email || null;
+ 
+    const usage = await checkUsageLimit(userEmail);
+ 
     if (!usage.allowed) {
+        if (usage.reason === 'login_required') {
+            return res.status(401).json({
+                error:   'login_required',
+                message: 'Please create a free account to continue chatting.',
+            });
+        }
         return res.status(402).json({
             error:   'free_limit_reached',
             message: `You've used all ${usage.limit} free messages this month. Upgrade for unlimited access!`,
         });
     }
+ 
+    const usageWarning = !usage.premium && usage.remaining <= 5
+        ? `⚠️ You have ${usage.remaining} free message${usage.remaining === 1 ? '' : 's'} remaining this month.`
+        : null;
 
     // ── LAYER 2: Jailbreak Detection ──────────────────────────────────────────
     if (checkAllMessages(messages)) {
@@ -1001,11 +1016,6 @@ export default async function handler(req, res) {
         });
     }
 
-    // Warn when getting close (last 5 messages)
-    const usageWarning = !usage.premium && usage.remaining <= 5
-        ? `⚠️ You have ${usage.remaining} free message${usage.remaining === 1 ? '' : 's'} remaining this month.`
-        : null;
- 
 
     // ── LAYER 7: File Upload Security ─────────────────────────────────────────
     const fileCheck = validateFileUploads(messages, sessionId);

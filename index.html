@@ -3865,6 +3865,97 @@ const countObserver = new IntersectionObserver(entries => {
 }, { threshold: 0.5 });
 document.querySelectorAll('.stat-num[data-target]').forEach(el => countObserver.observe(el));
 
+// ── ADMIN PASSWORD (in memory only, cleared on page close) ───────────────
+let ADMIN_PASSWORD_SESSION = null;
+
+// ── SECRET TRIGGER — type "yhadmin" anywhere on page (not in input) ──────
+(function initAdminTrigger() {
+    let buffer = '';
+    const SECRET = 'yhadmin';
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        buffer += e.key.toLowerCase();
+        if (buffer.length > SECRET.length) buffer = buffer.slice(-SECRET.length);
+        if (buffer === SECRET) { buffer = ''; showAdminLogin(); }
+    });
+})();
+
+function showAdminLogin() {
+    const existing = document.getElementById('admin-login-modal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'admin-login-modal';
+    modal.style.cssText = `
+        position:fixed;inset:0;z-index:999999;
+        background:rgba(0,0,0,0.95);
+        display:flex;align-items:center;justify-content:center;padding:1rem;`;
+    modal.innerHTML = `
+        <div style="
+            background:#0d1117;border:1px solid rgba(76,175,80,0.6);
+            border-radius:12px;padding:2rem;max-width:320px;width:100%;
+            text-align:center;font-family:'Space Mono',monospace;">
+            <div style="font-size:1.5rem;margin-bottom:1rem;">🔐</div>
+            <h3 style="color:#4caf50;font-size:0.9rem;margin-bottom:1.5rem;letter-spacing:0.05em;">ADMIN ACCESS</h3>
+            <input id="admin-password-input" type="password" placeholder="Enter admin password"
+                style="width:100%;box-sizing:border-box;background:#161b22;
+                border:1px solid rgba(76,175,80,0.3);border-radius:6px;
+                color:#e0e0e0;font-family:'Space Mono',monospace;font-size:0.82rem;
+                padding:0.65rem 0.9rem;outline:none;margin-bottom:1rem;"
+                onkeydown="if(event.key==='Enter') submitAdminLogin()" />
+            <div style="display:flex;gap:0.5rem;">
+                <button onclick="submitAdminLogin()" style="
+                    flex:1;background:#4caf50;color:#000;border:none;border-radius:6px;
+                    padding:0.65rem;cursor:pointer;font-family:'Space Mono',monospace;
+                    font-size:0.78rem;font-weight:700;">Unlock</button>
+                <button onclick="document.getElementById('admin-login-modal').remove()" style="
+                    flex:1;background:transparent;color:#4b5563;
+                    border:1px solid rgba(255,255,255,0.08);border-radius:6px;
+                    padding:0.65rem;cursor:pointer;font-family:'Space Mono',monospace;
+                    font-size:0.78rem;">Cancel</button>
+            </div>
+            <div id="admin-login-error" style="color:#ef4444;font-size:0.72rem;margin-top:0.75rem;display:none;">Wrong password.</div>
+        </div>`;
+    document.body.appendChild(modal);
+    setTimeout(() => document.getElementById('admin-password-input')?.focus(), 100);
+}
+
+async function submitAdminLogin() {
+    const input = document.getElementById('admin-password-input');
+    const error = document.getElementById('admin-login-error');
+    const password = input?.value?.trim();
+    if (!password) return;
+    try {
+        const res = await fetch('/api/admin-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password, sessionId: SESSION_ID }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+            ADMIN_PASSWORD_SESSION = password;
+            document.getElementById('admin-login-modal').remove();
+            const indicator = document.createElement('div');
+            indicator.style.cssText = `
+                position:fixed;top:1rem;right:5rem;
+                background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.4);
+                color:#4caf50;font-family:'Space Mono',monospace;font-size:0.68rem;
+                padding:0.3rem 0.75rem;border-radius:5px;z-index:99999;letter-spacing:0.05em;`;
+            indicator.textContent = '🔓 ADMIN';
+            document.body.appendChild(indicator);
+            setTimeout(() => indicator.remove(), 3000);
+        } else {
+            error.style.display = 'block';
+            input.value = '';
+            input.focus();
+            setTimeout(() => { error.style.display = 'none'; }, 2000);
+        }
+    } catch {
+        error.textContent = 'Connection error.';
+        error.style.display = 'block';
+    }
+}
+
+    
 // ── CHATBOT ──
 // ── CHATBOT ──
 let chatHistory = [];

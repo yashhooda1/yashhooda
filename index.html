@@ -3935,6 +3935,15 @@ async function submitAdminLogin() {
         if (data.ok) {
             ADMIN_PASSWORD_SESSION = password;
             document.getElementById('admin-login-modal').remove();
+            // ── ADD THIS — treat admin as authenticated user ──
+            AUTH_USER = { 
+                email: 'yash.hooda6@gmail.com', 
+                name: 'Yash', 
+                plan: 'admin', 
+                verified: true 
+             };
+             AUTH_TOKEN = 'admin-session';
+             onAuthSuccess(AUTH_USER, { remaining: null, premium: true });
             const indicator = document.createElement('div');
             indicator.style.cssText = `
                 position:fixed;top:1rem;right:5rem;
@@ -5348,6 +5357,11 @@ async function generateRequestToken() {
     
 // ── SEND MESSAGE — with SSE streaming for web search ──
 async function sendMsg() {
+  // Block if not authenticated
+    if (!AUTH_USER && !ADMIN_PASSWORD_SESSION) {
+        showAuthModal('login');
+        return;
+    }
   const { token, timestamp } = await generateRequestToken();
   const input = document.getElementById('chat-input');
   const text = input.value.trim();

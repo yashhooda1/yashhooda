@@ -3978,6 +3978,11 @@ let pendingImageType = null;
 // ── AUTH STATE ────────────────────────────────────────────────────────────────
 let AUTH_USER  = null;  // { email, name, verified, plan }
 let AUTH_TOKEN = null;  // JWT string
+const SESSION_ID = localStorage.getItem('hooda_session_id') || (() => {
+    const id = crypto.randomUUID();
+    localStorage.setItem('hooda_session_id', id);
+    return id;
+})();
  
 // ── LOAD TOKEN FROM LOCALSTORAGE ON PAGE LOAD ─────────────────────────────────
 (async function initAuth() {

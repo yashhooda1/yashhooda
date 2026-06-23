@@ -988,7 +988,6 @@ export default async function handler(req, res) {
     // ── AUTH + USAGE CHECK ────────────────────────────────────────────────────
     const authUser  = getAuthUser(req);
     const userEmail = authUser?.email || null;
-    const { adminPassword } = req.body;
 
     // Admin bypass — check password directly
     let usageWarning = null;

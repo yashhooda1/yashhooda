@@ -1335,6 +1335,9 @@ export default async function handler(req, res) {
             },
         });
 
+        const usageWarning = null;
+        const usage = { count: 0, remaining: null, limit: null, premium: true };
+
     } catch (err) {
         console.error('[CHAT] Handler error:', err);
         await notifyFailure({ route: '/api/chat', model: picked, error: err, userMessage: queryText, sessionId }).catch(() => {});

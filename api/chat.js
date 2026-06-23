@@ -1008,6 +1008,10 @@ export default async function handler(req, res) {
     const authUser  = getAuthUser(req);
     const userEmail = authUser?.email || null;
 
+    if (authUser && authUser.verified === false && !adminPassword) {
+        return res.status(403).json({ error: 'email_unverified', message: 'Please verify your email before chatting.' });
+    }    
+
     // Admin bypass — check password directly
     let usageWarning = null;
     let usage = { count: 0, remaining: null, limit: null, premium: true };

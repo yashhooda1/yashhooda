@@ -5560,7 +5560,7 @@ async function sendMsg() {
         'Authorization': AUTH_TOKEN && AUTH_TOKEN !== 'admin-session' 
         ? `Bearer ${AUTH_TOKEN}` 
         : '', },
-        body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID, model: selectedModel, requestToken: token, requestTimestamp: timestamp })
+        body: JSON.stringify({ messages: chatHistory, sessionId: SESSION_ID, model: selectedModel, requestToken: token, requestTimestamp: timestamp, adminPassword: ADMIN_PASSWORD_SESSION || undefined })
       });
  
       let data;

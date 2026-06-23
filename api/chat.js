@@ -1324,9 +1324,6 @@ export default async function handler(req, res) {
         // ── SUGGESTION CHIPS ─────────────────────────────────────────────────
         const suggestions = await generateSuggestions(queryText, reply, activeAgent.key, apiKey);
 
-        const usageWarning = null;
-        const usage = { count: 0, remaining: null, limit: null, premium: true };
-
         return res.status(200).json({
             reply,
             model:       picked,

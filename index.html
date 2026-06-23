@@ -3973,7 +3973,11 @@ let AUTH_TOKEN = null;  // JWT string
 // ── LOAD TOKEN FROM LOCALSTORAGE ON PAGE LOAD ─────────────────────────────────
 (async function initAuth() {
     const stored = localStorage.getItem('hooda_auth_token');
-    if (!stored) { showAuthRequired(); return; }
+    if (!stored) {
+        // Don't block if admin password is already in session
+        if (!ADMIN_PASSWORD_SESSION) showAuthRequired();
+        return;
+    }
  
     try {
         const res  = await fetch('/api/auth/me', {

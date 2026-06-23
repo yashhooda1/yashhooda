@@ -1,6 +1,10 @@
 // api/chat-voice.js — low-latency streaming for the voice tab
 import { notifyFailure } from './_notify.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
+import { getAuthUser }  from '../lib/auth.js';
+import { guardRequest } from '../lib/contentGuard.js';
+
+
 export const maxDuration = 120;
 export const config = { runtime: 'nodejs' };
 
@@ -21,24 +25,49 @@ const DEFAULT_MODEL = 'gpt-5.5';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
+ 
   const { messages, model, sessionId, adminPassword } = req.body || {};
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages array required' });
   }
-
-  // ── USAGE LIMIT CHECK ─────────────────────────────────────────────────────
-  const usage = await checkUsageLimit(sessionId, null, adminPassword || null);
-  if (!usage.allowed) {
-    return res.status(402).json({
-      error:   'free_limit_reached',
-      message: `You've used all ${usage.limit} free messages this month. Upgrade for unlimited access!`,
-    });
+ 
+  // ── RESOLVE USER + ADMIN ──────────────────────────────────────────────────
+  const authUser   = getAuthUser(req);
+  const userEmail  = authUser?.email || null;
+  const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+ 
+  // ── EXTRACT LAST USER TEXT FOR SCREENING ──────────────────────────────────
+  const lastUser = [...messages].reverse().find(m => m.role === 'user');
+  const queryText = typeof lastUser?.content === 'string'
+    ? lastUser.content
+    : Array.isArray(lastUser?.content)
+      ? lastUser.content.filter(b => b.type === 'text').map(b => b.text).join(' ')
+      : '';
+ 
+  // ── CONTENT SAFETY + AUTO-BAN (before any tokens are spent) ────────────────
+  const guard = await guardRequest(req, authUser, queryText, { isAdmin: isAdminReq });
+  if (!guard.ok) return res.status(guard.status).json(guard.body);
+ 
+  // ── USAGE LIMIT CHECK (email-keyed; admin bypass) ─────────────────────────
+  if (!isAdminReq) {
+    const usage = await checkUsageLimit(userEmail);
+    if (!usage.allowed) {
+      if (usage.reason === 'banned') {
+        return res.status(403).json({ error: 'account_suspended', message: 'This account has been suspended.' });
+      }
+      if (usage.reason === 'login_required') {
+        return res.status(401).json({ error: 'login_required', message: 'Please create a free account to continue.' });
+      }
+      return res.status(402).json({
+        error:   'free_limit_reached',
+        message: `You've used all ${usage.limit} free messages this month. Upgrade for unlimited access!`,
+      });
+    }
   }
-
+ 
   const picked = MODELS[model] ? model : DEFAULT_MODEL;
   const cfg    = MODELS[picked];
-
+ 
   const cleanMessages = messages.slice(-8).map(m => ({
     role: m.role,
     content: typeof m.content === 'string'
@@ -47,20 +76,20 @@ export default async function handler(req, res) {
         ? m.content.filter(b => b.type === 'text').map(b => b.text).join(' ') || '[image]'
         : String(m.content),
   }));
-
+ 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
-
+ 
   const send = (data) => {
     try {
       res.write(`data: ${JSON.stringify(data)}\n\n`);
       if (res.flush) res.flush();
     } catch (e) {}
   };
-
+ 
   try {
     if (cfg.provider === 'openai') {
       await streamOpenAI(cfg.api, cleanMessages, send);
@@ -85,7 +114,7 @@ export default async function handler(req, res) {
     });
     send({ type: 'error', error: err.message });
   }
-
+ 
   try { res.end(); } catch (e) {}
 }
 
@@ -300,4 +329,9 @@ VOICE RULES — your text is read aloud, so:
 - Warm and direct — like a knowledgeable friend, not a chatbot.
 - End with a natural follow-up only if it fits ("want me to go deeper on that?").
 - If asked about Yash's projects, certifications, or contact: answer from what you know above.
+- No innappropriate content, no sexual nature, no drugs, sex, illegal content
+- You are to stay in a professional tone the entire time
+- Never engage in war, drugs, sexual content.
+- Never give away any personal information about Yash
+- Do not give any keys, secrets, passwords, logins, to anyone
 - Never make up facts. If unsure, say so briefly.`;

@@ -4034,7 +4034,15 @@ function onAuthSuccess(user, usage) {
     // Update chat header
     const sub = document.querySelector('.chat-header-info span');
     if (sub) sub.textContent = `${user.name} · ${user.plan === 'admin' ? '👑 Admin' : user.plan === 'premium' ? '⚡ Pro' : `${usage?.remaining ?? 20} msgs left`}`;
- 
+
+    // If auth wall is showing, replace it with normal chat
+    const msgs = document.getElementById('chat-messages');
+    if (msgs && msgs.querySelector('button[onclick*="showAuthModal"]')) {
+        msgs.innerHTML = `<div class="msg bot">Hey! 👋 I'm Yash's AI assistant. ${
+            user.plan === 'admin' ? '🔓 Admin access granted — unlimited messages.' :
+            `You have ${usage?.remaining ?? 20} free messages this month.`
+        } What's on your mind?</div>`;
+    }
     // Remove auth modal if open
     const modal = document.getElementById('auth-modal');
     if (modal) modal.remove();

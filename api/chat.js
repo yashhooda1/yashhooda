@@ -946,6 +946,10 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(204).end();
     if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
+    // ── ABUSE TRACE LOG ──────────────────────────────────────────────────────
+    const traceIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
+    console.warn(`[TRACE] ip=${traceIp} ua="${req.headers['user-agent'] || ''}" path=${req.url || ''}`);
+
     // ── SUSPICIOUS USER-AGENT ─────────────────────────────────────────────────
     const ua = req.headers['user-agent'] || '';
     if (!ua || SUSPICIOUS_UA.some(p => p.test(ua))) {

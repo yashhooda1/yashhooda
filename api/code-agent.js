@@ -2,11 +2,20 @@
 // ══════════════════════════════════════════════════════════════════════════════
 // AGENTIC CODING LOOP — direct API calls, no LangChain model wrappers
 // Steps: DETECT → PLAN → WRITE → REVIEW → (REVISE?) → EXPLAIN → SUGGEST
+//
+// HARDENED:
+//   • CODE_AGENT_OFF kill switch (env var, instant disable, no code change)
+//   • Auth gate — admin password OR verified login required
+//   • Redis IP + email banlist enforcement
+//   • [TRACE] abuse logging
+//   • Tighter rate limits + lower global daily cap
+//   • Internal hard timeout so runs can't pin the function at 120s
 // ══════════════════════════════════════════════════════════════════════════════
 
 import { Redis }         from '@upstash/redis';
 import { rateLimit }     from '../lib/rateLimit.js';
 import { notifyFailure } from './_notify.js';
+import { getAuthUser }   from '../lib/auth.js';
 
 export const maxDuration = 90;
 
@@ -39,6 +48,24 @@ const SUSPICIOUS_UA = [
     /scrapy/i,
 ];
 
+// ── MALICIOUS-CODE REQUEST BLOCKLIST ─────────────────────────────────────────
+// The agent must not be turned into a malware/exploit generator. These patterns
+// trigger a hard refusal before any model call is made.
+const DISALLOWED_TASK_PATTERNS = [
+    /\b(ransomware|keylogger|rootkit|botnet|trojan|spyware|worm)\b/i,
+    /\b(ddos|dos attack|denial of service)\b/i,
+    /\bcredential (stealer|harvest|dump)/i,
+    /\b(sql injection|xss payload|csrf exploit)\b.*\b(attack|exploit|bypass)\b/i,
+    /\bbypass (auth|authentication|login|2fa|mfa|paywall)\b/i,
+    /\bcrack (password|license|software|wifi)\b/i,
+    /\b(phishing|spoof) (page|site|email|kit)\b/i,
+    /\bscrape .{0,30}(without permission|bypass rate)/i,
+    /\bexfiltrat/i,
+    /\bprivilege escalation\b/i,
+    /\breverse shell\b/i,
+    /\bhack(ing)? (into|someone|a (server|account|system|network))/i,
+];
+
 // ── DYNAMIC MODEL SELECTOR ───────────────────────────────────────────────────
 function selectModel(language, taskType) {
     if (['javascript', 'typescript', 'jsx', 'tsx', 'node'].includes(language?.toLowerCase())) {
@@ -51,6 +78,18 @@ function selectModel(language, taskType) {
         return { provider: 'anthropic', model: 'claude-opus-4-8', maxTokens: 4096 };
     }
     return { provider: 'anthropic', model: 'claude-sonnet-4-6', maxTokens: 4096 };
+}
+
+// ── PROMISE TIMEOUT WRAPPER ──────────────────────────────────────────────────
+// Stops any single model call from hanging the whole function toward the 120s
+// platform limit. Rejects after `ms` so the handler fails fast and clean.
+function withTimeout(promise, ms, label) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+        ),
+    ]);
 }
 
 // ── DIRECT API CALLER — no LangChain, no rogue top_p injection ───────────────
@@ -118,7 +157,7 @@ async function planSolution(prompt, language, taskType, cfg) {
         return await callModel(cfg, [
             {
                 role:    'system',
-                content: `You are an expert ${language} engineer and technical architect. You specialize in data engineering, AI engineering, and building production systems. You are helping Yash Hooda, a Data/AI Engineer, with coding tasks.`,
+                content: `You are an expert ${language} engineer and technical architect. You specialize in data engineering, AI engineering, and building production systems. You are helping Yash Hooda, a Data/AI Engineer, with legitimate coding tasks. You never help create malware, exploits, credential stealers, or any code designed to harm, intrude, or defraud. If a task appears malicious, refuse and return a short safety note instead of a plan.`,
             },
             {
                 role:    'user',
@@ -134,7 +173,7 @@ async function writeCode(prompt, plan, language, taskType, existingCode, cfg) {
         const result = await callModel(cfg, [
             {
                 role:    'system',
-                content: `You are an expert ${language} engineer. Write clean, production-ready code. Always include: inline comments, error handling, type hints where applicable, and docstrings. Return ONLY the code block — no explanations outside the code, no markdown fences. Start directly with the code.`,
+                content: `You are an expert ${language} engineer. Write clean, production-ready code. Always include: inline comments, error handling, type hints where applicable, and docstrings. You only write legitimate, lawful code — never malware, exploits, scrapers that bypass protections, or anything designed to harm or defraud. Return ONLY the code block — no explanations outside the code, no markdown fences. Start directly with the code.`,
             },
             {
                 role:    'user',
@@ -197,9 +236,24 @@ export default async function handler(req, res) {
         res.setHeader('Access-Control-Allow-Origin',  origin);
     }
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') return res.status(204).end();
     if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
+
+    // ── KILL SWITCH — flip env CODE_AGENT_OFF=on in Vercel to disable instantly ─
+    if (process.env.CODE_AGENT_OFF === 'on') {
+        return res.status(503).json({ error: 'Code agent is temporarily disabled.' });
+    }
+
+    // ── ABUSE TRACE LOG ───────────────────────────────────────────────────────
+    const traceIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
+    console.warn(`[TRACE] ip=${traceIp} ua="${req.headers['user-agent'] || ''}" path=${req.url || ''}`);
+
+    // ── HARD IP BAN CHECK ─────────────────────────────────────────────────────
+    try {
+        const ipBanned = await redis.sismember('banned:ips', traceIp);
+        if (ipBanned === 1) return res.status(403).json({ error: 'Access denied.' });
+    } catch { /* fail open on redis hiccup */ }
 
     // ── SUSPICIOUS USER-AGENT CHECK ───────────────────────────────────────────
     const ua = req.headers['user-agent'] || '';
@@ -207,11 +261,32 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Forbidden.' });
     }
 
+    const { prompt, existingCode, sessionId, adminPassword } = req.body || {};
+
+    // ── AUTH GATE — admin password OR verified logged-in user only ────────────
+    // This is the expensive endpoint; never leave it open to anonymous callers.
+    const authUser = getAuthUser(req);
+    const isAdmin  = adminPassword && process.env.ADMIN_PASSWORD && adminPassword === process.env.ADMIN_PASSWORD;
+
+    if (!isAdmin) {
+        if (!authUser) {
+            return res.status(401).json({ error: 'login_required', message: 'Please log in to use the code agent.' });
+        }
+        if (authUser.verified === false) {
+            return res.status(403).json({ error: 'email_unverified', message: 'Please verify your email to use the code agent.' });
+        }
+        // Banned email check for logged-in users
+        try {
+            const emailBanned = await redis.sismember('banned:emails', String(authUser.email || '').toLowerCase().trim());
+            if (emailBanned === 1) return res.status(403).json({ error: 'account_suspended' });
+        } catch { /* fail open */ }
+    }
+
     // ── RATE LIMIT (Redis-backed, includes auto-ban) ──────────────────────────
     const allowed = await rateLimit(req, res, {
         maxPerMinute:   2,
-        maxPerHour:     10,
-        maxDailyGlobal: 50,
+        maxPerHour:     8,
+        maxDailyGlobal: 40,
         endpoint:       'code-agent',
     });
     if (!allowed) return;
@@ -221,13 +296,12 @@ export default async function handler(req, res) {
     try {
         const daily = await redis.incr(dayKey);
         if (daily === 1) await redis.expire(dayKey, 86400);
-        if (daily > 100) {
+        if (daily > 60) {
             return res.status(429).json({ error: 'Daily limit reached. Try again tomorrow.' });
         }
     } catch { /* non-fatal — continue */ }
 
-    const { prompt, existingCode, sessionId } = req.body;
-
+    // ── INPUT VALIDATION ──────────────────────────────────────────────────────
     if (!prompt || typeof prompt !== 'string') {
         return res.status(400).json({ error: 'prompt is required.' });
     }
@@ -241,16 +315,28 @@ export default async function handler(req, res) {
         return res.status(429).json({ error: 'Request blocked.' });
     }
 
+    // ── MALICIOUS-CODE REQUEST CHECK ──────────────────────────────────────────
+    if (DISALLOWED_TASK_PATTERNS.some(p => p.test(prompt))) {
+        console.warn(`[CODE-AGENT] Disallowed task blocked — ip=${traceIp} session=${sessionId}`);
+        return res.status(403).json({
+            error: 'disallowed_request',
+            message: "I can't help build that. The code agent only assists with legitimate, lawful engineering tasks.",
+        });
+    }
+
     const startTime = Date.now();
+
+    // Internal ceiling per model call — keeps total run well under the 90s maxDuration
+    const STEP_TIMEOUT_MS = 25000;
 
     try {
         console.log(`[CODE-AGENT] Starting agentic loop: "${prompt.slice(0, 80)}"`);
 
         // STEP 1: DETECT language + task type in parallel
-        const [language, taskType] = await Promise.all([
-            detectLanguage(prompt, existingCode),
-            classifyTask(prompt),
-        ]);
+        const [language, taskType] = await withTimeout(
+            Promise.all([ detectLanguage(prompt, existingCode), classifyTask(prompt) ]),
+            STEP_TIMEOUT_MS, 'detect/classify'
+        );
         console.log(`[CODE-AGENT] Language: ${language} | Task: ${taskType}`);
 
         // STEP 2: SELECT model dynamically
@@ -258,32 +344,47 @@ export default async function handler(req, res) {
         console.log(`[CODE-AGENT] Model: ${cfg.model} (${cfg.provider})`);
 
         // STEP 3: PLAN
-        const plan = await planSolution(prompt, language, taskType, cfg);
+        const plan = await withTimeout(
+            planSolution(prompt, language, taskType, cfg),
+            STEP_TIMEOUT_MS, 'plan'
+        );
         console.log(`[CODE-AGENT] Plan complete`);
 
         // STEP 4: WRITE
-        let code = await writeCode(prompt, plan, language, taskType, existingCode, cfg);
+        let code = await withTimeout(
+            writeCode(prompt, plan, language, taskType, existingCode, cfg),
+            STEP_TIMEOUT_MS, 'write'
+        );
         console.log(`[CODE-AGENT] Code written (${code.length} chars)`);
 
         // STEP 5: REVIEW
-        const review = await reviewCode(code, language, prompt, cfg);
+        const review = await withTimeout(
+            reviewCode(code, language, prompt, cfg),
+            STEP_TIMEOUT_MS, 'review'
+        );
         console.log(`[CODE-AGENT] Review: ${review.verdict} (score: ${review.score})`);
 
-        // STEP 5b: REVISE if needed
+        // STEP 5b: REVISE if needed (single pass only — no unbounded loops)
         if (review.verdict === 'REVISE' && review.issues?.length > 0) {
             console.log(`[CODE-AGENT] Revising...`);
             const revisePrompt =
                 `${prompt}\n\nIMPORTANT: Fix these issues from code review:\n` +
                 review.issues.map(i => `- ${i}`).join('\n');
-            code = await writeCode(revisePrompt, plan, language, taskType, code, cfg);
+            code = await withTimeout(
+                writeCode(revisePrompt, plan, language, taskType, code, cfg),
+                STEP_TIMEOUT_MS, 'revise'
+            );
             console.log(`[CODE-AGENT] Revision complete`);
         }
 
         // STEP 6: EXPLAIN + SUGGESTIONS in parallel
-        const [explanation, suggestions] = await Promise.all([
-            explainCode(code, language, taskType),
-            generateCodingSuggestions(prompt, language, taskType),
-        ]);
+        const [explanation, suggestions] = await withTimeout(
+            Promise.all([
+                explainCode(code, language, taskType),
+                generateCodingSuggestions(prompt, language, taskType),
+            ]),
+            STEP_TIMEOUT_MS, 'explain/suggest'
+        );
 
         const elapsed = Date.now() - startTime;
         console.log(`[CODE-AGENT] Complete in ${elapsed}ms`);
@@ -308,7 +409,7 @@ export default async function handler(req, res) {
             error:       err,
             userMessage: prompt,
             sessionId,
-        });
-        return res.status(500).json({ error: err.message || 'Code agent failed.' });
+        }).catch(() => {});
+        return res.status(500).json({ error: 'Code agent failed — please try again.' });
     }
 }

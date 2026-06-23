@@ -986,22 +986,27 @@ export default async function handler(req, res) {
     }
 
     // ── AUTH + USAGE CHECK ────────────────────────────────────────────────────
-    const authUser  = getAuthUser(req);   // extracts + verifies JWT
+    const authUser  = getAuthUser(req);
     const userEmail = authUser?.email || null;
- 
-    const usage = await checkUsageLimit(userEmail);
- 
-    if (!usage.allowed) {
-        if (usage.reason === 'login_required') {
-            return res.status(401).json({
-                error:   'login_required',
-                message: 'Please create a free account to continue chatting.',
-            });
+    const { adminPassword } = req.body;
+
+    // Admin bypass — check password directly
+    if (adminPassword) {
+        const adminPw = process.env.ADMIN_PASSWORD;
+        const isAdmin = adminPw && adminPassword === adminPw;
+        if (isAdmin) {
+            // Skip usage check entirely — unlimited access
+        } else {
+            return res.status(401).json({ error: 'login_required' });
         }
-        return res.status(402).json({
-            error:   'free_limit_reached',
-            message: `You've used all ${usage.limit} free messages this month. Upgrade for unlimited access!`,
-        });
+    } else {
+        const usage = await checkUsageLimit(userEmail);
+        if (!usage.allowed) {
+            if (usage.reason === 'login_required') {
+                return res.status(401).json({ error: 'login_required', message: 'Please create a free account to continue chatting.' });
+            }
+            return res.status(402).json({ error: 'free_limit_reached', message: `You've used all ${usage.limit} free messages this month.` });
+        }
     }
  
     const usageWarning = !usage.premium && usage.remaining <= 5

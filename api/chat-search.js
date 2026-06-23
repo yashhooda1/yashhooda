@@ -1,6 +1,10 @@
 // api/chat-search.js
 // Vercel serverless function — Claude OR GPT with web search
-// maxDuration = 60 solves the 504 timeout (Vercel Pro supports up to 300s)
+// maxDuration = 60 solves the 504 timeout (Vercel Pro supports up to 300s)\
+
+import { getAuthUser }  from '../lib/auth.js';
+import { guardRequest } from '../lib/contentGuard.js';
+import { checkUsageLimit } from '../lib/usageLimit.js';
 
 export const maxDuration = 60; // seconds — requires Vercel Pro (you already have it)
 
@@ -25,10 +29,33 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { messages, sessionId, model } = req.body;
+  const { messages, sessionId, model, adminPassword } = req.body;
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages array required' });
   }
+
+  // ── RESOLVE USER + CONTENT SAFETY (before stream headers) ──
+  const authUser   = getAuthUser(req);
+  const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+
+  const lastUser = [...messages].reverse().find(m => m.role === 'user');
+  const queryText = typeof lastUser?.content === 'string'
+    ? lastUser.content
+    : Array.isArray(lastUser?.content)
+      ? lastUser.content.filter(b => b.type === 'text').map(b => b.text).join(' ')
+      : '';
+
+  const guard = await guardRequest(req, authUser, queryText, { isAdmin: isAdminReq });
+  if (!guard.ok) return res.status(guard.status).json(guard.body);
+
+  if (!isAdminReq) {
+  const usage = await checkUsageLimit(authUser?.email || null);
+  if (!usage.allowed) {
+    if (usage.reason === 'login_required')
+      return res.status(401).json({ error: 'login_required', message: 'Please create a free account to continue.' });
+    return res.status(402).json({ error: 'free_limit_reached', message: `You've used all ${usage.limit} free messages this month.` });
+  }
+}
 
   const picked = MODELS[model] ? model : DEFAULT_MODEL;
   const cfg = MODELS[picked];
@@ -255,6 +282,7 @@ SEARCH RULES:
 - Cite sources naturally: "According to [outlet]..."
 - Keep responses concise — 2-4 paragraphs max
 - Do NOT search for things you already know
+- DO NOT SEARCH for anything illegal or innappropriate
 
 SAVE MARKERS: If user says "save this" or "bookmark this", include at end of reply:
 [SAVE_ARTICLE: {"title": "...", "url": "...", "summary": "...", "tags": ["tag1","tag2"]}]

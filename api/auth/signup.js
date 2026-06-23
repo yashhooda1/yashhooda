@@ -47,6 +47,7 @@ export default async function handler(req, res) {
 
     // ── Resolve client IP ─────────────────────────────────────────────────────
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
+    console.warn(`[TRACE] ip=${ip} ua="${req.headers['user-agent'] || ''}" path=${req.url || ''}`);
 
     // ── Hard IP ban check ─────────────────────────────────────────────────────
     try {

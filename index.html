@@ -4373,7 +4373,7 @@ function showAuthRequired() {
  
  
 function showUserMenu() {
-    if (!AUTH_USER) { showAuthModal('login'); return; }
+    if (!AUTH_USER && !ADMIN_PASSWORD_SESSION) { showAuthModal('login'); return; }
     const existing = document.getElementById('user-menu');
     if (existing) { existing.remove(); return; }
  
@@ -5559,17 +5559,19 @@ async function sendMsg() {
       let data;
       try { data = await res.json(); } catch { data = {}; }
  
-      if (!res.ok) {
+      if (!res.ok) {    
           typingDiv.remove();
           if (res.status === 401) {
-              showAuthModal('login');
+              if (!ADMIN_PASSWORD_SESSION) showAuthModal('login');
+              else addBotMsg('Session error — try refreshing the page.');
           } else if (res.status === 402) {
-              showUpgradeModal();
+               showUpgradeModal();
           } else {
-              addBotMsg('Error ' + res.status + ' — try again or email yash.hooda6@gmail.com');
+               addBotMsg('Error ' + res.status + ' — try again.');
           }
           return;
        }
+        
  
       const rawReply = data.reply || data.text || "I'm not sure about that — email yash.hooda6@gmail.com!";
       // ── USAGE WARNING ──────────────────────────────────────────────────────

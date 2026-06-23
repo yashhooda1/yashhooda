@@ -16,6 +16,7 @@ import { Redis }         from '@upstash/redis';
 import { rateLimit }     from '../lib/rateLimit.js';
 import { notifyFailure } from './_notify.js';
 import { getAuthUser }   from '../lib/auth.js';
+import { guardRequest } from '../lib/contentGuard.js';
 
 export const maxDuration = 90;
 
@@ -267,6 +268,8 @@ export default async function handler(req, res) {
     // This is the expensive endpoint; never leave it open to anonymous callers.
     const authUser = getAuthUser(req);
     const isAdmin  = adminPassword && process.env.ADMIN_PASSWORD && adminPassword === process.env.ADMIN_PASSWORD;
+    const guard = await guardRequest(req, authUser, prompt, { isAdmin });
+    if (!guard.ok) return res.status(guard.status).json(guard.body);
 
     if (!isAdmin) {
         if (!authUser) {

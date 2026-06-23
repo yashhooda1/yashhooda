@@ -1104,16 +1104,6 @@ export default async function handler(req, res) {
     let usedWebFallback = false;
     let finalResults    = [];
 
-    const activeAgent = routeToAgent(queryText);
-    console.log(`[AGENT] Routed to: ${activeAgent.label} for query: "${queryText.slice(0, 60)}"`);
-
-    // ── RAG: HYBRID + CRAG + RERANKER ────────────────────────────────────────
-    let ragContext      = '';
-    let citations       = [];
-    let evalScore       = 3;
-    let usedWebFallback = false;
-    let finalResults    = [];
-
     try {
         if (
             checkToolPermission('rag') &&

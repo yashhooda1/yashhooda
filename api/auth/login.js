@@ -1,6 +1,7 @@
 // api/auth/login.js
 // ══════════════════════════════════════════════════════════════════════════════
 // LOGIN — verifies email + password, issues JWT
+// Hardened: rejects banned emails and banned IPs before issuing any token
 // ══════════════════════════════════════════════════════════════════════════════
 
 import { Redis }                                           from '@upstash/redis';
@@ -18,6 +19,18 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     if (req.method === 'OPTIONS') return res.status(204).end();
     if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
+
+    // ── ABUSE TRACE LOG ───────────────────────────────────────────────────────
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
+    console.warn(`[TRACE] ip=${ip} ua="${req.headers['user-agent'] || ''}" path=${req.url || ''}`);
+
+    // ── HARD IP BAN CHECK ─────────────────────────────────────────────────────
+    try {
+        const ipBanned = await redis.sismember('banned:ips', ip);
+        if (ipBanned === 1) {
+            return res.status(403).json({ error: 'Access denied.' });
+        }
+    } catch { /* fail open on redis hiccup */ }
 
     // Rate limit — prevent brute force
     const allowed = await rateLimit(req, res, {
@@ -39,6 +52,15 @@ export default async function handler(req, res) {
 
     const cleanEmail = email.toLowerCase().trim();
 
+    // ── BANNED EMAIL CHECK — before any password work or token issuance ────────
+    try {
+        const emailBanned = await redis.sismember('banned:emails', cleanEmail);
+        if (emailBanned === 1) {
+            console.warn(`[LOGIN] Blocked banned email: ${cleanEmail} from IP: ${ip}`);
+            return res.status(403).json({ error: 'account_suspended', message: 'This account has been suspended.' });
+        }
+    } catch { /* fail open on redis hiccup */ }
+
     try {
         // ── Look up user ──────────────────────────────────────────────────────
         const raw = await redis.get(`user:${cleanEmail}`);
@@ -53,8 +75,6 @@ export default async function handler(req, res) {
         // ── Verify password ───────────────────────────────────────────────────
         const match = await comparePassword(password, user.passwordHash);
         if (!match) {
-            // Log failed attempt
-            const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
             console.warn(`[LOGIN] Failed attempt for ${cleanEmail} from IP: ${ip}`);
             return res.status(401).json({ error: 'Invalid email or password.' });
         }

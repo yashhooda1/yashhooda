@@ -991,27 +991,28 @@ export default async function handler(req, res) {
     const { adminPassword } = req.body;
 
     // Admin bypass — check password directly
+    let usageWarning = null;
+    let usage = { count: 0, remaining: null, limit: null, premium: true };
+
     if (adminPassword) {
         const adminPw = process.env.ADMIN_PASSWORD;
-        const isAdmin = adminPw && adminPassword === adminPw;
-        if (isAdmin) {
-            // Skip usage check entirely — unlimited access
-        } else {
+        if (!adminPw || adminPassword !== adminPw) {
             return res.status(401).json({ error: 'login_required' });
         }
+        // admin — usage stays as defaults above (unlimited)
     } else {
-        const usage = await checkUsageLimit(userEmail);
-        if (!usage.allowed) {
-            if (usage.reason === 'login_required') {
+        const usageResult = await checkUsageLimit(userEmail);
+        usage = usageResult;
+        if (!usageResult.allowed) {
+            if (usageResult.reason === 'login_required') {
                 return res.status(401).json({ error: 'login_required', message: 'Please create a free account to continue chatting.' });
             }
-            return res.status(402).json({ error: 'free_limit_reached', message: `You've used all ${usage.limit} free messages this month.` });
+            return res.status(402).json({ error: 'free_limit_reached', message: `You've used all ${usageResult.limit} free messages this month.` });
         }
+        usageWarning = !usageResult.premium && usageResult.remaining <= 5
+            ? `⚠️ You have ${usageResult.remaining} free message${usageResult.remaining === 1 ? '' : 's'} remaining this month.`
+            : null;
     }
- 
-    const usageWarning = !usage.premium && usage.remaining <= 5
-        ? `⚠️ You have ${usage.remaining} free message${usage.remaining === 1 ? '' : 's'} remaining this month.`
-        : null;
 
     // ── LAYER 2: Jailbreak Detection ──────────────────────────────────────────
     if (checkAllMessages(messages)) {

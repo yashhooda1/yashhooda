@@ -986,6 +986,22 @@ export default async function handler(req, res) {
         return res.status(429).json({ error: 'Too many requests — please wait a moment.' });
     }
 
+    // EMERGENCY GLOBAL KILL SWITCH
+    if (process.env.KILL_SWITCH === 'on') {
+        return res.status(503).json({ error: 'Service temporarily unavailable.' });
+    }
+
+    // GLOBAL DAILY CAP — hard ceiling across all users
+    try {
+        const r = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN });
+        const dayKey = `global:requests:${new Date().toISOString().slice(0,10)}`;
+        const total = await r.incr(dayKey);
+        if (total === 1) await r.expire(dayKey, 86400);
+        if (total > 2000) {  // your chosen daily ceiling
+            return res.status(503).json({ error: 'Daily capacity reached. Try again tomorrow.' });
+        }
+    } catch {}
+
     // ── AUTH + USAGE CHECK ────────────────────────────────────────────────────
     const authUser  = getAuthUser(req);
     const userEmail = authUser?.email || null;

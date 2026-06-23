@@ -9,6 +9,7 @@ import { Redis }         from '@upstash/redis';
 import { rateLimit }     from '../lib/rateLimit.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
 import { getAuthUser } from '../lib/auth.js';
+import { guardRequest } from '../lib/contentGuard.js';
 import crypto            from 'crypto';
 
 export const maxDuration = 60;
@@ -1081,11 +1082,27 @@ export default async function handler(req, res) {
 
     const requestStart = Date.now();
 
-    // ── AGENT ROUTING ─────────────────────────────────────────────────────────
+
+        // ── AGENT ROUTING ─────────────────────────────────────────────────────────
     const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
     const queryText   = typeof lastUserMsg?.content === 'string'
         ? lastUserMsg.content
         : lastUserMsg?.content?.find?.(c => c.type === 'text')?.text || '';
+
+    // ── CONTENT SAFETY + AUTO-BAN ────────────────────────────────────────────
+    const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+    const guard = await guardRequest(req, authUser, queryText, { isAdmin: isAdminReq });
+    if (!guard.ok) return res.status(guard.status).json(guard.body);
+
+    const activeAgent = routeToAgent(queryText);
+    console.log(`[AGENT] Routed to: ${activeAgent.label} for query: "${queryText.slice(0, 60)}"`);
+
+    // ── RAG: HYBRID + CRAG + RERANKER ────────────────────────────────────────
+    let ragContext      = '';
+    let citations       = [];
+    let evalScore       = 3;
+    let usedWebFallback = false;
+    let finalResults    = [];
 
     const activeAgent = routeToAgent(queryText);
     console.log(`[AGENT] Routed to: ${activeAgent.label} for query: "${queryText.slice(0, 60)}"`);

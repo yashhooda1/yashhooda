@@ -1003,6 +1003,9 @@ export default async function handler(req, res) {
         const usageResult = await checkUsageLimit(userEmail);
         usage = usageResult;
         if (!usageResult.allowed) {
+            if (usageResult.reason === 'banned') {
+                return res.status(403).json({ error: 'account_suspended', message: 'This account has been suspended.' });
+            }
             if (usageResult.reason === 'login_required') {
                 return res.status(401).json({ error: 'login_required', message: 'Please create a free account to continue chatting.' });
             }

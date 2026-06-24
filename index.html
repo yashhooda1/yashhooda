@@ -5117,7 +5117,14 @@ async function runCodeAgent(prompt, sessionId) {
         progressDiv.remove();
 
         const data = await res.json();
-        if (!res.ok) { addBotMsg('❌ Code agent failed: ' + (data.error || 'Unknown error')); return; }
+        if (!res.ok) {
+            if (res.status === 503) {
+                addBotMsg('🔧 ' + (data.message || 'The coding agent is temporarily disabled for maintenance. Check back soon!'));
+            } else {
+                addBotMsg('❌ Code agent failed: ' + (data.error || 'Unknown error'));
+            }
+            return;
+        }
 
         const { code, language, taskType, plan, explanation, review, suggestions, modelUsed, elapsed } = data;
 

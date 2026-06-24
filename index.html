@@ -5110,7 +5110,7 @@ async function runCodeAgent(prompt, sessionId) {
         const res = await fetch('/api/code-agent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, existingCode, sessionId }),
+            body: JSON.stringify({ prompt, existingCode, sessionId, adminPassword: ADMIN_PASSWORD_SESSION || undefined }),
         });
 
         clearInterval(stepTimer);

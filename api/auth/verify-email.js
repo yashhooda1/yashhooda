@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         await redis.set(`user:${email}`, JSON.stringify(user));
 
         // ── Delete the used token ─────────────────────────────────────────────
-        await redis.delete(`verify:${token}`);
+        await redis.del(`verify:${token}`);
 
         console.log(`[VERIFY] Email verified: ${email}`);
 

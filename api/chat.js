@@ -1095,7 +1095,6 @@ export default async function handler(req, res) {
         : lastUserMsg?.content?.find?.(c => c.type === 'text')?.text || '';
 
     // ── CONTENT SAFETY + AUTO-BAN ────────────────────────────────────────────
-    const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
     const guard = await guardRequest(req, authUser, queryText, { isAdmin: isAdminReq });
     if (!guard.ok) return res.status(guard.status).json(guard.body);
 

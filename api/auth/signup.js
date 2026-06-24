@@ -7,6 +7,7 @@
 import { Redis }                                    from '@upstash/redis';
 import { hashPassword, validateEmail, validatePassword, signToken, isAdminEmail } from '../../lib/auth.js';
 import { rateLimit }                                from '../../lib/rateLimit.js';
+import { checkSignupIp } from '../lib/ipReputation.js';
 import crypto                                       from 'crypto';
 
 const redis = new Redis({
@@ -98,6 +99,16 @@ export default async function handler(req, res) {
                 console.warn(`[SIGNUP] IP ${ip} exceeded daily signup cap (${ipCount})`);
                 return res.status(429).json({ error: 'Too many accounts created from this network today. Please try again tomorrow.' });
             }
+        }
+
+        // after you have `ip` and confirmed it's not the admin:
+        const ipCheck = await checkSignupIp(ip);
+        if (ipCheck.blocked) {
+            console.warn(`[SIGNUP-BLOCK] ip=${ip} reason=${ipCheck.reason}`);
+            return res.status(403).json({
+                error: 'signup_blocked',
+                message: 'Sign-ups from VPNs, proxies, and hosting providers are not allowed. Please use a normal connection.',
+            });
         }
 
         // ── Check if email already exists ─────────────────────────────────────

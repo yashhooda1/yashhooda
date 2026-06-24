@@ -10,6 +10,7 @@ import { rateLimit }     from '../lib/rateLimit.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
 import { getAuthUser } from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
+import { checkKillSwitch } from '../lib/killSwitch.js';
 import crypto            from 'crypto';
 
 export const maxDuration = 60;
@@ -1046,6 +1047,10 @@ export default async function handler(req, res) {
             ? `⚠️ You have ${usageResult.remaining} free message${usageResult.remaining === 1 ? '' : 's'} remaining this month.`
             : null;
     }
+
+    const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+    const ks = await checkKillSwitch('chat', isAdminReq);
+    if (!ks.ok) return res.status(ks.status).json(ks.body);
 
     // ── LAYER 2: Jailbreak Detection ──────────────────────────────────────────
     if (checkAllMessages(messages)) {

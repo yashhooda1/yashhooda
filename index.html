@@ -2332,6 +2332,15 @@
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursor-ring"></div>
 
+<div id="killswitch-panel" style="border:1px solid #333;border-radius:10px;padding:16px;margin:16px 0;background:#0d0d0f;font-family:system-ui,sans-serif;color:#eee;max-width:420px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <h3 style="margin:0;font-size:15px;letter-spacing:.3px;">⚡ Kill Switches</h3>
+    <button onclick="ksRefresh()" style="background:#1a1a1f;border:1px solid #333;color:#aaa;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;">↻ Refresh</button>
+  </div>
+  <div id="ks-rows"></div>
+  <div id="ks-status" style="margin-top:10px;font-size:12px;color:#888;min-height:16px;"></div>
+</div>
+
 <!-- AI Chatbot FAB -->
 <button id="chat-fab" onclick="toggleChat()" aria-label="Open AI Assistant">
     <div class="fab-pulse"></div>
@@ -5657,6 +5666,85 @@ async function sendMsg() {
  
   msgs.scrollTop = msgs.scrollHeight;
 }
+
+(function () {
+  const ENDPOINTS = [
+    { key: 'global',     label: 'GLOBAL (everything)' },
+    { key: 'code-agent', label: '/api/code-agent' },
+    { key: 'code',       label: '/api/code' },
+  ];
+ 
+  // Pull the admin password however your dashboard stores it.
+  function getPw() {
+    return window.ADMIN_PW
+        || sessionStorage.getItem('hooda_admin_pw')
+        || localStorage.getItem('hooda_admin_pw')
+        || '';
+  }
+ 
+  function setStatus(msg, isErr) {
+    const el = document.getElementById('ks-status');
+    if (el) { el.textContent = msg; el.style.color = isErr ? '#f87171' : '#888'; }
+  }
+ 
+  function renderRows(state) {
+    const wrap = document.getElementById('ks-rows');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    ENDPOINTS.forEach(({ key, label }) => {
+      const on = !!(state && state[key]);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1c1c20;';
+      row.innerHTML = `
+        <span style="font-size:13px;font-family:ui-monospace,monospace;">${label}</span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${on ? '#3a1414' : '#13301a'};color:${on ? '#f87171' : '#86efac'};">
+            ${on ? 'DISABLED' : 'live'}
+          </span>
+          <button data-key="${key}" data-next="${on ? 'false' : 'true'}"
+            style="background:${on ? '#13301a' : '#3a1414'};border:1px solid #333;color:${on ? '#86efac' : '#f87171'};border-radius:6px;padding:4px 12px;cursor:pointer;font-size:12px;min-width:78px;">
+            ${on ? 'Enable' : 'Disable'}
+          </button>
+        </span>`;
+      row.querySelector('button').onclick = (e) => ksSet(key, e.target.dataset.next === 'true');
+      wrap.appendChild(row);
+    });
+  }
+ 
+  window.ksRefresh = async function () {
+    const pw = getPw();
+    if (!pw) { setStatus('No admin password available.', true); return; }
+    setStatus('Loading…');
+    try {
+      const r = await fetch('/api/admin-killswitch', { headers: { 'x-admin-password': pw } });
+      if (!r.ok) { setStatus(`Error ${r.status}`, true); return; }
+      const { state } = await r.json();
+      renderRows(state);
+      setStatus('Up to date.');
+    } catch (e) { setStatus('Network error.', true); }
+  };
+ 
+  window.ksSet = async function (endpoint, on) {
+    const pw = getPw();
+    if (!pw) { setStatus('No admin password available.', true); return; }
+    setStatus(`${on ? 'Disabling' : 'Enabling'} ${endpoint}…`);
+    try {
+      const r = await fetch('/api/admin-killswitch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminPassword: pw, endpoint, on }),
+      });
+      const data = await r.json();
+      if (!r.ok) { setStatus(data.error || `Error ${r.status}`, true); return; }
+      renderRows(data.state);
+      setStatus(`${endpoint} is now ${on ? 'DISABLED' : 'live'}.`);
+    } catch (e) { setStatus('Network error.', true); }
+  };
+ 
+  // Initial load
+  if (document.readyState !== 'loading') ksRefresh();
+  else document.addEventListener('DOMContentLoaded', ksRefresh);
+})();
     
 // ── RUNNING ANALYTICS ──
 async function loadAnalytics() {

@@ -4980,6 +4980,7 @@ async function analyzeFile(userPrompt) {
                 userPrompt: userPrompt || 'Analyze this file in detail.',
                 sessionId: SESSION_ID,
                 enableWebSearch: needsWebSearch(userPrompt || ''),
+                adminPassword: ADMIN_PASSWORD_SESSION || undefined,
             }),
         });
         progressDiv.remove();

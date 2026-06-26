@@ -4595,6 +4595,7 @@ async function loadHistoryList() {
                 <div class="history-item-title" onclick="loadSavedChat('${c.id}')">${c.title}</div>
                 <div class="history-item-meta">
                     <span onclick="loadSavedChat('${c.id}')">${new Date(c.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})} · ${c.messageCount} messages</span>
+                    ${ADMIN_PASSWORD_SESSION ? `<button class="history-delete-btn" onclick="exportSavedChat('${c.id}', event)" title="Export transcript (admin)">📄</button>` : ''}
                     <button class="history-delete-btn" onclick="deleteChat('${c.id}', event)">🗑</button>
                 </div>
             </div>

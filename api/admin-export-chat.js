@@ -100,10 +100,8 @@ export default async function handler(req, res) {
             msgs = messages;
             meta = { title: 'Current conversation', savedAt: null };
         } else if (chatId) {
-            // Look up a saved chat. Matches the key scheme used by /api/history.
-            const raw = await redis.get(`chat:${sessionId}:${chatId}`)
-                     ?? await redis.get(`history:${sessionId}:${chatId}`)
-                     ?? await redis.get(chatId);
+            // Saved chats live at saved_chat:${chatId} (see /api/history)
+            const raw = await redis.get(`saved_chat:${chatId}`);
             if (!raw) return res.status(404).json({ error: 'Chat not found.' });
             const chat = typeof raw === 'string' ? JSON.parse(raw) : raw;
             msgs = chat.messages || [];

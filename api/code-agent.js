@@ -38,6 +38,10 @@ const BOT_PATTERNS = [
     /write .{0,30} i can copy for/i,
     /write (python|code|script|sql) .{0,30} for free/i,
     /give me .{0,30} code .{0,30} copy/i,
+    /build an agent, make no mistakes/i,
+    /build me an ai agent/i,
+    /build an agent/i,
+    /create an ai agent/i,
 ];
 
 // ── SUSPICIOUS USER AGENTS ───────────────────────────────────────────────────

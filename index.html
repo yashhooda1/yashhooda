@@ -1945,6 +1945,36 @@
             border-top: 1px solid rgba(255,255,255,0.08);
             margin: 0.75rem 0;
         }
+        /* ── WIDE TABLE / CONTENT SCROLL FIX ── */
+        /* Let the bubble's markdown body scroll horizontally instead of squishing */
+        .msg.bot.markdown-body {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        /* Tables: don't force 100% width — let them size to content and scroll */
+        .msg.bot.markdown-body table {
+            width: auto;
+            min-width: 100%;
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;          /* keep cells on one line so columns stay readable */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Give cells a little breathing room and stop them collapsing */
+        .msg.bot.markdown-body th,
+        .msg.bot.markdown-body td {
+            white-space: normal;          /* allow text wrap inside a cell, but table still scrolls */
+            min-width: 90px;
+            vertical-align: top;
+        }
+
+        /* Thin scrollbar so it doesn't look clunky */
+        .msg.bot.markdown-body::-webkit-scrollbar,
+        .msg.bot.markdown-body table::-webkit-scrollbar { height: 5px; }
+        .msg.bot.markdown-body::-webkit-scrollbar-thumb,
+        .msg.bot.markdown-body table::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.3); border-radius: 3px; }
         /* ── CODE AGENT BUBBLE ── */
         .code-agent-card {
             background: #0d1117;

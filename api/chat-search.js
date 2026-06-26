@@ -165,7 +165,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: cfg.api,
-        max_tokens: 2048,
+        max_tokens: 4096,
         output_config: { effort: 'high' },
         stream: true,
         system: [

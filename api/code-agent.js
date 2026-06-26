@@ -70,6 +70,11 @@ const DISALLOWED_TASK_PATTERNS = [
     /\bprivilege escalation\b/i,
     /\breverse shell\b/i,
     /\bhack(ing)? (into|someone|a (server|account|system|network))/i,
+    // ── NO AGENT-BUILDING ──
+    /\b(build|create|make|develop|write|design|code|generate)\b.{0,30}\b(ai |autonomous |llm |chat ?)?(agent|agents|agentic|chatbot|bot)\b/i,
+    /\b(agentic (framework|loop|system|workflow|pipeline))\b/i,
+    /\b(multi[- ]?agent|agent swarm|agent orchestrat)/i,
+    /\b(langchain|autogpt|crewai|babyagi|auto-?gpt)\b.{0,30}\b(agent|build|create)/i,
 ];
 
 // ── DYNAMIC MODEL SELECTOR ───────────────────────────────────────────────────
@@ -163,7 +168,7 @@ async function planSolution(prompt, language, taskType, cfg) {
         return await callModel(cfg, [
             {
                 role:    'system',
-                content: `You are an expert ${language} engineer and technical architect. You specialize in data engineering, AI engineering, and building production systems. You are helping Yash Hooda, a Data/AI Engineer, with legitimate coding tasks. You never help create malware, exploits, credential stealers, or any code designed to harm, intrude, or defraud. If a task appears malicious, refuse and return a short safety note instead of a plan.`,
+                content: `You are an expert ${language} engineer. Write clean, production-ready code. Always include: inline comments, error handling, type hints where applicable, and docstrings. You only write legitimate, lawful code — never malware, exploits, scrapers that bypass protections, or anything designed to harm or defraud. You do not build AI agents, autonomous agents, agentic systems, or chatbots of any kind. Return ONLY the code block — no explanations outside the code, no markdown fences. Start directly with the code.`,
             },
             {
                 role:    'user',
@@ -327,7 +332,7 @@ export default async function handler(req, res) {
     }
 
     // ── MALICIOUS-CODE REQUEST CHECK ──────────────────────────────────────────
-    if (DISALLOWED_TASK_PATTERNS.some(p => p.test(prompt))) {
+    if (!isAdmin && DISALLOWED_TASK_PATTERNS.some(p => p.test(prompt))) {
         console.warn(`[CODE-AGENT] Disallowed task blocked — ip=${traceIp} session=${sessionId}`);
         return res.status(403).json({
             error: 'disallowed_request',

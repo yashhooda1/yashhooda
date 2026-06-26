@@ -6694,6 +6694,36 @@ async function adminExportChat() {
     }
 }
 
+// ── ADMIN-ONLY: export a SAVED chat by id ──
+async function exportSavedChat(chatId, e) {
+    if (e) e.stopPropagation();
+    if (!ADMIN_PASSWORD_SESSION) return; // admin only
+    try {
+        const res = await fetch('/api/admin-export-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                adminPassword: ADMIN_PASSWORD_SESSION,
+                sessionId: SESSION_ID,
+                chatId,
+            }),
+        });
+        const data = await res.json();
+        if (!res.ok) { alert(data.error || 'Export failed.'); return; }
+        const blob = new Blob([data.transcript], { type: 'text/plain' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = data.filename || 'transcript.txt';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch {
+        alert('Export failed — check your connection.');
+    }
+}
+
 // ── SPORTS SCORES ──
 const SPORTS_CONFIG = {
     nba:      { label: 'NBA',       emoji: '🏀', espn: 'basketball/nba',          team: null },

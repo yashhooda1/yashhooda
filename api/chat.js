@@ -38,6 +38,9 @@ const BOT_PATTERNS = [
     /write code i can copy for/i,
     /write .{0,20} i can copy for/i,
     /build an agent, make no mistakes/i,
+    /build me an ai agent/i,
+    /build an agent/i,
+    /create an ai agent/i,
 ];
 
 // ══════════════════════════════════════════════════════

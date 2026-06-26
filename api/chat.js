@@ -695,14 +695,15 @@ PROJECTS:
 Fires 6 tools autonomously: Riegel predictor, pace zones, altitude adjuster, race strategy
 builder, heat model, weekly plan generator. Tech: Python, Google ADK, Gemini 2.5 Flash,
 GCP Agent Runtime. Github Repo available at https://github.com/yashhooda1/HoodaRunners-Race-Planner-Agent. Production App Live: https://hooda-race-planner.vercel.app/ and on Google Cloud console at projects/474858024505/locations/us-central1/reasoningEngines/603102468800249856
-3. ClimatePulse — 55-year (1970–2025) NOAA climate analytics pipeline for Houston (IAH) and Newark (EWR). Bronze→Silver→Gold architecture. Key findings: Houston warming +0.805°F/decade, winter nighttime +1.005°F/decade, Feb-Mar 80°F days +1.721/decade, Newark +0.472°F/decade. Tech: Python, pandas, scikit-learn, matplotlib.
-4. HoodaAgents GPT-4 AI Assistant — Custom LangChain agent with conversational memory, live web search via Tavily, calculator tool. Full agentic design and local deployment. Tech: GPT-4, LangChain, Streamlit.
-5. Virtual TA Chatbot — Senior capstone project. NLP-powered chatbot for answering student course queries in real-time.
-6. Liver Cancer Prediction — ML model using patient health data. Feature engineering, preprocessing, model selection for prediction accuracy.
-7. Food Demand Forecasting — ML models to optimize restaurant demand predictions (Foodhub project).
-8. TogetherAI Agent — AI assistant using Together.ai API + meta-llama/Llama-3.3-70B-Instruct-Turbo model.
-9. IBM AI Engineering Capstone — Image recognition and predictive analytics model, deployed end-to-end.
-10. TARS — Custom GPT-4 powered AI assistant built on ChatGPT's custom GPT platform.
+3. Nothing Bundt Cakes (NBC) MIS Dashboard. Yash built an executive management information system dashboard covering 25 Nothing Bundt Cakes franchise locations across Texas, New Jersey, and Colorado. It ingests sales and financial data from the Toast POS API into a Microsoft Fabric lakehouse using medallion architecture (Bronze, Silver, Gold layers) with PySpark transformations. The dashboard refreshes daily via GitHub Actions and features year-over-year comparison charts, store-level filtering, and an 8-tab Excel export built with SheetJS. Live dashboard: nbc-dashboard.vercel.app (demo access on request). GitHub: github.com/yashhooda1/nbc-dashboard. Tech stack: Microsoft Fabric, PySpark, Toast API, medallion architecture, Power BI, GitHub Actions.
+4. ClimatePulse — 55-year (1970–2025) NOAA climate analytics pipeline for Houston (IAH) and Newark (EWR). Bronze→Silver→Gold architecture. Key findings: Houston warming +0.805°F/decade, winter nighttime +1.005°F/decade, Feb-Mar 80°F days +1.721/decade, Newark +0.472°F/decade. Tech: Python, pandas, scikit-learn, matplotlib.
+5. HoodaAgents GPT-4 AI Assistant — Custom LangChain agent with conversational memory, live web search via Tavily, calculator tool. Full agentic design and local deployment. Tech: GPT-4, LangChain, Streamlit.
+6. Virtual TA Chatbot — Senior capstone project. NLP-powered chatbot for answering student course queries in real-time.
+7. Liver Cancer Prediction — ML model using patient health data. Feature engineering, preprocessing, model selection for prediction accuracy.
+8. Food Demand Forecasting — ML models to optimize restaurant demand predictions (Foodhub project).
+9. TogetherAI Agent — AI assistant using Together.ai API + meta-llama/Llama-3.3-70B-Instruct-Turbo model.
+10. IBM AI Engineering Capstone — Image recognition and predictive analytics model, deployed end-to-end.
+11. TARS — Custom GPT-4 powered AI assistant built on ChatGPT's custom GPT platform.
 
 CONTACT & LINKS:
 - Email: yash.hooda6@gmail.com

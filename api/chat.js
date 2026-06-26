@@ -1243,7 +1243,7 @@ export default async function handler(req, res) {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
                 body:    JSON.stringify({
                     model:      cfg.api,
-                    max_tokens: 1024,
+                    max_tokens: 4096,
                     messages:   [{ role: 'system', content: systemText }, ...toOpenAIChat(messages)],
                 }),
             });
@@ -1282,7 +1282,7 @@ export default async function handler(req, res) {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
                 body:    JSON.stringify({
                     model:      cfg.api,
-                    max_tokens: 1024,
+                    max_tokens: 4096,
                     messages:   [{ role: 'system', content: systemText }, ...toOpenAIChat(messages)],
                 }),
             });
@@ -1301,7 +1301,7 @@ export default async function handler(req, res) {
                 headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
                 body:    JSON.stringify({
                     model:      cfg.api,
-                    max_tokens: 1024,
+                    max_tokens: 4096,
                     system:     systemBlocks,
                     messages,
                 }),
@@ -1324,7 +1324,7 @@ export default async function handler(req, res) {
                     instructions:      systemText,
                     input:             toOpenAIInput(messages),
                     reasoning:         { effort: 'low' },
-                    max_output_tokens: 2048,
+                    max_output_tokens: 4096,
                 }),
             });
             const data = await response.json();

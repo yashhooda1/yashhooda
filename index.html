@@ -749,7 +749,8 @@
         }
         .chat-close:hover { color: #fff; }
         .chat-messages {
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
             padding: 1rem;
             display: flex;
@@ -863,7 +864,8 @@
         .chat-history-panel {
             display: none;
             flex-direction: column;
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow: hidden;
         }
         .save-tab-btn { margin-left: auto; border-left: 1px solid var(--border); color: var(--green-light) !important; }
@@ -872,7 +874,7 @@
         .chat-history-panel.active { display: flex; }
         .chat-history-panel .history-actions { padding: 0.75rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
         .chat-messages.hidden { display: none; }
-        .history-list { flex:1; overflow-y:auto; padding: 0.75rem; display:flex; flex-direction:column; gap:0.5rem; }
+        .history-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
         .history-item { background: var(--bg-elevated); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:0.65rem 0.8rem; cursor:pointer; transition: all 0.2s; }
         .history-item:hover { border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.06); }
         .history-item-title { font-size:0.8rem; color:var(--text); font-weight:500; margin-bottom:0.2rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }

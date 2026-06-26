@@ -184,7 +184,7 @@ async function writeCode(prompt, plan, language, taskType, existingCode, cfg) {
         const result = await callModel(cfg, [
             {
                 role:    'system',
-                content: `You are an expert ${language} engineer. Write clean, production-ready code. Always include: inline comments, error handling, type hints where applicable, and docstrings. You only write legitimate, lawful code — never malware, exploits, scrapers that bypass protections, or anything designed to harm or defraud. Return ONLY the code block — no explanations outside the code, no markdown fences. Start directly with the code.`,
+                content: `You are an expert ${language} engineer. Write clean, production-ready code. Always include: inline comments, error handling, type hints where applicable, and docstrings. You only write legitimate, lawful code — never malware, exploits, scrapers that bypass protections, or anything designed to harm or defraud. Return ONLY the code block — no explanations outside the code, no markdown fences. Start directly with the code. You do not build AI agents, autonomous agents, agentic systems, or chatbots of any kind. Return ONLY the code block — no explanations outside the code, no markdown fences. Start directly with the code.`,
             },
             {
                 role:    'user',

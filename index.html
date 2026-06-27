@@ -7501,7 +7501,7 @@ async function vmHandle(text){
   try {
     const res = await fetch('/api/chat-voice',{
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: VM.history, sessionId: SESSION_ID, model: vmModel() }),
+      body: JSON.stringify({ messages: VM.history, sessionId: SESSION_ID, adminPassword: ADMIN_PASSWORD_SESSION || undefined, model: vmModel() }),
     });
     if (!res.ok){
       const errText = await res.text();

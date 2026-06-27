@@ -153,12 +153,14 @@ export default async function handler(req, res) {
   } = req.body || {};
 
   // ── KILL SWITCH (admin bypasses) ─────────────────────────────────────────
-  const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+  // ── KILL SWITCH (admin bypasses — password OR JWT admin) ─────────────────
+  const authUser = getAuthUser(req);
+  const isAdminReq = (adminPassword && adminPassword === process.env.ADMIN_PASSWORD)
+    || (authUser && authUser.plan === 'admin');
   const ks = await checkKillSwitch('prompt-lab', isAdminReq);
   if (!ks.ok) return res.status(ks.status).json(ks.body);
 
   // ── AUTH CHECK ────────────────────────────────────────────────────────────
-  const authUser = getAuthUser(req);
   if (!isAdminReq) {
     if (!authUser) {
       return res.status(401).json({ error: 'login_required', message: 'Please log in to use the Prompt Lab.' });

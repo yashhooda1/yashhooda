@@ -186,7 +186,8 @@ export default async function handler(req, res) {
 
     // ── RESOLVE USER + ADMIN ──────────────────────────────────────────────────
     const authUser   = getAuthUser(req);
-    const isAdminReq  = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+    const isAdminReq  = (adminPassword && adminPassword === process.env.ADMIN_PASSWORD)
+        || (authUser && authUser.plan === 'admin');
 
     // ── 3. Usage limit check (email-keyed; admin bypass) ──────────────────────
     if (!isAdminReq) {

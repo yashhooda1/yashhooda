@@ -36,7 +36,8 @@ export default async function handler(req, res) {
 
   // ── RESOLVE USER + CONTENT SAFETY (before stream headers) ──
   const authUser   = getAuthUser(req);
-  const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+  const isAdminReq = (adminPassword && adminPassword === process.env.ADMIN_PASSWORD)
+    || (authUser && authUser.plan === 'admin');
 
   const lastUser = [...messages].reverse().find(m => m.role === 'user');
   const queryText = typeof lastUser?.content === 'string'

@@ -7,7 +7,7 @@
 import { PROMPT_STRATEGIES } from '../lib/promptTemplates.js';
 import { checkKillSwitch }   from '../lib/killSwitch.js';
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const ALLOWED_ORIGINS = new Set([
   'https://yashhooda.ai',
@@ -23,8 +23,9 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
-  const ks = await checkKillSwitch('prompt-lab', false);
-  if (!ks.ok) return res.status(ks.status).json(ks.body);
+const isAdmin = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+const ks = await checkKillSwitch('prompt-lab', isAdmin);
+if (!ks.ok) return res.status(ks.status).json(ks.body);
 
   const {
     query,

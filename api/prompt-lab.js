@@ -207,19 +207,15 @@ export default async function handler(req, res) {
     ? ['zero-shot', 'few-shot', 'cot', 'xml-structured']
     : [strategy];
 
-  const results = [];
-
-  for (const stratKey of strategiesToRun) {
+  async function runStrategy(stratKey) {
     const strat = PROMPT_STRATEGIES[stratKey];
-    if (!strat) { results.push({ strategy: stratKey, error: 'Unknown strategy' }); continue; }
+    if (!strat) return { strategy: stratKey, error: 'Unknown strategy', elapsed: 0 };
 
     const built = strat.build(query, context, domain || role);
     const start = Date.now();
 
     try {
-      // ── Inject safety wrapper into EVERY strategy's system prompt ─────────
       const safeSystem = `${SAFETY_WRAPPER}\n\n${built.system}`;
-
       const systemContent = built.cacheControl
         ? [{ type: 'text', text: safeSystem, cache_control: { type: 'ephemeral' } }]
         : safeSystem;
@@ -232,26 +228,34 @@ export default async function handler(req, res) {
       };
 
       if (built.thinking) {
-        requestBody.thinking   = built.thinking;
-        requestBody.max_tokens = 12000;
+        requestBody.thinking   = { type: 'enabled', budget_tokens: 3000 };
+        requestBody.max_tokens = 5000;
       }
 
-      const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-        method:  'POST',
-        headers: {
-          'Content-Type':      'application/json',
-          'x-api-key':         apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify(requestBody),
-      });
+      const controller  = new AbortController();
+      const fetchTimeout = setTimeout(() => controller.abort(), 25000);
+
+      let anthropicRes;
+      try {
+        anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method:  'POST',
+          headers: {
+            'Content-Type':      'application/json',
+            'x-api-key':         apiKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body:   JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(fetchTimeout);
+      }
 
       const data    = await anthropicRes.json();
       const elapsed = Date.now() - start;
 
       if (!anthropicRes.ok) {
-        results.push({ strategy: stratKey, error: data?.error?.message || 'API error', elapsed });
-        continue;
+        return { strategy: stratKey, error: data?.error?.message || 'API error', elapsed };
       }
 
       const textBlocks     = (data.content || []).filter(b => b.type === 'text');
@@ -259,7 +263,7 @@ export default async function handler(req, res) {
       const reply          = filterOutput(textBlocks.map(b => b.text).join('\n').trim());
       const thinking       = thinkingBlocks.map(b => b.thinking).join('\n').trim();
 
-      results.push({
+      return {
         strategy:    stratKey,
         label:       strat.label,
         emoji:       strat.emoji,
@@ -273,12 +277,19 @@ export default async function handler(req, res) {
           cache:  data.usage?.cache_read_input_tokens || 0,
         },
         elapsed,
-      });
+      };
 
     } catch (err) {
-      results.push({ strategy: stratKey, error: err.message, elapsed: Date.now() - start });
+      const isTimeout = err.name === 'AbortError';
+      return {
+        strategy: stratKey,
+        error: isTimeout ? 'Timed out (25s) — try a shorter query' : err.message,
+        elapsed: Date.now() - start,
+      };
     }
   }
+
+  const results = await Promise.all(strategiesToRun.map(runStrategy));
 
   return res.status(200).json({
     query,

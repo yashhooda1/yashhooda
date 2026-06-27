@@ -1032,12 +1032,14 @@ export default async function handler(req, res) {
     let usageWarning = null;
     let usage = { count: 0, remaining: null, limit: null, premium: true };
 
-    if (adminPassword) {
-        const adminPw = process.env.ADMIN_PASSWORD;
-        if (!adminPw || adminPassword !== adminPw) {
-            return res.status(401).json({ error: 'login_required' });
+    if (adminPassword || (authUser && authUser.plan === 'admin')) {
+        if (adminPassword) {
+            const adminPw = process.env.ADMIN_PASSWORD;
+            if (!adminPw || adminPassword !== adminPw) {
+                return res.status(401).json({ error: 'login_required' });
+            }
         }
-        // admin — usage stays as defaults above (unlimited)
+    // admin (via password OR JWT) — usage stays unlimited
     } else {
         const usageResult = await checkUsageLimit(userEmail);
         usage = usageResult;
@@ -1055,7 +1057,8 @@ export default async function handler(req, res) {
             : null;
     }
 
-    const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+    const isAdminReq = (adminPassword && adminPassword === process.env.ADMIN_PASSWORD)
+        || (authUser && authUser.plan === 'admin');
     const ks = await checkKillSwitch('chat', isAdminReq);
     if (!ks.ok) return res.status(ks.status).json(ks.body);
 

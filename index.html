@@ -7818,7 +7818,10 @@ async function runPromptLab(compareAll = false) {
     try {
         const res  = await fetch('/api/prompt-lab', {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(AUTH_TOKEN ? { 'Authorization': `Bearer ${AUTH_TOKEN}` } : {}),
+            },
             body:    JSON.stringify({ query, strategy: labSelectedStrategy, compareAll, adminPassword: ADMIN_PASSWORD_SESSION || undefined }),
         });
         const data = await res.json();

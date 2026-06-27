@@ -34,7 +34,8 @@ export default async function handler(req, res) {
   // ── RESOLVE USER + ADMIN ──────────────────────────────────────────────────
   const authUser   = getAuthUser(req);
   const userEmail  = authUser?.email || null;
-  const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+  const isAdminReq = (adminPassword && adminPassword === process.env.ADMIN_PASSWORD)
+    || (authUser && authUser.plan === 'admin');
  
   // ── EXTRACT LAST USER TEXT FOR SCREENING ──────────────────────────────────
   const lastUser = [...messages].reverse().find(m => m.role === 'user');

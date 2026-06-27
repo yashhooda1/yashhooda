@@ -277,10 +277,11 @@ export default async function handler(req, res) {
     // ── AUTH GATE — admin password OR verified logged-in user only ────────────
     // This is the expensive endpoint; never leave it open to anonymous callers.
     const authUser = getAuthUser(req);
-    const isAdmin  = adminPassword && process.env.ADMIN_PASSWORD && adminPassword === process.env.ADMIN_PASSWORD;
+    const isAdmin  = (adminPassword && process.env.ADMIN_PASSWORD && adminPassword === process.env.ADMIN_PASSWORD)
+        || (authUser && authUser.plan === 'admin');
     const guard = await guardRequest(req, authUser, prompt, { isAdmin });
     if (!guard.ok) return res.status(guard.status).json(guard.body);
-    const isAdminReq = adminPassword && adminPassword === process.env.ADMIN_PASSWORD;
+    const isAdminReq = isAdmin;
     const ks = await checkKillSwitch('code-agent', isAdminReq);
     if (!ks.ok) return res.status(ks.status).json(ks.body);
 

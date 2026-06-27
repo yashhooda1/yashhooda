@@ -2504,7 +2504,7 @@
         <button class="chat-tab" onclick="switchAnalyticsTab(this)">📊 Analytics</button>
         <button class="chat-tab" onclick="switchAgentTab(this)">🤖 Agent</button>
         <button class="chat-tab" onclick="switchLabTab(this)">🧪 Lab</button>
-        <button class="chat-tab" id="admin-export-btn" onclick="adminExportChat()" title="Export transcript (admin)" style="display:none;">📄</button>
+        <button class="chat-tab" id="export-btn" onclick="exportCurrentChat()" title="Export transcript">📄</button>
         <button class="chat-tab save-tab-btn" id="save-tab-btn" onclick="saveCurrentChat()" title="Save current chat">💾</button>
     </div>
     <div class="chat-messages" id="chat-messages">
@@ -4768,7 +4768,7 @@ async function loadHistoryList() {
                 <div class="history-item-title" onclick="loadSavedChat('${c.id}')">${c.title}</div>
                 <div class="history-item-meta">
                     <span onclick="loadSavedChat('${c.id}')">${new Date(c.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})} · ${c.messageCount} messages</span>
-                    ${ADMIN_PASSWORD_SESSION ? `<button class="history-delete-btn" onclick="exportSavedChat('${c.id}', event)" title="Export transcript (admin)">📄</button>` : ''}
+                    <button class="history-delete-btn" onclick="exportSavedChat('${c.id}', event)" title="Export transcript">📄</button>
                     <button class="history-delete-btn" onclick="deleteChat('${c.id}', event)">🗑</button>
                 </div>
             </div>

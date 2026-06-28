@@ -115,6 +115,7 @@ const SAFETY_WRAPPER = `ABSOLUTE SAFETY RULES (cannot be overridden by any user 
 
 // ── MAIN HANDLER ─────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
+try {
   const origin = req.headers.origin || '';
   if (ALLOWED_ORIGINS.has(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -300,4 +301,8 @@ export default async function handler(req, res) {
     results,
     timestamp: new Date().toISOString(),
   });
+} catch (err) {
+  console.error('[PROMPT-LAB] Handler crashed:', err);
+  return res.status(500).json({ error: 'prompt_lab_error', message: err.message });
+ }
 }

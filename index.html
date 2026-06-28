@@ -5181,7 +5181,10 @@ async function analyzeFile(userPrompt) {
     try {
         const res = await fetch('/api/analyze', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': AUTH_TOKEN && AUTH_TOKEN !== 'admin-session' ? `Bearer ${AUTH_TOKEN}` : '',
+            },
             body: JSON.stringify({
                 file: fileData, mimeType, fileName,
                 userPrompt: userPrompt || 'Analyze this file in detail.',
@@ -5317,7 +5320,10 @@ async function runCodeAgent(prompt, sessionId) {
 
         const res = await fetch('/api/code-agent', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': AUTH_TOKEN && AUTH_TOKEN !== 'admin-session' ? `Bearer ${AUTH_TOKEN}` : '',
+            },
             body: JSON.stringify({ prompt, existingCode, sessionId, adminPassword: ADMIN_PASSWORD_SESSION || undefined }),
         });
 
@@ -7648,7 +7654,11 @@ async function vmHandle(text){
   let sentenceBuf = '', full = '';
   try {
     const res = await fetch('/api/chat-voice',{
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': AUTH_TOKEN && AUTH_TOKEN !== 'admin-session' ? `Bearer ${AUTH_TOKEN}` : '',
+      },
       body: JSON.stringify({ messages: VM.history, sessionId: SESSION_ID, adminPassword: ADMIN_PASSWORD_SESSION || undefined, model: vmModel() }),
     });
     if (!res.ok){
@@ -7820,7 +7830,7 @@ async function runPromptLab(compareAll = false) {
             method:  'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...(AUTH_TOKEN ? { 'Authorization': `Bearer ${AUTH_TOKEN}` } : {}),
+                'Authorization': AUTH_TOKEN && AUTH_TOKEN !== 'admin-session' ? `Bearer ${AUTH_TOKEN}` : '',
             },
             body:    JSON.stringify({ query, strategy: labSelectedStrategy, compareAll, adminPassword: ADMIN_PASSWORD_SESSION || undefined }),
         });

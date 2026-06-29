@@ -704,6 +704,7 @@ GCP Agent Runtime. Github Repo available at https://github.com/yashhooda1/HoodaR
 9. TogetherAI Agent — AI assistant using Together.ai API + meta-llama/Llama-3.3-70B-Instruct-Turbo model.
 10. IBM AI Engineering Capstone — Image recognition and predictive analytics model, deployed end-to-end.
 11. TARS — Custom GPT-4 powered AI assistant built on ChatGPT's custom GPT platform.
+12. Garmin MCP Server (mcp-garmin) — A Model Context Protocol (MCP) server that lets Claude (or any MCP client) read Garmin Connect activities and build and schedule structured workouts and full multi-week training plans directly to a Garmin watch. Yash reverse-engineered Garmin's workout-service JSON schema into a typed, LLM-friendly WorkoutSpec format, then exposed it as 10 MCP tools (read activities/zones/scheduled workouts; create/schedule/delete workouts; generate full training plans). Includes garth SSO token auth, a bearer-token-secured streamable-HTTP transport, an offline pytest suite, and GitHub Actions CI — packaged for one-command Docker/Railway deployment. He used it to push his entire 13-week Boulderthon marathon build (63 workouts) live to his own Garmin calendar. Tech: Python, MCP, FastMCP, Pydantic, garminconnect/garth, Docker, Railway, pytest, GitHub Actions. GitHub: github.com/yashhooda1/mcp-garmin.
 
 CONTACT & LINKS:
 - Email: yash.hooda6@gmail.com

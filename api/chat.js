@@ -502,6 +502,70 @@ function routeToAgent(queryText) {
 }
 
 // ══════════════════════════════════════════════════════
+// LIVE TRAINING CONTEXT (Running Agent only)
+// Pulls Yash's real-time Strava + Strava-Intelligence numbers so the
+// Running Coach answers from live data instead of hardcoded stats.
+// Always non-fatal — returns '' on any failure so chat never breaks.
+// ══════════════════════════════════════════════════════
+async function getLiveTrainingContext() {
+    try {
+        const base = process.env.SITE_BASE_URL || 'https://yashhooda.ai';
+
+        const [strava, analytics] = await Promise.all([
+            fetch(`${base}/api/strava`).then(r => (r.ok ? r.json() : null)).catch(() => null),
+            fetch(`${base}/api/analytics`).then(r => (r.ok ? r.json() : null)).catch(() => null),
+        ]);
+
+        const acts       = Array.isArray(strava?.activities) ? strava.activities.slice(0, 7) : [];
+        const weekly     = strava?.weekly_miles;
+        const fit        = analytics?.fitness;
+        const zones      = analytics?.paceZones;
+        const preds      = analytics?.predictions;
+
+        // Nothing useful came back — fall through to existing static context.
+        if (!acts.length && weekly == null && !fit) return '';
+
+        const recent = acts.map(a => {
+            const date  = a.date ? String(a.date).slice(5, 10) : '?';
+            const type  = a.sport_type || a.type || 'Run';
+            const dist  = a.distance_mi != null ? `${a.distance_mi}mi` : '';
+            const pace  = a.pace_min_mi ? ` @ ${a.pace_min_mi}/mi` : '';
+            const hr    = a.avg_hr ? ` (${Math.round(a.avg_hr)}bpm)` : '';
+            return `${date}: ${type} ${dist}${pace}${hr}`.trim();
+        }).join('\n');
+
+        const formLabel = fit
+            ? (fit.form > 5 ? 'peaked/fresh' : fit.form > -10 ? 'neutral' : 'fatigued — needs recovery')
+            : null;
+
+        const predLine = preds
+            ? Object.entries(preds).map(([d, p]) => `${d} ${p.predicted}`).join(' · ')
+            : null;
+
+        const zoneLine = zones
+            ? `easy ${zones.easy}% · moderate ${zones.moderate}% · threshold ${zones.threshold}% · hard ${zones.hard}%`
+            : null;
+
+        return `\n\n═══════════════════════════════════════
+LIVE TRAINING DATA (real-time from Strava — ALWAYS prefer these numbers over any
+hardcoded training stats elsewhere in this prompt; those may be stale):
+═══════════════════════════════════════
+Weekly mileage (this week): ${weekly ?? 'n/a'} mi
+${fit ? `Fitness CTL: ${fit.ctl} · Fatigue ATL: ${fit.atl} · Form: ${fit.form > 0 ? '+' : ''}${fit.form} (${formLabel})` : ''}
+${zoneLine ? `Pace-zone distribution (last 30): ${zoneLine}` : ''}
+${predLine ? `Riegel race predictions: ${predLine}` : ''}
+Last ${acts.length} activities:
+${recent || 'no recent activities returned'}
+
+COACHING INSTRUCTION: When the user asks about today's run, current fitness, what to
+do next, or how Yash's training is going, ground your answer in the live numbers above.`;
+    } catch (err) {
+        console.warn('[LIVE-TRAINING] fetch failed (non-fatal):', err.message);
+        return '';
+    }
+}
+
+// ══════════════════════════════════════════════════════
 // ANALYTICS TRACKING
 // ══════════════════════════════════════════════════════
 async function trackAnalytics(redis, stats) {
@@ -1112,6 +1176,13 @@ export default async function handler(req, res) {
     const activeAgent = routeToAgent(queryText);
     console.log(`[AGENT] Routed to: ${activeAgent.label} for query: "${queryText.slice(0, 60)}"`);
 
+    // ── LIVE TRAINING CONTEXT (running agent only — keeps latency off every chat) ──
+    let liveTraining = '';
+    if (activeAgent.key === 'running') {
+        liveTraining = await getLiveTrainingContext();
+        if (liveTraining) console.log('[LIVE-TRAINING] injected live Strava context into running agent');
+    }
+
     // ── RAG: HYBRID + CRAG + RERANKER ────────────────────────────────────────
     let ragContext      = '';
     let citations       = [];
@@ -1237,7 +1308,7 @@ export default async function handler(req, res) {
         ? `\n\n═══════════════════════════════════════\n${activeAgent.systemExt.trim()}\n═══════════════════════════════════════`
         : '';
 
-    const dynamic     = ragContext + memoryContext + agentBlock;
+    const dynamic     = ragContext + memoryContext + liveTraining + agentBlock;
     const systemText  = CONTEXT + dynamic;
     const systemBlocks = [
         { type: 'text', text: CONTEXT, cache_control: { type: 'ephemeral' } },

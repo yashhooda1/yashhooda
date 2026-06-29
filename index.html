@@ -766,6 +766,9 @@
             border-radius: 10px;
             font-size: 0.82rem;
             line-height: 1.55;
+            flex-shrink: 0;
+            overflow-wrap: break-word;
+            word-break: break-word;
             animation: msgPop 0.2s ease;
         }
         @keyframes msgPop {
@@ -774,8 +777,6 @@
         }
         .msg.bot {
             background: var(--bg-elevated);
-            height: auto;
-            overflow: visible;
             border: 1px solid rgba(255,255,255,0.07);
             color: var(--text);
             align-self: flex-start;
@@ -1948,7 +1949,6 @@
             max-width: 100%;
             height: auto;
             min-height: 0;
-            overflow: visible;
         }
 
         /* Tables: don't force 100% width — let them size to content and scroll */
@@ -1957,7 +1957,7 @@
             min-width: 100%;
             display: block;
             height: auto;
-            overflow: visible;   
+            overflow-x: auto;
             white-space: nowrap;
         }
 

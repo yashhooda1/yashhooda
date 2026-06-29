@@ -12,7 +12,7 @@ export default function handler(req, res) {
 
   let payload = SEED;
   try {
-    const p = join(process.cwd(), 'public', 'data', 'climate_gold.json');
+    const p = join(process.cwd(), 'public_data_climate_gold.json');
     const fresh = JSON.parse(readFileSync(p, 'utf-8'));
     if (fresh && fresh.IAH && fresh.EWR) payload = fresh;
   } catch (_) {}

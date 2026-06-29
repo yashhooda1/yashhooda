@@ -774,6 +774,8 @@
         }
         .msg.bot {
             background: var(--bg-elevated);
+            height: auto;
+            overflow: visible;
             border: 1px solid rgba(255,255,255,0.07);
             color: var(--text);
             align-self: flex-start;
@@ -1944,6 +1946,7 @@
         /* Let the bubble's markdown body scroll horizontally instead of squishing */
         .msg.bot.markdown-body {
             max-width: 100%;
+            height: auto;
             min-height: 0;
             overflow: visible;
         }
@@ -1953,6 +1956,7 @@
             width: auto;
             min-width: 100%;
             display: block;
+            height: auto;
             overflow: visible;   
             white-space: nowrap;
         }
@@ -1976,6 +1980,7 @@
             border: 1px solid rgba(76,175,80,0.3);
             border-radius: 10px;
             overflow: hidden;
+            height: auto;
             margin-top: 0.5rem;
             max-width: 100%;
             align-self: flex-start;

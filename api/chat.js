@@ -769,6 +769,16 @@ GCP Agent Runtime. Github Repo available at https://github.com/yashhooda1/HoodaR
 10. IBM AI Engineering Capstone — Image recognition and predictive analytics model, deployed end-to-end.
 11. TARS — Custom GPT-4 powered AI assistant built on ChatGPT's custom GPT platform.
 12. Garmin MCP Server (mcp-garmin) — A Model Context Protocol (MCP) server that lets Claude (or any MCP client) read Garmin Connect activities and build and schedule structured workouts and full multi-week training plans directly to a Garmin watch. Yash reverse-engineered Garmin's workout-service JSON schema into a typed, LLM-friendly WorkoutSpec format, then exposed it as 10 MCP tools (read activities/zones/scheduled workouts; create/schedule/delete workouts; generate full training plans). Includes garth SSO token auth, a bearer-token-secured streamable-HTTP transport, an offline pytest suite, and GitHub Actions CI — packaged for one-command Docker/Railway deployment. He used it to push his entire 13-week Boulderthon marathon build (63 workouts) live to his own Garmin calendar. Tech: Python, MCP, FastMCP, Pydantic, garminconnect/garth, Docker, Railway, pytest, GitHub Actions. GitHub: github.com/yashhooda1/mcp-garmin.
+13. HoodaRoutes (routes.yashhooda.ai) — worldwide running-route generator. Multi-user Strava OAuth
+with per-user tokens stored server-side in Upstash Redis; signed HttpOnly session cookies. Generates
+real road/trail loops via OpenRouteService round-trip routing with a proportional calibration retry
+that hits the requested distance. Personalizes to the athlete's Strava history (today's suggestion
+sized to recent volume, start point from the most recent run). Live Strava webhook invalidates cached
+profiles on new activities. One-tap "Send to Garmin" creates a Course on the user's Garmin account
+(reverse-engineered the connect course-service payload — rulePK privacy, geoPoints, activityTypePk)
+via a FastAPI push service on Railway using python-garminconnect. Companion Connect IQ (Monkey C) watch
+app for the Forerunner 970. Tech: Next.js/Vercel serverless, Node, OpenRouteService, Strava API,
+Upstash Redis, FastAPI, Railway, Garmin Connect IQ. Live: https://routes.yashhooda.ai — GitHub: yashhooda1/hoodaroutes
 
 CONTACT & LINKS:
 - Email: yash.hooda6@gmail.com

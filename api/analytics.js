@@ -229,18 +229,7 @@ TEMPERATURE SCIENCE (El Helou 2012, Ely 2007):
 
     // 9. ── AI INSIGHTS via Claude ──
     // AFTER — Gemini Flash, free, works now
-const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-  },
-  body: JSON.stringify({
-    model: 'gpt-4o',
-    max_tokens: 500,
-    messages: [{
-      role: 'user',
-      content: `You are a world-class running coach analyzing Yash Hooda's training data.
+    const coachPrompt = `You are a world-class running coach analyzing Yash Hooda's training data.
 Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00. Currently training for 2026 Boulderthon Marathon (Boulder, CO — altitude 5,400 ft).
 CTL (fitness): ${ctlRounded}, ATL (fatigue): ${atlRounded}, Form: ${form}
 Pace zones (last 30 runs): ${JSON.stringify(paceZones)}
@@ -260,12 +249,32 @@ Write 3 short sharp coaching insights (2-3 sentences each) about:
 2. Weather and heat impact on training — be specific about the actual conditions from recent runs and what pace adjustments are needed
 3. One specific actionable recommendation for marathon prep considering both fitness data and current conditions
 
-Be specific, data-driven, and honest. If conditions are brutal, say so clearly. No bullet points — flowing paragraphs separated by newlines.`
-    }]
-  }),
-});
-const openaiData = await openaiRes.json();
-const insights = openaiData.choices?.[0]?.message?.content || 'Unable to generate insights at this time.';
+Be specific, data-driven, and honest. If conditions are brutal, say so clearly. No bullet points — flowing paragraphs separated by newlines.`;
+
+    let insights = 'Unable to generate insights at this time.';
+    try {
+      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 700,
+          messages: [{ role: 'user', content: coachPrompt }],
+        }),
+      });
+      const claudeData = await claudeRes.json();
+      if (claudeData.content?.[0]?.text) {
+        insights = claudeData.content[0].text.trim();
+      } else {
+        console.error('Claude insights error:', JSON.stringify(claudeData).slice(0, 300));
+      }
+    } catch (e) {
+      console.error('Claude insights fetch failed:', e.message);
+    }
 
     res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
     return res.status(200).json({

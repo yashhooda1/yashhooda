@@ -3023,7 +3023,7 @@
         <div class="cp-panel active" id="cp-panel-trend">
             <div id="cp-legend-dynamic" class="cp-legend"></div>
             <div class="cp-chart-wrap"><canvas id="cp-trend-chart"></canvas></div>
-            <p class="cp-insight" id="cp-signal-text">Loading signal...</p>
+            <p class="cp-insight" id="cp-signal-trend">Loading signal...</p>
         </div>
  
         <!-- Seasonal -->
@@ -3038,21 +3038,21 @@
             </div>
             <div id="cp-legend-dynamic" class="cp-legend"></div>
             <div class="cp-chart-wrap"><canvas id="cp-seasonal-chart"></canvas></div>
-            <p class="cp-insight" id="cp-signal-text">Loading signal...</p>
+            <p class="cp-insight" id="cp-signal-seasonal">Loading signal...</p>
         </div>
  
         <!-- Heat Days -->
         <div class="cp-panel" id="cp-panel-heat">
             <div id="cp-legend-dynamic" class="cp-legend"></div>
             <div class="cp-chart-wrap"><canvas id="cp-heat-chart"></canvas></div>
-            <p class="cp-insight" id="cp-signal-text">Loading signal...</p>
+            <p class="cp-insight" id="cp-signal-heat">Loading signal...</p>
         </div>
  
         <!-- Winter Lows -->
         <div class="cp-panel" id="cp-panel-winter">
             <div id="cp-legend-dynamic" class="cp-legend"></div>
             <div class="cp-chart-wrap"><canvas id="cp-winter-chart"></canvas></div>
-            <p class="cp-insight" id="cp-signal-text">Loading signal...</p>
+            <p class="cp-insight" id="cp-signal-winter">Loading signal...</p>
         </div>
     </section>
         
@@ -7767,7 +7767,7 @@ function cpGetSignal(tab) {
 
 // Call this after every toggle and after initial draw
 window.cpUpdateSignal = function(tab) {
-    const el = document.getElementById('cp-signal-text');
+    const el = document.getElementById('cp-signal-' + tab);
     if (!el) return;
     const text = cpGetSignal(tab);
     el.innerHTML = text ? `<strong>Signal:</strong> ${text}` : '';

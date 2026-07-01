@@ -2335,6 +2335,46 @@
             background: var(--green);
             animation: pulse 2s infinite;
         }
+        /* ── City toggle buttons ── */
+        .cp-city-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .cp-city-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            letter-spacing: 0.03em;
+        }
+        .cp-city-btn:hover {
+            border-color: var(--city-color, var(--green));
+            color: var(--city-color, var(--green));
+        }
+        .cp-city-btn.active {
+            background: color-mix(in srgb, var(--city-color, var(--green)) 15%, transparent);
+            border-color: var(--city-color, var(--green));
+            color: var(--city-color, var(--green));
+            font-weight: 700;
+        }
+ 
+        /* ── Dynamic legend ── */
+        #cp-legend-dynamic {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.6rem;
+            min-height: 1.2rem;
+        }
         /* ── PROMPT LAB ── */
         .lab-strategy-grid {
             display: grid;
@@ -2912,106 +2952,98 @@
     </section>
 
     <section id="climate">
-    <h2>🌡️ ClimatePulse — Live Dashboard</h2>
+        <h2>🌡️ ClimatePulse — Live Dashboard</h2>
  
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
-        <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-            56 years (1970–2026) of NOAA daily station data · Houston (IAH) vs Newark (EWR) · Bronze → Silver → Gold pipeline
-        </p>
-        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-            <span class="cp-refresh-badge" id="cp-last-updated">Updated weekly</span>
-            <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="cp-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                56 years (1970–2026) of NOAA daily station data · 6 cities · Bronze → Silver → Gold pipeline
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="cp-last-updated">Updated weekly</span>
+                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+            </div>
         </div>
-    </div>
  
-    <!-- KPI strip — same pattern as your stats-bar -->
-    <div class="cp-kpi-row">
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val hot" id="cp-hou-annual">—</span>
-            <span class="cp-kpi-label">Houston °F / decade</span>
+        <!-- KPI strip -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="cp-hou-annual">—</span>
+                <span class="cp-kpi-label">Houston °F / decade</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="cp-ewr-annual">—</span>
+                <span class="cp-kpi-label">Newark °F / decade</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="cp-hou-winter">—</span>
+                <span class="cp-kpi-label">HOU winter nights / dec</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="cp-80f">—</span>
+                <span class="cp-kpi-label">Extra 80°F days / decade</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="cp-years">56</span>
+                <span class="cp-kpi-label">Years of data</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="cp-stations">6</span>
+                <span class="cp-kpi-label">NOAA stations</span>
+            </div>
         </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val blue" id="cp-ewr-annual">—</span>
-            <span class="cp-kpi-label">Newark °F / decade</span>
-        </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val hot" id="cp-hou-winter">—</span>
-            <span class="cp-kpi-label">HOU winter nights / dec</span>
-        </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val" id="cp-80f">—</span>
-            <span class="cp-kpi-label">Extra 80°F days / decade</span>
-        </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val" id="cp-years">56</span>
-            <span class="cp-kpi-label">Years of data</span>
-        </div>
-        <div class="cp-kpi-cell">
-            <span class="cp-kpi-val" id="cp-stations">2</span>
-            <span class="cp-kpi-label">NOAA stations</span>
-        </div>
-    </div>
  
-    <!-- Tab nav -->
-    <div class="cp-tabs">
-        <button class="cp-tab active" onclick="cpTab(this,'trend')">📈 Annual Trend</button>
-        <button class="cp-tab" onclick="cpTab(this,'seasonal')">📅 Seasonal</button>
-        <button class="cp-tab" onclick="cpTab(this,'heat')">🔥 Heat Days</button>
-        <button class="cp-tab" onclick="cpTab(this,'winter')">❄️ Winter Lows</button>
-    </div>
+        <!-- City toggles -->
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:0.5rem;">
+            COMPARE CITIES
+        </div>
+        <div class="cp-city-toggles" id="cp-city-toggles">
+            <!-- Built dynamically by cpBuildToggles() -->
+        </div>
  
-    <!-- Annual Trend -->
-    <div class="cp-panel active" id="cp-panel-trend">
-        <div class="cp-legend">
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston actual</span>
-            <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#f87171"></span>Houston trend</span>
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark actual</span>
-            <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#60a5fa"></span>Newark trend</span>
+        <!-- Tab nav -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="cpTab(this,'trend')">📈 Annual Trend</button>
+            <button class="cp-tab" onclick="cpTab(this,'seasonal')">📅 Seasonal</button>
+            <button class="cp-tab" onclick="cpTab(this,'heat')">🔥 Heat Days</button>
+            <button class="cp-tab" onclick="cpTab(this,'winter')">❄️ Winter Lows</button>
         </div>
-        <div class="cp-chart-wrap"><canvas id="cp-trend-chart" role="img" aria-label="Annual mean temperature 1970–2025 for Houston and Newark, both showing upward warming trends.">Both cities show significant warming from 1970 to 2025.</canvas></div>
-        <p class="cp-insight"><strong>Signal:</strong> Houston runs ~13°F warmer than Newark year-round. Houston's warming slope (+0.806°F/decade) is nearly double Newark's — urban heat island effects compounded by Gulf Coast climate dynamics.</p>
-    </div>
  
-    <!-- Seasonal -->
-    <div class="cp-panel" id="cp-panel-seasonal">
-        <div class="cp-controls">
-            <label for="cp-metric-sel">Metric</label>
-            <select id="cp-metric-sel" onchange="cpDrawSeasonal()">
-                <option value="avg_tmean">Mean temp</option>
-                <option value="avg_tmax">Max temp</option>
-                <option value="avg_tmin">Min temp</option>
-            </select>
+        <!-- Annual Trend -->
+        <div class="cp-panel active" id="cp-panel-trend">
+            <div id="cp-legend-dynamic" class="cp-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="cp-trend-chart"></canvas></div>
+            <p class="cp-insight"><strong>Signal:</strong> Houston runs ~13°F warmer than Newark year-round. Houston's warming slope (+0.806°F/decade) is nearly double Newark's — urban heat island effects compounded by Gulf Coast climate dynamics.</p>
         </div>
-        <div class="cp-legend">
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston (IAH)</span>
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark (EWR)</span>
-        </div>
-        <div class="cp-chart-wrap"><canvas id="cp-seasonal-chart" role="img" aria-label="Monthly temperature climatology for Houston and Newark.">Monthly average temperatures for both cities across all 12 months.</canvas></div>
-        <p class="cp-insight"><strong>Signal:</strong> Houston's summer (Jun–Sep) averages 82–84°F mean. The gap between cities compresses in spring and widens dramatically in summer, tracking Gulf humidity and solar angle.</p>
-    </div>
  
-    <!-- Heat Days -->
-    <div class="cp-panel" id="cp-panel-heat">
-        <div class="cp-legend">
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston (IAH)</span>
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark (EWR)</span>
+        <!-- Seasonal -->
+        <div class="cp-panel" id="cp-panel-seasonal">
+            <div class="cp-controls">
+                <label for="cp-metric-sel">Metric</label>
+                <select id="cp-metric-sel" onchange="cpDrawSeasonal()">
+                    <option value="avg_tmean">Mean temp</option>
+                    <option value="avg_tmax">Max temp</option>
+                    <option value="avg_tmin">Min temp</option>
+                </select>
+            </div>
+            <div id="cp-legend-dynamic" class="cp-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="cp-seasonal-chart"></canvas></div>
+            <p class="cp-insight"><strong>Signal:</strong> Houston's summer (Jun–Sep) averages 82–84°F mean. Denver stays ~20°F cooler in summer — critical context for Boulderthon marathon pacing.</p>
         </div>
-        <div class="cp-chart-wrap"><canvas id="cp-heat-chart" role="img" aria-label="Annual count of days above 80°F for Houston and Newark, 1970–2025.">Houston averages 200+ days above 80°F. Newark averages roughly 90–130.</canvas></div>
-        <p class="cp-insight"><strong>Signal:</strong> Houston averages 200+ days above 80°F per year. The Feb–March surge (+1.72 extra days/decade) signals extreme heat arriving earlier — a critical climate shift indicator for marathon training planning.</p>
-    </div>
  
-    <!-- Winter Lows -->
-    <div class="cp-panel" id="cp-panel-winter">
-        <div class="cp-legend">
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#f87171"></span>Houston winter lows</span>
-            <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#f87171"></span>Trend</span>
-            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Newark winter lows</span>
-            <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#60a5fa"></span>Trend</span>
+        <!-- Heat Days -->
+        <div class="cp-panel" id="cp-panel-heat">
+            <div id="cp-legend-dynamic" class="cp-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="cp-heat-chart"></canvas></div>
+            <p class="cp-insight"><strong>Signal:</strong> Houston averages 200+ days above 80°F per year vs Denver's ~60. Delhi exceeds 80°F for 250+ days annually.</p>
         </div>
-        <div class="cp-chart-wrap"><canvas id="cp-winter-chart" role="img" aria-label="Winter minimum temperature trend for Houston and Newark, 1970–2025.">Winter nighttime lows are warming faster than annual averages — a greenhouse gas fingerprint.</canvas></div>
-        <p class="cp-insight"><strong>Signal:</strong> Houston's winter nights warm at +1.013°F/decade — faster than the annual average. Nights warming faster than days is a classic greenhouse gas signature distinct from urban heat island effects.</p>
-    </div>
-</section>
+ 
+        <!-- Winter Lows -->
+        <div class="cp-panel" id="cp-panel-winter">
+            <div id="cp-legend-dynamic" class="cp-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="cp-winter-chart"></canvas></div>
+            <p class="cp-insight"><strong>Signal:</strong> Houston's winter nights warm at +1.013°F/decade — faster than its annual average. Nights warming faster than days is a classic greenhouse gas signature.</p>
+        </div>
+    </section>
         
 
     <!-- CERTIFICATIONS -->
@@ -7281,65 +7313,125 @@ async function loadStrava() {
 loadStrava();
 
 // ── CLIMATEPULSE DASHBOARD ──
+// ── CLIMATEPULSE DASHBOARD v2 — drop-in replacement for the existing IIFE ──
+// Supports 6 cities with toggle selector. Paste this inside your <script> block,
+// replacing the existing (function() { ... })(); ClimatePulse block.
+
 (function () {
     'use strict';
- 
+
     const CP = {
         data:    null,
         charts:  {},
-        MONTHS:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
         loaded:  false,
+        // Default active cities — Houston + Newark on load
+        active:  new Set(['IAH', 'EWR']),
+        MONTHS:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        CITIES: {
+            IAH: { name: 'Houston, TX',  color: '#f87171' },
+            EWR: { name: 'Newark, NJ',   color: '#60a5fa' },
+            DAL: { name: 'Dallas, TX',   color: '#facc15' },
+            DEN: { name: 'Denver, CO',   color: '#4ade80' },
+            LHR: { name: 'London, UK',   color: '#c084fc' },
+            DEL: { name: 'Delhi, India', color: '#fb923c' },
+        },
     };
- 
-    // ── Load data from /api/climate ──────────────────────────────────────
+
+    // ── Load data ────────────────────────────────────────────────────────────
     async function cpLoad() {
         if (CP.loaded) return;
         try {
-            const res  = await fetch('/api/climate');
+            const res = await fetch('/api/climate');
             if (!res.ok) throw new Error('HTTP ' + res.status);
             CP.data   = await res.json();
             CP.loaded = true;
+            cpBuildToggles();
             cpPopulateKPIs();
-            cpDrawTrend();   // draw the active panel immediately
+            cpDrawTrend();
         } catch (err) {
             console.error('[ClimatePulse] Failed to load data:', err);
         }
     }
- 
-    // ── KPI strip ─────────────────────────────────────────────────────────
+
+    // ── City toggle buttons ───────────────────────────────────────────────────
+    function cpBuildToggles() {
+        const container = document.getElementById('cp-city-toggles');
+        if (!container) return;
+        container.innerHTML = Object.entries(CP.CITIES).map(([code, cfg]) => {
+            const on = CP.active.has(code);
+            return `<button
+                class="cp-city-btn ${on ? 'active' : ''}"
+                id="cp-btn-${code}"
+                onclick="cpToggleCity('${code}')"
+                style="--city-color:${cfg.color}"
+            >${cfg.name}</button>`;
+        }).join('');
+    }
+
+    window.cpToggleCity = function(code) {
+        if (CP.active.has(code)) {
+            if (CP.active.size <= 1) return; // always keep at least 1
+            CP.active.delete(code);
+        } else {
+            CP.active.add(code);
+        }
+        // Update button states
+        Object.keys(CP.CITIES).forEach(c => {
+            const btn = document.getElementById(`cp-btn-${c}`);
+            if (btn) btn.classList.toggle('active', CP.active.has(c));
+        });
+        // Redraw all active charts
+        cpRedrawAll();
+    };
+
+    function cpRedrawAll() {
+        const activePanel = document.querySelector('.cp-panel.active');
+        if (!activePanel) return;
+        const id = activePanel.id.replace('cp-panel-', '');
+        if (id === 'trend')    { destroyChart('trend');    cpDrawTrend(); }
+        if (id === 'seasonal') { destroyChart('seasonal'); cpDrawSeasonal(); }
+        if (id === 'heat')     { destroyChart('heat');     cpDrawHeat(); }
+        if (id === 'winter')   { destroyChart('winter');   cpDrawWinter(); }
+    }
+
+    function destroyChart(key) {
+        if (CP.charts[key]) { CP.charts[key].destroy(); delete CP.charts[key]; }
+    }
+
+    // ── KPI strip — show Houston as primary ──────────────────────────────────
     function cpPopulateKPIs() {
         const hou = CP.data.IAH;
         const ewr = CP.data.EWR;
+        if (!hou || !ewr) return;
+
         set('cp-hou-annual', '+' + hou.slope_annual.toFixed(2) + '°F');
         set('cp-ewr-annual', '+' + ewr.slope_annual.toFixed(2) + '°F');
         set('cp-hou-winter', '+' + hou.slope_winter.toFixed(2) + '°F');
         set('cp-80f',        '+' + hou.slope_80f_febmar.toFixed(2) + ' days');
+
+        // Dynamic year count
+        const lastYear = hou.yearly[hou.yearly.length - 1].year;
+        const numYears = lastYear - 1970 + 1;
+        set('cp-years',    numYears);
+        set('cp-stations', Object.keys(CP.CITIES).length);
+
+        // Update subtitle
+        const sub = document.getElementById('cp-subtitle');
+        if (sub) sub.textContent =
+            `${numYears} years (1970–${lastYear}) of NOAA daily station data · 6 cities · Bronze → Silver → Gold pipeline`;
+
         if (CP.data.generated_at) {
-            const d = CP.data.generated_at.slice(0, 10);
             const el = document.getElementById('cp-last-updated');
-            if (el) el.textContent = 'Data: ' + d;
+            if (el) el.textContent = 'Data: ' + CP.data.generated_at.slice(0, 10);
         }
     }
- 
+
     function set(id, val) {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
     }
- 
-    // ── Tab switching — same pattern as your snow/sports tabs ─────────────
-    window.cpTab = function (btn, id) {
-        document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.cp-panel').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('cp-panel-' + id).classList.add('active');
-        if (!CP.loaded) { cpLoad(); return; }
-        if (id === 'trend'   && !CP.charts.trend)    cpDrawTrend();
-        if (id === 'seasonal'&& !CP.charts.seasonal) cpDrawSeasonal();
-        if (id === 'heat'    && !CP.charts.heat)     cpDrawHeat();
-        if (id === 'winter'  && !CP.charts.winter)   cpDrawWinter();
-    };
- 
-    // ── Shared Chart.js options ───────────────────────────────────────────
+
+    // ── Shared chart options ─────────────────────────────────────────────────
     const BASE_OPTS = {
         responsive: true,
         maintainAspectRatio: false,
@@ -7349,106 +7441,220 @@ loadStrava();
             y: { ticks: { color: '#9ca3af', font: { size: 10 } },                    grid: { color: 'rgba(255,255,255,0.05)' } },
         },
     };
- 
+
     function mergeOpts(extra) {
         return {
             ...BASE_OPTS, ...extra,
-            plugins:  { ...BASE_OPTS.plugins, ...(extra.plugins || {}) },
+            plugins: { ...BASE_OPTS.plugins, ...(extra.plugins || {}) },
             scales: {
                 x: { ...BASE_OPTS.scales.x, ...((extra.scales || {}).x || {}) },
                 y: { ...BASE_OPTS.scales.y, ...((extra.scales || {}).y || {}) },
             },
         };
     }
- 
-    // ── Annual trend ──────────────────────────────────────────────────────
+
+    // Helper: get active station data sorted by city name
+    function activeCities() {
+        return [...CP.active]
+            .filter(code => CP.data[code])
+            .map(code => ({ code, cfg: CP.CITIES[code], data: CP.data[code] }));
+    }
+
+    // ── Legend builder ───────────────────────────────────────────────────────
+    function buildLegend(cities, showTrend = false) {
+        const el = document.getElementById('cp-legend-dynamic');
+        if (!el) return;
+        el.innerHTML = cities.map(({ code, cfg }) => `
+            <span class="cp-leg-item">
+                <span class="cp-leg-dot" style="background:${cfg.color}"></span>
+                ${cfg.name}
+            </span>
+            ${showTrend ? `<span class="cp-leg-item">
+                <span class="cp-leg-dash" style="border-color:${cfg.color}"></span>
+                trend
+            </span>` : ''}
+        `).join('');
+    }
+
+    // ── Tab switching ────────────────────────────────────────────────────────
+    window.cpTab = function(btn, id) {
+        document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.cp-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('cp-panel-' + id).classList.add('active');
+        if (!CP.loaded) { cpLoad(); return; }
+        if (id === 'trend'    && !CP.charts.trend)    cpDrawTrend();
+        if (id === 'seasonal' && !CP.charts.seasonal) cpDrawSeasonal();
+        if (id === 'heat'     && !CP.charts.heat)     cpDrawHeat();
+        if (id === 'winter'   && !CP.charts.winter)   cpDrawWinter();
+    };
+
+    // ── Annual trend ─────────────────────────────────────────────────────────
     function cpDrawTrend() {
-        if (!CP.data) return;
-        const hou    = CP.data.IAH.yearly;
-        const ewr    = CP.data.EWR.yearly;
-        const labels = hou.map(r => r.year);
+        const cities = activeCities();
+        if (!cities.length) return;
+
+        // Use IAH years as x-axis base
+        const labels = (CP.data.IAH || cities[0].data).yearly.map(r => r.year);
+        const datasets = [];
+
+        cities.forEach(({ cfg, data }) => {
+            const yearMap = {};
+            data.yearly.forEach(r => { yearMap[r.year] = r; });
+
+            datasets.push({
+                label: cfg.name + ' actual',
+                data:  labels.map(y => yearMap[y]?.avg_tmean ?? null),
+                borderColor: cfg.color,
+                backgroundColor: cfg.color + '12',
+                borderWidth: 1.5,
+                pointRadius: 2,
+                pointHoverRadius: 4,
+                tension: 0.3,
+                fill: false,
+                spanGaps: true,
+            });
+            datasets.push({
+                label: cfg.name + ' trend',
+                data:  labels.map(y => yearMap[y]?.trend ?? null),
+                borderColor: cfg.color,
+                borderDash: [6, 4],
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0,
+                fill: false,
+                spanGaps: true,
+            });
+        });
+
+        buildLegend(cities, true);
         CP.charts.trend = new Chart(document.getElementById('cp-trend-chart'), {
             type: 'line',
-            data: { labels, datasets: [
-                { label: 'Houston actual', data: hou.map(r => r.avg_tmean), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.07)', borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3, fill: true },
-                { label: 'Houston trend',  data: hou.map(r => r.trend),     borderColor: '#f87171', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Newark actual',  data: ewr.map(r => r.avg_tmean), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.07)', borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3, fill: true },
-                { label: 'Newark trend',   data: ewr.map(r => r.trend),     borderColor: '#60a5fa', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
-            ]},
+            data: { labels, datasets },
             options: mergeOpts({
-                plugins: { tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
-                scales:  { y: { ticks: { callback: v => v + '°F' } } },
+                plugins: { tooltip: { mode: 'index', intersect: false,
+                    callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
+                scales: { y: { ticks: { callback: v => v + '°F' } } },
             }),
         });
     }
- 
-    // ── Seasonal climatology ──────────────────────────────────────────────
-    window.cpDrawSeasonal = function () {
-        if (!CP.data) return;
-        if (CP.charts.seasonal) { CP.charts.seasonal.destroy(); delete CP.charts.seasonal; }
+
+    // ── Seasonal climatology ─────────────────────────────────────────────────
+    window.cpDrawSeasonal = function() {
+        destroyChart('seasonal');
         const metric = document.getElementById('cp-metric-sel').value;
+        const cities = activeCities();
+        if (!cities.length) return;
+
+        const datasets = cities.map(({ cfg, data }) => ({
+            label: cfg.name,
+            data:  data.monthly.map(r => r[metric]),
+            borderColor: cfg.color,
+            backgroundColor: cfg.color + '18',
+            fill: true,
+            borderWidth: 2,
+            pointRadius: 4,
+            tension: 0.4,
+        }));
+
+        buildLegend(cities);
         CP.charts.seasonal = new Chart(document.getElementById('cp-seasonal-chart'), {
             type: 'line',
-            data: { labels: CP.MONTHS, datasets: [
-                { label: 'Houston', data: CP.data.IAH.monthly.map(r => r[metric]), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.12)', fill: true, borderWidth: 2, pointRadius: 4, tension: 0.4 },
-                { label: 'Newark',  data: CP.data.EWR.monthly.map(r => r[metric]), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.1)',  fill: true, borderWidth: 2, pointRadius: 4, tension: 0.4 },
-            ]},
+            data: { labels: CP.MONTHS, datasets },
             options: mergeOpts({
-                plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
-                scales:  { y: { ticks: { callback: v => v + '°F' } } },
+                plugins: { tooltip: { callbacks: {
+                    label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F'
+                } } },
+                scales: { y: { ticks: { callback: v => v + '°F' } } },
             }),
         });
     };
- 
-    // ── Heat days ─────────────────────────────────────────────────────────
+
+    // ── Heat days ────────────────────────────────────────────────────────────
     function cpDrawHeat() {
-        if (!CP.data) return;
-        const hou = CP.data.IAH.yearly;
-        const ewr = CP.data.EWR.yearly;
+        const cities = activeCities();
+        if (!cities.length) return;
+        const labels = (CP.data.IAH || cities[0].data).yearly.map(r => r.year);
+
+        const datasets = cities.map(({ cfg, data }) => {
+            const yearMap = {};
+            data.yearly.forEach(r => { yearMap[r.year] = r; });
+            return {
+                label: cfg.name,
+                data:  labels.map(y => yearMap[y]?.count_80f ?? null),
+                backgroundColor: cfg.color + 'aa',
+                borderColor: cfg.color,
+                borderWidth: 0.5,
+                spanGaps: true,
+            };
+        });
+
+        buildLegend(cities);
         CP.charts.heat = new Chart(document.getElementById('cp-heat-chart'), {
             type: 'bar',
-            data: { labels: hou.map(r => r.year), datasets: [
-                { label: 'Houston', data: hou.map(r => r.count_80f), backgroundColor: 'rgba(248,113,113,0.7)', borderColor: '#f87171', borderWidth: 0.5 },
-                { label: 'Newark',  data: ewr.map(r => r.count_80f), backgroundColor: 'rgba(96,165,250,0.6)',  borderColor: '#60a5fa', borderWidth: 0.5 },
-            ]},
+            data: { labels, datasets },
             options: mergeOpts({
-                plugins: { tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + ' days' } } },
-                scales:  { x: { ticks: { maxTicksLimit: 10 } }, y: { title: { display: true, text: 'Days ≥ 80°F', color: '#9ca3af', font: { size: 11 } } } },
+                plugins: { tooltip: { mode: 'index', intersect: false,
+                    callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + ' days' } } },
+                scales: {
+                    x: { ticks: { maxTicksLimit: 10 } },
+                    y: { title: { display: true, text: 'Days ≥ 80°F', color: '#9ca3af', font: { size: 11 } } }
+                },
             }),
         });
     }
- 
-    // ── Winter lows ───────────────────────────────────────────────────────
+
+    // ── Winter lows ──────────────────────────────────────────────────────────
     function cpDrawWinter() {
-        if (!CP.data) return;
-        const hou    = CP.data.IAH.winter;
-        const ewr    = CP.data.EWR.winter;
-        const labels = hou.map(r => r.year);
+        const cities = activeCities();
+        if (!cities.length) return;
+        const labels = (CP.data.IAH || cities[0].data).winter.map(r => r.year);
+        const datasets = [];
+
+        cities.forEach(({ cfg, data }) => {
+            const yearMap = {};
+            data.winter.forEach(r => { yearMap[r.year] = r; });
+            datasets.push({
+                label: cfg.name + ' lows',
+                data:  labels.map(y => yearMap[y]?.avg_tmin ?? null),
+                borderColor: cfg.color,
+                backgroundColor: cfg.color + '10',
+                fill: false,
+                borderWidth: 1.5,
+                pointRadius: 2,
+                tension: 0.3,
+                spanGaps: true,
+            });
+            datasets.push({
+                label: cfg.name + ' trend',
+                data:  labels.map(y => yearMap[y]?.trend ?? null),
+                borderColor: cfg.color,
+                borderDash: [6, 4],
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0,
+                fill: false,
+                spanGaps: true,
+            });
+        });
+
+        buildLegend(cities, true);
         CP.charts.winter = new Chart(document.getElementById('cp-winter-chart'), {
             type: 'line',
-            data: { labels, datasets: [
-                { label: 'Houston lows',  data: hou.map(r => r.avg_tmin), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.07)', fill: true, borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3 },
-                { label: 'Houston trend', data: hou.map(r => r.trend),    borderColor: '#f87171', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Newark lows',   data: ewr.map(r => r.avg_tmin), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.07)',  fill: true, borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4, tension: 0.3 },
-                { label: 'Newark trend',  data: ewr.map(r => r.trend),    borderColor: '#60a5fa', borderDash: [6,4], borderWidth: 2, pointRadius: 0, tension: 0 },
-            ]},
+            data: { labels, datasets },
             options: mergeOpts({
-                plugins: { tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
-                scales:  { y: { ticks: { callback: v => v + '°F' } } },
+                plugins: { tooltip: { mode: 'index', intersect: false,
+                    callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
+                scales: { y: { ticks: { callback: v => v + '°F' } } },
             }),
         });
     }
- 
-    // ── Intersection observer — load data only when section scrolls into view ──
-    // Same pattern you use for aviation / sports sections
+
+    // ── Intersection observer ────────────────────────────────────────────────
     const cpSection = document.getElementById('climate');
     if (cpSection) {
         new IntersectionObserver((entries) => {
-            entries.forEach(e => {
-                if (e.isIntersecting) {
-                    cpLoad();
-                }
-            });
+            entries.forEach(e => { if (e.isIntersecting) cpLoad(); });
         }, { threshold: 0.1 }).observe(cpSection);
     }
 })();

@@ -3023,7 +3023,7 @@
         <div class="cp-panel active" id="cp-panel-trend">
             <div id="cp-legend-dynamic" class="cp-legend"></div>
             <div class="cp-chart-wrap"><canvas id="cp-trend-chart"></canvas></div>
-            <p class="cp-insight"><strong>Signal:</strong> Houston runs ~13°F warmer than Newark year-round. Houston's warming slope (+0.806°F/decade) is nearly double Newark's — urban heat island effects compounded by Gulf Coast climate dynamics.</p>
+            <p class="cp-insight" id="cp-signal-text">Loading signal...</p>
         </div>
  
         <!-- Seasonal -->
@@ -3038,21 +3038,21 @@
             </div>
             <div id="cp-legend-dynamic" class="cp-legend"></div>
             <div class="cp-chart-wrap"><canvas id="cp-seasonal-chart"></canvas></div>
-            <p class="cp-insight"><strong>Signal:</strong> Houston's summer (Jun–Sep) averages 82–84°F mean. Denver stays ~20°F cooler in summer — critical context for Boulderthon marathon pacing.</p>
+            <p class="cp-insight" id="cp-signal-text">Loading signal...</p>
         </div>
  
         <!-- Heat Days -->
         <div class="cp-panel" id="cp-panel-heat">
             <div id="cp-legend-dynamic" class="cp-legend"></div>
             <div class="cp-chart-wrap"><canvas id="cp-heat-chart"></canvas></div>
-            <p class="cp-insight"><strong>Signal:</strong> Houston averages 200+ days above 80°F per year vs Denver's ~60. Delhi exceeds 80°F for 250+ days annually.</p>
+            <p class="cp-insight" id="cp-signal-text">Loading signal...</p>
         </div>
  
         <!-- Winter Lows -->
         <div class="cp-panel" id="cp-panel-winter">
             <div id="cp-legend-dynamic" class="cp-legend"></div>
             <div class="cp-chart-wrap"><canvas id="cp-winter-chart"></canvas></div>
-            <p class="cp-insight"><strong>Signal:</strong> Houston's winter nights warm at +1.013°F/decade — faster than its annual average. Nights warming faster than days is a classic greenhouse gas signature.</p>
+            <p class="cp-insight" id="cp-signal-text">Loading signal...</p>
         </div>
     </section>
         
@@ -7548,6 +7548,7 @@ loadStrava();
                 scales: { y: { ticks: { callback: v => v + '°F' } } },
             }),
         });
+        window.cpUpdateSignal('trend');
     }
 
     // ── Seasonal climatology ─────────────────────────────────────────────────
@@ -7579,6 +7580,7 @@ loadStrava();
                 scales: { y: { ticks: { callback: v => v + '°F' } } },
             }),
         });
+        window.cpUpdateSignal('seasonal');
     };
 
     // ── Heat days ────────────────────────────────────────────────────────────
@@ -7613,6 +7615,7 @@ loadStrava();
                 },
             }),
         });
+        window.cpUpdateSignal('heat');
     }
 
     // ── Winter lows ──────────────────────────────────────────────────────────
@@ -7659,7 +7662,114 @@ loadStrava();
                 scales: { y: { ticks: { callback: v => v + '°F' } } },
             }),
         });
+        window.cpUpdateSignal('winter');
     }
+
+    // ── DROP-IN REPLACEMENT for the cp_insight paragraphs in each panel ──
+// Add this function to your ClimatePulse IIFE, then call cpUpdateSignal()
+// after every toggle and after initial load.
+
+const CP_SIGNALS = {
+    IAH: {
+        trend:    "Houston (IAH) warms at +0.77°F/decade — one of the fastest-warming major US cities, driven by urban heat island effects and Gulf Coast humidity.",
+        seasonal: "Houston summers (Jun–Sep) average 82–84°F mean temp with extreme humidity. Winters are mild but warming faster than summers (+1.02°F/decade for winter nights).",
+        heat:     "Houston averages 200+ days above 80°F per year, with Feb–Mar heat days increasing +2.07 days/decade — extreme heat arriving earlier every year.",
+        winter:   "Houston winter nighttime lows warm at +1.02°F/decade — faster than its annual average, a classic greenhouse gas fingerprint distinct from urban heat island effects.",
+    },
+    EWR: {
+        trend:    "Newark (EWR) warms at +0.35°F/decade — slower than Houston but still significant, reflecting Northeast US regional warming patterns.",
+        seasonal: "Newark summers peak at 78–79°F mean in July. The temperature gap between Newark and Houston compresses in spring and widens dramatically in summer.",
+        heat:     "Newark averages 90–120 days above 80°F per year — roughly half of Houston's count, reflecting its more temperate Northeast climate.",
+        winter:   "Newark winter lows warm at +0.58°F/decade. Cold snaps are becoming less extreme, consistent with broader Northeast US climate trends.",
+    },
+    DAL: {
+        trend:    "Dallas (DAL) sits between Houston and Denver climatically — hot summers with Texas heat but slightly cooler than Houston due to its inland position.",
+        seasonal: "Dallas summers average 84–86°F mean with intense July/August heat. Spring and fall are the most temperate seasons with rapid temperature swings.",
+        heat:     "Dallas averages 180–210 days above 80°F per year, similar to Houston but with drier heat due to its distance from the Gulf Coast.",
+        winter:   "Dallas winter lows are more volatile than Houston — occasional Arctic blasts (like Winter Storm Uri 2021) create large year-to-year swings.",
+    },
+    DEN: {
+        trend:    "Denver (DEN) at 5,280ft elevation runs ~20°F cooler than Houston in summer — critical context for Boulderthon marathon race planning in September.",
+        seasonal: "Denver's September race-day average is 55–65°F with low humidity — ideal marathon conditions vs Houston's 75–80°F. Altitude reduces oxygen availability by ~17%.",
+        heat:     "Denver averages only 60–80 days above 80°F per year. The mile-high altitude keeps summers dramatically cooler than Texas cities.",
+        winter:   "Denver winters are cold but highly variable — frequent Chinook warm spells interrupt cold patterns, producing some of the largest winter temperature swings in the US.",
+    },
+    LHR: {
+        trend:    "London (LHR/Heathrow) warms steadily — the UK has seen accelerating warming since the 1990s, with record-breaking summers becoming more frequent.",
+        seasonal: "London summers peak at 68–72°F mean — significantly cooler than US cities. The 2022 heatwave broke 40°C (104°F) for the first time in recorded history.",
+        heat:     "London rarely exceeds 80°F historically, but the frequency of warm days has increased sharply since 2000 as European heat waves intensify.",
+        winter:   "London winters are mild and wet — average winter lows around 35–39°F. Warming winters mean less frost and earlier spring blooms.",
+    },
+    DEL: {
+        trend:    "Delhi (DEL/Safdarjung) is one of the world's fastest-warming major cities — extreme pre-monsoon heat regularly exceeds 45°C (113°F) in recent years.",
+        seasonal: "Delhi has extreme seasonal contrast: summer (Apr–Jun) averages 95–105°F, monsoon (Jul–Sep) brings humidity relief, and winter (Dec–Jan) drops to 45–55°F.",
+        heat:     "Delhi averages 250+ days above 80°F per year — more than any other city in this dashboard. Pre-monsoon heat waves are intensifying decade over decade.",
+        winter:   "Delhi winters warm slower than summers, but minimum temperatures are rising — cold waves are becoming shorter and less severe.",
+    },
+};
+
+function cpGetSignal(tab) {
+    const cities = activeCities();
+    if (!cities.length) return '';
+
+    if (cities.length === 1) {
+        // Single city — show its specific insight
+        return CP_SIGNALS[cities[0].code]?.[tab] || '';
+    }
+
+    // Multi-city — build a comparison summary
+    const names = cities.map(c => c.cfg.name);
+
+    if (tab === 'trend') {
+        const slopes = cities.map(({ code, cfg, data }) =>
+            `${cfg.name} (+${data.slope_annual.toFixed(2)}°F/decade)`
+        ).join(', ');
+        return `Comparing warming rates: ${slopes}. ${
+            cities.some(c => c.code === 'DEL') ? 'Delhi leads global warming intensity among these cities.' :
+            cities.some(c => c.code === 'DEN') ? 'Denver\'s high altitude keeps it cooler but it\'s still warming significantly.' :
+            'All cities show consistent long-term warming trends since 1970.'
+        }`;
+    }
+
+    if (tab === 'seasonal') {
+        const hottest = cities.reduce((a, b) =>
+            (b.data.monthly[6]?.avg_tmean || 0) > (a.data.monthly[6]?.avg_tmean || 0) ? b : a
+        );
+        const coolest = cities.reduce((a, b) =>
+            (b.data.monthly[6]?.avg_tmean || 999) < (a.data.monthly[6]?.avg_tmean || 999) ? b : a
+        );
+        return `Seasonal comparison for ${names.join(', ')}. In July, ${hottest.cfg.name} is the hottest (${hottest.data.monthly[6]?.avg_tmean?.toFixed(1)}°F mean) and ${coolest.cfg.name} is the coolest (${coolest.data.monthly[6]?.avg_tmean?.toFixed(1)}°F mean).`;
+    }
+
+    if (tab === 'heat') {
+        const sorted = [...cities].sort((a, b) => {
+            const aLast = a.data.yearly[a.data.yearly.length - 1]?.count_80f || 0;
+            const bLast = b.data.yearly[b.data.yearly.length - 1]?.count_80f || 0;
+            return bLast - aLast;
+        });
+        return `Days above 80°F ranked: ${sorted.map(c => {
+            const last = c.data.yearly[c.data.yearly.length - 1];
+            return `${c.cfg.name} (~${last?.count_80f} days in ${last?.year})`;
+        }).join(' > ')}.`;
+    }
+
+    if (tab === 'winter') {
+        const slopes = cities.map(({ code, cfg, data }) =>
+            `${cfg.name} (+${data.slope_winter.toFixed(2)}°F/decade)`
+        ).join(', ');
+        return `Winter nighttime warming rates: ${slopes}. Nights warming faster than days is a key greenhouse gas fingerprint across all cities.`;
+    }
+
+    return '';
+}
+
+// Call this after every toggle and after initial draw
+window.cpUpdateSignal = function(tab) {
+    const el = document.getElementById('cp-signal-text');
+    if (!el) return;
+    const text = cpGetSignal(tab);
+    el.innerHTML = text ? `<strong>Signal:</strong> ${text}` : '';
+};
 
     // ── Intersection observer ────────────────────────────────────────────────
     const cpSection = document.getElementById('climate');

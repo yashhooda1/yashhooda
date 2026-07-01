@@ -7498,6 +7498,8 @@ loadStrava();
         if (id === 'seasonal' && !CP.charts.seasonal) cpDrawSeasonal();
         if (id === 'heat'     && !CP.charts.heat)     cpDrawHeat();
         if (id === 'winter'   && !CP.charts.winter)   cpDrawWinter();
+        // Always refresh the signal for the active tab, even if chart already exists
+        window.cpUpdateSignal(id);
     };
 
     // ── Annual trend ─────────────────────────────────────────────────────────

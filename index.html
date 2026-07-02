@@ -6507,11 +6507,12 @@ setTool('dns');
 let flightMap = null;
 let flightMarkers = [];
 let flightRefreshTimer = null;
+let AIRPORTS = {};
+fetch('/airports.json').then(r => r.json()).then(d => { AIRPORTS = d; }).catch(()=>{});
+let flightRouteLine = null;
 
 function getHeadingIcon(heading) {
-    // Rotate plane emoji via CSS transform isn't easy, so use arrows
-    const arrows = ['↑','↗','→','↘','↓','↙','←','↖'];
-    return arrows[Math.round(heading / 45) % 8];
+    return `<span style="display:inline-block;transform:rotate(${(heading||0) - 45}deg);">✈️</span>`;
 }
 
 function formatAltitude(ft) {
@@ -6657,6 +6658,14 @@ async function loadFlights() {
                 }).join('')}
             </div>
         `;
+
+        if (window.routeLine) { map.removeLayer(window.routeLine); window.routeLine = null; }
+        const o = AIRPORTS[f.origin], d = AIRPORTS[f.dest];
+        if (o && d) {
+            window.routeLine = L.polyline([o, [f.lat, f.lon], d], {
+                color:'#3b82f6', weight:1.5, opacity:0.5, dashArray:'5,7'
+            }).addTo(map);
+        }
 
         // Auto-refresh every 5 minutes
         clearTimeout(flightRefreshTimer);

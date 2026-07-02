@@ -3289,7 +3289,7 @@
     <!-- AVIATION TRACKER -->
     <section id="aviation">
         <h2>✈️ Live Flight Tracker</h2>
-        <p>Real-time flights across the World powered by ADS-B transponder data. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
+        <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
 
         <div class="aviation-bar">
             <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
@@ -6512,6 +6512,32 @@ let currentFlights = [];
 let AIRPORTS = {};
 fetch('/airports.json').then(r => r.json()).then(d => { AIRPORTS = d; }).catch(() => {});
 
+// ── Airline lookup by ICAO callsign prefix (fallback when FlightAware omits operator) ──
+const AIRLINES = {
+    AAL:{n:'American Airlines',i:'AA'}, UAL:{n:'United Airlines',i:'UA'}, DAL:{n:'Delta Air Lines',i:'DL'},
+    SWA:{n:'Southwest Airlines',i:'WN'}, FFT:{n:'Frontier Airlines',i:'F9'}, AAY:{n:'Allegiant Air',i:'G4'},
+    JBU:{n:'JetBlue Airways',i:'B6'}, NKS:{n:'Spirit Airlines',i:'NK'}, ASA:{n:'Alaska Airlines',i:'AS'},
+    HAL:{n:'Hawaiian Airlines',i:'HA'}, SKW:{n:'SkyWest Airlines',i:'OO'}, ENY:{n:'Envoy Air',i:'MQ'},
+    RPA:{n:'Republic Airways',i:'YX'}, EDV:{n:'Endeavor Air',i:'9E'}, JIA:{n:'PSA Airlines',i:'OH'},
+    ASH:{n:'Mesa Airlines',i:'YV'}, GJS:{n:'GoJet Airlines',i:'G7'}, QXE:{n:'Horizon Air',i:'QX'},
+    ACA:{n:'Air Canada',i:'AC'}, WJA:{n:'WestJet',i:'WS'}, AMX:{n:'Aeroméxico',i:'AM'}, VOI:{n:'Volaris',i:'Y4'},
+    BAW:{n:'British Airways',i:'BA'}, DLH:{n:'Lufthansa',i:'LH'}, AFR:{n:'Air France',i:'AF'},
+    KLM:{n:'KLM',i:'KL'}, IBE:{n:'Iberia',i:'IB'}, RYR:{n:'Ryanair',i:'FR'}, EZY:{n:'easyJet',i:'U2'},
+    VIR:{n:'Virgin Atlantic',i:'VS'}, THY:{n:'Turkish Airlines',i:'TK'}, SAS:{n:'SAS',i:'SK'},
+    UAE:{n:'Emirates',i:'EK'}, QTR:{n:'Qatar Airways',i:'QR'}, ETD:{n:'Etihad Airways',i:'EY'},
+    SIA:{n:'Singapore Airlines',i:'SQ'}, CPA:{n:'Cathay Pacific',i:'CX'}, ANA:{n:'All Nippon Airways',i:'NH'},
+    JAL:{n:'Japan Airlines',i:'JL'}, KAL:{n:'Korean Air',i:'KE'}, AAR:{n:'Asiana Airlines',i:'OZ'},
+    QFA:{n:'Qantas',i:'QF'}, CCA:{n:'Air China',i:'CA'}, CES:{n:'China Eastern',i:'MU'},
+    CSN:{n:'China Southern',i:'CZ'}, CAL:{n:'China Airlines',i:'CI'}, AIC:{n:'Air India',i:'AI'},
+    FDX:{n:'FedEx Express',i:'FX'}, UPS:{n:'UPS Airlines',i:'5X'}, GTI:{n:'Atlas Air',i:'5Y'},
+};
+
+function deriveAirline(callsign) {
+    if (!callsign) return null;
+    const m = String(callsign).toUpperCase().match(/^([A-Z]{3})\d/); // 3 ICAO letters + flight number
+    return m ? (AIRLINES[m[1]] || null) : null;
+}
+
 function getHeadingIcon(heading) {
     return `<span style="display:inline-block;transform:rotate(${(heading || 0) - 45}deg);">✈️</span>`;
 }
@@ -6553,6 +6579,20 @@ async function loadFlights() {
 
         const { flights = [], total, shown, source } = data;
         currentFlights = flights;
+
+        // ── Backfill airline name + logo from callsign when API didn't provide one ──
+        flights.forEach(f => {
+            if (!f.airline) {
+                const a = deriveAirline(f.callsign || f.icao);
+                if (a) {
+                    f.airline = a.n;
+                    f.airline_iata = f.airline_iata || a.i;
+                }
+            }
+            if (f.airline_iata && !f.airline_logo) {
+                f.airline_logo = `https://content.airhex.com/content/logos/airlines_${f.airline_iata}_32_32_s.png`;
+            }
+        });
 
         // ── Stats ──
         document.getElementById('flight-count').textContent = shown || flights.length;

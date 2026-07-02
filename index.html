@@ -6636,7 +6636,7 @@ setTool('dns');
                 if (!f.lat || !f.lon) { flightMarkers[i] = null; return; }
 
                 const icon = L.divIcon({
-                    html: `<div style="color:#93c5fd;font-size:14px;transform:rotate(${f.heading}deg);filter:drop-shadow(0 0 3px rgba(147,197,253,0.8));line-height:1;">✈</div>`,
+                    html: `<div style="color:#93c5fd;font-size:14px;transform:rotate(${f.heading-45}deg);filter:drop-shadow(0 0 3px rgba(147,197,253,0.8));line-height:1;">✈</div>`,
                     className: '',
                     iconSize: [16, 16],
                     iconAnchor: [8, 8],

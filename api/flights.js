@@ -95,7 +95,7 @@ export default async function handler(req, res) {
             airline:       f.operator || null,
             airline_iata:  f.operator_iata || null,
             airline_logo:  f.operator_iata
-              ? `https://content.airhex.com/content/logos/airlines_${f.operator_iata}_32_32_s.png`
+              ? `https://pics.avs.io/40/40/${f.operator_iata}.png`
               : null,
             origin:        origin?.city || origin?.name || null,
             origin_iata:   origin?.code_iata || null,

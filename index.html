@@ -1177,6 +1177,93 @@
         .world-cup-banner-title { font-family: 'Space Mono', monospace; color: #facc15; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.25rem; }
         .world-cup-banner-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
         .team-record { font-size: 0.7rem; color: var(--text-muted); font-family: 'Space Mono', monospace; margin-top: 0.25rem; }
+        /* Score card affordance */
+        .score-card[data-game-id]:not([data-game-id=""]) { cursor: pointer; transition: border-color .2s, transform .2s; }
+        .score-card[data-game-id]:not([data-game-id=""]):hover { border-color: var(--green); transform: translateY(-2px); }
+        .score-card[data-game-id]:not([data-game-id=""])::after {
+          content: "View full stats →";
+          display: block; text-align: right; margin-top: .4rem;
+          font-family: 'Space Mono', monospace; font-size: .58rem;
+          color: var(--text-muted); opacity: .6;
+        }
+        .score-card[data-game-id]:not([data-game-id=""]):hover::after { color: var(--green); opacity: 1; }
+ 
+        /* Modal */
+        .game-modal-overlay {
+          position: fixed; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
+          z-index: 9999; display: none; align-items: flex-start; justify-content: center;
+          overflow-y: auto; padding: 3rem 1rem;
+        }
+        .game-modal-overlay.active { display: flex; }
+        .game-modal {
+          position: relative; background: #0d1117; border: 1px solid rgba(255,255,255,.08);
+          border-radius: 14px; max-width: 640px; width: 100%; padding: 1.5rem;
+          box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        }
+        .game-modal-close {
+          position: absolute; top: .75rem; right: .75rem; background: rgba(255,255,255,.05);
+          border: none; color: var(--text-muted); width: 30px; height: 30px; border-radius: 50%;
+          cursor: pointer; font-size: .85rem;
+        }
+        .game-modal-close:hover { background: rgba(255,255,255,.12); color: var(--text); }
+        .game-modal-loading { text-align: center; color: var(--text-muted); padding: 2rem; font-family: 'Space Mono', monospace; }
+ 
+        .gm-header { text-align: center; margin-bottom: 1.25rem; }
+        .gm-status { font-family: 'Space Mono', monospace; font-size: .72rem; letter-spacing: .06em; margin-bottom: .85rem; }
+        .gm-teams { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+        .gm-team { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .35rem; }
+        .gm-logo { width: 44px; height: 44px; object-fit: contain; }
+        .gm-team-name { font-size: .82rem; color: var(--text); font-weight: 600; }
+        .gm-record { font-size: .64rem; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+        .gm-score { font-family: 'Space Mono', monospace; font-size: 1.8rem; font-weight: 700; color: var(--text); display: flex; gap: .5rem; align-items: center; }
+        .gm-score-sep { color: var(--text-muted); font-size: 1.2rem; }
+        .gm-win { color: var(--green); }
+        .gm-meta { font-size: .66rem; color: var(--text-muted); font-family: 'Space Mono', monospace; margin-top: .5rem; }
+ 
+        .gm-section { margin-top: 1.25rem; border-top: 1px solid rgba(255,255,255,.06); padding-top: 1rem; }
+        .gm-section-title { font-family: 'Space Mono', monospace; font-size: .66rem; letter-spacing: .08em; color: var(--text-muted); text-transform: uppercase; margin-bottom: .6rem; }
+ 
+        .gm-stats-table { width: 100%; border-collapse: collapse; font-family: 'Space Mono', monospace; font-size: .72rem; }
+        .gm-stats-table th { color: var(--text-muted); padding: 3px 6px; font-size: .66rem; }
+        .gm-stats-table td { padding: 4px 6px; text-align: center; color: var(--text); }
+        .gm-stats-table .gm-stat-label { color: var(--text-muted); font-size: .64rem; }
+        .gm-stats-table tr:nth-child(even) { background: rgba(255,255,255,.02); }
+ 
+        .gm-leader { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.04); font-size: .74rem; }
+        .gm-leader-cat { color: var(--text-muted); font-size: .64rem; font-family: 'Space Mono', monospace; flex: 0 0 92px; }
+        .gm-leader-player { color: var(--text); flex: 1; }
+        .gm-leader-team { color: var(--text-muted); font-size: .62rem; }
+        .gm-leader-val { color: var(--green); font-family: 'Space Mono', monospace; font-size: .72rem; }
+ 
+        .gm-play { display: flex; align-items: center; gap: .5rem; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.04); font-size: .72rem; }
+        .gm-play-time { color: var(--text-muted); font-family: 'Space Mono', monospace; font-size: .62rem; flex: 0 0 92px; }
+        .gm-play-text { color: var(--text); flex: 1; }
+        .gm-play-score { color: var(--green); font-family: 'Space Mono', monospace; }
+ 
+        .gm-wp-bar { height: 8px; background: rgba(255,255,255,.06); border-radius: 4px; overflow: hidden; display: flex; }
+        .gm-wp-labels { display: flex; justify-content: space-between; font-size: .62rem; color: var(--text-muted); font-family: 'Space Mono', monospace; margin-top: 3px; }
+ 
+        /* News tab */
+        .news-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+        .news-chip { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); color: var(--text-muted); padding: .3rem .7rem; border-radius: 999px; font-size: .68rem; font-family: 'Space Mono', monospace; cursor: pointer; }
+        .news-chip.active, .news-chip:hover { border-color: var(--green); color: var(--green); }
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .9rem; }
+        .news-card { display: block; text-decoration: none; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 10px; overflow: hidden; transition: border-color .2s, transform .2s; }
+        .news-card:hover { border-color: var(--green); transform: translateY(-2px); }
+        .news-img { width: 100%; height: 140px; background-size: cover; background-position: center; }
+        .news-body { padding: .8rem; }
+        .news-meta { display: flex; align-items: center; gap: .4rem; margin-bottom: .4rem; flex-wrap: wrap; }
+        .news-league { font-family: 'Space Mono', monospace; font-size: .6rem; color: var(--green); letter-spacing: .04em; }
+        .news-tag { font-size: .58rem; padding: 1px 6px; border-radius: 999px; border: 1px solid; font-family: 'Space Mono', monospace; }
+        .news-time { font-size: .6rem; color: var(--text-muted); margin-left: auto; font-family: 'Space Mono', monospace; }
+        .news-headline { font-size: .82rem; color: var(--text); font-weight: 600; line-height: 1.3; margin-bottom: .35rem; }
+        .news-desc { font-size: .72rem; color: var(--text-muted); line-height: 1.4; }
+ 
+        @media (max-width: 640px) {
+          .gm-score { font-size: 1.4rem; }
+          .news-grid { grid-template-columns: 1fr; }
+          .gm-leader-cat, .gm-play-time { flex-basis: 74px; }
+        }
         /* ── WEATHER WIDGET ── */
         .weather-widget { display: flex; align-items: center; gap: 1rem; background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1rem; flex-wrap: wrap; }
         .weather-icon { font-size: 2.5rem; flex-shrink: 0; }
@@ -7231,7 +7318,7 @@ function renderScoreCard(game, league) {
     const isPlayoff = game.title && (game.title.includes('Game') || game.title.includes('Final') || game.title.includes('Round') || game.title.includes('Cup'));
 
     return `
-        <div class="score-card ${statusClass}" ${(homeIsHouston || awayIsHouston) ? `style="border-color:${houstonColor}40"` : ''}>
+        <div class="score-card ${statusClass}" data-game-id="${game.id || ''}" ${(homeIsHouston || awayIsHouston) ? `style="border-color:${houstonColor}40"` : ''}>
             <div class="score-status ${statusClass}">
                 ${statusLabel}
                 ${game.live_detail ? `<span style="font-family:'Space Mono',monospace;font-size:0.68rem;color:#facc15;margin-left:0.4rem;">${game.live_detail}</span>` : ''}
@@ -7333,6 +7420,260 @@ const sportsObserver = new IntersectionObserver(entries => {
 
 const sportsSection = document.getElementById('sports');
 if (sportsSection) sportsObserver.observe(sportsSection);
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+ 
+function timeAgo(ms) {
+  if (!ms) return '';
+  const diff = Date.now() - ms;
+  const h = Math.floor(diff / 3600000);
+  if (h < 1) return 'just now';
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+ 
+/* ── Game drill-down modal ── */
+async function openGameDetail(league, id) {
+  let modal = document.getElementById('game-detail-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'game-detail-modal';
+    modal.className = 'game-modal-overlay';
+    modal.innerHTML = `
+      <div class="game-modal" onclick="event.stopPropagation()">
+        <button class="game-modal-close" onclick="closeGameDetail()" aria-label="Close">✕</button>
+        <div id="game-modal-body"></div>
+      </div>`;
+    modal.addEventListener('click', closeGameDetail);
+    document.body.appendChild(modal);
+  }
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+ 
+  const body = document.getElementById('game-modal-body');
+  body.innerHTML = `<div class="game-modal-loading">Loading game details…</div>`;
+  try {
+    const res = await fetch(`/api/sports-game?league=${league}&id=${id}`);
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      body.innerHTML = `<div class="strava-error">${esc(data.error) || 'Could not load game.'}</div>`;
+      return;
+    }
+    body.innerHTML = renderGameDetail(data);
+  } catch (e) {
+    body.innerHTML = `<div class="strava-error">Could not load game details.</div>`;
+  }
+}
+ 
+function closeGameDetail() {
+  const modal = document.getElementById('game-detail-modal');
+  if (modal) modal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+ 
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGameDetail(); });
+ 
+function renderGameDetail(g) {
+  const homeScore = g.home.score ?? '—';
+  const awayScore = g.away.score ?? '—';
+  const statusLabel = g.status === 'inprogress' ? 'LIVE' : g.status === 'closed' ? 'FINAL' : 'UPCOMING';
+  const statusColor = g.status === 'inprogress' ? '#ef4444' : g.status === 'closed' ? 'var(--text-muted)' : '#93c5fd';
+ 
+  const teamCol = (t) => `
+    <div class="gm-team">
+      ${t.logo ? `<img src="${esc(t.logo)}" class="gm-logo" alt="">` : ''}
+      <div class="gm-team-name">${esc(t.name)}</div>
+      ${t.record ? `<div class="gm-record">${esc(t.record)}</div>` : ''}
+    </div>`;
+ 
+  const header = `
+    <div class="gm-header">
+      <div class="gm-status" style="color:${statusColor}">
+        ${statusLabel}${g.statusDetail ? ` · ${esc(g.statusDetail)}` : ''}
+      </div>
+      <div class="gm-teams">
+        ${teamCol(g.away)}
+        <div class="gm-score">
+          <span class="${g.away.winner ? 'gm-win' : ''}">${awayScore}</span>
+          <span class="gm-score-sep">–</span>
+          <span class="${g.home.winner ? 'gm-win' : ''}">${homeScore}</span>
+        </div>
+        ${teamCol(g.home)}
+      </div>
+      ${g.venue ? `<div class="gm-meta">🏟️ ${esc(g.venue)}${g.broadcast ? ` · 📺 ${esc(g.broadcast)}` : ''}</div>`
+                : (g.broadcast ? `<div class="gm-meta">📺 ${esc(g.broadcast)}</div>` : '')}
+      ${g.odds?.details ? `<div class="gm-meta">Odds: ${esc(g.odds.details)}${g.odds.overUnder ? ` · O/U ${esc(g.odds.overUnder)}` : ''}</div>` : ''}
+    </div>`;
+ 
+  // Win probability
+  let winProbHtml = '';
+  if (g.win_probability) {
+    const a = g.win_probability[g.away.abbr], h = g.win_probability[g.home.abbr];
+    if (a != null && h != null) {
+      winProbHtml = `
+        <div class="gm-section">
+          <div class="gm-section-title">Win Probability</div>
+          <div class="gm-wp-bar">
+            <div style="width:${a}%;background:#3b82f6"></div>
+            <div style="width:${h}%;background:#ef4444"></div>
+          </div>
+          <div class="gm-wp-labels"><span>${esc(g.away.abbr)} ${a}%</span><span>${esc(g.home.abbr)} ${h}%</span></div>
+        </div>`;
+    }
+  }
+ 
+  // Team stats
+  let teamStatsHtml = '';
+  if (g.team_stats?.length) {
+    teamStatsHtml = `
+      <div class="gm-section">
+        <div class="gm-section-title">Team Stats</div>
+        <table class="gm-stats-table">
+          <tr><th>${esc(g.away.abbr)}</th><th></th><th>${esc(g.home.abbr)}</th></tr>
+          ${g.team_stats.map(s => `
+            <tr>
+              <td>${esc(s.away)}</td>
+              <td class="gm-stat-label">${esc(s.label)}</td>
+              <td>${esc(s.home)}</td>
+            </tr>`).join('')}
+        </table>
+      </div>`;
+  }
+ 
+  // Leaders
+  let leadersHtml = '';
+  if (g.leaders?.length) {
+    leadersHtml = `
+      <div class="gm-section">
+        <div class="gm-section-title">Game Leaders</div>
+        ${g.leaders.map(l => `
+          <div class="gm-leader">
+            <span class="gm-leader-cat">${esc(l.category)}</span>
+            <span class="gm-leader-player">${esc(l.player)} <span class="gm-leader-team">${esc(l.team)}</span></span>
+            <span class="gm-leader-val">${esc(l.value)}</span>
+          </div>`).join('')}
+      </div>`;
+  }
+ 
+  // Scoring / key plays
+  let playsHtml = '';
+  if (g.scoring_plays?.length) {
+    playsHtml = `
+      <div class="gm-section">
+        <div class="gm-section-title">Scoring Summary</div>
+        ${g.scoring_plays.map(p => `
+          <div class="gm-play">
+            <span class="gm-play-time">${esc(p.team)}${p.clock ? ' · ' + esc(p.clock) : ''}</span>
+            <span class="gm-play-text">${esc(p.text)}</span>
+            <span class="gm-play-score">${p.away ?? ''}${p.away != null ? '-' : ''}${p.home ?? ''}</span>
+          </div>`).join('')}
+      </div>`;
+  }
+ 
+  const empty = (!teamStatsHtml && !leadersHtml && !playsHtml && !winProbHtml)
+    ? `<div class="gm-meta" style="text-align:center;padding:1rem;">Detailed stats appear once the game is underway.</div>`
+    : '';
+ 
+  return header + winProbHtml + teamStatsHtml + leadersHtml + playsHtml + empty;
+}
+ 
+/* ── Click delegation: any score card with a game id opens the modal ── */
+document.addEventListener('click', (e) => {
+  const card = e.target.closest('.score-card[data-game-id]');
+  if (!card) return;
+  const id = card.getAttribute('data-game-id');
+  if (!id) return;
+  const container = card.closest('.sports-league');
+  const league = container?.id?.replace('league-', '');
+  if (league) openGameDetail(league, id);
+});
+ 
+/* ── News tab (self-injects, no HTML edits needed) ── */
+function injectNewsTab() {
+  const anyTab = document.querySelector('.sports-tab');
+  const anyLeague = document.querySelector('.sports-league');
+  if (!anyTab || !anyLeague) return;
+ 
+  if (!document.getElementById('sports-tab-news')) {
+    const btn = document.createElement('button');
+    btn.className = 'sports-tab';
+    btn.id = 'sports-tab-news';
+    btn.innerHTML = '📰 News';
+    btn.onclick = () => { switchSportsTab('news', btn); loadNews(); };
+    anyTab.parentElement.appendChild(btn);
+  }
+  if (!document.getElementById('league-news')) {
+    const div = document.createElement('div');
+    div.className = 'sports-league';
+    div.id = 'league-news';
+    anyLeague.parentElement.appendChild(div);
+  }
+}
+ 
+async function loadNews() {
+  const container = document.getElementById('league-news');
+  if (!container || container.dataset.loaded === '1') return;
+  container.innerHTML = `<div class="game-modal-loading">Loading sports news…</div>`;
+  try {
+    const res = await fetch('/api/sports-news');
+    const data = await res.json();
+    if (!res.ok || !data.articles?.length) {
+      container.innerHTML = '<div class="strava-error">No news available right now.</div>';
+      return;
+    }
+    const chips = ['All', 'Trade', 'Free Agency', 'Draft', 'Rumor', 'Injury'];
+    const chipHtml = chips.map((c, i) =>
+      `<button class="news-chip ${i === 0 ? 'active' : ''}" data-filter="${c}" onclick="filterNews('${c}', this)">${c}</button>`
+    ).join('');
+    container.innerHTML = `
+      <div class="news-chips">${chipHtml}</div>
+      <div class="news-grid" id="news-grid">${data.articles.map(renderNewsCard).join('')}</div>`;
+    container.dataset.loaded = '1';
+  } catch (e) {
+    container.innerHTML = '<div class="strava-error">Could not load news.</div>';
+  }
+}
+ 
+function renderNewsCard(a) {
+  const tagColors = { 'Trade': '#f59e0b', 'Free Agency': '#22c55e', 'Draft': '#8b5cf6', 'Rumor': '#ec4899', 'Injury': '#ef4444' };
+  const col = tagColors[a.tag] || '#64748b';
+  const tagHtml = a.tag
+    ? `<span class="news-tag" style="background:${col}22;color:${col};border-color:${col}55;">${esc(a.tag)}</span>`
+    : '';
+  const desc = a.description
+    ? esc(a.description.length > 140 ? a.description.slice(0, 140) + '…' : a.description)
+    : '';
+  return `
+    <a class="news-card" href="${esc(a.link) || '#'}" target="_blank" rel="noopener" data-tag="${esc(a.tag || '')}">
+      ${a.image ? `<div class="news-img" style="background-image:url('${encodeURI(a.image)}')"></div>` : ''}
+      <div class="news-body">
+        <div class="news-meta">
+          <span class="news-league">${esc(a.league_label)}</span>
+          ${tagHtml}
+          <span class="news-time">${timeAgo(a.published_ms)}</span>
+        </div>
+        <div class="news-headline">${esc(a.headline)}</div>
+        ${desc ? `<div class="news-desc">${desc}</div>` : ''}
+      </div>
+    </a>`;
+}
+ 
+function filterNews(filter, btn) {
+  document.querySelectorAll('.news-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#news-grid .news-card').forEach(card => {
+    card.style.display = (filter === 'All' || card.dataset.tag === filter) ? '' : 'none';
+  });
+}
+ 
+/* Init: inject the News tab once the DOM is ready */
+if (document.readyState !== 'loading') injectNewsTab();
+else document.addEventListener('DOMContentLoaded', injectNewsTab);
+
 
 // ── STRAVA LIVE FEED (unchanged) ──
 async function loadStrava() {

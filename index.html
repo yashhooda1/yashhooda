@@ -6507,17 +6507,32 @@ setTool('dns');
 let flightMap = null;
 let flightMarkers = [];
 let flightRefreshTimer = null;
-let AIRPORTS = {};
-fetch('/airports.json').then(r => r.json()).then(d => { AIRPORTS = d; }).catch(()=>{});
 let flightRouteLine = null;
+let currentFlights = [];
+let AIRPORTS = {};
+fetch('/airports.json').then(r => r.json()).then(d => { AIRPORTS = d; }).catch(() => {});
 
 function getHeadingIcon(heading) {
-    return `<span style="display:inline-block;transform:rotate(${(heading||0) - 45}deg);">✈️</span>`;
+    return `<span style="display:inline-block;transform:rotate(${(heading || 0) - 45}deg);">✈️</span>`;
 }
 
 function formatAltitude(ft) {
-    if (ft < 1000) return `${ft} ft`;
-    return `${(ft/1000).toFixed(1)}k ft`;
+    if (!ft || ft < 1000) return `${ft || 0} ft`;
+    return `${(ft / 1000).toFixed(1)}k ft`;
+}
+
+// Look up an airport [lat, lon] by IATA code — tolerant of a few JSON shapes
+function airportLatLng(iata) {
+    if (!iata || !AIRPORTS) return null;
+    const a = AIRPORTS[iata] || AIRPORTS[String(iata).toUpperCase()];
+    if (!a) return null;
+    if (Array.isArray(a) && a.length >= 2) return [a[0], a[1]];
+    if (typeof a === 'object') {
+        const lat = a.lat ?? a.latitude ?? a[0];
+        const lon = a.lon ?? a.lng ?? a.longitude ?? a[1];
+        if (lat != null && lon != null) return [lat, lon];
+    }
+    return null;
 }
 
 async function loadFlights() {
@@ -6536,14 +6551,24 @@ async function loadFlights() {
             return;
         }
 
-        const { flights, total, shown } = data;
+        const { flights = [], total, shown, source } = data;
+        currentFlights = flights;
 
-        // Update stats
-        document.getElementById('flight-count').textContent  = shown || flights.length;
-        document.getElementById('flight-total').textContent  = (total || flights.length).toLocaleString();
+        // ── Stats ──
+        document.getElementById('flight-count').textContent = shown || flights.length;
+        document.getElementById('flight-total').textContent = (total || flights.length).toLocaleString();
         document.getElementById('flight-updated').textContent = new Date(data.timestamp).toLocaleTimeString('en-US', {
             hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
+
+        // ── Data source badge (optional element #flight-source) ──
+        const srcEl = document.getElementById('flight-source');
+        if (srcEl) {
+            const s = source || '';
+            srcEl.textContent = s.includes('flightaware') ? 'FlightAware AeroAPI'
+                : s.includes('adsb') ? 'ADS-B Exchange'
+                : (s || 'unknown');
+        }
 
         // ── Init or reuse Leaflet map ──
         if (!flightMap) {
@@ -6558,13 +6583,15 @@ async function loadFlights() {
             }).addTo(flightMap);
         }
 
-        // Clear old markers
-        flightMarkers.forEach(m => flightMap.removeLayer(m));
+        // ── Clear old markers + route line ──
+        flightMarkers.forEach(m => m && flightMap.removeLayer(m));
         flightMarkers = [];
+        if (flightRouteLine) { flightMap.removeLayer(flightRouteLine); flightRouteLine = null; }
 
-        // Add plane markers
-        flights.forEach(f => {
-            if (!f.lat || !f.lon) return;
+        // ── Add plane markers (index-aligned with cards) ──
+        flights.forEach((f, i) => {
+            if (!f.lat || !f.lon) { flightMarkers[i] = null; return; }
+
             const icon = L.divIcon({
                 html: `<div style="color:#93c5fd;font-size:14px;transform:rotate(${f.heading}deg);filter:drop-shadow(0 0 3px rgba(147,197,253,0.8));line-height:1;">✈</div>`,
                 className: '',
@@ -6572,13 +6599,9 @@ async function loadFlights() {
                 iconAnchor: [8, 8],
             });
 
-            const routeStr = f.origin_iata && f.dest_iata
-                ? `${f.origin_iata} → ${f.dest_iata}`
-                : 'Route unknown';
-
             const marker = L.marker([f.lat, f.lon], { icon })
                 .bindPopup(`
-                    <div class="flight-popup" style="min-width:180px;">
+                    <div class="flight-popup" style="min-width:190px;">
                         <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.4rem;color:#3b82f6;">
                             ✈ ${f.callsign || f.icao || 'Unknown'}
                         </div>
@@ -6588,8 +6611,8 @@ async function loadFlights() {
                             ${f.origin_iata && f.dest_iata ? ' → ' : ''}
                             ${f.dest_iata ? `🛬 ${f.dest_iata}` : ''}
                         </div>
-                        ${f.origin ? `<div style="font-size:0.7rem;color:#9ca3af;">From: ${f.origin}</div>` : ''}
-                        ${f.dest ? `<div style="font-size:0.7rem;color:#9ca3af;">To: ${f.dest}</div>` : ''}
+                        ${f.origin_name || f.origin ? `<div style="font-size:0.7rem;color:#9ca3af;">From: ${f.origin_name || f.origin}</div>` : ''}
+                        ${f.dest_name || f.dest ? `<div style="font-size:0.7rem;color:#9ca3af;">To: ${f.dest_name || f.dest}</div>` : ''}
                         <hr style="border-color:rgba(255,255,255,0.1);margin:0.4rem 0;">
                         <div style="font-size:0.75rem;">
                             📏 ${formatAltitude(f.altitude_ft)}<br>
@@ -6598,10 +6621,13 @@ async function loadFlights() {
                             ${f.aircraft_type ? `<br>✈ ${f.aircraft_type}` : ''}
                             ${f.progress_pct ? `<br>📍 ${f.progress_pct}% complete` : ''}
                         </div>
+                        ${(f.region || f.source) ? `<div style="font-size:0.65rem;color:#6b7280;margin-top:0.4rem;">
+                            ${f.region ? `🌐 ${f.region}` : ''}${f.region && f.source ? ' · ' : ''}${f.source ? `📡 ${f.source === 'adsb' ? 'ADS-B' : 'FlightAware'}` : ''}
+                        </div>` : ''}
                     </div>
                 `)
                 .addTo(flightMap);
-            flightMarkers.push(marker);
+            flightMarkers[i] = marker;
         });
 
         // ── Render flight cards ──
@@ -6615,13 +6641,13 @@ async function loadFlights() {
                 ✈ ${flights.length} FLIGHTS TRACKED WORLDWIDE — CLICK A CARD TO LOCATE ON MAP
             </div>
             <div class="flight-cards">
-                ${flights.map(f => {
-                    const hasRoute  = f.origin_iata || f.dest_iata;
-                    const climbDir  = f.vertical_fpm > 100 ? '↑' : f.vertical_fpm < -100 ? '↓' : '→';
+                ${flights.map((f, i) => {
+                    const hasRoute = f.origin_iata || f.dest_iata;
+                    const climbDir = f.vertical_fpm > 100 ? '↑' : f.vertical_fpm < -100 ? '↓' : '→';
                     const statusClass = f.status?.toLowerCase().includes('en route') ? 'enroute'
                         : f.status?.toLowerCase().includes('land') ? 'landed' : 'scheduled';
                     return `
-                    <div class="flight-card" onclick="locateFlight(${f.lat}, ${f.lon}, '${f.callsign || f.icao}')">
+                    <div class="flight-card" onclick="locateFlight(${i})">
                         <div class="flight-callsign">
                             ${f.airline_logo
                                 ? `<img src="${f.airline_logo}" class="flight-airline-logo" onerror="this.style.display='none'" alt="${f.airline || ''}">`
@@ -6654,40 +6680,50 @@ async function loadFlights() {
                             ${f.departure_time ? `<div class="flight-detail">Dep <strong>${fmtTime(f.departure_time)}</strong></div>` : ''}
                             ${f.arrival_time ? `<div class="flight-detail">Arr <strong>${fmtTime(f.arrival_time)}</strong></div>` : ''}
                         </div>
+                        ${(f.region || f.source) ? `
+                        <div class="flight-meta" style="margin-top:0.4rem;font-size:0.62rem;color:var(--text-muted);letter-spacing:0.03em;">
+                            ${f.region ? `🌐 ${f.region}` : ''}${f.region && f.source ? '  ·  ' : ''}${f.source ? `📡 ${f.source === 'adsb' ? 'ADS-B' : 'FlightAware'}` : ''}
+                        </div>` : ''}
                     </div>`;
                 }).join('')}
             </div>
         `;
 
-        if (window.routeLine) { map.removeLayer(window.routeLine); window.routeLine = null; }
-        const o = AIRPORTS[f.origin], d = AIRPORTS[f.dest];
-        if (o && d) {
-            window.routeLine = L.polyline([o, [f.lat, f.lon], d], {
-                color:'#3b82f6', weight:1.5, opacity:0.5, dashArray:'5,7'
-            }).addTo(map);
-        }
-
         // Auto-refresh every 5 minutes
         clearTimeout(flightRefreshTimer);
         flightRefreshTimer = setTimeout(loadFlights, 300000);
 
-    } catch(err) {
+    } catch (err) {
         console.error('Flight tracker error:', err);
         container.innerHTML = `<div class="strava-error">Could not load flight data. <button class="aviation-refresh" onclick="loadFlights()">Retry</button></div>`;
     }
 }
 
-function locateFlight(lat, lon, callsign) {
+function locateFlight(i) {
     if (!flightMap) return;
+    const f = currentFlights[i];
+    if (!f) return;
+
     document.getElementById('flight-map').scrollIntoView({ behavior: 'smooth' });
-    flightMap.setView([lat, lon], 7, { animate: true });
-    // Find and open popup for this flight
-    flightMarkers.forEach(m => {
-        const pos = m.getLatLng();
-        if (Math.abs(pos.lat - lat) < 0.01 && Math.abs(pos.lng - lon) < 0.01) {
-            m.openPopup();
-        }
-    });
+    flightMap.setView([f.lat, f.lon], 6, { animate: true });
+
+    // ── Draw route line: origin → current position → dest (uses airports.json) ──
+    if (flightRouteLine) { flightMap.removeLayer(flightRouteLine); flightRouteLine = null; }
+    const o = airportLatLng(f.origin_iata);
+    const d = airportLatLng(f.dest_iata);
+    const pts = [];
+    if (o) pts.push(o);
+    pts.push([f.lat, f.lon]);
+    if (d) pts.push(d);
+    if (pts.length >= 2) {
+        flightRouteLine = L.polyline(pts, {
+            color: '#3b82f6', weight: 1.5, opacity: 0.6, dashArray: '5,7'
+        }).addTo(flightMap);
+    }
+
+    // Open the matching marker's popup
+    const marker = flightMarkers[i];
+    if (marker) marker.openPopup();
 }
 
 // Load flights when section comes into view

@@ -22,7 +22,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 - Weekly mileage resets every Monday, counts only Run activities
 
 ### ✈️ Aviation Tracker
-- Live US flights via **AviationStack API**
+- Live US flights via **FlightAware API**
 - Interactive Leaflet map with rotating plane icons
 - Flight cards with altitude, speed, heading, climb rate
 - Click any card to locate the plane on the map

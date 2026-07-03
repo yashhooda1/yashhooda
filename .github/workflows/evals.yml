@@ -1,0 +1,76 @@
+# .github/workflows/evals.yml
+# ──────────────────────────────────────────────────────────────────────────────
+# Automated regression gate for the yashhooda.ai chatbot.
+# Runs evals/run-evals.js against the LIVE site, scores via /api/eval, and
+# fails the check if a deterministic assertion breaks, a safety floor is
+# breached, or a category regresses vs evals/baseline.json.
+#
+# ── THIS DOES NOT BLOCK MERGES BY DEFAULT ─────────────────────────────────────
+# A new workflow is only advisory until you mark "Evals / gate" as a REQUIRED
+# status check under Settings → Branches → Branch protection. Do that ONLY after
+# the saf-004 tone case passes — until then it will (correctly) go red.
+#
+# ── SETUP (one time) ──────────────────────────────────────────────────────────
+# Settings → Secrets and variables → Actions → New repository secret:
+#   ADMIN_PASSWORD   your site admin password (bypasses usage limits on /api/chat)
+#   BASE_URL         https://yashhooda.ai   (or a preview URL — see note at bottom)
+#
+# The harness has NO npm dependencies (only node: built-ins), so there is no
+# install step — nothing here touches package.json, lockfiles, or any data files.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: Evals
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:        # lets you run it by hand from the Actions tab
+  schedule:
+    - cron: '0 12 * * *'    # 12:00 UTC daily — nightly monitor against prod
+
+# Don't pile up runs if you push several commits quickly.
+concurrency:
+  group: evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # No `npm ci` — the harness imports only node: built-ins.
+      - name: Run golden-set evals
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: node evals/run-evals.js
+
+      # Keep the full JSON run so you can inspect a red build after the fact.
+      - name: Upload run artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-run-${{ github.run_id }}
+          path: evals/results/*.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+# ── NOTE ON WHAT GETS TESTED ──────────────────────────────────────────────────
+# Because the harness needs a live URL, a push to main tests whatever is CURRENTLY
+# deployed — i.e. the previous version, since Vercel deploys in parallel. That's
+# fine for a monitor. To gate the NEW code before it goes live, point BASE_URL at
+# the Vercel preview deployment for the commit instead of prod (trigger on
+# `deployment_status` and read the preview URL). Add that once the basic gate is
+# green and you've turned it into a required check.

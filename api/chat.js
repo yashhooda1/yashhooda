@@ -776,8 +776,7 @@ that hits the requested distance. Personalizes to the athlete's Strava history (
 sized to recent volume, start point from the most recent run). Live Strava webhook invalidates cached
 profiles on new activities. One-tap "Send to Garmin" creates a Course on the user's Garmin account
 (reverse-engineered the connect course-service payload — rulePK privacy, geoPoints, activityTypePk)
-via a FastAPI push service on Railway using python-garminconnect. Companion Connect IQ (Monkey C) watch
-app for the Forerunner 970. Tech: Next.js/Vercel serverless, Node, OpenRouteService, Strava API,
+via a FastAPI push service on Railway using python-garminconnect. Companion Connect IQ (Monkey C) watch app compiled and sideloaded onto a real Forerunner 970 — the watch acquires GPS, fetches route options from the API through the phone's Bluetooth bridge, and pushes the chosen course to Garmin from the wrist. Tech: Next.js/Vercel serverless, Node, OpenRouteService, Strava API,
 Upstash Redis, FastAPI, Railway, Garmin Connect IQ. Live: https://routes.yashhooda.ai — GitHub: yashhooda1/hoodaroutes
 
 CONTACT & LINKS:

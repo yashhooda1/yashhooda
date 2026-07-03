@@ -2,6 +2,11 @@
   "name": "yashhooda-aibuilder",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "eval": "node evals/run-evals.js",
+    "eval:smoke": "node evals/run-evals.js --no-judge",
+    "eval:baseline": "node evals/run-evals.js --update-baseline"
+  },
   "dependencies": {
     "@upstash/vector": "^1.2.0",
     "@upstash/redis": "^1.34.0",

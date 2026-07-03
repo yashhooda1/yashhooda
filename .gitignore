@@ -1,5 +1,57 @@
-node_modules/
+# ══════════════════════════════════════════════════════════════════════════════
+# .gitignore — yashhooda.ai
+# Goal: keep secrets and local junk OUT of git, keep everything the site SHIPS in.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── SECRETS & CREDENTIALS ─────────────────────────────────────────────────────
+# This is the whole reason to care. A leaked .env = leaked API keys = someone
+# spending your money. These never get committed.
 .env
-.env.local
-.vercel
+.env.*
+!.env.example          # a KEY-LESS template is fine to commit as documentation
+*.pem
+*.key
+*.p12
+credentials.json
+service-account*.json  # e.g. GCP keys — the ONE json family that must be ignored
+
+# Local runner scripts that may contain ADMIN_PASSWORD inline.
+# Name any password-bearing .bat like:  run-evals.local.bat
+*.local.bat
+set-env*.bat
+
+# ── DEPENDENCIES & BUILD OUTPUT ───────────────────────────────────────────────
+node_modules/
+.vercel/
+.next/
+dist/
+build/
+.cache/
+
+# ── LOGS & DEBUG ──────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+
+# ── EVAL HARNESS ──────────────────────────────────────────────────────────────
+# Timestamped run outputs pile up; ignore them. The CI workflow uploads them as
+# build artifacts instead. golden.json + baseline.json stay tracked (see below).
 evals/results/
+
+# ── OS / EDITOR CRUFT ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/            # remove this line if you want to share workspace settings
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MUST STAY TRACKED — these files SHIP. The negations below are insurance so no
+# future pattern can ever accidentally exclude them. DO NOT add a broad *.json rule.
+# ══════════════════════════════════════════════════════════════════════════════
+!public_data_climate_gold.json   # ClimatePulse gold layer, served from repo root
+!airports.json                   # aviation tracker lookup table
+!evals/golden.json               # eval test set
+!evals/baseline.json             # eval reference scores

@@ -45,7 +45,7 @@ evals/results/
 Thumbs.db
 Desktop.ini
 .idea/
-.vscode/            # remove this line if you want to share workspace settings
+.vscode/            
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MUST STAY TRACKED — these files SHIP. The negations below are insurance so no

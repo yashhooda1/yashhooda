@@ -168,34 +168,35 @@ export default async function handler(req, res) {
 
     // Build weather-enriched run summary
     const recentRunsSummary = runs.slice(0, 20).map((r, i) => {
-      const wx = i < 10 ? weatherResults[i] : null;
-      const secPerMi = r.average_speed > 0 ? 1609.34 / r.average_speed : null;
-      const paceStr = secPerMi
-        ? (() => {
-            const m = Math.floor(secPerMi / 60);
-            const s = Math.round(secPerMi % 60);
-            return s === 60 ? `${m+1}:00/mi` : `${m}:${s.toString().padStart(2,'0')}/mi`;
-          })()
-        : null;
-      return {
-        date:     r.start_date_local.split('T')[0],
-        miles:    (r.distance/1609.34).toFixed(2),
-        pace:     paceStr,
-        hr:       r.average_heartrate || null,
-        name:     r.name,
-        location: (r.start_latlng && r.start_latlng.length >= 2)
-          ? `${r.start_latlng[0].toFixed(2)},${r.start_latlng[1].toFixed(2)}`
-          : null,
-        weather:  wx ? {
-          tempF:      wx.tempF,
-          feelsF:     wx.feelsF,
-          humidity:   wx.humidity,
-          windMph:    wx.windMph,
-          perfImpact: wx.perfImpact,
-          heatRisk:   wx.heatRisk,
-        } : null,
-      };
-    });
+      try {
+        const wx = i < 10 ? weatherResults[i] : null;
+        const secPerMi = r.average_speed > 0 ? 1609.34 / r.average_speed : null;
+        const paceStr = secPerMi
+          ? (() => {
+              const m = Math.floor(secPerMi / 60);
+              const s = Math.round(secPerMi % 60);
+              return s === 60 ? `${m+1}:00/mi` : `${m}:${s.toString().padStart(2,'0')}/mi`;
+            })()
+          : null;
+        return {
+          date:     r.start_date_local.split('T')[0],
+          miles:    (r.distance/1609.34).toFixed(2),
+          pace:     paceStr,
+          hr:       r.average_heartrate || null,
+          name:     r.name,
+          location: (r.start_latlng && r.start_latlng.length >= 2)
+            ? `${r.start_latlng[0].toFixed(2)},${r.start_latlng[1].toFixed(2)}`
+            : null,
+          weather:  wx ? {
+            tempF: wx.tempF, feelsF: wx.feelsF, humidity: wx.humidity,
+            windMph: wx.windMph, perfImpact: wx.perfImpact, heatRisk: wx.heatRisk,
+          } : null,
+        };
+      } catch (e) {
+        console.warn(`[analytics] skipped malformed run ${r?.id}:`, e.message);
+        return null;
+      }
+    }).filter(Boolean);
 
     // Build weather context summary for Claude
     const runsWithWeather = recentRunsSummary.filter(r => r.weather);

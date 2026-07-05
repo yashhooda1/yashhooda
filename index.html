@@ -1343,6 +1343,7 @@
         .strava-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #fc4c02, #ff6b35); }
         .strava-type-badge { display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.2); color: #fc4c02; padding: 0.15rem 0.55rem; border-radius: 4px; font-size: 0.68rem; font-family: 'Space Mono', monospace; letter-spacing: 0.04em; margin-bottom: 0.5rem; }
         .strava-name { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--text); font-weight: 700; margin-bottom: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .strava-location { font-family:'Space Mono',monospace; font-size:0.68rem; color:var(--text-muted); letter-spacing:0.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:45%; }
         .strava-desc {     
         font-size: 0.75rem;
         color: var(--text-muted);
@@ -7695,6 +7696,18 @@ async function loadStrava() {
             const running = document.getElementById('weekly-miles-running');
             if (running) running.textContent = data.weekly_miles;
         }
+        const fmtLocation = (a) => {
+            const parts = [
+                a.location_city,
+                a.location_state,
+                a.location_country
+            ].filter(Boolean);
+            // De-dupe when state and country are both present but redundant
+            const seen = [...new Set(parts)];
+            // Prefer at most two parts: "City, State" or "City, Country" or "State, Country"
+            if (seen.length >= 2) return `${seen[0]}, ${seen[seen.length - 1]}`;
+            return seen[0] || '';
+        };
         if (!res.ok || !data.activities) {
             grid.innerHTML = '<div class="strava-error">Could not load Strava data. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';
             return;
@@ -7706,7 +7719,10 @@ async function loadStrava() {
         const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
         grid.innerHTML = acts.map(a => `
             <div class="strava-card">
-                <div class="strava-type-badge">${typeIcon(a.sport_type || a.type)} ${a.sport_type || a.type}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+                    <div class="strava-type-badge">${typeIcon(a.sport_type || a.type)} ${a.sport_type || a.type}</div>
+                    ${fmtLocation(a) ? `<div class="strava-location">📍 ${fmtLocation(a)}</div>` : ''}
+                </div>
                 <div class="strava-name" title="${a.name}">${a.name}</div>
                 ${a.description ? `<div class="strava-desc">${a.description}</div>` : ''}
                 <div class="strava-stats">

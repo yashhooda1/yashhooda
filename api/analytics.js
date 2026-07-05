@@ -183,7 +183,9 @@ export default async function handler(req, res) {
         pace:     paceStr,
         hr:       r.average_heartrate || null,
         name:     r.name,
-        location: r.start_latlng ? `${r.start_latlng[0].toFixed(2)},${r.start_latlng[1].toFixed(2)}` : null,
+        location: (r.start_latlng && r.start_latlng.length >= 2)
+          ? `${r.start_latlng[0].toFixed(2)},${r.start_latlng[1].toFixed(2)}`
+          : null,
         weather:  wx ? {
           tempF:      wx.tempF,
           feelsF:     wx.feelsF,

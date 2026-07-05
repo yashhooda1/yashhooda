@@ -119,3 +119,32 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Reverse-geocode start coords → "City, State" or "City, Country".
+// Non-fatal: any failure returns null and the card just omits the pin.
+async function geocode(lat, lon) {
+  try {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
+      { headers: { 'User-Agent': 'yashhooda.ai' }, signal: AbortSignal.timeout(3000) }
+    );
+    if (!r.ok) return null;
+    const d = await r.json();
+    const a = d.address || {};
+    const city    = a.city || a.town || a.village || a.county || null;
+    const state   = a.state || null;
+    const country = a.country || null;
+    if (city && state)   return `${city}, ${state}`;
+    if (city && country) return `${city}, ${country}`;
+    if (state && country) return `${state}, ${country}`;
+    return country || null;
+  } catch { return null; }
+
+  const geo = await Promise.all(
+  activities.map(a =>
+    (a.start_latlng && a.start_latlng.length >= 2)
+      ? geocode(a.start_latlng[0], a.start_latlng[1])
+      : Promise.resolve(null)
+  )
+);
+}

@@ -898,6 +898,15 @@
         .model-item-provider { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
         .model-item-note { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; }
         .model-check { display: inline-block; margin-top: 0.4rem; font-size: 0.7rem; color: var(--green); font-family: 'Space Mono', monospace; }
+        .model-item-provider { display:inline-flex; align-items:center; gap:5px; }
+        .model-logo { width:15px; height:15px; display:inline-block; flex-shrink:0; vertical-align:middle; }
+        .model-logo-mono {
+            background-color: currentColor;
+            -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+            -webkit-mask-size:contain;     mask-size:contain;
+            -webkit-mask-position:center;  mask-position:center;
+            opacity:.85;
+        }
         .vm-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:1.5rem 1rem; gap:1rem; text-align:center; }
         .vm-orb { width:110px; height:110px; border-radius:50%; border:none; cursor:pointer; font-size:2.4rem; color:#000; background:var(--green); transition:transform .2s; display:flex; align-items:center; justify-content:center; }
         .vm-orb:hover { transform:scale(1.05); }
@@ -5117,6 +5126,18 @@ function newChat() {
     document.querySelector('.chat-tab').classList.add('active');
 }
 
+
+// Provider → logo file in /logos/. Monochrome marks are tinted to the theme via
+// CSS mask (ignores the SVG's own fill); Gemini keeps its native gradient.
+const PROVIDER_ICON  = { Anthropic:'claude', OpenAI:'openai', xAI:'grok', Google:'gemini', Meta:'meta' };
+const COLORED_ICONS  = new Set(['gemini']);
+function providerLogo(provider) {
+    const f = PROVIDER_ICON[provider];
+    if (!f) return '';                       
+    if (COLORED_ICONS.has(f)) return `<img class="model-logo" src="/logos/${f}.svg" alt="">`;
+    return `<span class="model-logo model-logo-mono" style="-webkit-mask-image:url(/logos/${f}.svg);mask-image:url(/logos/${f}.svg)"></span>`;
+}
+    
 // ── AI MODEL SELECTION ──
 const AI_MODELS = [
     { key: 'claude-opus-4-8',   name: 'Claude Opus 4.8',    provider: 'Anthropic', note: 'Smartest, best for deep advice' },
@@ -5159,7 +5180,7 @@ function renderModelList() {
         <div class="model-item ${m.key === selectedModel ? 'selected' : ''}" onclick="selectModel('${m.key}')">
             <div class="model-item-top">
                 <span class="model-item-name">${m.name}</span>
-                <span class="model-item-provider">${m.provider}</span>
+                <span class="model-item-provider">${providerLogo(m.provider)} ${m.provider}</span>
             </div>
             <div class="model-item-note">${m.note}</div>
             ${m.key === selectedModel ? '<span class="model-check">✓ Active</span>' : ''}

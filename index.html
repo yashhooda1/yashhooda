@@ -7696,18 +7696,7 @@ async function loadStrava() {
             const running = document.getElementById('weekly-miles-running');
             if (running) running.textContent = data.weekly_miles;
         }
-        const fmtLocation = (a) => {
-            const parts = [
-                a.location_city,
-                a.location_state,
-                a.location_country
-            ].filter(Boolean);
-            // De-dupe when state and country are both present but redundant
-            const seen = [...new Set(parts)];
-            // Prefer at most two parts: "City, State" or "City, Country" or "State, Country"
-            if (seen.length >= 2) return `${seen[0]}, ${seen[seen.length - 1]}`;
-            return seen[0] || '';
-        };
+        const fmtLocation = (a) => a.location_label || '';
         if (!res.ok || !data.activities) {
             grid.innerHTML = '<div class="strava-error">Could not load Strava data. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';
             return;
@@ -7721,7 +7710,6 @@ async function loadStrava() {
             <div class="strava-card">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
                     <div class="strava-type-badge">${typeIcon(a.sport_type || a.type)} ${a.sport_type || a.type}</div>
-                    ${fmtLocation(a) ? `<div class="strava-location">📍 ${fmtLocation(a)}</div>` : ''}
                 </div>
                 <div class="strava-name" title="${a.name}">${a.name}</div>
                 ${a.description ? `<div class="strava-desc">${a.description}</div>` : ''}
@@ -7729,6 +7717,7 @@ async function loadStrava() {
                     <div class="strava-stat"><span class="strava-stat-val">${a.distance_mi} mi</span><span class="strava-stat-label">Distance</span></div>
                     <div class="strava-stat"><span class="strava-stat-val">${fmtTime(a.moving_time_s)}</span><span class="strava-stat-label">Moving Time</span></div>
                     ${a.pace_min_mi ? `<div class="strava-stat"><span class="strava-stat-val">${a.pace_min_mi}/mi</span><span class="strava-stat-label">Avg Pace</span></div>` : ''}
+                    ${fmtLocation(a) ? `<div class="strava-location">📍 ${fmtLocation(a)}</div>` : ''}
                     ${a.avg_hr ? `<div class="strava-stat"><span class="strava-stat-val">${Math.round(a.avg_hr)} bpm</span><span class="strava-stat-label">Avg HR</span></div>` : ''}
                     ${a.elevation_ft > 0 ? `<div class="strava-stat"><span class="strava-stat-val">${a.elevation_ft} ft</span><span class="strava-stat-label">Elevation</span></div>` : ''}
                     ${a.suffer_score ? `<div class="strava-stat"><span class="strava-stat-val">${a.suffer_score}</span><span class="strava-stat-label">Suffer Score</span></div>` : ''}

@@ -624,6 +624,7 @@ async function generateSuggestions(query, reply, agentKey, apiKey) {
 const MODELS = {
     'claude-opus-4-8':    { provider: 'anthropic', api: 'claude-opus-4-8' },
     'claude-sonnet-4-6':  { provider: 'anthropic', api: 'claude-sonnet-4-6' },
+    'claude-fable-5':     { provider: 'anthropic', api: 'claude-fable-5' },
     'gpt-5.5':            { provider: 'openai',    api: 'gpt-5.5' },
     'gpt-5.4':            { provider: 'openai',    api: 'gpt-5.4' },
     'gpt-5.4-mini':       { provider: 'openai',    api: 'gpt-5.4-mini' },
@@ -1402,6 +1403,17 @@ export default async function handler(req, res) {
                 console.error('[Anthropic] Error:', JSON.stringify(data));
                 await notifyFailure({ route: '/api/chat [Anthropic]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0, 200), userMessage: queryText, sessionId });
                 return res.status(502).json({ error: 'Upstream API error', detail: data });
+            }
+            // Fable 5 can refuse (200 + stop_reason:"refusal") or silently reroute
+            // cyber/bio/chem/distillation prompts to Opus 4.8. Detect + surface it.
+            if (data.stop_reason === 'refusal') {
+                reply = "That request was declined by the model's safety system. Try rephrasing, or pick a different model.";
+            } else {
+                reply = filterOutput(data.content?.[0]?.text ?? 'Reach Yash at yash.hooda6@gmail.com!');
+            }
+            // If the safeguard rerouted, the response reports the model that actually answered.
+            if (data.model && data.model !== cfg.api) {
+                console.warn(`[Fable] request rerouted: ${cfg.api} → ${data.model}`);
             }
             reply = filterOutput(data.content?.[0]?.text ?? 'Reach Yash at yash.hooda6@gmail.com!');
 

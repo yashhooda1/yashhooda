@@ -50,6 +50,7 @@ export default async function handler(req, res) {
   const clientId     = process.env.STRAVA_CLIENT_ID;
   const clientSecret = process.env.STRAVA_CLIENT_SECRET;
   const refreshToken = process.env.STRAVA_REFRESH_TOKEN;
+  const fmtLocation = (a) => a.location_label || '';
 
   if (!clientId || !clientSecret || !refreshToken) {
     return res.status(500).json({ error: 'Strava env vars missing' });
@@ -127,6 +128,7 @@ export default async function handler(req, res) {
       elevation_m:   a.total_elevation_gain,
       elevation_ft:  (a.total_elevation_gain * 3.28084).toFixed(0),
       avg_speed_ms:  a.average_speed,
+      location_label: labelByKey[coordKey(a)] || null,
       location_city:    a.location_city    || null,
       location_state:   a.location_state   || null,
       location_country: a.location_country || null,

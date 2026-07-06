@@ -1,3 +1,46 @@
+import { Redis } from '@upstash/redis';
+
+const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+  ? new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN })
+  : null;
+
+// Reverse-geocode "lat,lon" → "City, State" / "City, Country".
+// Cached in Redis by rounded coords: a finished run's location never changes,
+// and your runs cluster around a few spots, so this dedupes hard over time.
+async function geocodeCached(lat, lon) {
+  if (lat == null || lon == null) return null;
+  const key = `geo:${lat.toFixed(3)},${lon.toFixed(3)}`;   // ~110m buckets
+
+  if (redis) {
+    try {
+      const hit = await redis.get(key);
+      if (hit !== null && hit !== undefined) return hit || null; // '' = known-empty
+    } catch { /* fall through to fetch */ }
+  }
+
+  let label = null;
+  try {
+    const r = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`,
+      { signal: AbortSignal.timeout(3500) }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      const city    = d.city || d.locality || null;
+      const state   = d.principalSubdivision || null;
+      const country = d.countryName || null;
+      if (city && state && city !== state) label = `${city}, ${state}`;
+      else if (city && country)            label = `${city}, ${country}`;
+      else if (state && country)           label = `${state}, ${country}`;
+      else                                 label = country || null;
+    }
+  } catch { /* leave null */ }
+
+  if (redis) { try { await redis.set(key, label || '', { ex: 60 * 60 * 24 * 180 }); } catch {} }
+  return label;
+}
+
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -56,6 +99,19 @@ export default async function handler(req, res) {
         .finally(() => { clearTimeout(timer); resolve(); });
     });
     await Promise.all(activities.slice(0, 6).map(a => descTimeout(a.id)));
+
+    // Dedupe coordinates within this request → one geocode per unique spot, not per activity.
+    const coordKey = (a) =>
+      (Array.isArray(a.start_latlng) && a.start_latlng.length >= 2)
+        ? `${a.start_latlng[0].toFixed(3)},${a.start_latlng[1].toFixed(3)}`
+        : null;
+
+    const uniqueKeys = [...new Set(activities.map(coordKey).filter(Boolean))];
+    const labelByKey = {};
+    await Promise.all(uniqueKeys.map(async (k) => {
+      const [lat, lon] = k.split(',').map(Number);
+      labelByKey[k] = await geocodeCached(lat, lon);
+    }));
 
     // 3. Shape the data
     const shaped = activities.map(a => ({
@@ -118,33 +174,4 @@ export default async function handler(req, res) {
     console.error('Strava handler error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
-}
-
-// Reverse-geocode start coords → "City, State" or "City, Country".
-// Non-fatal: any failure returns null and the card just omits the pin.
-async function geocode(lat, lon) {
-  try {
-    const r = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
-      { headers: { 'User-Agent': 'yashhooda.ai' }, signal: AbortSignal.timeout(3000) }
-    );
-    if (!r.ok) return null;
-    const d = await r.json();
-    const a = d.address || {};
-    const city    = a.city || a.town || a.village || a.county || null;
-    const state   = a.state || null;
-    const country = a.country || null;
-    if (city && state)   return `${city}, ${state}`;
-    if (city && country) return `${city}, ${country}`;
-    if (state && country) return `${state}, ${country}`;
-    return country || null;
-  } catch { return null; }
-
-  const geo = await Promise.all(
-  activities.map(a =>
-    (a.start_latlng && a.start_latlng.length >= 2)
-      ? geocode(a.start_latlng[0], a.start_latlng[1])
-      : Promise.resolve(null)
-  )
-);
 }

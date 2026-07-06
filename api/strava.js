@@ -129,9 +129,6 @@ export default async function handler(req, res) {
       elevation_ft:  (a.total_elevation_gain * 3.28084).toFixed(0),
       avg_speed_ms:  a.average_speed,
       location_label: labelByKey[coordKey(a)] || null,
-      location_city:    a.location_city    || null,
-      location_state:   a.location_state   || null,
-      location_country: a.location_country || null,
       pace_min_mi:   a.average_speed > 0
         ? (() => {
             const secPerMi = 1609.34 / a.average_speed;

@@ -1,7 +1,7 @@
 # Yash Hooda 
 **Live:** [yashhooda.ai](https://www.yashhooda.ai)
 
-A full-stack personal portfolio with a production-grade AI chatbot, live Strava training analytics, real-time flight tracking, network analysis tools, interactive snow & hike photo albums, live weather, and a secure AI gateway — all deployed on Vercel.
+A full-stack personal portfolio with a production-grade AI chatbot, live Strava training analytics, a 56-year climate analytics pipeline, Atlantic hurricane correlation analytics, real-time flight tracking, network analysis tools, interactive snow & hike photo albums, live weather, and a secure AI gateway — all deployed on Vercel.
 
 ---
 
@@ -27,6 +27,22 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 - Flight cards with altitude, speed, heading, climb rate
 - Click any card to locate the plane on the map
 - Auto-refreshes every 5 minutes
+
+### 🌡️ ClimatePulse — Live Climate Dashboard
+- **56 years (1970–present)** of NOAA daily station data across **6 cities** — Houston (IAH), Newark (EWR), Dallas (DAL), Denver (DEN), London (LHR), Delhi (DEL)
+- **Bronze → Silver → Gold medallion pipeline** in a separate [`climatepulse`](https://github.com/yashhooda1/climatepulse) repo, refreshed **weekly** via a GitHub Actions cron (Sundays 04:00 UTC) that computes the gold layer and pushes `public_data_climate_gold.json` into this repo
+- **Four interactive tabs** — Annual Trend (with linear-regression trend lines, °F/decade), Seasonal climatology, Heat Days (≥ 80°F), and Winter Lows
+- **City-compare toggles** and a KPI strip showing per-station warming slopes
+- Served by `/api/climate` with a last-known-good SEED fallback, so the dashboard always renders
+
+### 🌀 Hurricane Analytics — Warmer Water, Stronger Storms
+- Atlantic-basin dashboard correlating hurricane activity with the ocean and atmosphere it forms in
+- **Data sources** — NOAA **HURDAT2** best-track (1851–present, latest season auto-discovered), NOAA **TNA** tropical-North-Atlantic SST anomaly, and NASA **GISTEMP** global temperature
+- **Per-season metrics** — named storms, hurricanes, major hurricanes (Cat 3+), Accumulated Cyclone Energy (ACE), and rapid-intensification counts (≥ 30 kt gain in 24 h)
+- **Pearson correlations** (ACE / major / rapid-intensification vs. SST, and ACE vs. global temperature) computed over a 1950+ window
+- **Three interactive tabs** — Activity & SST timeline, Correlation scatter with a least-squares fit, and Rapid Intensification
+- Built as an **honest analytics piece**: the UI states plainly that these coefficients show *association, not attribution* (annual activity is modulated by ENSO and the AMO)
+- Shares the `climatepulse` pipeline; served by `/api/hurricanes` with a SEED fallback
 
 ### 🔍 Network Analyzer
 - **DNS Lookup** — A, AAAA, MX, TXT, NS, CNAME records
@@ -56,10 +72,12 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 
 ```
 /
-├── index.html                  ← Main portfolio page (single-page app)
-├── vercel.json                 ← Vercel routing, edge config, headers
-├── sitemap.xml                 ← Google Search Console sitemap
-├── robots.txt                  ← Search engine crawl rules
+├── index.html                          ← Main portfolio page (single-page app)
+├── vercel.json                         ← Vercel routing, edge config, headers
+├── sitemap.xml                         ← Google Search Console sitemap
+├── robots.txt                          ← Search engine crawl rules
+├── public_data_climate_gold.json       ← ClimatePulse gold data (auto-refreshed weekly)
+├── public_data_hurricanes_gold.json    ← Hurricane analytics gold data (auto-refreshed)
 ├── api/
 │   ├── chat.js                 ← AI chatbot — multi-model router (Anthropic + OpenAI)
 │   ├── strava.js               ← Live Strava activity feed + weekly mileage
@@ -67,6 +85,8 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 │   ├── tts.js                  ← OpenAI TTS voice output
 │   ├── flights.js              ← Live flight tracker (AviationStack)
 │   ├── network.js              ← Network analysis tools (DNS/WHOIS/ping/traceroute/headers)
+│   ├── climate.js              ← ClimatePulse gold data API (SEED fallback)
+│   ├── hurricanes.js           ← Hurricane analytics API (SEED fallback)
 │   └── history.js              ← Chat history persistence
 └── images/
     ├── snow/
@@ -74,6 +94,8 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
     │   └── nyc/                ← NYC blizzard photos (nyc1.jpg ... nycN.jpg)
     └── [hike photos]           ← Granby CO hike photos
 ```
+
+> **Climate data pipeline** — the Bronze→Silver→Gold ETL that produces the two `*_gold.json` files lives in a separate repo, [`yashhooda1/climatepulse`](https://github.com/yashhooda1/climatepulse). A weekly GitHub Actions workflow runs the pipeline and commits fresh gold data into this repo, which Vercel then serves.
 
 ---
 
@@ -89,6 +111,9 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 | Training Data | Strava API |
 | Weather | Open-Meteo API (free, no key) |
 | Flights | AviationStack API |
+| Climate Data | NOAA GHCN-Daily (6 stations, 1970–present) |
+| Hurricane Data | NOAA HURDAT2 · NOAA PSL TNA SST · NASA GISTEMP |
+| Analytics Pipeline | Python (pandas, scikit-learn) · GitHub Actions cron · Bronze→Silver→Gold medallion |
 | Maps | Leaflet.js + CartoDB Dark tiles |
 | TTS | OpenAI TTS (nova voice) |
 | STT | Web Speech API |
@@ -111,6 +136,8 @@ UPSTASH_REDIS_REST_URL=...
 UPSTASH_REDIS_REST_TOKEN=...
 AVIATIONSTACK_API_KEY=...
 ```
+
+> **ClimatePulse & Hurricane Analytics need no site-side keys** — they're served from committed gold JSON. The NOAA API token (`NOAA_TOKEN`) and the cross-repo push token (`YASHHOODA_PAT`) live as secrets on the [`climatepulse`](https://github.com/yashhooda1/climatepulse) pipeline repo, not here.
 
 ---
 
@@ -158,6 +185,8 @@ Browser
   ├── POST /api/tts         → OpenAI TTS audio stream
   ├── GET  /api/flights     → AviationStack live flights
   ├── POST /api/network     → DNS/WHOIS/ping/traceroute/headers
+  ├── GET  /api/climate     → ClimatePulse gold data (6-city NOAA analytics)
+  ├── GET  /api/hurricanes  → Hurricane analytics (HURDAT2 × SST × GISTEMP correlation)
   └── GET/POST /api/history → Chat history (Upstash Redis)
 ```
 
@@ -190,6 +219,8 @@ The chatbot implements a **7-layer secure AI gateway**:
 Set a spend limit at [console.anthropic.com](https://console.anthropic.com) → **Settings** → **Limits**.
 
 AviationStack free tier: 100 requests/month (auto-refresh set to 5 min to conserve quota).
+
+ClimatePulse & Hurricane Analytics add **no marginal API cost** — the dashboards read pre-computed gold JSON, and the weekly pipeline runs on free GitHub Actions minutes against no-cost NOAA/NASA data.
 
 ---
 

@@ -3303,6 +3303,7 @@
             <button class="cp-tab active" onclick="slTab(this,'gmsl')">🌊 Rising Seas</button>
             <button class="cp-tab" onclick="slTab(this,'map')">🗺️ U.S. Risk Map</button>
             <button class="cp-tab" onclick="slTab(this,'ice')">🧊 Ice-Melt Scenarios</button>
+            <button class="cp-tab" onclick="slTab(this,'forecast')">🔮 2100 Outlook</button>
         </div>
 
         <!-- Rising seas (GMSL) -->
@@ -3334,6 +3335,13 @@
             </div>
             <div class="cp-chart-wrap"><canvas id="sl-ice-chart"></canvas></div>
             <p class="cp-insight" id="sl-signal-ice">Loading signal...</p>
+        </div>
+
+        <!-- 2100 forecast -->
+        <div class="cp-panel" id="sl-panel-forecast">
+            <div class="cp-legend" id="sl-forecast-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="sl-forecast-chart"></canvas></div>
+            <p class="cp-insight" id="sl-signal-forecast">Loading signal...</p>
         </div>
 
         <!-- Honesty / timescale note -->
@@ -8616,11 +8624,11 @@ window.cpUpdateSignal = function(tab) {
 // Globals exposed: window.slTab only.
 (function () {
     'use strict';
-
+ 
     const SL = { data: null, charts: {}, map: null, loaded: false };
     const OCEAN = '#38bdf8', ICE = '#60a5fa';
     const TIER_COLOR = { 'Extreme':'#ef4444', 'Very High':'#fb923c', 'High':'#facc15', 'Moderate–High':'#38bdf8' };
-
+ 
     const BASE = {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
@@ -8635,7 +8643,7 @@ window.cpUpdateSignal = function(tab) {
         scales: { x: { ...BASE.scales.x, ...((extra.scales||{}).x||{}) }, y: { ...BASE.scales.y, ...((extra.scales||{}).y||{}) } },
     });
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-
+ 
     async function slLoad() {
         if (SL.loaded) return;
         try {
@@ -8649,7 +8657,7 @@ window.cpUpdateSignal = function(tab) {
             console.error('[RisingSeas] Failed to load data:', err);
         }
     }
-
+ 
     function slKPIs() {
         const g = SL.data.gmsl, ice = SL.data.ice, cities = SL.data.cities;
         set('sl-rate',  '+' + g.rate_now);
@@ -8662,7 +8670,7 @@ window.cpUpdateSignal = function(tab) {
         set('sl-allice',     (ice.find(i => /all land ice/i.test(i.name)) || {}).sle_m ?? '—');
         if (SL.data.source) set('sl-source-badge', 'NASA · NOAA · USGS');
     }
-
+ 
     // ── Tab 1: rising global mean sea level ─────────────────────────────────
     function slDrawGMSL() {
         const s = SL.data.gmsl.series;
@@ -8681,7 +8689,7 @@ window.cpUpdateSignal = function(tab) {
         });
         slSignal('gmsl');
     }
-
+ 
     // ── Tab 2: US coastal risk map (Leaflet, lazy init) ─────────────────────
     function slDrawMap() {
         if (SL.map) { setTimeout(() => SL.map.invalidateSize(), 60); return; }
@@ -8694,7 +8702,7 @@ window.cpUpdateSignal = function(tab) {
                      .setView([32, -92], 4);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
                     { maxZoom: 10 }).addTo(map);
-
+ 
         SL.data.cities.forEach(c => {
             const color = TIER_COLOR[c.tier] || OCEAN;
             L.circleMarker([c.lat, c.lon], {
@@ -8710,7 +8718,7 @@ window.cpUpdateSignal = function(tab) {
         setTimeout(() => map.invalidateSize(), 60);   // fix render inside a formerly-hidden tab
         slSignal('map');
     }
-
+ 
     // ── Tab 3: ice-melt sea-level equivalents ───────────────────────────────
     function slDrawIce() {
         const ice = SL.data.ice;
@@ -8735,7 +8743,49 @@ window.cpUpdateSignal = function(tab) {
         });
         slSignal('ice');
     }
-
+ 
+    // ── Tab 4: 2100 forecast fan (NOAA 2022 scenarios) ──────────────────────
+    function slDrawForecast() {
+        const f = SL.data.forecast;
+        if (!f) return;
+        const years = [...new Set([...f.observed.map(d => d.year),
+                                   ...f.scenarios[0].series.map(d => d.year)])].sort((a, b) => a - b);
+        const at = (arr, y) => { const p = arr.find(d => d.year === y); return p ? p.m : null; };
+ 
+        const datasets = [{
+            label: 'Observed', data: years.map(y => at(f.observed, y)),
+            borderColor: '#e0e0e0', backgroundColor: '#e0e0e0', borderWidth: 2.5,
+            pointRadius: 0, tension: 0.3, spanGaps: false,
+        }];
+        f.scenarios.forEach(s => datasets.push({
+            label: s.name + ' (' + s.target_2100 + ' m)',
+            data: years.map(y => at(s.series, y)),
+            borderColor: s.color, backgroundColor: s.color,
+            borderWidth: 2, borderDash: [5, 4], pointRadius: 0, tension: 0.3, spanGaps: true,
+        }));
+ 
+        // legend (observed + 5 scenarios)
+        const leg = document.getElementById('sl-forecast-legend');
+        if (leg) leg.innerHTML =
+            `<span class="cp-leg-item"><span class="cp-leg-dot" style="background:#e0e0e0"></span>Observed</span>` +
+            f.scenarios.map(s => `<span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:${s.color}"></span>${s.name}</span>`).join('');
+ 
+        SL.charts.forecast = new Chart(document.getElementById('sl-forecast-chart'), {
+            type: 'line',
+            data: { labels: years, datasets },
+            options: merge({
+                plugins: { tooltip: { mode: 'index', intersect: false,
+                    callbacks: { label: ctx => ctx.dataset.label + ': +' + (ctx.parsed.y).toFixed(2) + ' m' } } },
+                scales: {
+                    x: { ticks: { maxTicksLimit: 8 } },
+                    y: { title: { display: true, text: 'm above 2000', color: OCEAN, font: { size: 11 } },
+                         ticks: { callback: v => '+' + v + ' m' } },
+                },
+            }),
+        });
+        slSignal('forecast');
+    }
+ 
     function slSignal(tab) {
         const el = document.getElementById('sl-signal-' + tab);
         if (!el || !SL.data) return;
@@ -8749,9 +8799,15 @@ window.cpUpdateSignal = function(tab) {
         }
         if (tab === 'ice')
             t = `Antarctica holds ~${(SL.data.ice.find(i=>/antarctic ice sheet/i.test(i.name))||{}).sle_m} m of sea level — roughly 8× Greenland's ~${(SL.data.ice.find(i=>/greenland/i.test(i.name))||{}).sle_m} m — but the West Antarctic sector is the piece most at risk of runaway loss this millennium.`;
+        if (tab === 'forecast' && SL.data.forecast) {
+            const sc = SL.data.forecast.scenarios;
+            const lo = sc[0].target_2100, hi = sc[sc.length-1].target_2100;
+            const mid = (sc.find(s => s.key === 'int') || {}).target_2100;
+            t = `NOAA's five 2100 scenarios span +${lo} m (Low) to +${hi} m (High) above 2000, with Intermediate at +${mid} m. Paths stay close through ~2050 (~0.25-0.3 m, largely locked in) and diverge after mid-century — so how high 2100 goes still depends on emissions and ice-sheet response.`;
+        }
         el.innerHTML = t ? `<strong>Signal:</strong> ${t}` : '';
     }
-
+ 
     // ── Tab switching ───────────────────────────────────────────────────────
     window.slTab = function (btn, id) {
         document.querySelectorAll('#sealevel .cp-tab').forEach(t => t.classList.remove('active'));
@@ -8762,9 +8818,10 @@ window.cpUpdateSignal = function(tab) {
         if (id === 'gmsl' && !SL.charts.gmsl) slDrawGMSL();
         if (id === 'map')  slDrawMap();                 // handles its own init/invalidateSize
         if (id === 'ice'  && !SL.charts.ice)  slDrawIce();
+        if (id === 'forecast' && !SL.charts.forecast) slDrawForecast();
         slSignal(id);
     };
-
+ 
     // ── Lazy-load on scroll ─────────────────────────────────────────────────
     const slSection = document.getElementById('sealevel');
     if (slSection) {

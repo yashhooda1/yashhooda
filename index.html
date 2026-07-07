@@ -2807,6 +2807,7 @@
             <a href="#about">About</a>
             <a href="#projects">Projects</a>
             <a href="#climate">Climate 🌡️</a>
+            <a href="#hurricanes">Hurricanes 🌀</a>
             <a href="#certifications">Certs</a>
             <a href="#tars">TARS</a>
             <a href="#running">Running</a>
@@ -3164,6 +3165,94 @@
             <div class="cp-chart-wrap"><canvas id="cp-winter-chart"></canvas></div>
             <p class="cp-insight" id="cp-signal-winter">Loading signal...</p>
         </div>
+    </section>
+
+    <!-- ═══════════════ HURRICANE ANALYTICS (paste after </section> of #climate) ═══════════════ -->
+    <section id="hurricanes">
+        <h2>🌀 Hurricane Analytics — Warmer Water, Stronger Storms</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="hz-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                Atlantic hurricane activity vs. the sea-surface temperature storms intensify over · HURDAT2 · NOAA TNA · GISTEMP
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="hz-last-updated">Updated weekly</span>
+                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+            </div>
+        </div>
+
+        <!-- Correlation KPI strip -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="hz-r-ace">—</span>
+                <span class="cp-kpi-label">Season energy (ACE) ↔ SST</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="hz-r-major">—</span>
+                <span class="cp-kpi-label">Major hurricanes ↔ SST</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="hz-r-ri">—</span>
+                <span class="cp-kpi-label">Rapid-intensifying ↔ SST</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="hz-r-global">—</span>
+                <span class="cp-kpi-label">ACE ↔ global temp</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="hz-n">—</span>
+                <span class="cp-kpi-label">Seasons analyzed</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="hz-latest">—</span>
+                <span class="cp-kpi-label">Latest season</span>
+            </div>
+        </div>
+
+        <!-- Tab nav -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="hzTab(this,'timeline')">📈 Activity &amp; SST</button>
+            <button class="cp-tab" onclick="hzTab(this,'scatter')">🎯 Correlation</button>
+            <button class="cp-tab" onclick="hzTab(this,'ri')">🌀 Rapid Intensification</button>
+        </div>
+
+        <!-- Activity & SST timeline -->
+        <div class="cp-panel active" id="hz-panel-timeline">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>ACE (season energy)</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Aug–Oct Atlantic SST anomaly</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="hz-timeline-chart"></canvas></div>
+            <p class="cp-insight" id="hz-signal-timeline">Loading signal...</p>
+        </div>
+
+        <!-- Correlation scatter -->
+        <div class="cp-panel" id="hz-panel-scatter">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>one Atlantic season</span>
+                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#ef4444"></span>least-squares fit</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="hz-scatter-chart"></canvas></div>
+            <p class="cp-insight" id="hz-signal-scatter">Loading signal...</p>
+        </div>
+
+        <!-- Rapid intensification -->
+        <div class="cp-panel" id="hz-panel-ri">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#ef4444"></span>storms rapidly intensifying (+30 kt / 24h)</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Aug–Oct SST anomaly</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="hz-ri-chart"></canvas></div>
+            <p class="cp-insight" id="hz-signal-ri">Loading signal...</p>
+        </div>
+
+        <!-- Honesty note: association, not attribution -->
+        <p id="hz-caveat" style="margin-top:1rem;border-left:2px solid #38bdf8;background:rgba(56,189,248,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+            <strong style="color:var(--text);">Reading this honestly:</strong> these coefficients show <em>association</em>, not attribution.
+            Year-to-year Atlantic activity is strongly steered by ENSO and the Atlantic Multidecadal Oscillation.
+            A positive correlation is consistent with the physics — warmer water carries more energy — but isolating the
+            human-caused share requires counterfactual potential-intensity modeling, not a scatter plot.
+        </p>
     </section>
         
 
@@ -8252,6 +8341,185 @@ window.cpUpdateSignal = function(tab) {
         new IntersectionObserver((entries) => {
             entries.forEach(e => { if (e.isIntersecting) cpLoad(); });
         }, { threshold: 0.1 }).observe(cpSection);
+    }
+})();
+
+
+// ═══════════ HURRICANE ANALYTICS — self-contained (paste right after the CP IIFE's })(); ) ═══════════
+// Independent of the ClimatePulse CP block. Fetches /api/hurricanes, lazy-loads
+// on scroll, reuses the cp-* visual language. Globals: window.hzTab only.
+(function () {
+    'use strict';
+
+    const HZ = { data: null, charts: {}, loaded: false };
+    const OCEAN = '#38bdf8', STORM = '#fb923c', STORMLINE = '#ef4444';
+
+    const BASE = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { color: '#9ca3af', maxTicksLimit: 10, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#9ca3af', font: { size: 10 } },                    grid: { color: 'rgba(255,255,255,0.05)' } },
+        },
+    };
+    const merge = (extra) => ({
+        ...BASE, ...extra,
+        plugins: { ...BASE.plugins, ...(extra.plugins || {}) },
+        scales: {
+            x:  { ...BASE.scales.x,  ...((extra.scales || {}).x  || {}) },
+            y:  { ...BASE.scales.y,  ...((extra.scales || {}).y  || {}) },
+            y1: (extra.scales || {}).y1,
+        },
+    });
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const kill = (k) => { if (HZ.charts[k]) { HZ.charts[k].destroy(); delete HZ.charts[k]; } };
+
+    async function hzLoad() {
+        if (HZ.loaded) return;
+        try {
+            const res = await fetch('/api/hurricanes');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            HZ.data = await res.json();
+            HZ.loaded = true;
+            hzKPIs();
+            hzDrawTimeline();
+        } catch (err) {
+            console.error('[Hurricanes] Failed to load data:', err);
+        }
+    }
+
+    function hzKPIs() {
+        const c = HZ.data.correlations || {};
+        const fmt = (o) => o && o.r != null ? (o.r > 0 ? '+' : '') + o.r.toFixed(2) : '—';
+        set('hz-r-ace',    fmt(c.ace_vs_tna_sst));
+        set('hz-r-major',  fmt(c.major_vs_tna_sst));
+        set('hz-r-ri',     fmt(c.ri_storms_vs_tna_sst));
+        set('hz-r-global', fmt(c.ace_vs_global_temp));
+        const s = HZ.data.series || [];
+        set('hz-n', (c.ace_vs_tna_sst && c.ace_vs_tna_sst.n) || s.length);
+        set('hz-latest', s.length ? s[s.length - 1].year : '—');
+        if (HZ.data.generated_at) set('hz-last-updated', 'Data: ' + HZ.data.generated_at.slice(0, 10));
+        if (HZ.data.source_file) {
+            const sub = document.getElementById('hz-subtitle');
+            if (sub) sub.textContent =
+                `Atlantic hurricane activity vs. the water storms intensify over · ${HZ.data.source_file} · NOAA TNA · GISTEMP`;
+        }
+    }
+
+    // ── Tab 1: ACE bars + SST line (dual axis) ──────────────────────────────
+    function hzDrawTimeline() {
+        const s = HZ.data.series;
+        HZ.charts.timeline = new Chart(document.getElementById('hz-timeline-chart'), {
+            data: {
+                labels: s.map(d => d.year),
+                datasets: [
+                    { type: 'bar', label: 'ACE', yAxisID: 'y', data: s.map(d => d.ace),
+                      backgroundColor: STORM + '8c', borderColor: STORM, borderWidth: 1, borderRadius: 3 },
+                    { type: 'line', label: 'SST anomaly (°C)', yAxisID: 'y1', data: s.map(d => d.tna_sst_aso),
+                      borderColor: OCEAN, backgroundColor: OCEAN, tension: 0.35, pointRadius: 2, borderWidth: 2, spanGaps: true },
+                ],
+            },
+            options: merge({
+                plugins: { tooltip: { mode: 'index', intersect: false } },
+                scales: {
+                    y:  { position: 'left',  title: { display: true, text: 'ACE (10⁴ kt²)', color: STORM, font: { size: 11 } } },
+                    y1: { position: 'right', title: { display: true, text: 'SST anomaly °C', color: OCEAN, font: { size: 11 } },
+                          ticks: { color: '#9ca3af', font: { size: 10 } }, grid: { drawOnChartArea: false } },
+                },
+            }),
+        });
+        hzSignal('timeline');
+    }
+
+    // ── Tab 2: scatter SST(x) vs ACE(y) + regression ────────────────────────
+    function hzDrawScatter() {
+        const pts = HZ.data.series
+            .filter(d => d.tna_sst_aso != null && d.ace != null)
+            .map(d => ({ x: d.tna_sst_aso, y: d.ace, year: d.year }));
+        const n = pts.length,
+            sx = pts.reduce((a, p) => a + p.x, 0), sy = pts.reduce((a, p) => a + p.y, 0),
+            sxx = pts.reduce((a, p) => a + p.x * p.x, 0), sxy = pts.reduce((a, p) => a + p.x * p.y, 0),
+            slope = (n * sxy - sx * sy) / (n * sxx - sx * sx), intercept = (sy - slope * sx) / n,
+            xmin = Math.min(...pts.map(p => p.x)), xmax = Math.max(...pts.map(p => p.x));
+
+        HZ.charts.scatter = new Chart(document.getElementById('hz-scatter-chart'), {
+            data: { datasets: [
+                { type: 'scatter', data: pts, pointBackgroundColor: STORM, pointRadius: 4, pointHoverRadius: 6 },
+                { type: 'line', data: [{ x: xmin, y: slope * xmin + intercept }, { x: xmax, y: slope * xmax + intercept }],
+                  borderColor: STORMLINE, borderWidth: 2, borderDash: [5, 4], pointRadius: 0 },
+            ]},
+            options: merge({
+                plugins: { tooltip: { callbacks: {
+                    label: ctx => ctx.raw.year ? `${ctx.raw.year}: SST ${ctx.raw.x}°C · ACE ${ctx.raw.y}` : '' } } },
+                scales: {
+                    x: { type: 'linear', title: { display: true, text: 'Aug–Oct Atlantic SST anomaly (°C)', color: OCEAN, font: { size: 11 } } },
+                    y: { title: { display: true, text: 'ACE (season energy)', color: STORM, font: { size: 11 } } },
+                },
+            }),
+        });
+        hzSignal('scatter');
+    }
+
+    // ── Tab 3: RI-storm bars + SST line ─────────────────────────────────────
+    function hzDrawRI() {
+        const s = HZ.data.series;
+        HZ.charts.ri = new Chart(document.getElementById('hz-ri-chart'), {
+            data: {
+                labels: s.map(d => d.year),
+                datasets: [
+                    { type: 'bar', label: 'RI storms', yAxisID: 'y', data: s.map(d => d.ri_storms),
+                      backgroundColor: STORMLINE + 'aa', borderColor: STORMLINE, borderWidth: 1, borderRadius: 3 },
+                    { type: 'line', label: 'SST anomaly (°C)', yAxisID: 'y1', data: s.map(d => d.tna_sst_aso),
+                      borderColor: OCEAN, backgroundColor: OCEAN, tension: 0.35, pointRadius: 2, borderWidth: 2, spanGaps: true },
+                ],
+            },
+            options: merge({
+                plugins: { tooltip: { mode: 'index', intersect: false } },
+                scales: {
+                    y:  { position: 'left',  title: { display: true, text: 'Rapidly-intensifying storms', color: STORMLINE, font: { size: 11 } } },
+                    y1: { position: 'right', title: { display: true, text: 'SST anomaly °C', color: OCEAN, font: { size: 11 } },
+                          ticks: { color: '#9ca3af', font: { size: 10 } }, grid: { drawOnChartArea: false } },
+                },
+            }),
+        });
+        hzSignal('ri');
+    }
+
+    // ── Insight lines ───────────────────────────────────────────────────────
+    function hzSignal(tab) {
+        const el = document.getElementById('hz-signal-' + tab);
+        if (!el || !HZ.data) return;
+        const c = HZ.data.correlations || {};
+        const rr = (o) => o && o.r != null ? o.r.toFixed(2) : '—';
+        let t = '';
+        if (tab === 'timeline')
+            t = `Across ${c.ace_vs_tna_sst?.window?.[0]}–${c.ace_vs_tna_sst?.window?.[1]}, seasons with a warmer tropical Atlantic tend to pack more total storm energy (r = ${rr(c.ace_vs_tna_sst)}).`;
+        if (tab === 'scatter')
+            t = `Each dot is a season. The upward fit (r = ${rr(c.ace_vs_tna_sst)}) is the association between Aug–Oct SST and ACE — real, but modulated by ENSO/AMO, so not a clean causal estimate.`;
+        if (tab === 'ri')
+            t = `Rapid-intensification counts track Atlantic warmth at r = ${rr(c.ri_storms_vs_tna_sst)} — consistent with warmer water raising a storm's ceiling on how fast it can strengthen.`;
+        el.innerHTML = t ? `<strong>Signal:</strong> ${t}` : '';
+    }
+
+    // ── Tab switching ───────────────────────────────────────────────────────
+    window.hzTab = function (btn, id) {
+        document.querySelectorAll('#hurricanes .cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#hurricanes .cp-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('hz-panel-' + id).classList.add('active');
+        if (!HZ.loaded) { hzLoad(); return; }
+        if (id === 'timeline' && !HZ.charts.timeline) hzDrawTimeline();
+        if (id === 'scatter'  && !HZ.charts.scatter)  hzDrawScatter();
+        if (id === 'ri'       && !HZ.charts.ri)       hzDrawRI();
+        hzSignal(id);
+    };
+
+    // ── Lazy-load on scroll (matches the ClimatePulse observer) ─────────────
+    const hzSection = document.getElementById('hurricanes');
+    if (hzSection) {
+        new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) hzLoad(); });
+        }, { threshold: 0.1 }).observe(hzSection);
     }
 })();
 

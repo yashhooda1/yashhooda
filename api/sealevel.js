@@ -1,8 +1,8 @@
 // api/sealevel.js — ES Module ("type":"module" in package.json)
-// Rising seas + US coastal risk + ice-melt sea-level scenarios.
+// Rising seas + US coastal risk + ice-melt scenarios + 2100 forecast.
 // Curated reference dataset (NASA/NOAA altimetry, NOAA tide-gauge trends, USGS/NSIDC
-// ice equivalents). Served with a SEED that IS the data; an optional
-// public_data_sealevel_gold.json at repo root overrides it if you later automate refresh.
+// ice equivalents, NOAA 2022 SLR scenarios). Served with a SEED that IS the data; an
+// optional public_data_sealevel_gold.json at repo root overrides it if you automate refresh.
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -225,7 +225,337 @@ const SEED = {
       "note": "Both ice sheets + all glaciers. USGS cites ~70 m (230 ft) with every mountain glacier included."
     }
   ],
-  "context": "Full-melt scenarios unfold over centuries to millennia, not this century. Observed rise this century is ~0.3\u20131 m by 2100 (up to ~2 m on high-emission, rapid-ice-loss pathways for the U.S. coast). The ice bars show the ultimate ceiling each reservoir holds, not a 2100 forecast."
+  "context": "Full-melt scenarios unfold over centuries to millennia, not this century. Observed rise this century is ~0.3\u20131 m by 2100 (up to ~2 m on high-emission, rapid-ice-loss pathways for the U.S. coast). The ice bars show the ultimate ceiling each reservoir holds, not a 2100 forecast.",
+  "forecast": {
+    "baseline_year": 2000,
+    "unit": "m above 2000",
+    "source": "NOAA 2022 Interagency Sea Level Rise Technical Report (Sweet et al. 2022); IPCC AR6 cross-reference",
+    "observed": [
+      {
+        "year": 2000,
+        "m": 0.0
+      },
+      {
+        "year": 2001,
+        "m": 0.003
+      },
+      {
+        "year": 2002,
+        "m": 0.006
+      },
+      {
+        "year": 2003,
+        "m": 0.008
+      },
+      {
+        "year": 2004,
+        "m": 0.011
+      },
+      {
+        "year": 2005,
+        "m": 0.015
+      },
+      {
+        "year": 2006,
+        "m": 0.018
+      },
+      {
+        "year": 2007,
+        "m": 0.021
+      },
+      {
+        "year": 2008,
+        "m": 0.024
+      },
+      {
+        "year": 2009,
+        "m": 0.028
+      },
+      {
+        "year": 2010,
+        "m": 0.031
+      },
+      {
+        "year": 2011,
+        "m": 0.035
+      },
+      {
+        "year": 2012,
+        "m": 0.039
+      },
+      {
+        "year": 2013,
+        "m": 0.042
+      },
+      {
+        "year": 2014,
+        "m": 0.046
+      },
+      {
+        "year": 2015,
+        "m": 0.05
+      },
+      {
+        "year": 2016,
+        "m": 0.054
+      },
+      {
+        "year": 2017,
+        "m": 0.058
+      },
+      {
+        "year": 2018,
+        "m": 0.062
+      },
+      {
+        "year": 2019,
+        "m": 0.067
+      },
+      {
+        "year": 2020,
+        "m": 0.071
+      },
+      {
+        "year": 2021,
+        "m": 0.075
+      },
+      {
+        "year": 2022,
+        "m": 0.08
+      },
+      {
+        "year": 2023,
+        "m": 0.085
+      },
+      {
+        "year": 2024,
+        "m": 0.089
+      }
+    ],
+    "scenarios": [
+      {
+        "key": "low",
+        "name": "Low",
+        "target_2100": 0.3,
+        "color": "#38bdf8",
+        "series": [
+          {
+            "year": 2024,
+            "m": 0.089
+          },
+          {
+            "year": 2030,
+            "m": 0.114
+          },
+          {
+            "year": 2040,
+            "m": 0.153
+          },
+          {
+            "year": 2050,
+            "m": 0.188
+          },
+          {
+            "year": 2060,
+            "m": 0.218
+          },
+          {
+            "year": 2070,
+            "m": 0.245
+          },
+          {
+            "year": 2080,
+            "m": 0.267
+          },
+          {
+            "year": 2090,
+            "m": 0.286
+          },
+          {
+            "year": 2100,
+            "m": 0.3
+          }
+        ]
+      },
+      {
+        "key": "intlow",
+        "name": "Intermediate-Low",
+        "target_2100": 0.5,
+        "color": "#4ade80",
+        "series": [
+          {
+            "year": 2024,
+            "m": 0.089
+          },
+          {
+            "year": 2030,
+            "m": 0.117
+          },
+          {
+            "year": 2040,
+            "m": 0.165
+          },
+          {
+            "year": 2050,
+            "m": 0.216
+          },
+          {
+            "year": 2060,
+            "m": 0.268
+          },
+          {
+            "year": 2070,
+            "m": 0.323
+          },
+          {
+            "year": 2080,
+            "m": 0.38
+          },
+          {
+            "year": 2090,
+            "m": 0.439
+          },
+          {
+            "year": 2100,
+            "m": 0.5
+          }
+        ]
+      },
+      {
+        "key": "int",
+        "name": "Intermediate",
+        "target_2100": 1.0,
+        "color": "#facc15",
+        "series": [
+          {
+            "year": 2024,
+            "m": 0.089
+          },
+          {
+            "year": 2030,
+            "m": 0.125
+          },
+          {
+            "year": 2040,
+            "m": 0.197
+          },
+          {
+            "year": 2050,
+            "m": 0.286
+          },
+          {
+            "year": 2060,
+            "m": 0.393
+          },
+          {
+            "year": 2070,
+            "m": 0.518
+          },
+          {
+            "year": 2080,
+            "m": 0.661
+          },
+          {
+            "year": 2090,
+            "m": 0.822
+          },
+          {
+            "year": 2100,
+            "m": 1.0
+          }
+        ]
+      },
+      {
+        "key": "inthigh",
+        "name": "Intermediate-High",
+        "target_2100": 1.5,
+        "color": "#fb923c",
+        "series": [
+          {
+            "year": 2024,
+            "m": 0.089
+          },
+          {
+            "year": 2030,
+            "m": 0.133
+          },
+          {
+            "year": 2040,
+            "m": 0.228
+          },
+          {
+            "year": 2050,
+            "m": 0.356
+          },
+          {
+            "year": 2060,
+            "m": 0.518
+          },
+          {
+            "year": 2070,
+            "m": 0.714
+          },
+          {
+            "year": 2080,
+            "m": 0.942
+          },
+          {
+            "year": 2090,
+            "m": 1.204
+          },
+          {
+            "year": 2100,
+            "m": 1.5
+          }
+        ]
+      },
+      {
+        "key": "high",
+        "name": "High",
+        "target_2100": 2.0,
+        "color": "#ef4444",
+        "series": [
+          {
+            "year": 2024,
+            "m": 0.089
+          },
+          {
+            "year": 2030,
+            "m": 0.141
+          },
+          {
+            "year": 2040,
+            "m": 0.259
+          },
+          {
+            "year": 2050,
+            "m": 0.427
+          },
+          {
+            "year": 2060,
+            "m": 0.643
+          },
+          {
+            "year": 2070,
+            "m": 0.909
+          },
+          {
+            "year": 2080,
+            "m": 1.224
+          },
+          {
+            "year": 2090,
+            "m": 1.587
+          },
+          {
+            "year": 2100,
+            "m": 2.0
+          }
+        ]
+      }
+    ],
+    "note": "Five NOAA scenarios keyed to their 2100 global target. Paths stay close through ~2050 (~0.25-0.3 m, largely locked in) and diverge after mid-century based on emissions and ice-sheet response. IPCC AR6 SSP5-8.5 likely range for 2100 is 0.6-1.0 m, with a low-confidence high end approaching 2 m \u2014 consistent with NOAA's Intermediate-High/High."
+  }
 };
 
 export default function handler(req, res) {

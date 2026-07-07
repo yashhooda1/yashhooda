@@ -1,7 +1,7 @@
 # Yash Hooda 
 **Live:** [yashhooda.ai](https://www.yashhooda.ai)
 
-A full-stack personal portfolio with a production-grade AI chatbot, live Strava training analytics, a 56-year climate analytics pipeline, Atlantic hurricane correlation analytics, real-time flight tracking, network analysis tools, interactive snow & hike photo albums, live weather, and a secure AI gateway — all deployed on Vercel.
+A full-stack personal portfolio with a production-grade AI chatbot, live Strava training analytics, a 56-year climate analytics pipeline, Atlantic hurricane correlation analytics, a rising-seas & coastal-risk dashboard, real-time flight tracking, network analysis tools, interactive snow & hike photo albums, live weather, and a secure AI gateway — all deployed on Vercel.
 
 ---
 
@@ -43,6 +43,14 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 - **Three interactive tabs** — Activity & SST timeline, Correlation scatter with a least-squares fit, and Rapid Intensification
 - Built as an **honest analytics piece**: the UI states plainly that these coefficients show *association, not attribution* (annual activity is modulated by ENSO and the AMO)
 - Shares the `climatepulse` pipeline; served by `/api/hurricanes` with a SEED fallback
+
+### 🌊 Rising Seas — Coastal Risk, Ice-Melt & 2100 Outlook
+- **Four interactive tabs** — global mean sea level since 1993 (satellite altimetry), an interactive U.S. coastal-risk map, ice-sheet melt scenarios, and a 2100 forecast
+- **U.S. risk map** — a Leaflet map (CartoDB Dark tiles) marking five hot-spots sized by local rise rate and colored by risk tier, each with its NOAA station and the reason it's at risk: New Orleans/Grand Isle (+9.1 mm/yr, highest in the U.S.), Houston/Galveston (+6.6), Miami/Virginia Key (+4.0), New York/The Battery (+2.9), and San Francisco Bay–Delta (+2.0)
+- **Ice-melt scenarios** — how far seas would ultimately climb per reservoir: West Antarctica (~5 m), Greenland (7.4 m), full Antarctica (58.3 m), all land ice (~65.7 m / ~216 ft)
+- **2100 outlook** — a projection fan of the five NOAA 2022 Interagency SLR scenarios keyed to their 2100 global targets above 2000: Low (+0.3 m), Intermediate-Low (+0.5 m), Intermediate (+1.0 m), Intermediate-High (+1.5 m), High (+2.0 m); trajectories anchored to today's observed level and rate, reproducing NOAA's published Intermediate path (~0.28 m by 2050, 1.0 m by 2100)
+- **Honest framing** — the ice bars are labeled as multi-century-to-millennial ceilings, not a 2100 forecast; the outlook tab shows the actionable near-term range and makes the key point that paths stay close through ~2050 (largely locked in) and diverge only after mid-century
+- **Data** — NASA/NOAA satellite altimetry, NOAA Tides & Currents tide-gauge trends, USGS/NSIDC ice sea-level equivalents, and the NOAA 2022 Sea Level Rise Technical Report scenarios; curated reference dataset served by `/api/sealevel` (no pipeline required)
 
 ### 🔍 Network Analyzer
 - **DNS Lookup** — A, AAAA, MX, TXT, NS, CNAME records
@@ -87,6 +95,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 │   ├── network.js              ← Network analysis tools (DNS/WHOIS/ping/traceroute/headers)
 │   ├── climate.js              ← ClimatePulse gold data API (SEED fallback)
 │   ├── hurricanes.js           ← Hurricane analytics API (SEED fallback)
+│   ├── sealevel.js             ← Rising seas / coastal risk / ice-melt API (curated SEED)
 │   └── history.js              ← Chat history persistence
 └── images/
     ├── snow/
@@ -113,6 +122,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 | Flights | AviationStack API |
 | Climate Data | NOAA GHCN-Daily (6 stations, 1970–present) |
 | Hurricane Data | NOAA HURDAT2 · NOAA PSL TNA SST · NASA GISTEMP |
+| Sea Level Data | NASA/NOAA satellite altimetry · NOAA tide-gauge trends · USGS/NSIDC ice equivalents · NOAA 2022 SLR scenarios |
 | Analytics Pipeline | Python (pandas, scikit-learn) · GitHub Actions cron · Bronze→Silver→Gold medallion |
 | Maps | Leaflet.js + CartoDB Dark tiles |
 | TTS | OpenAI TTS (nova voice) |
@@ -137,7 +147,7 @@ UPSTASH_REDIS_REST_TOKEN=...
 AVIATIONSTACK_API_KEY=...
 ```
 
-> **ClimatePulse & Hurricane Analytics need no site-side keys** — they're served from committed gold JSON. The NOAA API token (`NOAA_TOKEN`) and the cross-repo push token (`YASHHOODA_PAT`) live as secrets on the [`climatepulse`](https://github.com/yashhooda1/climatepulse) pipeline repo, not here.
+> **ClimatePulse, Hurricane Analytics & Rising Seas need no site-side keys.** ClimatePulse and Hurricane Analytics are served from committed gold JSON (the NOAA API token `NOAA_TOKEN` and the cross-repo push token `YASHHOODA_PAT` live as secrets on the [`climatepulse`](https://github.com/yashhooda1/climatepulse) pipeline repo, not here). Rising Seas ships a curated reference dataset in `/api/sealevel` — no token and no pipeline at all.
 
 ---
 
@@ -187,6 +197,7 @@ Browser
   ├── POST /api/network     → DNS/WHOIS/ping/traceroute/headers
   ├── GET  /api/climate     → ClimatePulse gold data (6-city NOAA analytics)
   ├── GET  /api/hurricanes  → Hurricane analytics (HURDAT2 × SST × GISTEMP correlation)
+  ├── GET  /api/sealevel    → Rising seas + U.S. coastal risk + ice-melt scenarios
   └── GET/POST /api/history → Chat history (Upstash Redis)
 ```
 
@@ -220,7 +231,7 @@ Set a spend limit at [console.anthropic.com](https://console.anthropic.com) → 
 
 AviationStack free tier: 100 requests/month (auto-refresh set to 5 min to conserve quota).
 
-ClimatePulse & Hurricane Analytics add **no marginal API cost** — the dashboards read pre-computed gold JSON, and the weekly pipeline runs on free GitHub Actions minutes against no-cost NOAA/NASA data.
+ClimatePulse, Hurricane Analytics & Rising Seas add **no marginal API cost** — the dashboards read pre-computed gold JSON (or, for Rising Seas, a curated static dataset), and the weekly climate pipeline runs on free GitHub Actions minutes against no-cost NOAA/NASA data.
 
 ---
 

@@ -2808,6 +2808,7 @@
             <a href="#projects">Projects</a>
             <a href="#climate">Climate 🌡️</a>
             <a href="#hurricanes">Hurricanes 🌀</a>
+            <a href="#sealevel">Rising Seas 🌊</a>
             <a href="#certifications">Certs</a>
             <a href="#tars">TARS</a>
             <a href="#running">Running</a>
@@ -3252,6 +3253,92 @@
             Year-to-year Atlantic activity is strongly steered by ENSO and the Atlantic Multidecadal Oscillation.
             A positive correlation is consistent with the physics — warmer water carries more energy — but isolating the
             human-caused share requires counterfactual potential-intensity modeling, not a scatter plot.
+        </p>
+    </section>
+
+    <!-- ═══════════════ RISING SEAS (paste after </section> of #hurricanes) ═══════════════ -->
+    <section id="sealevel">
+        <h2>🌊 Rising Seas — Coastal Risk &amp; the Ice That Holds the Water</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="sl-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                Satellite sea-level rise, U.S. coastal risk hot-spots, and how far seas would climb if the ice sheets melted
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="sl-source-badge">NASA · NOAA · USGS</span>
+                <a href="https://sealevel.nasa.gov" target="_blank" class="project-btn">🌐 NASA Sea Level</a>
+            </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="sl-rate">—</span>
+                <span class="cp-kpi-label">Global rise rate (mm/yr)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="sl-total">—</span>
+                <span class="cp-kpi-label">Risen since 1993 (mm)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="sl-fastest">—</span>
+                <span class="cp-kpi-label">Fastest U.S. city (mm/yr)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="sl-greenland">—</span>
+                <span class="cp-kpi-label">If Greenland melts (m)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="sl-antarctica">—</span>
+                <span class="cp-kpi-label">If Antarctica melts (m)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="sl-allice">—</span>
+                <span class="cp-kpi-label">If all ice melts (m)</span>
+            </div>
+        </div>
+
+        <!-- Tab nav -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="slTab(this,'gmsl')">🌊 Rising Seas</button>
+            <button class="cp-tab" onclick="slTab(this,'map')">🗺️ U.S. Risk Map</button>
+            <button class="cp-tab" onclick="slTab(this,'ice')">🧊 Ice-Melt Scenarios</button>
+        </div>
+
+        <!-- Rising seas (GMSL) -->
+        <div class="cp-panel active" id="sl-panel-gmsl">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Global mean sea level (satellite altimetry)</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="sl-gmsl-chart"></canvas></div>
+            <p class="cp-insight" id="sl-signal-gmsl">Loading signal...</p>
+        </div>
+
+        <!-- US risk map -->
+        <div class="cp-panel" id="sl-panel-map">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#ef4444"></span>Extreme</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>Very High</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#facc15"></span>High</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Moderate–High</span>
+                <span class="cp-leg-item" style="color:var(--text-muted)">· circle size = local rise rate</span>
+            </div>
+            <div id="sl-map" style="width:100%;height:420px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);"></div>
+            <p class="cp-insight" id="sl-signal-map">Loading signal...</p>
+        </div>
+
+        <!-- Ice-melt scenarios -->
+        <div class="cp-panel" id="sl-panel-ice">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Sea-level equivalent if fully melted (meters)</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="sl-ice-chart"></canvas></div>
+            <p class="cp-insight" id="sl-signal-ice">Loading signal...</p>
+        </div>
+
+        <!-- Honesty / timescale note -->
+        <p id="sl-caveat" style="margin-top:1rem;border-left:2px solid #38bdf8;background:rgba(56,189,248,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+            <strong style="color:var(--text);">Reading this honestly:</strong> the ice-melt bars show each reservoir's <em>ultimate ceiling</em> — how far seas would climb over <em>centuries to millennia</em> if it fully melted — not a 2100 forecast. This century's projected rise is roughly 0.3–1 m (up to ~2 m for the U.S. coast on high-emission, rapid-ice-loss pathways). Local rates differ from the global average mainly because of land subsidence, which is why the Gulf Coast tops the map.
         </p>
     </section>
         
@@ -8520,6 +8607,170 @@ window.cpUpdateSignal = function(tab) {
         new IntersectionObserver((entries) => {
             entries.forEach(e => { if (e.isIntersecting) hzLoad(); });
         }, { threshold: 0.1 }).observe(hzSection);
+    }
+})();
+
+// ═══════════ RISING SEAS — self-contained (paste right after the HZ IIFE's })(); ) ═══════════
+// Independent block. Fetches /api/sealevel, lazy-loads on scroll, reuses cp-* styling.
+// Chart.js for the GMSL line + ice bars; Leaflet (already on the page) for the risk map.
+// Globals exposed: window.slTab only.
+(function () {
+    'use strict';
+
+    const SL = { data: null, charts: {}, map: null, loaded: false };
+    const OCEAN = '#38bdf8', ICE = '#60a5fa';
+    const TIER_COLOR = { 'Extreme':'#ef4444', 'Very High':'#fb923c', 'High':'#facc15', 'Moderate–High':'#38bdf8' };
+
+    const BASE = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { color: '#9ca3af', maxTicksLimit: 10, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#9ca3af', font: { size: 10 } },                    grid: { color: 'rgba(255,255,255,0.05)' } },
+        },
+    };
+    const merge = (extra) => ({
+        ...BASE, ...extra,
+        plugins: { ...BASE.plugins, ...(extra.plugins || {}) },
+        scales: { x: { ...BASE.scales.x, ...((extra.scales||{}).x||{}) }, y: { ...BASE.scales.y, ...((extra.scales||{}).y||{}) } },
+    });
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+    async function slLoad() {
+        if (SL.loaded) return;
+        try {
+            const res = await fetch('/api/sealevel');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            SL.data = await res.json();
+            SL.loaded = true;
+            slKPIs();
+            slDrawGMSL();
+        } catch (err) {
+            console.error('[RisingSeas] Failed to load data:', err);
+        }
+    }
+
+    function slKPIs() {
+        const g = SL.data.gmsl, ice = SL.data.ice, cities = SL.data.cities;
+        set('sl-rate',  '+' + g.rate_now);
+        set('sl-total', Math.round(g.total_since_1993_mm));
+        const fastest = cities.reduce((a, c) => c.trend_mm_yr > a.trend_mm_yr ? c : a, cities[0]);
+        set('sl-fastest', '+' + fastest.trend_mm_yr);
+        const byName = (frag) => (ice.find(i => i.name.toLowerCase().includes(frag)) || {}).sle_m;
+        set('sl-greenland',  byName('greenland') ?? '—');
+        set('sl-antarctica', (ice.find(i => /antarctic ice sheet/i.test(i.name)) || {}).sle_m ?? '—');
+        set('sl-allice',     (ice.find(i => /all land ice/i.test(i.name)) || {}).sle_m ?? '—');
+        if (SL.data.source) set('sl-source-badge', 'NASA · NOAA · USGS');
+    }
+
+    // ── Tab 1: rising global mean sea level ─────────────────────────────────
+    function slDrawGMSL() {
+        const s = SL.data.gmsl.series;
+        SL.charts.gmsl = new Chart(document.getElementById('sl-gmsl-chart'), {
+            type: 'line',
+            data: { labels: s.map(d => d.year), datasets: [{
+                label: 'GMSL (mm above 1993)', data: s.map(d => d.mm),
+                borderColor: OCEAN, backgroundColor: 'rgba(56,189,248,0.12)',
+                fill: true, borderWidth: 2, pointRadius: 0, tension: 0.35,
+            }]},
+            options: merge({
+                plugins: { tooltip: { callbacks: { label: ctx => '+' + ctx.parsed.y + ' mm vs 1993' } } },
+                scales: { y: { title: { display: true, text: 'mm above 1993', color: OCEAN, font: { size: 11 } },
+                               ticks: { callback: v => '+' + v } } },
+            }),
+        });
+        slSignal('gmsl');
+    }
+
+    // ── Tab 2: US coastal risk map (Leaflet, lazy init) ─────────────────────
+    function slDrawMap() {
+        if (SL.map) { setTimeout(() => SL.map.invalidateSize(), 60); return; }
+        if (typeof L === 'undefined') {
+            const el = document.getElementById('sl-map');
+            if (el) el.innerHTML = '<p style="padding:1rem;color:#9ca3af;font-size:0.8rem;">Map needs Leaflet (already loaded elsewhere on the site).</p>';
+            return;
+        }
+        const map = L.map('sl-map', { scrollWheelZoom: false, attributionControl: false })
+                     .setView([32, -92], 4);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                    { maxZoom: 10 }).addTo(map);
+
+        SL.data.cities.forEach(c => {
+            const color = TIER_COLOR[c.tier] || OCEAN;
+            L.circleMarker([c.lat, c.lon], {
+                radius: 6 + c.trend_mm_yr * 1.6,     // size ∝ local rise rate
+                color, fillColor: color, fillOpacity: 0.45, weight: 2,
+            }).addTo(map).bindPopup(
+                `<b>${c.name}</b><br><span style="color:${color}">${c.tier}</span> · ` +
+                `+${c.trend_mm_yr} mm/yr (NOAA ${c.station_id})<br>` +
+                `<span style="font-size:11px">${c.note}</span>`
+            );
+        });
+        SL.map = map;
+        setTimeout(() => map.invalidateSize(), 60);   // fix render inside a formerly-hidden tab
+        slSignal('map');
+    }
+
+    // ── Tab 3: ice-melt sea-level equivalents ───────────────────────────────
+    function slDrawIce() {
+        const ice = SL.data.ice;
+        SL.charts.ice = new Chart(document.getElementById('sl-ice-chart'), {
+            type: 'bar',
+            data: { labels: ice.map(i => i.name), datasets: [{
+                label: 'Sea-level equivalent (m)', data: ice.map(i => i.sle_m),
+                backgroundColor: ice.map(i => i.sle_m > 50 ? '#3b82f6' : ICE),
+                borderColor: ICE, borderWidth: 1, borderRadius: 4,
+            }]},
+            options: merge({
+                indexAxis: 'y',
+                plugins: { tooltip: { callbacks: {
+                    label: ctx => '+' + ctx.parsed.x + ' m (' + ice[ctx.dataIndex].sle_ft + ' ft)',
+                    afterLabel: ctx => ice[ctx.dataIndex].note } } },
+                scales: {
+                    x: { title: { display: true, text: 'Metres of global sea-level rise', color: ICE, font: { size: 11 } },
+                         ticks: { callback: v => '+' + v + ' m' } },
+                    y: { ticks: { color: '#e0e0e0', font: { size: 10 } }, grid: { display: false } },
+                },
+            }),
+        });
+        slSignal('ice');
+    }
+
+    function slSignal(tab) {
+        const el = document.getElementById('sl-signal-' + tab);
+        if (!el || !SL.data) return;
+        const g = SL.data.gmsl;
+        let t = '';
+        if (tab === 'gmsl')
+            t = `Seas have risen ~${Math.round(g.total_since_1993_mm)} mm since 1993, and the annual rate has more than doubled (${g.rate_1993} → ${g.rate_now} mm/yr) — the rise itself is accelerating.`;
+        if (tab === 'map') {
+            const f = SL.data.cities.reduce((a, c) => c.trend_mm_yr > a.trend_mm_yr ? c : a, SL.data.cities[0]);
+            t = `Local rise outpaces the global average wherever the land is sinking — ${f.name.split(' / ')[0]} leads at +${f.trend_mm_yr} mm/yr, well above the ~${g.rate_now} mm/yr global rate.`;
+        }
+        if (tab === 'ice')
+            t = `Antarctica holds ~${(SL.data.ice.find(i=>/antarctic ice sheet/i.test(i.name))||{}).sle_m} m of sea level — roughly 8× Greenland's ~${(SL.data.ice.find(i=>/greenland/i.test(i.name))||{}).sle_m} m — but the West Antarctic sector is the piece most at risk of runaway loss this millennium.`;
+        el.innerHTML = t ? `<strong>Signal:</strong> ${t}` : '';
+    }
+
+    // ── Tab switching ───────────────────────────────────────────────────────
+    window.slTab = function (btn, id) {
+        document.querySelectorAll('#sealevel .cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#sealevel .cp-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('sl-panel-' + id).classList.add('active');
+        if (!SL.loaded) { slLoad(); return; }
+        if (id === 'gmsl' && !SL.charts.gmsl) slDrawGMSL();
+        if (id === 'map')  slDrawMap();                 // handles its own init/invalidateSize
+        if (id === 'ice'  && !SL.charts.ice)  slDrawIce();
+        slSignal(id);
+    };
+
+    // ── Lazy-load on scroll ─────────────────────────────────────────────────
+    const slSection = document.getElementById('sealevel');
+    if (slSection) {
+        new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) slLoad(); });
+        }, { threshold: 0.1 }).observe(slSection);
     }
 })();
 

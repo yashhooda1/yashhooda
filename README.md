@@ -1,7 +1,7 @@
 # Yash Hooda 
 **Live:** [yashhooda.ai](https://www.yashhooda.ai)
 
-A full-stack personal portfolio with a production-grade AI chatbot, live Strava training analytics, a 56-year climate analytics pipeline, Atlantic hurricane correlation analytics, a rising-seas & coastal-risk dashboard, real-time flight tracking, network analysis tools, interactive snow & hike photo albums, live weather, and a secure AI gateway — all deployed on Vercel.
+A full-stack personal portfolio with a production-grade AI chatbot, live Strava training analytics, a 56-year climate analytics pipeline, Atlantic hurricane correlation analytics, a rising-seas & coastal-risk dashboard, a data-center growth & environmental-impact dashboard, real-time flight tracking, network analysis tools, interactive snow & hike photo albums, live weather, and a secure AI gateway — all deployed on Vercel.
 
 ---
 
@@ -52,6 +52,15 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 - **Honest framing** — the ice bars are labeled as multi-century-to-millennial ceilings, not a 2100 forecast; the outlook tab shows the actionable near-term range and makes the key point that paths stay close through ~2050 (largely locked in) and diverge only after mid-century
 - **Data** — NASA/NOAA satellite altimetry, NOAA Tides & Currents tide-gauge trends, USGS/NSIDC ice sea-level equivalents, and the NOAA 2022 Sea Level Rise Technical Report scenarios; curated reference dataset served by `/api/sealevel` (no pipeline required)
 
+### 🖥️ Data Centers — The AI Boom & Its Footprint
+- **Four interactive tabs** — global data-center power demand, a U.S. hotspot map, the water footprint, and energy-per-query & efficiency
+- **Growth & AI demand** — global data-center electricity roughly doubling from ~415 TWh in 2024 (~1.5% of world power) to ~945 TWh by 2030 (~3%), out to ~1,200 TWh in 2035, observed vs projected, with AI as the primary driver (IEA Energy & AI 2025)
+- **U.S. hotspots** — a Leaflet map (CartoDB Dark tiles) of the eight largest markets sized by power capacity: Northern Virginia (~4,040 MW, the world's largest — ~50% of U.S. data centers are in VA, ~26% of the state's electricity), Dallas, Phoenix, Atlanta, Chicago, Silicon Valley, NY/NJ, and Hillsboro
+- **Water footprint** — a log-scale reframe placing an AI prompt (~0.5 L) beside everyday items (a burger ~1,650 L, a T-shirt ~2,650 L), plus hyperscaler withdrawals (Google 6.4 B gal in 2023)
+- **Energy & efficiency** — per-query energy shown as ranges (web search ~0.3 Wh, 2025 LLM median ~0.24–0.3 Wh, 2024 ChatGPT ~2.9 Wh, AI image, 5-sec AI video ~700–1,200 Wh) and the efficiency paradox (excellent hyperscaler PUE, yet absolute consumption still soaring)
+- **Honest framing** — contested per-query figures shown as ranges and placed in context; the real strain is the aggregate load and its geographic concentration on grids and watersheds
+- **Data** — IEA Energy & AI (2025), LBNL 2024, CBRE market data, and company sustainability reports; curated reference dataset served by `/api/datacenters` (no pipeline required)
+
 ### 🔍 Network Analyzer
 - **DNS Lookup** — A, AAAA, MX, TXT, NS, CNAME records
 - **WHOIS** — domain registration, registrar, dates, nameservers via RDAP
@@ -96,6 +105,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 │   ├── climate.js              ← ClimatePulse gold data API (SEED fallback)
 │   ├── hurricanes.js           ← Hurricane analytics API (SEED fallback)
 │   ├── sealevel.js             ← Rising seas / coastal risk / ice-melt API (curated SEED)
+│   ├── datacenters.js          ← Data-center growth & environmental-impact API (curated SEED)
 │   └── history.js              ← Chat history persistence
 └── images/
     ├── snow/
@@ -123,6 +133,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 | Climate Data | NOAA GHCN-Daily (6 stations, 1970–present) |
 | Hurricane Data | NOAA HURDAT2 · NOAA PSL TNA SST · NASA GISTEMP |
 | Sea Level Data | NASA/NOAA satellite altimetry · NOAA tide-gauge trends · USGS/NSIDC ice equivalents · NOAA 2022 SLR scenarios |
+| Data Center Data | IEA Energy & AI (2025) · LBNL 2024 · CBRE market data · company sustainability reports |
 | Analytics Pipeline | Python (pandas, scikit-learn) · GitHub Actions cron · Bronze→Silver→Gold medallion |
 | Maps | Leaflet.js + CartoDB Dark tiles |
 | TTS | OpenAI TTS (nova voice) |
@@ -147,7 +158,7 @@ UPSTASH_REDIS_REST_TOKEN=...
 AVIATIONSTACK_API_KEY=...
 ```
 
-> **ClimatePulse, Hurricane Analytics & Rising Seas need no site-side keys.** ClimatePulse and Hurricane Analytics are served from committed gold JSON (the NOAA API token `NOAA_TOKEN` and the cross-repo push token `YASHHOODA_PAT` live as secrets on the [`climatepulse`](https://github.com/yashhooda1/climatepulse) pipeline repo, not here). Rising Seas ships a curated reference dataset in `/api/sealevel` — no token and no pipeline at all.
+> **ClimatePulse, Hurricane Analytics & Rising Seas need no site-side keys.** ClimatePulse and Hurricane Analytics are served from committed gold JSON (the NOAA API token `NOAA_TOKEN` and the cross-repo push token `YASHHOODA_PAT` live as secrets on the [`climatepulse`](https://github.com/yashhooda1/climatepulse) pipeline repo, not here). Rising Seas ships a curated reference dataset in `/api/sealevel` — no token and no pipeline at all. The Data Centers dashboard works the same way via `/api/datacenters`.
 
 ---
 
@@ -198,6 +209,7 @@ Browser
   ├── GET  /api/climate     → ClimatePulse gold data (6-city NOAA analytics)
   ├── GET  /api/hurricanes  → Hurricane analytics (HURDAT2 × SST × GISTEMP correlation)
   ├── GET  /api/sealevel    → Rising seas + U.S. coastal risk + ice-melt scenarios
+  ├── GET  /api/datacenters → Data-center growth + U.S. hotspots + water/energy footprint
   └── GET/POST /api/history → Chat history (Upstash Redis)
 ```
 
@@ -231,7 +243,7 @@ Set a spend limit at [console.anthropic.com](https://console.anthropic.com) → 
 
 AviationStack free tier: 100 requests/month (auto-refresh set to 5 min to conserve quota).
 
-ClimatePulse, Hurricane Analytics & Rising Seas add **no marginal API cost** — the dashboards read pre-computed gold JSON (or, for Rising Seas, a curated static dataset), and the weekly climate pipeline runs on free GitHub Actions minutes against no-cost NOAA/NASA data.
+ClimatePulse, Hurricane Analytics, Rising Seas & Data Centers add **no marginal API cost** — the dashboards read pre-computed gold JSON (or, for Rising Seas and Data Centers, a curated static dataset), and the weekly climate pipeline runs on free GitHub Actions minutes against no-cost NOAA/NASA data.
 
 ---
 

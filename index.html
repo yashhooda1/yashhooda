@@ -8984,6 +8984,7 @@ window.cpUpdateSignal = function(tab) {
         const lastObsIdx = s.map(d => d.kind).lastIndexOf('observed');
         const proj = s.map((d, i) => (d.kind === 'projected' || i === lastObsIdx) ? d.twh : null);
         DC.charts.demand = new Chart(document.getElementById('dc-demand-chart'), {
+            type: 'line',
             data: {
                 labels: s.map(d => d.year),
                 datasets: [

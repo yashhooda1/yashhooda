@@ -3349,6 +3349,99 @@
             <strong style="color:var(--text);">Reading this honestly:</strong> the ice-melt bars show each reservoir's <em>ultimate ceiling</em> — how far seas would climb over <em>centuries to millennia</em> if it fully melted — not a 2100 forecast. This century's projected rise is roughly 0.3–1 m (up to ~2 m for the U.S. coast on high-emission, rapid-ice-loss pathways). Local rates differ from the global average mainly because of land subsidence, which is why the Gulf Coast tops the map.
         </p>
     </section>
+
+    <!-- ═══════════════ DATA CENTERS (paste after </section> of #sealevel) ═══════════════ -->
+    <section id="datacenters">
+        <h2>🖥️ Data Centers — The AI Boom &amp; Its Footprint</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="dc-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                How fast data-center power demand is growing, where the U.S. clusters are, and what it costs in water and energy
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="dc-source-badge">IEA · LBNL · CBRE</span>
+                <a href="https://www.iea.org/reports/energy-and-ai" target="_blank" class="project-btn">🌐 IEA Energy &amp; AI</a>
+            </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="dc-now">—</span>
+                <span class="cp-kpi-label">2024 demand (TWh)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="dc-2030">—</span>
+                <span class="cp-kpi-label">2030 projection (TWh)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="dc-share">—</span>
+                <span class="cp-kpi-label">Share of world power '30</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="dc-us">—</span>
+                <span class="cp-kpi-label">U.S. share of demand</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="dc-top">—</span>
+                <span class="cp-kpi-label">Biggest hub (MW)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="dc-water">—</span>
+                <span class="cp-kpi-label">Google water '23 (B gal)</span>
+            </div>
+        </div>
+
+        <!-- Tab nav -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="dcTab(this,'demand')">📈 Growth &amp; AI Demand</button>
+            <button class="cp-tab" onclick="dcTab(this,'map')">🗺️ U.S. Hotspots</button>
+            <button class="cp-tab" onclick="dcTab(this,'water')">💧 Water Footprint</button>
+            <button class="cp-tab" onclick="dcTab(this,'energy')">⚡ Energy &amp; Efficiency</button>
+        </div>
+
+        <!-- Growth & AI demand -->
+        <div class="cp-panel active" id="dc-panel-demand">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#a78bfa"></span>Observed (IEA)</span>
+                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#a78bfa"></span>Projected to 2035</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="dc-demand-chart"></canvas></div>
+            <p class="cp-insight" id="dc-signal-demand">Loading signal...</p>
+        </div>
+
+        <!-- US hotspots map -->
+        <div class="cp-panel" id="dc-panel-map">
+            <div class="cp-legend">
+                <span class="cp-leg-item" style="color:var(--text-muted)">Circle size = market power capacity (MW). Tap a hub for details.</span>
+            </div>
+            <div id="dc-map" style="width:100%;height:420px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);"></div>
+            <p class="cp-insight" id="dc-signal-map">Loading signal...</p>
+        </div>
+
+        <!-- Water footprint -->
+        <div class="cp-panel" id="dc-panel-water">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Freshwater to produce one unit (litres, log scale)</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="dc-water-chart"></canvas></div>
+            <p class="cp-insight" id="dc-signal-water">Loading signal...</p>
+        </div>
+
+        <!-- Energy & efficiency -->
+        <div class="cp-panel" id="dc-panel-energy">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>Energy per query (Wh, log scale) — ranges where contested</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="dc-energy-chart"></canvas></div>
+            <p class="cp-insight" id="dc-signal-energy">Loading signal...</p>
+        </div>
+
+        <!-- Honest framing note -->
+        <p id="dc-caveat" style="margin-top:1rem;border-left:2px solid #a78bfa;background:rgba(167,139,250,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+            <strong style="color:var(--text);">Reading this honestly:</strong> per-query water and energy numbers are genuinely contested and span orders of magnitude, so they're shown as ranges. At the individual level an AI prompt is tiny next to everyday items — a single burger is ~1,650 L of water. What actually strains systems is the <em>aggregate</em> and its <em>geographic concentration</em>: a handful of clusters (Northern Virginia alone ≈ a quarter of the state's electricity) pull enormous, localized loads on grids and watersheds — and efficiency gains keep being outrun by sheer growth.
+        </p>
+    </section>
         
 
     <!-- CERTIFICATIONS -->
@@ -8828,6 +8921,194 @@ window.cpUpdateSignal = function(tab) {
         new IntersectionObserver((entries) => {
             entries.forEach(e => { if (e.isIntersecting) slLoad(); });
         }, { threshold: 0.1 }).observe(slSection);
+    }
+})();
+
+// ═══════════ DATA CENTERS — self-contained (paste right after the SL IIFE's })(); ) ═══════════
+// Independent block. Fetches /api/datacenters, lazy-loads on scroll, reuses cp-* styling.
+// Chart.js for demand + water + energy; Leaflet (already on the page) for the hotspot map.
+// Globals exposed: window.dcTab only.
+(function () {
+    'use strict';
+
+    const DC = { data: null, charts: {}, map: null, loaded: false };
+    const PURPLE = '#a78bfa', OCEAN = '#38bdf8', STORM = '#fb923c';
+
+    const BASE = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { color: '#9ca3af', maxTicksLimit: 12, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#9ca3af', font: { size: 10 } },                    grid: { color: 'rgba(255,255,255,0.05)' } },
+        },
+    };
+    const merge = (extra) => ({
+        ...BASE, ...extra,
+        plugins: { ...BASE.plugins, ...(extra.plugins || {}) },
+        scales: { x: { ...BASE.scales.x, ...((extra.scales||{}).x||{}) }, y: { ...BASE.scales.y, ...((extra.scales||{}).y||{}) } },
+    });
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+    async function dcLoad() {
+        if (DC.loaded) return;
+        try {
+            const res = await fetch('/api/datacenters');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            DC.data = await res.json();
+            DC.loaded = true;
+            dcKPIs();
+            dcDrawDemand();
+        } catch (err) {
+            console.error('[DataCenters] Failed to load data:', err);
+        }
+    }
+
+    function dcKPIs() {
+        const d = DC.data.demand, m = DC.data.markets, w = DC.data.water;
+        set('dc-now', d.latest_obs_twh);
+        set('dc-2030', (d.series.find(s => s.year === 2030) || {}).twh ?? '—');
+        set('dc-share', '~' + d.share_global_2030_pct + '%');
+        set('dc-us', d.us_share_2024_pct + '%');
+        const top = m.reduce((a, c) => c.mw > a.mw ? c : a, m[0]);
+        set('dc-top', top.mw.toLocaleString());
+        const g = (w.hyperscalers_2023_billion_gal.find(h => /google/i.test(h.name)) || {}).gal;
+        set('dc-water', g ?? '—');
+    }
+
+    // ── Tab 1: global demand, observed + projected ──────────────────────────
+    function dcDrawDemand() {
+        const s = DC.data.demand.series;
+        const obs = s.map(d => d.kind === 'observed' ? d.twh : null);
+        // bridge the gap so the projected line connects to the last observed point
+        const lastObsIdx = s.map(d => d.kind).lastIndexOf('observed');
+        const proj = s.map((d, i) => (d.kind === 'projected' || i === lastObsIdx) ? d.twh : null);
+        DC.charts.demand = new Chart(document.getElementById('dc-demand-chart'), {
+            data: {
+                labels: s.map(d => d.year),
+                datasets: [
+                    { label: 'Observed', data: obs, borderColor: PURPLE, backgroundColor: 'rgba(167,139,250,0.12)',
+                      fill: true, borderWidth: 2.5, pointRadius: 2, tension: 0.35, spanGaps: false },
+                    { label: 'Projected', data: proj, borderColor: PURPLE, borderDash: [5, 4],
+                      borderWidth: 2, pointRadius: 2, tension: 0.35, spanGaps: true },
+                ],
+            },
+            options: merge({
+                plugins: { tooltip: { mode: 'index', intersect: false,
+                    callbacks: { label: ctx => ctx.parsed.y != null ? ctx.dataset.label + ': ' + ctx.parsed.y + ' TWh' : '' } } },
+                scales: { y: { title: { display: true, text: 'TWh / year', color: PURPLE, font: { size: 11 } }, beginAtZero: true } },
+            }),
+        });
+        dcSignal('demand');
+    }
+
+    // ── Tab 2: US hotspot map (Leaflet, lazy init) ──────────────────────────
+    function dcDrawMap() {
+        if (DC.map) { setTimeout(() => DC.map.invalidateSize(), 60); return; }
+        if (typeof L === 'undefined') {
+            const el = document.getElementById('dc-map');
+            if (el) el.innerHTML = '<p style="padding:1rem;color:#9ca3af;font-size:0.8rem;">Map needs Leaflet (already loaded elsewhere on the site).</p>';
+            return;
+        }
+        const map = L.map('dc-map', { scrollWheelZoom: false, attributionControl: false }).setView([38.5, -95], 4);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 10 }).addTo(map);
+        const maxMw = Math.max(...DC.data.markets.map(m => m.mw));
+        DC.data.markets.forEach(m => {
+            const color = m.mw > 3000 ? '#ef4444' : m.mw > 1200 ? '#fb923c' : m.mw > 700 ? '#facc15' : '#38bdf8';
+            L.circleMarker([m.lat, m.lon], {
+                radius: 7 + Math.sqrt(m.mw / maxMw) * 22, color, fillColor: color, fillOpacity: 0.45, weight: 2,
+            }).addTo(map).bindPopup(
+                `<b>${m.name}</b> · ${m.metro}<br><span style="color:${color}">${m.mw.toLocaleString()} MW</span><br>` +
+                `<span style="font-size:11px">${m.note}</span>`
+            );
+        });
+        DC.map = map;
+        setTimeout(() => map.invalidateSize(), 60);
+        dcSignal('map');
+    }
+
+    // ── Tab 3: water context (log-scale bars) ───────────────────────────────
+    function dcDrawWater() {
+        const c = DC.data.water.context_liters;
+        DC.charts.water = new Chart(document.getElementById('dc-water-chart'), {
+            type: 'bar',
+            data: { labels: c.map(i => i.label), datasets: [{
+                data: c.map(i => i.l), backgroundColor: c.map(i => /ai|search/i.test(i.label) ? '#38bdf8' : '#334155'),
+                borderColor: '#38bdf8', borderWidth: 1, borderRadius: 4 }] },
+            options: merge({
+                indexAxis: 'y',
+                plugins: { tooltip: { callbacks: { label: ctx => ctx.parsed.x + ' L of freshwater' } } },
+                scales: {
+                    x: { type: 'logarithmic', title: { display: true, text: 'Litres (log scale)', color: OCEAN, font: { size: 11 } } },
+                    y: { ticks: { color: '#e0e0e0', font: { size: 10 } }, grid: { display: false } },
+                },
+            }),
+        });
+        dcSignal('water');
+    }
+
+    // ── Tab 4: energy per query (log-scale ranges) ──────────────────────────
+    function dcDrawEnergy() {
+        const items = DC.data.energy.per_query_wh;
+        // draw as floating bars [lo, hi] on a log axis
+        DC.charts.energy = new Chart(document.getElementById('dc-energy-chart'), {
+            type: 'bar',
+            data: { labels: items.map(i => i.label), datasets: [{
+                data: items.map(i => [Math.max(i.lo, 0.01), Math.max(i.hi, i.lo * 1.02)]),
+                backgroundColor: items.map(i => /search/i.test(i.label) ? '#64748b' : '#fb923c'),
+                borderColor: STORM, borderWidth: 1, borderRadius: 3 }] },
+            options: merge({
+                indexAxis: 'y',
+                plugins: { tooltip: { callbacks: {
+                    label: ctx => { const it = items[ctx.dataIndex];
+                        return (it.lo === it.hi ? '~' + it.lo : it.lo + '–' + it.hi) + ' Wh'; },
+                    afterLabel: ctx => items[ctx.dataIndex].note } } },
+                scales: {
+                    x: { type: 'logarithmic', title: { display: true, text: 'Watt-hours per query (log scale)', color: STORM, font: { size: 11 } } },
+                    y: { ticks: { color: '#e0e0e0', font: { size: 10 } }, grid: { display: false } },
+                },
+            }),
+        });
+        dcSignal('energy');
+    }
+
+    function dcSignal(tab) {
+        const el = document.getElementById('dc-signal-' + tab);
+        if (!el || !DC.data) return;
+        const d = DC.data, e = d.energy;
+        let t = '';
+        if (tab === 'demand')
+            t = `Global data-center electricity roughly doubles from ~${d.demand.latest_obs_twh} TWh in 2024 to ~${(d.demand.series.find(s=>s.year===2030)||{}).twh} TWh by 2030 (~${d.demand.share_global_2030_pct}% of world power) — AI is the primary driver, and the U.S. holds ~${d.demand.us_share_2024_pct}% of demand.`;
+        if (tab === 'map') {
+            const top = d.markets.reduce((a,c)=>c.mw>a.mw?c:a,d.markets[0]);
+            t = `${top.name} is the world's largest hub at ~${top.mw.toLocaleString()} MW — bigger than the next several U.S. markets combined. Load is highly concentrated: a few clusters carry most of the nation's capacity.`;
+        }
+        if (tab === 'water')
+            t = `An AI prompt's water use is tiny per query — but a data center runs billions of them and also needs cooling water directly (Google withdrew ${(d.water.hyperscalers_2023_billion_gal.find(h=>/google/i.test(h.name))||{}).gal}B gallons in 2023). Context matters: one burger is ~1,650 L, a T-shirt ~2,650 L.`;
+        if (tab === 'energy')
+            t = `Per-query energy is contested: a 2024 ChatGPT estimate put it near 2.9 Wh (~10× a web search), while 2025 medians are ~0.24–0.3 Wh. The efficiency paradox: hyperscaler PUE is excellent (~${e.pue_hyperscale}) yet Google's absolute data-center power still rose ~${e.google_absolute_2024_pct}% in a single year.`;
+        el.innerHTML = t ? `<strong>Signal:</strong> ${t}` : '';
+    }
+
+    // ── Tab switching ───────────────────────────────────────────────────────
+    window.dcTab = function (btn, id) {
+        document.querySelectorAll('#datacenters .cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#datacenters .cp-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('dc-panel-' + id).classList.add('active');
+        if (!DC.loaded) { dcLoad(); return; }
+        if (id === 'demand' && !DC.charts.demand) dcDrawDemand();
+        if (id === 'map') dcDrawMap();
+        if (id === 'water' && !DC.charts.water) dcDrawWater();
+        if (id === 'energy' && !DC.charts.energy) dcDrawEnergy();
+        dcSignal(id);
+    };
+
+    // ── Lazy-load on scroll ─────────────────────────────────────────────────
+    const dcSection = document.getElementById('datacenters');
+    if (dcSection) {
+        new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) dcLoad(); });
+        }, { threshold: 0.1 }).observe(dcSection);
     }
 })();
 

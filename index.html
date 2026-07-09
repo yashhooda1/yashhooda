@@ -8931,10 +8931,10 @@ window.cpUpdateSignal = function(tab) {
 // Globals exposed: window.dcTab only.
 (function () {
     'use strict';
-
+ 
     const DC = { data: null, charts: {}, map: null, loaded: false };
     const PURPLE = '#a78bfa', OCEAN = '#38bdf8', STORM = '#fb923c';
-
+ 
     const BASE = {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
@@ -8949,7 +8949,7 @@ window.cpUpdateSignal = function(tab) {
         scales: { x: { ...BASE.scales.x, ...((extra.scales||{}).x||{}) }, y: { ...BASE.scales.y, ...((extra.scales||{}).y||{}) } },
     });
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-
+ 
     async function dcLoad() {
         if (DC.loaded) return;
         try {
@@ -8963,7 +8963,7 @@ window.cpUpdateSignal = function(tab) {
             console.error('[DataCenters] Failed to load data:', err);
         }
     }
-
+ 
     function dcKPIs() {
         const d = DC.data.demand, m = DC.data.markets, w = DC.data.water;
         set('dc-now', d.latest_obs_twh);
@@ -8975,7 +8975,7 @@ window.cpUpdateSignal = function(tab) {
         const g = (w.hyperscalers_2023_billion_gal.find(h => /google/i.test(h.name)) || {}).gal;
         set('dc-water', g ?? '—');
     }
-
+ 
     // ── Tab 1: global demand, observed + projected ──────────────────────────
     function dcDrawDemand() {
         const s = DC.data.demand.series;
@@ -9002,7 +9002,7 @@ window.cpUpdateSignal = function(tab) {
         });
         dcSignal('demand');
     }
-
+ 
     // ── Tab 2: US hotspot map (Leaflet, lazy init) ──────────────────────────
     function dcDrawMap() {
         if (DC.map) { setTimeout(() => DC.map.invalidateSize(), 60); return; }
@@ -9027,7 +9027,7 @@ window.cpUpdateSignal = function(tab) {
         setTimeout(() => map.invalidateSize(), 60);
         dcSignal('map');
     }
-
+ 
     // ── Tab 3: water context (log-scale bars) ───────────────────────────────
     function dcDrawWater() {
         const c = DC.data.water.context_liters;
@@ -9047,7 +9047,7 @@ window.cpUpdateSignal = function(tab) {
         });
         dcSignal('water');
     }
-
+ 
     // ── Tab 4: energy per query (log-scale ranges) ──────────────────────────
     function dcDrawEnergy() {
         const items = DC.data.energy.per_query_wh;
@@ -9072,14 +9072,20 @@ window.cpUpdateSignal = function(tab) {
         });
         dcSignal('energy');
     }
-
+ 
     function dcSignal(tab) {
         const el = document.getElementById('dc-signal-' + tab);
         if (!el || !DC.data) return;
         const d = DC.data, e = d.energy;
         let t = '';
-        if (tab === 'demand')
+        if (tab === 'demand') {
             t = `Global data-center electricity roughly doubles from ~${d.demand.latest_obs_twh} TWh in 2024 to ~${(d.demand.series.find(s=>s.year===2030)||{}).twh} TWh by 2030 (~${d.demand.share_global_2030_pct}% of world power) — AI is the primary driver, and the U.S. holds ~${d.demand.us_share_2024_pct}% of demand.`;
+            if (d.us_grid && d.us_grid.us_total_twh) {
+                const gy = d.us_grid.latest_year, gt = d.us_grid.us_total_twh;
+                const r = d.demand.us_dc_2028_range_pct;
+                t += ` For scale: the U.S. generated ~${gt.toLocaleString()} TWh in ${gy} (EIA, live) — data centers were ~${d.demand.us_dc_share_2023_pct}% of the grid in 2023${r ? `, projected to ${r[0]}–${r[1]}% by 2028 (LBNL)` : ''}.`;
+            }
+        }
         if (tab === 'map') {
             const top = d.markets.reduce((a,c)=>c.mw>a.mw?c:a,d.markets[0]);
             t = `${top.name} is the world's largest hub at ~${top.mw.toLocaleString()} MW — bigger than the next several U.S. markets combined. Load is highly concentrated: a few clusters carry most of the nation's capacity.`;
@@ -9090,7 +9096,7 @@ window.cpUpdateSignal = function(tab) {
             t = `Per-query energy is contested: a 2024 ChatGPT estimate put it near 2.9 Wh (~10× a web search), while 2025 medians are ~0.24–0.3 Wh. The efficiency paradox: hyperscaler PUE is excellent (~${e.pue_hyperscale}) yet Google's absolute data-center power still rose ~${e.google_absolute_2024_pct}% in a single year.`;
         el.innerHTML = t ? `<strong>Signal:</strong> ${t}` : '';
     }
-
+ 
     // ── Tab switching ───────────────────────────────────────────────────────
     window.dcTab = function (btn, id) {
         document.querySelectorAll('#datacenters .cp-tab').forEach(t => t.classList.remove('active'));
@@ -9104,7 +9110,7 @@ window.cpUpdateSignal = function(tab) {
         if (id === 'energy' && !DC.charts.energy) dcDrawEnergy();
         dcSignal(id);
     };
-
+ 
     // ── Lazy-load on scroll ─────────────────────────────────────────────────
     const dcSection = document.getElementById('datacenters');
     if (dcSection) {

@@ -21,8 +21,8 @@ const MODELS = {
   'gpt-5.4-mini':           { provider: 'openai',    api: 'gpt-5.4-mini' },
   'grok-4.5':               { provider: 'xai',       api: 'grok-4.5' },
   'grok-4.3':               { provider: 'xai',       api: 'grok-4.3' },
-  'gemini-3.5-flash':   { provider: 'Google',    api: 'gemini-3.5-flash' },
-  'gemini-3.1-pro-preview': { provider: 'Google',  api: 'gemini-3.1-pro-preview' },
+  'gemini-3.5-flash':   { provider: 'google',    api: 'gemini-3.5-flash' },
+  'gemini-3.1-pro-preview': { provider: 'google',  api: 'gemini-3.1-pro-preview' },
   'llama-4-maverick':       { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
   'llama-3.3-70b':          { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
 };

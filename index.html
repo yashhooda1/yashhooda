@@ -9493,6 +9493,259 @@ function vmMaybeFinish(){
   }
 }
 
+(function (global) {
+    'use strict';
+ 
+    const SAMPLE_RATE = 24000;
+    const WS_URL = 'wss://api.x.ai/v1/realtime?model=grok-voice-latest';
+    const TOKEN_URL = '/api/grok-voice-token';
+ 
+    // ── PCM16 <-> base64 helpers (24 kHz, little-endian) ────────────────────
+    function float32ToBase64PCM16(float32) {
+        const pcm16 = new Int16Array(float32.length);
+        for (let i = 0; i < float32.length; i++) {
+            const s = Math.max(-1, Math.min(1, float32[i]));
+            pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+        }
+        const bytes = new Uint8Array(pcm16.buffer);
+        let bin = '';
+        for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        return btoa(bin);
+    }
+    function base64PCM16ToFloat32(b64) {
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const pcm16 = new Int16Array(bytes.buffer);
+        const out = new Float32Array(pcm16.length);
+        for (let i = 0; i < pcm16.length; i++) out[i] = pcm16[i] / 32768.0;
+        return out;
+    }
+ 
+    class GrokVoice {
+        constructor(opts = {}) {
+            this.on = {
+                status: opts.onStatus || (() => {}),
+                userText: opts.onUserText || (() => {}),
+                assistantText: opts.onAssistantText || (() => {}),
+                error: opts.onError || ((e) => console.error('[GrokVoice]', e)),
+            };
+            this.instructions = opts.instructions || GrokVoice.DEFAULT_INSTRUCTIONS;
+            this.voice = opts.voice || 'eve';
+            this.ws = null;
+            this.micCtx = null;
+            this.playCtx = null;
+            this.stream = null;
+            this.processor = null;
+            this.playHead = 0;          // scheduling cursor for gapless output
+            this.sources = [];          // scheduled audio sources (for barge-in)
+            this.active = false;
+            this._assistantText = '';
+        }
+ 
+        async start() {
+            if (this.active) return;
+            this.active = true;
+            try {
+                this.on.status('connecting');
+                // 1) mint ephemeral token (server-side key stays hidden)
+                const tokRes = await fetch(TOKEN_URL, { method: 'POST' });
+                const tok = await tokRes.json();
+                if (!tokRes.ok || !tok.token) throw new Error(tok.error || 'Could not get voice token');
+ 
+                // 2) start mic capture in parallel (best practice: don't wait for WS open)
+                await this._startMic();
+ 
+                // 3) open the realtime socket with the token in the subprotocol
+                this.ws = new WebSocket(WS_URL, ['xai-client-secret.' + tok.token]);
+                this.ws.onopen = () => this._onOpen();
+                this.ws.onmessage = (ev) => this._onMessage(ev);
+                this.ws.onerror = () => this.on.error('WebSocket error');
+                this.ws.onclose = () => { if (this.active) this.stop(); };
+            } catch (err) {
+                this.active = false;
+                this.on.error(err.message || String(err));
+                this.stop();
+            }
+        }
+ 
+        _onOpen() {
+            this.on.status('listening');
+            this._send({
+                type: 'session.update',
+                session: {
+                    voice: this.voice,
+                    instructions: this.instructions,
+                    turn_detection: { type: 'server_vad', threshold: 0.6, silence_duration_ms: 700 },
+                    audio: {
+                        input:  { format: { type: 'audio/pcm', rate: SAMPLE_RATE } },
+                        output: { format: { type: 'audio/pcm', rate: SAMPLE_RATE } },
+                    },
+                    tools: [{ type: 'web_search' }, { type: 'x_search' }],
+                },
+            });
+        }
+ 
+        async _startMic() {
+            this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.micCtx = new (global.AudioContext || global.webkitAudioContext)({ sampleRate: SAMPLE_RATE });
+            const source = this.micCtx.createMediaStreamSource(this.stream);
+            this.processor = this.micCtx.createScriptProcessor(4096, 1, 1);
+            this.processor.onaudioprocess = (e) => {
+                if (!this.ws || this.ws.readyState !== 1) return;
+                const pcm = float32ToBase64PCM16(e.inputBuffer.getChannelData(0));
+                this._send({ type: 'input_audio_buffer.append', audio: pcm });
+            };
+            source.connect(this.processor);
+            this.processor.connect(this.micCtx.destination);
+            this.playCtx = new (global.AudioContext || global.webkitAudioContext)({ sampleRate: SAMPLE_RATE });
+        }
+ 
+        _onMessage(ev) {
+            let msg;
+            try { msg = JSON.parse(ev.data); } catch { return; }
+            switch (msg.type) {
+                case 'conversation.created':
+                    this.conversationId = msg.conversation?.id;
+                    break;
+                case 'input_audio_buffer.speech_started':
+                    this._bargeIn();                       // user interrupted — stop assistant audio
+                    this.on.status('listening');
+                    break;
+                case 'conversation.item.input_audio_transcription.updated':
+                    // xAI sends the cumulative user transcript here
+                    this.on.userText(msg.transcript || msg.delta || '');
+                    break;
+                case 'response.output_audio.delta':
+                    if (msg.delta) this._enqueueAudio(msg.delta);
+                    this.on.status('speaking');
+                    break;
+                case 'response.output_audio_transcript.delta':
+                    this._assistantText += (msg.delta || '');
+                    this.on.assistantText(this._assistantText, false);
+                    break;
+                case 'response.done':
+                    this.on.assistantText(this._assistantText, true);
+                    this._assistantText = '';
+                    this.on.status('listening');
+                    break;
+                case 'error':
+                    this.on.error(msg.error?.message || 'Voice error');
+                    break;
+            }
+        }
+ 
+        _enqueueAudio(b64) {
+            if (!this.playCtx) return;
+            const f32 = base64PCM16ToFloat32(b64);
+            const buf = this.playCtx.createBuffer(1, f32.length, SAMPLE_RATE);
+            buf.getChannelData(0).set(f32);
+            const src = this.playCtx.createBufferSource();
+            src.buffer = buf;
+            src.connect(this.playCtx.destination);
+            const now = this.playCtx.currentTime;
+            const startAt = Math.max(now, this.playHead);
+            src.start(startAt);
+            this.playHead = startAt + buf.duration;
+            this.sources.push(src);
+            src.onended = () => { this.sources = this.sources.filter((s) => s !== src); };
+        }
+ 
+        _bargeIn() {
+            this.sources.forEach((s) => { try { s.stop(); } catch (_) {} });
+            this.sources = [];
+            this.playHead = this.playCtx ? this.playCtx.currentTime : 0;
+            this._assistantText = '';
+        }
+ 
+        _send(obj) {
+            if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify(obj));
+        }
+ 
+        stop() {
+            this.active = false;
+            this._bargeIn();
+            try { this.processor && this.processor.disconnect(); } catch (_) {}
+            try { this.stream && this.stream.getTracks().forEach((t) => t.stop()); } catch (_) {}
+            try { this.micCtx && this.micCtx.close(); } catch (_) {}
+            try { this.playCtx && this.playCtx.close(); } catch (_) {}
+            try { this.ws && this.ws.close(); } catch (_) {}
+            this.ws = this.micCtx = this.playCtx = this.stream = this.processor = null;
+            this.on.status('idle');
+        }
+    }
+ 
+    GrokVoice.DEFAULT_INSTRUCTIONS =
+        "You are Yash Hooda's voice assistant on his portfolio site. Yash is an AI/Data Engineer " +
+        "and competitive distance runner training for a sub-3:00 marathon. Be concise, warm, and " +
+        "conversational — this is spoken, so keep answers short unless asked to go deep. You can use " +
+        "web and X search for current info. If asked about Yash's projects, running, or background, " +
+        "answer helpfully and invite them to explore the site.";
+ 
+    // ── Optional drop-in floating widget ────────────────────────────────────
+    GrokVoice.mountWidget = function (opts = {}) {
+        if (document.getElementById('gv-widget')) return;
+        const wrap = document.createElement('div');
+        wrap.id = 'gv-widget';
+        wrap.innerHTML = `
+          <style>
+            #gv-widget{position:fixed;bottom:96px;right:24px;z-index:9998;font-family:'DM Sans',system-ui,sans-serif;}
+            #gv-btn{display:flex;align-items:center;gap:8px;background:#111a2e;color:#e6edf7;border:1px solid #22304d;
+              border-radius:24px;padding:10px 16px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.35);font-size:14px;}
+            #gv-btn.live{border-color:#4caf50;box-shadow:0 0 0 3px rgba(76,175,80,.25);}
+            #gv-dot{width:9px;height:9px;border-radius:50%;background:#64748b;}
+            #gv-btn.live #gv-dot{background:#4caf50;animation:gv-pulse 1.2s infinite;}
+            @keyframes gv-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+            #gv-panel{margin-top:10px;width:300px;max-height:280px;overflow:auto;background:#0d1117;border:1px solid #22304d;
+              border-radius:12px;padding:12px;font-size:12.5px;color:#cbd5e1;display:none;}
+            #gv-panel.show{display:block;}
+            #gv-panel .u{color:#93c5fd;margin:6px 0;} #gv-panel .a{color:#e6edf7;margin:6px 0;}
+            #gv-status{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8496b5;margin-bottom:6px;}
+          </style>
+          <button id="gv-btn"><span id="gv-dot"></span><span id="gv-label">🎙️ Talk to Grok</span></button>
+          <div id="gv-panel"><div id="gv-status">idle</div><div id="gv-log"></div></div>`;
+        document.body.appendChild(wrap);
+ 
+        const btn = wrap.querySelector('#gv-btn');
+        const label = wrap.querySelector('#gv-label');
+        const panel = wrap.querySelector('#gv-panel');
+        const statusEl = wrap.querySelector('#gv-status');
+        const log = wrap.querySelector('#gv-log');
+        let uLine = null, aLine = null;
+ 
+        const gv = new GrokVoice({
+            ...opts,
+            onStatus: (s) => { statusEl.textContent = s; },
+            onUserText: (t) => {
+                if (!uLine) { uLine = document.createElement('div'); uLine.className = 'u'; log.appendChild(uLine); }
+                uLine.textContent = '🗣️ ' + t;
+                panel.scrollTop = panel.scrollHeight;
+            },
+            onAssistantText: (t, done) => {
+                if (!aLine) { aLine = document.createElement('div'); aLine.className = 'a'; log.appendChild(aLine); }
+                aLine.textContent = '🤖 ' + t;
+                panel.scrollTop = panel.scrollHeight;
+                if (done) { uLine = null; aLine = null; }
+            },
+            onError: (e) => { statusEl.textContent = 'error: ' + e; },
+        });
+ 
+        let live = false;
+        btn.addEventListener('click', () => {
+            live = !live;
+            if (live) { gv.start(); btn.classList.add('live'); label.textContent = '⏹ End voice'; panel.classList.add('show'); }
+            else { gv.stop(); btn.classList.remove('live'); label.textContent = '🎙️ Talk to Grok'; }
+        });
+        return gv;
+    };
+ 
+    // exports (module + browser global) + test hooks
+    global.GrokVoice = GrokVoice;
+    GrokVoice._float32ToBase64PCM16 = float32ToBase64PCM16;
+    GrokVoice._base64PCM16ToFloat32 = base64PCM16ToFloat32;
+    if (typeof module !== 'undefined' && module.exports) module.exports = GrokVoice;
+})(typeof window !== 'undefined' ? window : globalThis);
+
 // ── GAP 1: PROMPT LAB ───────────────────────────────────────────────────────
 const LAB_STRATEGIES = [
     { key: 'zero-shot',         label: 'Zero-Shot',        emoji: '⚡',  color: '#4caf50', desc: 'Direct question, no examples' },

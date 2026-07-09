@@ -93,7 +93,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 ├── vercel.json                         ← Vercel routing, edge config, headers
 ├── sitemap.xml                         ← Google Search Console sitemap
 ├── robots.txt                          ← Search engine crawl rules
-├── public_data_climate_gold.json       ← ClimatePulse gold data (auto-refreshed weekly)
+├── public_data_climate_gold.json       ← ClimatePulse gold data (auto-refreshed daily)
 ├── public_data_hurricanes_gold.json    ← Hurricane analytics gold data (auto-refreshed)
 ├── api/
 │   ├── chat.js                 ← AI chatbot — multi-model router (Anthropic + OpenAI)
@@ -114,7 +114,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
     └── [hike photos]           ← Granby CO hike photos
 ```
 
-> **Climate data pipeline** — the Bronze→Silver→Gold ETL that produces the two `*_gold.json` files lives in a separate repo, [`yashhooda1/climatepulse`](https://github.com/yashhooda1/climatepulse). A weekly GitHub Actions workflow runs the pipeline and commits fresh gold data into this repo, which Vercel then serves.
+> **Climate data pipeline** — the Bronze→Silver→Gold ETL that produces the two `*_gold.json` files lives in a separate repo, [`yashhooda1/climatepulse`](https://github.com/yashhooda1/climatepulse). A daily GitHub Actions workflow runs the pipeline and commits fresh gold data into this repo, which Vercel then serves.
 
 ---
 

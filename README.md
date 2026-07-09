@@ -30,7 +30,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 
 ### 🌡️ ClimatePulse — Live Climate Dashboard
 - **56 years (1970–present)** of NOAA daily station data across **6 cities** — Houston (IAH), Newark (EWR), Dallas (DAL), Denver (DEN), London (LHR), Delhi (DEL)
-- **Bronze → Silver → Gold medallion pipeline** in a separate [`climatepulse`](https://github.com/yashhooda1/climatepulse) repo, refreshed **weekly** via a GitHub Actions cron (Sundays 04:00 UTC) that computes the gold layer and pushes `public_data_climate_gold.json` into this repo
+- **Bronze → Silver → Gold medallion pipeline** in a separate [`climatepulse`](https://github.com/yashhooda1/climatepulse) repo, refreshed **daily** via a GitHub Actions cron (Every Day at 04:00 UTC) that computes the gold layer and pushes `public_data_climate_gold.json` into this repo
 - **Four interactive tabs** — Annual Trend (with linear-regression trend lines, °F/decade), Seasonal climatology, Heat Days (≥ 80°F), and Winter Lows
 - **City-compare toggles** and a KPI strip showing per-station warming slopes
 - Served by `/api/climate` with a last-known-good SEED fallback, so the dashboard always renders

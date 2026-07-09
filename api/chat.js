@@ -1045,16 +1045,23 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Forbidden.' });
     }
 
-    // ── REDIS RATE LIMIT + AUTO-BAN ───────────────────────────────────────────
-    const rlAllowed = await rateLimit(req, res, {
-        maxPerMinute:   10,
-        maxPerHour:     60,
-        maxDailyGlobal: 1000,
-        endpoint:       'chat',
-    });
-    if (!rlAllowed) return;
-
     const { messages, sessionId, model, requestToken, requestTimestamp, adminPassword } = req.body;
+
+    // Verified admin (e.g. the CI eval harness) bypasses the IP/session rate limits
+    // and auto-ban — MUST be computed before rateLimit() runs.
+    const isVerifiedAdmin = !!adminPassword && !!process.env.ADMIN_PASSWORD
+                            && adminPassword === process.env.ADMIN_PASSWORD;
+
+    // ── REDIS RATE LIMIT + AUTO-BAN ───────────────────────────────────────────
+    if (!isVerifiedAdmin) {
+        const rlAllowed = await rateLimit(req, res, {
+            maxPerMinute:   10,
+            maxPerHour:     60,
+            maxDailyGlobal: 1000,
+            endpoint:       'chat',
+        });
+        if (!rlAllowed) return;
+    }
 
     // ── REQUEST SIGNING ───────────────────────────────────────────────────────
     if (process.env.REQUEST_SIGNING_KEY && !verifyRequestToken(sessionId, requestTimestamp, requestToken)) {
@@ -1079,7 +1086,7 @@ export default async function handler(req, res) {
     }
 
     // ── LAYER 6: Session Rate Limit ───────────────────────────────────────────
-    if (!checkSessionRateLimit(sessionId)) {
+    if (!isVerifiedAdmin && !checkSessionRateLimit(sessionId)) {
         return res.status(429).json({ error: 'Too many requests — please wait a moment.' });
     }
 

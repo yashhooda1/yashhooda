@@ -2810,6 +2810,7 @@
             <a href="#hurricanes">Hurricanes 🌀</a>
             <a href="#sealevel">Rising Seas 🌊</a>
             <a href="#datacenters">Data Centers 🖥️</a>
+            <a href="#thisweek">This Week ⚡</a>
             <a href="#certifications">Certs</a>
             <a href="#tars">TARS</a>
             <a href="#running">Running</a>
@@ -3441,6 +3442,51 @@
         <!-- Honest framing note -->
         <p id="dc-caveat" style="margin-top:1rem;border-left:2px solid #a78bfa;background:rgba(167,139,250,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
             <strong style="color:var(--text);">Reading this honestly:</strong> per-query water and energy numbers are genuinely contested and span orders of magnitude, so they're shown as ranges. At the individual level an AI prompt is tiny next to everyday items — a single burger is ~1,650 L of water. What actually strains systems is the <em>aggregate</em> and its <em>geographic concentration</em>: a handful of clusters (Northern Virginia alone ≈ a quarter of the state's electricity) pull enormous, localized loads on grids and watersheds — and efficiency gains keep being outrun by sheer growth.
+        </p>
+    </section>
+
+    <!-- ═══════════════ THIS WEEK (paste after </section> of #datacenters) ═══════════════ -->
+    <section id="thisweek">
+        <h2>⚡ This Week — Live Activity</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="tw-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                What Yash has actually been running and building over the last 7 days — auto-refreshed weekly, and fed to the site's AI agent
+            </p>
+            <span class="cp-refresh-badge" id="tw-updated">updated —</span>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell"><span class="cp-kpi-val hot" id="tw-miles">—</span><span class="cp-kpi-label">Miles this week</span></div>
+            <div class="cp-kpi-cell"><span class="cp-kpi-val hot" id="tw-runs">—</span><span class="cp-kpi-label">Runs</span></div>
+            <div class="cp-kpi-cell"><span class="cp-kpi-val hot" id="tw-long">—</span><span class="cp-kpi-label">Longest run (mi)</span></div>
+            <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="tw-commits">—</span><span class="cp-kpi-label">Commits</span></div>
+            <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="tw-repos">—</span><span class="cp-kpi-label">Active repos</span></div>
+            <div class="cp-kpi-cell"><span class="cp-kpi-val" id="tw-countdown">—</span><span class="cp-kpi-label">Days to Boulderthon</span></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="twTab(this,'run')">🏃 Running</button>
+            <button class="cp-tab" onclick="twTab(this,'build')">💻 Building</button>
+        </div>
+
+        <!-- Running -->
+        <div class="cp-panel active" id="tw-panel-run">
+            <div id="tw-runs-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+            <p class="cp-insight" id="tw-signal-run">Loading…</p>
+        </div>
+
+        <!-- Building -->
+        <div class="cp-panel" id="tw-panel-build">
+            <div class="cp-chart-wrap"><canvas id="tw-repo-chart"></canvas></div>
+            <div id="tw-langs" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;"></div>
+            <p class="cp-insight" id="tw-signal-build">Loading…</p>
+        </div>
+
+        <p style="margin-top:1rem;font-size:0.75rem;color:var(--text-muted);">
+            Running from <strong style="color:var(--text);">Strava</strong>, commits from <strong style="color:var(--text);">GitHub</strong>, distilled by a weekly GitHub Actions pipeline. The same summary is injected into this site's AI chat so it always knows what Yash is currently working on.
         </p>
     </section>
         
@@ -9122,6 +9168,139 @@ window.cpUpdateSignal = function(tab) {
             entries.forEach(e => { if (e.isIntersecting) dcLoad(); });
         }, { threshold: 0.1 }).observe(dcSection);
     }
+})();
+
+// ═══════════ THIS WEEK — self-contained (paste after the DC IIFE's })(); ) ═══════════
+// Fetches /api/agent-context, lazy-loads on scroll, reuses cp-* styling.
+// Globals exposed: window.twTab only.
+(function () {
+    'use strict';
+    const TW = { data: null, chart: null, loaded: false };
+    const GREEN = '#4caf50', BLUE = '#38bdf8';
+    const LANG_COLORS = { JavaScript: '#f1e05a', Python: '#3572A5', HTML: '#e34c26',
+                          TypeScript: '#3178c6', CSS: '#563d7c', Shell: '#89e051', Go: '#00ADD8' };
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+ 
+    async function twLoad() {
+        if (TW.loaded) return;
+        try {
+            const res = await fetch('/api/agent-context');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            TW.data = await res.json();
+            TW.loaded = true;
+            twKPIs();
+            twRuns();
+            twSignal('run');
+        } catch (err) {
+            console.error('[ThisWeek] load failed:', err);
+        }
+    }
+ 
+    function twKPIs() {
+        const r = TW.data.running || {}, c = TW.data.coding || {};
+        set('tw-miles', r.week_miles ?? '—');
+        set('tw-runs', r.week_runs ?? '—');
+        set('tw-long', r.longest_run_miles ?? '—');
+        set('tw-commits', c.week_commits ?? '—');
+        set('tw-repos', (c.active_repos || []).length || '—');
+        set('tw-countdown', r.days_to_boulderthon ?? '—');
+        if (TW.data.generated_at) {
+            const d = new Date(TW.data.generated_at);
+            set('tw-updated', 'updated ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        }
+    }
+ 
+    // ── Running: styled recent-runs list ────────────────────────────────────
+    function twRuns() {
+        const box = document.getElementById('tw-runs-list');
+        const runs = (TW.data.running || {}).recent || [];
+        if (!box) return;
+        if (!runs.length) { box.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No runs logged this week.</p>'; return; }
+        const maxMi = Math.max(...runs.map(r => r.miles || 0), 1);
+        box.innerHTML = runs.map(r => {
+            const w = Math.max(6, Math.round((r.miles / maxMi) * 100));
+            const date = new Date((r.date || '') + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            return `<div style="background:var(--bg-card);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:0.6rem 0.8rem;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.5rem;">
+                <span style="font-weight:600;color:var(--text);font-size:0.9rem;">${esc(r.name || 'Run')}</span>
+                <span style="font-family:'Space Mono',monospace;font-size:0.8rem;color:${GREEN};white-space:nowrap;">${r.miles} mi${r.pace ? ' · ' + esc(r.pace) + '/mi' : ''}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.6rem;margin-top:0.35rem;">
+                <div style="flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
+                  <div style="width:${w}%;height:100%;background:${GREEN};border-radius:3px;"></div>
+                </div>
+                <span style="font-size:0.7rem;color:var(--text-muted);white-space:nowrap;">${date}</span>
+              </div>
+            </div>`;
+        }).join('');
+    }
+ 
+    // ── Building: repos by commits ──────────────────────────────────────────
+    function twBuild() {
+        if (TW.chart) return;
+        const repos = (TW.data.coding || {}).active_repos || [];
+        const ctx = document.getElementById('tw-repo-chart');
+        if (ctx && repos.length) {
+            TW.chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: repos.map(r => r.name),
+                    datasets: [{
+                        data: repos.map(r => r.commits),
+                        backgroundColor: repos.map(r => LANG_COLORS[r.language] || BLUE),
+                        borderRadius: 5, borderSkipped: false,
+                    }],
+                },
+                options: {
+                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false },
+                        tooltip: { callbacks: { label: c => `${c.parsed.x} commits` + (repos[c.dataIndex].language ? ` · ${repos[c.dataIndex].language}` : '') } } },
+                    scales: {
+                        x: { title: { display: true, text: 'commits (last 7 days)', color: BLUE, font: { size: 11 } },
+                             ticks: { color: '#9ca3af', font: { size: 10 }, precision: 0 }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+                        y: { ticks: { color: '#e0e0e0', font: { size: 11 } }, grid: { display: false } },
+                    },
+                },
+            });
+        }
+        // language chips
+        const langBox = document.getElementById('tw-langs');
+        if (langBox) {
+            const langs = [...new Set(repos.map(r => r.language).filter(Boolean))];
+            langBox.innerHTML = langs.map(l =>
+                `<span style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.75rem;color:var(--text-muted);">
+                   <span style="width:9px;height:9px;border-radius:50%;background:${LANG_COLORS[l] || BLUE};"></span>${esc(l)}
+                 </span>`).join('');
+        }
+    }
+ 
+    function twSignal(tab) {
+        const el = document.getElementById('tw-signal-' + tab);
+        if (!el || !TW.data) return;
+        if (tab === 'run') {
+            const r = TW.data.running || {};
+            el.innerHTML = `<strong>Signal:</strong> ${esc(r.summary || 'No running data.')}`
+                + (r.days_to_houston != null ? ` <span style="color:var(--text-muted)">(${r.days_to_houston} days to Houston.)</span>` : '');
+        } else {
+            const c = TW.data.coding || {};
+            el.innerHTML = `<strong>Signal:</strong> ${esc(c.summary || 'No coding data.')}`;
+        }
+    }
+ 
+    window.twTab = function (btn, id) {
+        document.querySelectorAll('#thisweek .cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#thisweek .cp-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tw-panel-' + id).classList.add('active');
+        if (!TW.loaded) { twLoad(); return; }
+        if (id === 'build') twBuild();
+        twSignal(id);
+    };
+ 
+    const sec = document.getElementById('thisweek');
+    if (sec) new IntersectionObserver((e) => e.forEach(x => { if (x.isIntersecting) twLoad(); }),
+        { threshold: 0.1 }).observe(sec);
 })();
 
 // ── VOICE OUTPUT (OpenAI TTS) ──────────────────────────────

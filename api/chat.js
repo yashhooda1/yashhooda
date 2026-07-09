@@ -1421,19 +1421,34 @@ export default async function handler(req, res) {
             reply = filterOutput(data.content?.[0]?.text ?? 'Reach Yash at yash.hooda6@gmail.com!');
 
         } else {
-            // OpenAI Responses API
-            const response = await fetch('https://api.openai.com/v1/responses', {
+            // OpenAI Responses API — auto-fallback to gpt-5.5 if a gpt-5.6 preview
+            // model isn't allowlisted on this account yet.
+            const callOpenAI = (modelApi) => fetch('https://api.openai.com/v1/responses', {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
                 body:    JSON.stringify({
-                    model:             cfg.api,
+                    model:             modelApi,
                     instructions:      systemText,
                     input:             toOpenAIInput(messages),
                     reasoning:         { effort: 'low' },
                     max_output_tokens: 4096,
                 }),
             });
-            const data = await response.json();
+            const isModelAccessError = (status, data) => {
+                if (status === 404 || status === 403) return true;
+                const e = (data && data.error) || {};
+                const code = String(e.code || '').toLowerCase();
+                const msg  = String(e.message || '').toLowerCase();
+                return code === 'model_not_found'
+                    || (/model/.test(msg) && /(does not exist|not found|access|permission|not have|unavailable)/.test(msg));
+            };
+            let response = await callOpenAI(cfg.api);
+            let data = await response.json();
+            if (!response.ok && /^gpt-5\.6/.test(cfg.api) && isModelAccessError(response.status, data)) {
+                console.warn(`[OpenAI] ${cfg.api} not accessible — falling back to gpt-5.5`);
+                response = await callOpenAI('gpt-5.5');
+                data = await response.json();
+            }
             if (!response.ok) {
                 console.error('[OpenAI] Error:', JSON.stringify(data));
                 await notifyFailure({ route: '/api/chat [OpenAI]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0, 200), userMessage: queryText, sessionId });
@@ -1441,7 +1456,6 @@ export default async function handler(req, res) {
             }
             reply = filterOutput(extractOpenAIText(data) || 'Reach Yash at yash.hooda6@gmail.com!');
         }
-
         // ── SAVE MEMORY (non-fatal — must not block or swallow the response) ──
         // BUG FIX: moved memory save BEFORE final return, errors are caught and
         // logged only — they do NOT return 500 or prevent the reply from going out.

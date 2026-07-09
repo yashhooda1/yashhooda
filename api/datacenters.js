@@ -82,7 +82,10 @@ const SEED = {
       }
     ],
     "ai_share_now_pct": 10,
-    "ai_share_2030_pct": 45
+    "ai_share_2030_pct": 45,
+    "us_dc_twh_2023": 176,
+    "us_dc_share_2023_pct": 4.4,
+    "us_dc_2028_range_pct": [6.7, 12]
   },
   "markets": [
     {
@@ -249,6 +252,13 @@ export default function handler(req, res) {
     const p = join(process.cwd(), 'public_data_datacenters_gold.json');
     const fresh = JSON.parse(readFileSync(p, 'utf-8'));
     if (fresh && fresh.demand && Array.isArray(fresh.markets)) payload = fresh;
+  } catch (_) {}
+
+  // live U.S.-grid denominator (EIA sub-feed); optional — attached if present
+  try {
+    const gp = join(process.cwd(), 'public_data_us_grid_gold.json');
+    const grid = JSON.parse(readFileSync(gp, 'utf-8'));
+    if (grid && grid.us_total_twh) payload = { ...payload, us_grid: grid };
   } catch (_) {}
 
   res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=3600');

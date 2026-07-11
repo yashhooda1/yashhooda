@@ -257,6 +257,64 @@
         }
         .nav-chat-btn::after { display: none !important; }
 
+        /* ── NAV DROPDOWNS (grouped sections so Contact never overflows) ── */
+        .nav-links > a,
+        .nav-dropdown { flex: 0 0 auto; white-space: nowrap; }
+
+        .nav-dropdown { position: relative; display: flex; align-items: center; }
+
+        .nav-drop-trigger {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.83rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            padding: 1.1rem 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.32rem;
+            transition: color 0.2s;
+        }
+        .nav-drop-trigger:hover,
+        .nav-dropdown:hover .nav-drop-trigger,
+        .nav-dropdown.open .nav-drop-trigger { color: var(--green); }
+
+        .nav-drop-trigger .caret { font-size: 0.65rem; transition: transform 0.2s; }
+        .nav-dropdown.open .nav-drop-trigger .caret { transform: rotate(180deg); }
+
+        .nav-drop-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 195px;
+            background: rgba(22,27,34,0.98);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 0.35rem 0;
+            z-index: 200;
+            box-shadow: 0 14px 32px rgba(0,0,0,0.5);
+        }
+        .nav-dropdown:hover .nav-drop-menu,
+        .nav-dropdown.open .nav-drop-menu { display: flex; flex-direction: column; }
+
+        .nav-drop-menu a {
+            padding: 0.6rem 1rem;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+        .nav-drop-menu a::after { display: none !important; }
+        .nav-drop-menu a:hover {
+            color: var(--green);
+            background: rgba(129,199,132,0.08);
+        }
+
         /* ── CONTAINER ── */
         .container {
             max-width: 1100px;
@@ -1570,6 +1628,27 @@
             .nav-links.open a { padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
             .nav-hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 1rem; background: none; border: none; }
             .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--text-muted); border-radius: 2px; transition: all 0.2s; }
+            .nav-links.open { max-height: calc(100vh - 64px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+            .nav-links.open .nav-dropdown { display: block; width: 100%; }
+            .nav-links.open .nav-drop-trigger {
+                width: 100%;
+                justify-content: space-between;
+                padding: 0.75rem 1.5rem;
+                border-bottom: 1px solid rgba(255,255,255,0.04);
+            }
+            .nav-links.open .nav-drop-menu {
+                position: static;
+                min-width: 0;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+                padding: 0;
+                background: rgba(0,0,0,0.28);
+                backdrop-filter: none;
+            }
+            .nav-links.open .nav-dropdown:hover .nav-drop-menu { display: none; }
+            .nav-links.open .nav-dropdown.open .nav-drop-menu { display: flex; flex-direction: column; }
+            .nav-links.open .nav-drop-menu a { padding: 0.65rem 1.5rem 0.65rem 2.4rem; }
             #chat-window { width: 100vw !important; height: 100vh !important; max-height: 100vh !important; bottom: 0 !important; right: 0 !important; border-radius: 0 !important; }
             #chat-window.open { transform: translateY(0) scale(1) !important; }
             .projects-grid, .cert-grid { grid-template-columns: 1fr; }
@@ -2806,26 +2885,85 @@
         <div class="nav-links">
             <a href="#about">About</a>
             <a href="#projects">Projects</a>
-            <a href="#climate">Climate 🌡️</a>
-            <a href="#hurricanes">Hurricanes 🌀</a>
-            <a href="#sealevel">Rising Seas 🌊</a>
-            <a href="#datacenters">Data Centers 🖥️</a>
-            <a href="#thisweek">This Week ⚡</a>
+
+            <div class="nav-dropdown">
+                <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Explorations <span class="caret">▾</span></button>
+                <div class="nav-drop-menu">
+                    <a href="#climate">Climate 🌡️</a>
+                    <a href="#hurricanes">Hurricanes 🌀</a>
+                    <a href="#sealevel">Rising Seas 🌊</a>
+                    <a href="#datacenters">Data Centers 🖥️</a>
+                    <a href="#snow">Snow ❄️</a>
+                    <a href="#weather">Weather</a>
+                    <a href="#aviation">Aviation ✈️</a>
+                    <a href="#network">Network 🔍</a>
+                    <a href="#sports">Sports 🏆</a>
+                </div>
+            </div>
+
+            <div class="nav-dropdown">
+                <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Running <span class="caret">▾</span></button>
+                <div class="nav-drop-menu">
+                    <a href="#running">Running</a>
+                    <a href="#hikes">Hikes</a>
+                    <a href="#thisweek">This Week ⚡</a>
+                </div>
+            </div>
+
             <a href="#certifications">Certs</a>
             <a href="#tars">TARS</a>
-            <a href="#running">Running</a>
-            <a href="#hikes">Hikes</a>
-            <a href="#snow">Snow ❄️</a>
-            <a href="#weather">Weather</a>
-            <a href="#aviation">Aviation ✈️</a>
-            <a href="#network">Network 🔍</a>
-            <a href="#sports">Sports 🏆</a>
             <a href="#buildlog">Build Log 📋</a>
             <a href="#contact">Contact</a>
             <a href="#" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
         </div>
     </div>
 </nav>
+
+<script>
+/* ── NAV DROPDOWN CONTROLLER ── */
+function toggleNavDrop(e, btn) {
+    e.preventDefault();
+    e.stopPropagation();
+    var parent = btn.parentElement;
+    var wasOpen = parent.classList.contains('open');
+    document.querySelectorAll('.nav-dropdown.open').forEach(function (d) {
+        d.classList.remove('open');
+        var t = d.querySelector('.nav-drop-trigger');
+        if (t) t.setAttribute('aria-expanded', 'false');
+    });
+    if (!wasOpen) {
+        parent.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+    }
+}
+
+function closeAllNavDrops() {
+    document.querySelectorAll('.nav-dropdown.open').forEach(function (d) {
+        d.classList.remove('open');
+        var t = d.querySelector('.nav-drop-trigger');
+        if (t) t.setAttribute('aria-expanded', 'false');
+    });
+}
+
+/* Click outside closes any open dropdown */
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.nav-dropdown')) closeAllNavDrops();
+});
+
+/* Esc closes */
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAllNavDrops();
+});
+
+/* Clicking any nav link closes dropdowns + the mobile hamburger menu */
+document.querySelectorAll('.nav-links a').forEach(function (a) {
+    a.addEventListener('click', function () {
+        closeAllNavDrops();
+        var links = document.querySelector('.nav-links');
+        if (links) links.classList.remove('open');
+    });
+});
+</script>
 
 <div class="container">
 

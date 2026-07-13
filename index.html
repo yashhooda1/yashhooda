@@ -2974,7 +2974,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <div class="stat-label">Certifications</div>
         </div>
         <div class="stat-item">
-            <span class="stat-num" data-target="8">0</span>
+            <span class="stat-num" data-target="10">0</span>
             <div class="stat-label">Projects</div>
         </div>
         <div class="stat-item">
@@ -3153,6 +3153,40 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 <div class="project-links">
                     <a href="https://youtu.be/Pe540X27zmM?feature=shared" target="_blank" class="project-btn">🎥 Demo</a>
                     <a href="https://github.com/yashhooda1/hoodaAgents" target="_blank" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">🔬 PySpark Coding Assistant — QLoRA Fine-Tune</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Mistral-7B</span>
+                    <span class="tech-pill">QLoRA</span>
+                    <span class="tech-pill">PEFT</span>
+                    <span class="tech-pill">HuggingFace</span>
+                    <span class="tech-pill">LLM Distillation</span>
+                </div>
+                <div class="project-desc">
+                    Fine-tuned Mistral-7B to write production PySpark. Filtering 122K rows of public code data yielded only <strong>58 usable examples</strong> — mostly deprecated Spark 1.x RDD API — so I built a synthetic corpus via LLM distillation from hand-curated production patterns, with AST-level validation and deprecated-API rejection. Eval loss 0.76, perplexity 1.69. Published with its failure cases documented rather than hidden.
+                </div>
+                <div class="project-links">
+                    <a href="https://huggingface.co/hoodarunner/pyspark-coding-assistant-lora" target="_blank" rel="noopener" class="project-btn">🤗 Model</a>
+                    <a href="https://github.com/yashhooda1/pyspark-coding-assistant" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">⚙️ Offline ReAct Agent — Zero Cloud Dependency</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Ollama</span>
+                    <span class="tech-pill">Local SLM</span>
+                    <span class="tech-pill">ReAct</span>
+                    <span class="tech-pill">Python</span>
+                </div>
+                <div class="project-desc">
+                    A ReAct agent built from scratch against a local model — no API, no network, no cloud. Reason → act → observe loop, tool dispatch, and scratchpad state all hand-rolled. Built to understand what the agent frameworks are actually doing under the hood before trusting them in production.
+                </div>
+                <div class="project-links">
+                    <a href="https://ollama.com/hoodarunner/offline-agent" target="_blank" rel="noopener" class="project-btn">🦙 Ollama</a>
                 </div>
             </div>
 

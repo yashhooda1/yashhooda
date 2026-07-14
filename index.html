@@ -8453,10 +8453,10 @@ loadStrava();
     }
 
     // ── Legend builder ───────────────────────────────────────────────────────
-    function buildLegend(cities, showTrend = false) {
+    function buildLegend(cities, showTrend = false, showYTD = false) {
         const el = document.getElementById('cp-legend-dynamic');
         if (!el) return;
-        el.innerHTML = cities.map(({ code, cfg }) => `
+        el.innerHTML = cities.map(({ cfg }) => `
             <span class="cp-leg-item">
                 <span class="cp-leg-dot" style="background:${cfg.color}"></span>
                 ${cfg.name}
@@ -8465,7 +8465,11 @@ loadStrava();
                 <span class="cp-leg-dash" style="border-color:${cfg.color}"></span>
                 trend
             </span>` : ''}
-        `).join('');
+        `).join('') + (showYTD ? `
+            <span class="cp-leg-item" title="Partial year — shown for recency, excluded from the trend line and slope">
+                <span style="display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid var(--text-muted);background:transparent;margin-right:4px;"></span>
+                year-to-date (partial)
+            </span>` : '');
     }
 
     // ── Tab switching ────────────────────────────────────────────────────────
@@ -8488,46 +8492,70 @@ loadStrava();
         const cities = activeCities();
         if (!cities.length) return;
 
-        // Use IAH years as x-axis base
-        const labels = (CP.data.IAH || cities[0].data).yearly.map(r => r.year);
+        // x-axis spans every complete year, plus any partial (YTD) year
+        const yearSet = new Set();
+        cities.forEach(({ data }) => {
+            (data.yearly || []).forEach(r => yearSet.add(r.year));
+            if (data.ytd) yearSet.add(data.ytd.year);
+        });
+        const labels = [...yearSet].sort((a, b) => a - b);
+
         const datasets = [];
+        let anyYTD = false;
 
         cities.forEach(({ cfg, data }) => {
             const yearMap = {};
-            data.yearly.forEach(r => { yearMap[r.year] = r; });
+            (data.yearly || []).forEach(r => { yearMap[r.year] = r; });
 
             datasets.push({
                 label: cfg.name + ' actual',
                 data:  labels.map(y => yearMap[y]?.avg_tmean ?? null),
                 borderColor: cfg.color,
                 backgroundColor: cfg.color + '12',
-                borderWidth: 1.5,
-                pointRadius: 2,
-                pointHoverRadius: 4,
-                tension: 0.3,
-                fill: false,
-                spanGaps: true,
+                borderWidth: 1.5, pointRadius: 2, pointHoverRadius: 4,
+                tension: 0.3, fill: false, spanGaps: true,
             });
             datasets.push({
                 label: cfg.name + ' trend',
                 data:  labels.map(y => yearMap[y]?.trend ?? null),
-                borderColor: cfg.color,
-                borderDash: [6, 4],
-                borderWidth: 2,
-                pointRadius: 0,
-                tension: 0,
-                fill: false,
-                spanGaps: true,
+                borderColor: cfg.color, borderDash: [6, 4],
+                borderWidth: 2, pointRadius: 0, tension: 0, fill: false, spanGaps: true,
             });
+
+            // Partial year — hollow point, no line, NOT part of the regression
+            if (data.ytd) {
+                anyYTD = true;
+                datasets.push({
+                    label: cfg.name + ' YTD',
+                    data:  labels.map(y => y === data.ytd.year ? data.ytd.avg_tmean : null),
+                    borderColor: cfg.color,
+                    pointBackgroundColor: 'transparent',
+                    pointBorderColor: cfg.color,
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    showLine: false,
+                    ytdMeta: data.ytd,        // read back in the tooltip
+                });
+            }
         });
 
-        buildLegend(cities, true);
+        buildLegend(cities, true, anyYTD);
         CP.charts.trend = new Chart(document.getElementById('cp-trend-chart'), {
             type: 'line',
             data: { labels, datasets },
             options: mergeOpts({
                 plugins: { tooltip: { mode: 'index', intersect: false,
-                    callbacks: { label: ctx => ctx.dataset.label + ': ' + (+ctx.parsed.y).toFixed(1) + '°F' } } },
+                    callbacks: {
+                        label: (ctx) => {
+                            if (ctx.parsed.y == null) return '';
+                            const v = (+ctx.parsed.y).toFixed(1);
+                            const m = ctx.dataset.ytdMeta;
+                            return m
+                                ? `${ctx.dataset.label}: ${v}°F — ${m.year} through ${m.through_label} (${m.days} days). Partial year, excluded from the trend.`
+                                : `${ctx.dataset.label}: ${v}°F`;
+                        },
+                    } } },
                 scales: { y: { ticks: { callback: v => v + '°F' } } },
             }),
         });
@@ -8799,7 +8827,14 @@ function cpGetSignal(tab) {
 window.cpUpdateSignal = function (tab) {
     const el = document.getElementById('cp-signal-' + tab);
     if (!el) return;
-    const text = cpGetSignal(tab);
+    let text = cpGetSignal(tab);
+    if (tab === 'trend') {
+        const ytds = activeCities().filter(c => c.data.ytd)
+            .map(c => `${c.cfg.name} ${c.data.ytd.year} through ${c.data.ytd.through_label}`);
+        if (ytds.length) {
+            text += ` Hollow points are year-to-date (${ytds.join('; ')}) — partial years, shown for recency but excluded from the trend line and slope.`;
+        }
+    }
     el.innerHTML = text ? `<strong>Signal:</strong> ${text}` : '';
 };
 

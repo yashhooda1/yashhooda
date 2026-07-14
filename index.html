@@ -8644,64 +8644,75 @@ loadStrava();
         window.cpUpdateSignal('winter');
     }
 
-    // ── DROP-IN REPLACEMENT for the cp_insight paragraphs in each panel ──
-// Add this function to your ClimatePulse IIFE, then call cpUpdateSignal()
-// after every toggle and after initial load.
+// ── DYNAMIC SIGNALS — replaces the static CP_SIGNALS object + cpGetSignal ──
+// Signals are now functions of the station's live gold data, so every number
+// shown comes from the pipeline (single source of truth — no hand-typed stats
+// that silently drift as the daily regression updates).
+// Plain strings still work, so any entry can stay static.
+
+// ── formatters (null-safe: a missing field degrades to "—", never NaN) ──
+const sgn  = (v, d = 2) => (v == null || Number.isNaN(v)) ? '—' : (v >= 0 ? '+' : '') + v.toFixed(d);
+const num  = (v, d = 1) => (v == null || Number.isNaN(v)) ? '—' : v.toFixed(d);
+const july = (d) => d?.monthly?.[6]?.avg_tmean;      // monthly is 12 entries, idx 6 = July
+const jan  = (d) => d?.monthly?.[0]?.avg_tmean;
+const last = (d) => d?.yearly?.[d.yearly.length - 1] || {};
+const heatDays = (d) => last(d).count_80f;
+const swing = (d) => (july(d) != null && jan(d) != null) ? july(d) - jan(d) : null;
 
 const CP_SIGNALS = {
     IAH: {
-        trend:    "Houston (IAH) warms at +0.77°F/decade — one of the fastest-warming major US cities, driven by urban heat island effects and Gulf Coast humidity.",
-        seasonal: "Houston summers (Jun–Sep) average 82–84°F mean temp with extreme humidity. Winters are mild but warming faster than summers (+1.02°F/decade for winter nights).",
-        heat:     "Houston averages 200+ days above 80°F per year, with Feb–Mar heat days increasing +2.07 days/decade — extreme heat arriving earlier every year.",
-        winter:   "Houston winter nighttime lows warm at +1.02°F/decade — faster than its annual average, a classic greenhouse gas fingerprint distinct from urban heat island effects.",
+        trend:    (d) => `Houston (IAH) warms at ${sgn(d.slope_annual)}°F/decade — one of the fastest-warming major US cities, driven by urban heat island effects and Gulf Coast humidity.`,
+        seasonal: (d) => `Houston summers are brutal — July averages ${num(july(d))}°F mean with extreme humidity. Winters are mild but warming faster than summers (${sgn(d.slope_winter)}°F/decade for winter nights).`,
+        heat:     (d) => `Houston logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}, with Feb–Mar heat days increasing ${sgn(d.slope_80f_febmar)} days/decade — extreme heat arriving earlier every year.`,
+        winter:   (d) => `Houston winter nighttime lows warm at ${sgn(d.slope_winter)}°F/decade — faster than its annual rate of ${sgn(d.slope_annual)}°F, a classic greenhouse-gas fingerprint distinct from urban heat island effects.`,
     },
     EWR: {
-        trend:    "Newark (EWR) warms at +0.35°F/decade — slower than Houston but still significant, reflecting Northeast US regional warming patterns.",
-        seasonal: "Newark summers peak at 78–79°F mean in July. The temperature gap between Newark and Houston compresses in spring and widens dramatically in summer.",
-        heat:     "Newark averages 90–120 days above 80°F per year — roughly half of Houston's count, reflecting its more temperate Northeast climate.",
-        winter:   "Newark winter lows warm at +0.58°F/decade. Cold snaps are becoming less extreme, consistent with broader Northeast US climate trends.",
+        trend:    (d) => `Newark (EWR) warms at ${sgn(d.slope_annual)}°F/decade — slower than Houston but still significant, reflecting Northeast US regional warming patterns.`,
+        seasonal: (d) => `Newark peaks around ${num(july(d))}°F mean in July. The gap to Houston compresses in spring and widens dramatically in summer.`,
+        heat:     (d) => `Newark saw ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — a fraction of Houston's count, reflecting its more temperate Northeast climate.`,
+        winter:   (d) => `Newark winter lows warm at ${sgn(d.slope_winter)}°F/decade. Cold snaps are becoming less extreme, consistent with broader Northeast US climate trends.`,
     },
     DAL: {
-        trend:    "Dallas (DAL) sits between Houston and Denver climatically — hot summers with Texas heat but slightly cooler than Houston due to its inland position.",
-        seasonal: "Dallas summers average 84–86°F mean with intense July/August heat. Spring and fall are the most temperate seasons with rapid temperature swings.",
-        heat:     "Dallas averages 180–210 days above 80°F per year, similar to Houston but with drier heat due to its distance from the Gulf Coast.",
-        winter:   "Dallas winter lows are more volatile than Houston — occasional Arctic blasts (like Winter Storm Uri 2021) create large year-to-year swings.",
+        trend:    (d) => `Dallas (DAL) warms at ${sgn(d.slope_annual)}°F/decade — hot Texas summers, but slightly cooler than Houston thanks to its inland position and lower humidity.`,
+        seasonal: (d) => `Dallas peaks near ${num(july(d))}°F mean in July with intense late-summer heat. Spring and fall are the most temperate seasons, with rapid temperature swings.`,
+        heat:     (d) => `Dallas recorded ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — comparable to Houston, but it's a drier heat, far from the Gulf.`,
+        winter:   (d) => `Dallas winter lows warm at ${sgn(d.slope_winter)}°F/decade, but they're volatile — Arctic blasts like Winter Storm Uri (2021) create large year-to-year swings.`,
     },
     DEN: {
-        trend:    "Denver (DEN) at 5,280ft elevation runs ~20°F cooler than Houston in summer — critical context for Boulderthon marathon race planning in September.",
-        seasonal: "Denver's September race-day average is 55–65°F with low humidity — ideal marathon conditions vs Houston's 75–80°F. Altitude reduces oxygen availability by ~17%.",
-        heat:     "Denver averages only 60–80 days above 80°F per year. The mile-high altitude keeps summers dramatically cooler than Texas cities.",
-        winter:   "Denver winters are cold but highly variable — frequent Chinook warm spells interrupt cold patterns, producing some of the largest winter temperature swings in the US.",
+        trend:    (d) => `Denver (DEN) warms at ${sgn(d.slope_annual)}°F/decade. At 5,280 ft it runs far cooler than the Texas cities in summer — useful context for Boulderthon race planning in September.`,
+        seasonal: (d) => `Denver's July mean is ${num(july(d))}°F with low humidity — dramatically more runnable than Houston. Altitude also cuts oxygen availability by roughly 17%.`,
+        heat:     (d) => `Denver logged only ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. The mile-high altitude keeps summers far cooler than Texas.`,
+        winter:   (d) => `Denver winter lows warm at ${sgn(d.slope_winter)}°F/decade, but the record is highly variable — Chinook warm spells interrupt cold patterns, producing some of the largest winter swings in the US.`,
     },
     LHR: {
-        trend:    "London (LHR/Heathrow) warms steadily — the UK has seen accelerating warming since the 1990s, with record-breaking summers becoming more frequent.",
-        seasonal: "London summers peak at 68–72°F mean — significantly cooler than US cities. The 2022 heatwave broke 40°C (104°F) for the first time in recorded history.",
-        heat:     "London rarely exceeds 80°F historically, but the frequency of warm days has increased sharply since 2000 as European heat waves intensify.",
-        winter:   "London winters are mild and wet — average winter lows around 35–39°F. Warming winters mean less frost and earlier spring blooms.",
+        trend:    (d) => `London (Heathrow) warms at ${sgn(d.slope_annual)}°F/decade — UK warming has accelerated since the 1990s, with record-breaking summers becoming more frequent.`,
+        seasonal: (d) => `London's July mean is ${num(july(d))}°F — markedly cooler than the US cities here. The 2022 heatwave broke 40°C (104°F) for the first time in recorded history.`,
+        heat:     (d) => `London recorded ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. Historically rare, but warm-day frequency has climbed sharply since 2000 as European heat waves intensify.`,
+        winter:   (d) => `London winters are mild and wet, warming at ${sgn(d.slope_winter)}°F/decade. Fewer frosts and earlier spring blooms are the visible consequence.`,
     },
     DEL: {
-        trend:    "Delhi (DEL/Safdarjung) is one of the world's fastest-warming major cities — extreme pre-monsoon heat regularly exceeds 45°C (113°F) in recent years.",
-        seasonal: "Delhi has extreme seasonal contrast: summer (Apr–Jun) averages 95–105°F, monsoon (Jul–Sep) brings humidity relief, and winter (Dec–Jan) drops to 45–55°F.",
-        heat:     "Delhi averages 250+ days above 80°F per year — more than any other city in this dashboard. Pre-monsoon heat waves are intensifying decade over decade.",
-        winter:   "Delhi winters warm slower than summers, but minimum temperatures are rising — cold waves are becoming shorter and less severe.",
+        trend:    (d) => `Delhi (Safdarjung) warms at ${sgn(d.slope_annual)}°F/decade — one of the world's fastest-warming megacities, where pre-monsoon heat now routinely exceeds 45°C (113°F).`,
+        seasonal: (d) => `Delhi has extreme seasonal contrast — a ${num(swing(d))}°F swing between July (${num(july(d))}°F, monsoon-damped) and January (${num(jan(d))}°F). Peak heat comes *before* the monsoon, in Apr–Jun.`,
+        heat:     (d) => `Delhi logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — the highest count on this dashboard. Pre-monsoon heat waves are intensifying decade over decade.`,
+        winter:   (d) => `Delhi winter lows warm at ${sgn(d.slope_winter)}°F/decade. Cold waves are becoming shorter and less severe, even as summer extremes worsen.`,
     },
     LAX: {
-        trend:    "Los Angeles (LAX) is a coastal Mediterranean climate — the Pacific marine layer keeps the airport dramatically milder than inland LA, which can run 15–20°F hotter on the same day. Warming shows up less in averages than in the intensity of inland heat events, drought, and fire season.",
-        seasonal: "LA has the flattest seasonal curve on this dashboard — July means around 70°F, January around 58°F. That ~12°F annual swing is a fraction of Chicago's ~50°F. 'June Gloom' marine layer often makes early summer cooler than September.",
-        heat:     "LAX sees remarkably few 80°F days for a Southern California city — the coastal position and sea breeze cap daytime highs. Inland LA stations tell a much hotter story; this is a reminder that 'Los Angeles' is many microclimates, not one.",
-        winter:   "LA winters barely qualify as winter — nighttime lows average around 48–50°F and frost is essentially unknown. Winter is the wet season here, so warming trends interact with precipitation variability and drought cycles.",
+        trend:    (d) => `Los Angeles (LAX) warms at ${sgn(d.slope_annual)}°F/decade. The Pacific marine layer keeps the airport far milder than inland LA — warming here shows up less in the average than in the intensity of inland heat, drought, and fire season.`,
+        seasonal: (d) => `LA has the flattest seasonal curve on this dashboard — roughly ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a swing of only ${num(swing(d))}°F. "June Gloom" often makes early summer cooler than September.`,
+        heat:     (d) => `LAX saw just ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — remarkably few for Southern California. The sea breeze caps daytime highs; inland LA stations tell a much hotter story. "Los Angeles" is many microclimates, not one.`,
+        winter:   (d) => `LA winters barely qualify — lows warm at ${sgn(d.slope_winter)}°F/decade from an already-mild baseline, and frost is essentially unknown. Winter is the wet season, so warming interacts with drought cycles.`,
     },
     HEL: {
-        trend:    "Helsinki (Kaisaniemi) sits at 60°N, and high-latitude stations are warming faster than almost anywhere on Earth — the Arctic region has warmed several times the global average. Expect Helsinki's per-decade trend to rank near the top of this dashboard.",
-        seasonal: "Helsinki has a subarctic seasonal profile — July means around 63°F while January sits near 25°F. Summers are short, mild, and famously long-lit; winters are dark and cold, with the sun barely clearing the horizon in December.",
-        heat:     "Helsinki rarely breaks 80°F — a handful of days in a typical year, versus 200+ in Houston. But the frequency of those days is climbing, and Finland's all-time records have repeatedly fallen in recent decades.",
-        winter:   "This is Helsinki's headline: winter nighttime warming is where high-latitude change is most dramatic. Shorter snow seasons and later freeze-up are among the clearest climate signals in the Nordic record.",
+        trend:    (d) => `Helsinki (Kaisaniemi) warms at ${sgn(d.slope_annual)}°F/decade. At 60°N it sits in the fastest-warming latitude band on Earth — the Arctic has warmed several times the global average.`,
+        seasonal: (d) => `Helsinki has a subarctic profile — about ${num(july(d))}°F in July against ${num(jan(d))}°F in January. Summers are short, mild, and famously long-lit; in December the sun barely clears the horizon.`,
+        heat:     (d) => `Helsinki recorded ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — a rounding error next to Houston. But that count is climbing, and Finland's records have repeatedly fallen in recent decades.`,
+        winter:   (d) => `This is Helsinki's headline: winter lows warm at ${sgn(d.slope_winter)}°F/decade, against an annual rate of ${sgn(d.slope_annual)}°F. Shorter snow seasons and later freeze-up are among the clearest climate signals in the Nordic record.`,
     },
     ORD: {
-        trend:    "Chicago (O'Hare) is a classic humid-continental station — no ocean to moderate it, so it swings hard between seasons. Lake Michigan buffers the lakefront, but O'Hare sits inland enough to feel the full continental range.",
-        seasonal: "Chicago has the widest seasonal spread on this dashboard — roughly 73°F mean in July against ~24°F in January, a ~50°F annual swing. Spring and fall are compressed; the city flips between extremes quickly.",
-        heat:     "Chicago averages around 90–110 days above 80°F per year — well below Texas, but its heat is dangerous when it comes: the 1995 heat wave killed hundreds and remains a case study in urban heat vulnerability.",
-        winter:   "Chicago winter lows are warming, but they remain volatile — polar vortex intrusions still deliver brutal cold snaps. Rising winter minimums alongside persistent extreme events is exactly what the climate record predicts: a warmer mean with a fat cold tail.",
+        trend:    (d) => `Chicago (O'Hare) warms at ${sgn(d.slope_annual)}°F/decade — a classic humid-continental station with no ocean to moderate it. Lake Michigan buffers the lakefront, but O'Hare sits inland enough to feel the full continental range.`,
+        seasonal: (d) => `Chicago has the widest seasonal spread here — roughly ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a ${num(swing(d))}°F swing. Spring and fall are compressed; the city flips between extremes.`,
+        heat:     (d) => `Chicago logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — well below Texas, but its heat is dangerous when it comes: the 1995 heat wave killed hundreds and remains a case study in urban heat vulnerability.`,
+        winter:   (d) => `Chicago winter lows warm at ${sgn(d.slope_winter)}°F/decade, yet stay volatile — polar vortex intrusions still deliver brutal cold. A warming mean with a persistent cold tail is exactly what the record predicts.`,
     },
 };
 
@@ -8710,58 +8721,54 @@ function cpGetSignal(tab) {
     if (!cities.length) return '';
 
     if (cities.length === 1) {
-        // Single city — show its specific insight
-        return CP_SIGNALS[cities[0].code]?.[tab] || '';
+        const { code, data } = cities[0];
+        const s = CP_SIGNALS[code]?.[tab];
+        if (!s) return '';
+        try {
+            // functions get the live gold data; plain strings still work (back-compat)
+            return typeof s === 'function' ? s(data) : s;
+        } catch (err) {
+            console.warn('[ClimatePulse] signal failed for', code, tab, err);
+            return '';
+        }
     }
 
-    // Multi-city — build a comparison summary
+    // ── Multi-city comparison (already dynamic) ──
     const names = cities.map(c => c.cfg.name);
 
     if (tab === 'trend') {
-        const slopes = cities.map(({ code, cfg, data }) =>
-            `${cfg.name} (+${data.slope_annual.toFixed(2)}°F/decade)`
-        ).join(', ');
-        return `Comparing warming rates: ${slopes}. ${
-            cities.some(c => c.code === 'DEL') ? 'Delhi leads global warming intensity among these cities.' :
-            cities.some(c => c.code === 'DEN') ? 'Denver\'s high altitude keeps it cooler but it\'s still warming significantly.' :
-            'All cities show consistent long-term warming trends since 1970.'
+        const ranked = [...cities].sort((a, b) => (b.data.slope_annual ?? 0) - (a.data.slope_annual ?? 0));
+        const slopes = ranked.map(({ cfg, data }) => `${cfg.name} (${sgn(data.slope_annual)}°F/decade)`).join(', ');
+        return `Warming rates, fastest first: ${slopes}. ${
+            ranked[0] ? `${ranked[0].cfg.name} is warming fastest of the cities selected.` :
+            'All cities show consistent long-term warming since 1970.'
         }`;
     }
 
     if (tab === 'seasonal') {
-        const hottest = cities.reduce((a, b) =>
-            (b.data.monthly[6]?.avg_tmean || 0) > (a.data.monthly[6]?.avg_tmean || 0) ? b : a
-        );
-        const coolest = cities.reduce((a, b) =>
-            (b.data.monthly[6]?.avg_tmean || 999) < (a.data.monthly[6]?.avg_tmean || 999) ? b : a
-        );
-        return `Seasonal comparison for ${names.join(', ')}. In July, ${hottest.cfg.name} is the hottest (${hottest.data.monthly[6]?.avg_tmean?.toFixed(1)}°F mean) and ${coolest.cfg.name} is the coolest (${coolest.data.monthly[6]?.avg_tmean?.toFixed(1)}°F mean).`;
+        const withJuly = cities.filter(c => july(c.data) != null);
+        if (!withJuly.length) return `Seasonal comparison for ${names.join(', ')}.`;
+        const hottest = withJuly.reduce((a, b) => july(b.data) > july(a.data) ? b : a);
+        const coolest = withJuly.reduce((a, b) => july(b.data) < july(a.data) ? b : a);
+        return `Seasonal comparison for ${names.join(', ')}. In July, ${hottest.cfg.name} is hottest (${num(july(hottest.data))}°F mean) and ${coolest.cfg.name} coolest (${num(july(coolest.data))}°F) — a spread of ${num(july(hottest.data) - july(coolest.data))}°F.`;
     }
 
     if (tab === 'heat') {
-        const sorted = [...cities].sort((a, b) => {
-            const aLast = a.data.yearly[a.data.yearly.length - 1]?.count_80f || 0;
-            const bLast = b.data.yearly[b.data.yearly.length - 1]?.count_80f || 0;
-            return bLast - aLast;
-        });
-        return `Days above 80°F ranked: ${sorted.map(c => {
-            const last = c.data.yearly[c.data.yearly.length - 1];
-            return `${c.cfg.name} (~${last?.count_80f} days in ${last?.year})`;
-        }).join(' > ')}.`;
+        const sorted = [...cities].sort((a, b) => (heatDays(b.data) ?? 0) - (heatDays(a.data) ?? 0));
+        return `Days above 80°F, ranked: ${sorted.map(c =>
+            `${c.cfg.name} (~${heatDays(c.data) ?? '—'} in ${last(c.data).year ?? '—'})`).join(' > ')}.`;
     }
 
     if (tab === 'winter') {
-        const slopes = cities.map(({ code, cfg, data }) =>
-            `${cfg.name} (+${data.slope_winter.toFixed(2)}°F/decade)`
-        ).join(', ');
-        return `Winter nighttime warming rates: ${slopes}. Nights warming faster than days is a key greenhouse gas fingerprint across all cities.`;
+        const ranked = [...cities].sort((a, b) => (b.data.slope_winter ?? 0) - (a.data.slope_winter ?? 0));
+        const slopes = ranked.map(({ cfg, data }) => `${cfg.name} (${sgn(data.slope_winter)}°F/decade)`).join(', ');
+        return `Winter nighttime warming: ${slopes}. Nights warming faster than days is a key greenhouse-gas fingerprint across all cities.`;
     }
 
     return '';
 }
 
-// Call this after every toggle and after initial draw
-window.cpUpdateSignal = function(tab) {
+window.cpUpdateSignal = function (tab) {
     const el = document.getElementById('cp-signal-' + tab);
     if (!el) return;
     const text = cpGetSignal(tab);

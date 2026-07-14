@@ -130,7 +130,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 | Training Data | Strava API |
 | Weather | Open-Meteo API (free, no key) |
 | Flights | AviationStack API |
-| Climate Data | NOAA GHCN-Daily (6 stations, 1970–present) |
+| Climate Data | NOAA GHCN-Daily (9 stations, 1970–present) |
 | Hurricane Data | NOAA HURDAT2 · NOAA PSL TNA SST · NASA GISTEMP |
 | Sea Level Data | NASA/NOAA satellite altimetry · NOAA tide-gauge trends · USGS/NSIDC ice equivalents · NOAA 2022 SLR scenarios |
 | Data Center Data | IEA Energy & AI (2025) · LBNL 2024 · CBRE market data · company sustainability reports |

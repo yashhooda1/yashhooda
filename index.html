@@ -8322,6 +8322,10 @@ loadStrava();
             LAX: { name: 'Los Angeles, CA',   color: '#f472b6' },
             HEL: { name: 'Helsinki, Finland', color: '#22d3ee' },
             ORD: { name: 'Chicago, IL',       color: '#2dd4bf' },
+            AMS: { name: 'Amsterdam, NL',      color: '#a3e635' },
+            CDG: { name: 'Paris, France',      color: '#818cf8' },
+            BRU: { name: 'Brussels, Belgium',  color: '#e879f9' },
+            FCO: { name: 'Rome, Italy',        color: '#fb7185' },
         },
     };
 
@@ -8713,6 +8717,30 @@ const CP_SIGNALS = {
         seasonal: (d) => `Chicago has the widest seasonal spread here — roughly ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a ${num(swing(d))}°F swing. Spring and fall are compressed; the city flips between extremes.`,
         heat:     (d) => `Chicago logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — well below Texas, but its heat is dangerous when it comes: the 1995 heat wave killed hundreds and remains a case study in urban heat vulnerability.`,
         winter:   (d) => `Chicago winter lows warm at ${sgn(d.slope_winter)}°F/decade, yet stay volatile — polar vortex intrusions still deliver brutal cold. A warming mean with a persistent cold tail is exactly what the record predicts.`,
+    },
+    AMS: {
+        trend:    (d) => `Amsterdam (Schiphol) warms at ${sgn(d.slope_annual)}°F/decade. The North Sea moderates it heavily — but the station sits roughly 11 ft below sea level, which makes the Rising Seas dashboard next door more than academic here.`,
+        seasonal: (d) => `Amsterdam's maritime climate is remarkably even — about ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a swing of just ${num(swing(d))}°F. The sea damps both extremes.`,
+        heat:     (d) => `Schiphol logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — historically rare for the Low Countries, but the Netherlands broke 40°C for the first time in 2019, and warm days are climbing.`,
+        winter:   (d) => `Amsterdam winter lows warm at ${sgn(d.slope_winter)}°F/decade. Hard frosts are retreating — the Elfstedentocht, the legendary 11-city skating tour, hasn't been held since 1997 for want of thick enough canal ice.`,
+    },
+    CDG: {
+        trend:    (d) => `Paris (Orly) warms at ${sgn(d.slope_annual)}°F/decade. France's warming carries a lethal edge: the 2003 European heat wave killed roughly 15,000 people here and reshaped the country's heat-emergency policy.`,
+        seasonal: (d) => `Paris sits between maritime and continental — roughly ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a ${num(swing(d))}°F swing: wider than Amsterdam's, far narrower than Chicago's.`,
+        heat:     (d) => `Orly recorded ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. Paris hit an all-time record of 42.6°C (108.7°F) in 2019 — a reading essentially unthinkable in the 20th century.`,
+        winter:   (d) => `Paris winter lows warm at ${sgn(d.slope_winter)}°F/decade. Milder winters get less attention than the deadly summers, but they're the steadier signal.`,
+    },
+    BRU: {
+        trend:    (d) => `Brussels (Uccle) warms at ${sgn(d.slope_annual)}°F/decade — measured at the Royal Observatory, whose record reaches back to 1833, the longest-running station on this dashboard by over a century.`,
+        seasonal: (d) => `Brussels is textbook maritime temperate — about ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a mild ${num(swing(d))}°F swing, with rain spread evenly across the year.`,
+        heat:     (d) => `Uccle saw ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. Belgium's all-time record (41.8°C) fell in July 2019, during the same heat wave that broke records across the Low Countries.`,
+        winter:   (d) => `Brussels winter lows warm at ${sgn(d.slope_winter)}°F/decade. With a record starting in 1833, Uccle offers one of Europe's clearest long views of how much winter has shifted.`,
+    },
+    FCO: {
+        trend:    (d) => `Rome (Ciampino) warms at ${sgn(d.slope_annual)}°F/decade. The Mediterranean basin is warming faster than the global average, and southern Europe is drying as it warms — heat and drought arriving together.`,
+        seasonal: (d) => `Rome has a classic Mediterranean profile — hot, dry summers near ${num(july(d))}°F in July against mild, wet winters around ${num(jan(d))}°F, a ${num(swing(d))}°F swing. The rain comes when the heat doesn't.`,
+        heat:     (d) => `Ciampino logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — the highest count of the European cities here. Italy hit 48.8°C in 2021, a provisional European record.`,
+        winter:   (d) => `Rome winter lows warm at ${sgn(d.slope_winter)}°F/decade from an already-mild baseline. Mediterranean winters are the wet season, so warming interacts directly with water security.`,
     },
 };
 

@@ -29,7 +29,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 - Auto-refreshes every 5 minutes
 
 ### 🌡️ ClimatePulse — Live Climate Dashboard
-- **56 years (1970–present)** of NOAA daily station data across **9 cities** — Houston (IAH), Newark (EWR), Dallas (DAL), Denver (DEN), London (LHR), Chicago (ORD), Helsinki (HEL), Los Angeles (LAX), and Delhi (DEL)
+- **56 years (1970–present)** of NOAA daily station data across **13 cities** — Houston (IAH), Newark (EWR), Dallas (DAL), Denver (DEN), London (LHR), Chicago (ORD), Helsinki (HEL), Paris (CDG), Amsterdam (AMS), Rome (FCO), Brussels (BRU), Los Angeles (LAX), and Delhi (DEL)
 - **Bronze → Silver → Gold medallion pipeline** in a separate [`climatepulse`](https://github.com/yashhooda1/climatepulse) repo, refreshed **daily** via a GitHub Actions cron (Every Day at 04:00 UTC) that computes the gold layer and pushes `public_data_climate_gold.json` into this repo
 - **Four interactive tabs** — Annual Trend (with linear-regression trend lines, °F/decade), Seasonal climatology, Heat Days (≥ 80°F), and Winter Lows
 - **City-compare toggles** and a KPI strip showing per-station warming slopes
@@ -130,7 +130,7 @@ A full-stack personal portfolio with a production-grade AI chatbot, live Strava 
 | Training Data | Strava API |
 | Weather | Open-Meteo API (free, no key) |
 | Flights | AviationStack API |
-| Climate Data | NOAA GHCN-Daily (9 stations, 1970–present) |
+| Climate Data | NOAA GHCN-Daily (13 stations, 1970–present) |
 | Hurricane Data | NOAA HURDAT2 · NOAA PSL TNA SST · NASA GISTEMP |
 | Sea Level Data | NASA/NOAA satellite altimetry · NOAA tide-gauge trends · USGS/NSIDC ice equivalents · NOAA 2022 SLR scenarios |
 | Data Center Data | IEA Energy & AI (2025) · LBNL 2024 · CBRE market data · company sustainability reports |
@@ -206,7 +206,7 @@ Browser
   ├── POST /api/tts         → OpenAI TTS audio stream
   ├── GET  /api/flights     → AviationStack live flights
   ├── POST /api/network     → DNS/WHOIS/ping/traceroute/headers
-  ├── GET  /api/climate     → ClimatePulse gold data (6-city NOAA analytics)
+  ├── GET  /api/climate     → ClimatePulse gold data (13-city NOAA analytics)
   ├── GET  /api/hurricanes  → Hurricane analytics (HURDAT2 × SST × GISTEMP correlation)
   ├── GET  /api/sealevel    → Rising seas + U.S. coastal risk + ice-melt scenarios
   ├── GET  /api/datacenters → Data-center growth + U.S. hotspots + water/energy footprint

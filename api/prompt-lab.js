@@ -9,7 +9,7 @@ import { PROMPT_STRATEGIES } from '../lib/promptTemplates.js';
 import { checkKillSwitch }   from '../lib/killSwitch.js';
 import { rateLimit }         from '../lib/rateLimit.js';
 import { getAuthUser }       from '../lib/auth.js';
-import { guardRequest }      from '../lib/contentGuard.js';
+import { guardRequest, banUser }      from '../lib/contentGuard.js';
 
 export const maxDuration = 60;
 
@@ -123,6 +123,12 @@ try {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
+  // ── ORIGIN ENFORCEMENT (CORS headers alone don't block non-browsers) ──────
+  if (!ALLOWED_ORIGINS.has(origin)) {
+    console.warn(`[PROMPT-LAB] Bad origin — origin="${origin}" ip=${req.headers['x-forwarded-for']?.split(',')[0]?.trim()}`);
+    return res.status(403).json({ error: 'Forbidden.' });
+  }
+  
   // ── SUSPICIOUS UA CHECK ──────────────────────────────────────────────────
   const ua = req.headers['user-agent'] || '';
   if (!ua || SUSPICIOUS_UA.some(p => p.test(ua))) {
@@ -133,14 +139,6 @@ try {
   const traceIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
   console.warn(`[PROMPT-LAB] ip=${traceIp} ua="${ua.slice(0, 80)}"`);
 
-  // ── RATE LIMIT ────────────────────────────────────────────────────────────
-  const rlAllowed = await rateLimit(req, res, {
-    maxPerMinute:   5,
-    maxPerHour:     30,
-    maxDailyGlobal: 500,
-    endpoint:       'prompt-lab',
-  });
-  if (!rlAllowed) return;
 
   // ── PARSE BODY FIRST so adminPassword is available for kill switch ────────
   const {
@@ -158,10 +156,8 @@ try {
   const authUser = getAuthUser(req);
   const isAdminReq = (adminPassword && adminPassword === process.env.ADMIN_PASSWORD)
     || (authUser && authUser.plan === 'admin');
-  const ks = await checkKillSwitch('prompt-lab', isAdminReq);
-  if (!ks.ok) return res.status(ks.status).json(ks.body);
 
-  // ── AUTH CHECK ────────────────────────────────────────────────────────────
+  // ── AUTH CHECK (moved up — reject before spending anything) ───────────────
   if (!isAdminReq) {
     if (!authUser) {
       return res.status(401).json({ error: 'login_required', message: 'Please log in to use the Prompt Lab.' });
@@ -170,6 +166,19 @@ try {
       return res.status(403).json({ error: 'email_unverified', message: 'Please verify your email to use the Prompt Lab.' });
     }
   }
+  
+  const ks = await checkKillSwitch('prompt-lab', isAdminReq);
+  if (!ks.ok) return res.status(ks.status).json(ks.body);
+
+ // ── RATE LIMIT (now keyed on user, not IP) ────────────────────────────────
+  const rlAllowed = await rateLimit(req, res, {
+    maxPerMinute:   5,
+    maxPerHour:     30,
+    maxDailyGlobal: 500,
+    endpoint:       'prompt-lab',
+    key:            authUser?.sub || authUser?.email,
+  });
+  if (!rlAllowed) return;
 
   // ── INPUT VALIDATION ──────────────────────────────────────────────────────
   if (!query || typeof query !== 'string' || query.length < 2 || query.length > 2000) {
@@ -183,14 +192,11 @@ try {
   // ── JAILBREAK DETECTION ───────────────────────────────────────────────────
   if (detectJailbreak(query)) {
     console.warn(`[PROMPT-LAB] Jailbreak attempt — ip=${traceIp}`);
-    return res.status(200).json({
-      results: [{
-        strategy, error: false,
-        reply: "⚠️ This request has been flagged and logged. Attempts to manipulate or jailbreak this system are prohibited. Your IP has been recorded.",
-        label: 'Security Block', emoji: '🛡️', color: '#ef4444',
-        tokens: { input: 0, output: 0, cache: 0 }, elapsed: 0,
-      }],
-    });
+    if (!isAdminReq) await banUser(authUser?.sub, traceIp, 'jailbreak:prompt-lab');
+    return res.status(403).json({
+      error: 'security_block',
+      message: 'This request was flagged and your account has been suspended.',
+      }),
   }
 
   // ── DISALLOWED CONTENT CHECK ─────────────────────────────────────────────
@@ -209,6 +215,16 @@ try {
   const strategiesToRun = compareAll
     ? ['zero-shot', 'few-shot', 'cot', 'xml-structured']
     : [strategy];
+
+  if (compareAll && !isAdminReq) {
+    const cmpAllowed = await rateLimit(req, res, {
+      maxPerMinute: 1,
+      maxPerHour:   8,
+      endpoint:     'prompt-lab-compare',
+      key:          authUser?.sub || authUser?.email,
+    });
+    if (!cmpAllowed) return;
+  }
 
   async function runStrategy(stratKey) {
     const strat = PROMPT_STRATEGIES[stratKey];

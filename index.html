@@ -8406,7 +8406,7 @@ loadStrava();
         // Update subtitle
         const sub = document.getElementById('cp-subtitle');
         if (sub) sub.textContent =
-            `${numYears} years (1970–${lastYear}) of NOAA daily station data · 6 cities · Bronze → Silver → Gold pipeline`;
+            `${numYears} years (1970–${lastYear}) of NOAA daily station data · ${Object.keys(CP.CITIES).length} cities · Bronze → Silver → Gold pipeline`;
 
         if (CP.data.generated_at) {
             const el = document.getElementById('cp-last-updated');
@@ -8684,6 +8684,24 @@ const CP_SIGNALS = {
         seasonal: "Delhi has extreme seasonal contrast: summer (Apr–Jun) averages 95–105°F, monsoon (Jul–Sep) brings humidity relief, and winter (Dec–Jan) drops to 45–55°F.",
         heat:     "Delhi averages 250+ days above 80°F per year — more than any other city in this dashboard. Pre-monsoon heat waves are intensifying decade over decade.",
         winter:   "Delhi winters warm slower than summers, but minimum temperatures are rising — cold waves are becoming shorter and less severe.",
+    },
+    LAX: {
+        trend:    "Los Angeles (LAX) is a coastal Mediterranean climate — the Pacific marine layer keeps the airport dramatically milder than inland LA, which can run 15–20°F hotter on the same day. Warming shows up less in averages than in the intensity of inland heat events, drought, and fire season.",
+        seasonal: "LA has the flattest seasonal curve on this dashboard — July means around 70°F, January around 58°F. That ~12°F annual swing is a fraction of Chicago's ~50°F. 'June Gloom' marine layer often makes early summer cooler than September.",
+        heat:     "LAX sees remarkably few 80°F days for a Southern California city — the coastal position and sea breeze cap daytime highs. Inland LA stations tell a much hotter story; this is a reminder that 'Los Angeles' is many microclimates, not one.",
+        winter:   "LA winters barely qualify as winter — nighttime lows average around 48–50°F and frost is essentially unknown. Winter is the wet season here, so warming trends interact with precipitation variability and drought cycles.",
+    },
+    HEL: {
+        trend:    "Helsinki (Kaisaniemi) sits at 60°N, and high-latitude stations are warming faster than almost anywhere on Earth — the Arctic region has warmed several times the global average. Expect Helsinki's per-decade trend to rank near the top of this dashboard.",
+        seasonal: "Helsinki has a subarctic seasonal profile — July means around 63°F while January sits near 25°F. Summers are short, mild, and famously long-lit; winters are dark and cold, with the sun barely clearing the horizon in December.",
+        heat:     "Helsinki rarely breaks 80°F — a handful of days in a typical year, versus 200+ in Houston. But the frequency of those days is climbing, and Finland's all-time records have repeatedly fallen in recent decades.",
+        winter:   "This is Helsinki's headline: winter nighttime warming is where high-latitude change is most dramatic. Shorter snow seasons and later freeze-up are among the clearest climate signals in the Nordic record.",
+    },
+    ORD: {
+        trend:    "Chicago (O'Hare) is a classic humid-continental station — no ocean to moderate it, so it swings hard between seasons. Lake Michigan buffers the lakefront, but O'Hare sits inland enough to feel the full continental range.",
+        seasonal: "Chicago has the widest seasonal spread on this dashboard — roughly 73°F mean in July against ~24°F in January, a ~50°F annual swing. Spring and fall are compressed; the city flips between extremes quickly.",
+        heat:     "Chicago averages around 90–110 days above 80°F per year — well below Texas, but its heat is dangerous when it comes: the 1995 heat wave killed hundreds and remains a case study in urban heat vulnerability.",
+        winter:   "Chicago winter lows are warming, but they remain volatile — polar vortex intrusions still deliver brutal cold snaps. Rising winter minimums alongside persistent extreme events is exactly what the climate record predicts: a warmer mean with a fat cold tail.",
     },
 };
 

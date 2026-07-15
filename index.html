@@ -8594,32 +8594,94 @@ loadStrava();
         window.cpUpdateSignal('seasonal');
     };
 
-    // ── Heat days ────────────────────────────────────────────────────────────
+    // ── Heat days (with live year-to-date pace marker) ───────────────────────
     function cpDrawHeat() {
         const cities = activeCities();
         if (!cities.length) return;
-        const labels = (CP.data.IAH || cities[0].data).yearly.map(r => r.year);
-
-        const datasets = cities.map(({ cfg, data }) => {
+ 
+        // x-axis = complete years, plus the partial YTD year if any city has one
+        const yearSet = new Set();
+        cities.forEach(({ data }) => {
+            (data.yearly || []).forEach(r => yearSet.add(r.year));
+            if (data.heat_ytd) yearSet.add(data.heat_ytd.year);
+        });
+        const labels = [...yearSet].sort((a, b) => a - b);
+ 
+        const datasets = [];
+        let anyYTD = false;
+ 
+        cities.forEach(({ cfg, data }) => {
             const yearMap = {};
-            data.yearly.forEach(r => { yearMap[r.year] = r; });
-            return {
+            (data.yearly || []).forEach(r => { yearMap[r.year] = r; });
+ 
+            // solid bars = complete-year totals (YTD year left null here)
+            datasets.push({
                 label: cfg.name,
-                data:  labels.map(y => yearMap[y]?.count_80f ?? null),
+                data:  labels.map(y => (data.heat_ytd && y === data.heat_ytd.year)
+                                        ? null
+                                        : (yearMap[y]?.count_80f ?? null)),
                 backgroundColor: cfg.color + 'aa',
                 borderColor: cfg.color,
                 borderWidth: 0.5,
                 spanGaps: true,
-            };
+            });
+ 
+            if (data.heat_ytd) {
+                anyYTD = true;
+                const hy = data.heat_ytd;
+                // actual-so-far = hollow bar (outline only)
+                datasets.push({
+                    label: cfg.name + ' so far',
+                    data:  labels.map(y => y === hy.year ? hy.count_so_far : null),
+                    backgroundColor: 'transparent',
+                    borderColor: cfg.color,
+                    borderWidth: 1.5,
+                    ytdMeta: hy,
+                });
+                // projected full-year = faint cap above the hollow bar
+                if (hy.projected_full_year != null) {
+                    datasets.push({
+                        label: cfg.name + ' on pace',
+                        data:  labels.map(y => y === hy.year ? hy.projected_full_year : null),
+                        backgroundColor: cfg.color + '22',
+                        borderColor: cfg.color,
+                        borderWidth: 0,
+                        ytdMeta: hy,
+                        _projection: true,
+                    });
+                }
+            }
         });
-
+ 
         buildLegend(cities);
+        const legEl = document.getElementById('cp-legend-dynamic');
+        if (anyYTD && legEl) legEl.innerHTML += `
+            <span class="cp-leg-item" title="Heat days so far this year (hollow) and full-year pace (faint), vs same date in prior years">
+                <span style="display:inline-block;width:9px;height:9px;border:2px solid var(--text-muted);background:transparent;margin-right:4px;"></span>
+                year-to-date / on pace
+            </span>`;
+ 
         CP.charts.heat = new Chart(document.getElementById('cp-heat-chart'), {
             type: 'bar',
             data: { labels, datasets },
             options: mergeOpts({
                 plugins: { tooltip: { mode: 'index', intersect: false,
-                    callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + ' days' } } },
+                    callbacks: {
+                        label: (ctx) => {
+                            if (ctx.parsed.y == null) return '';
+                            const m = ctx.dataset.ytdMeta;
+                            if (m && ctx.dataset._projection) {
+                                return `${ctx.dataset.label}: ~${ctx.parsed.y} projected for ${m.year}`;
+                            }
+                            if (m) {
+                                const vs = m.vs_last_year_same_date;
+                                const cmp = vs == null ? '' :
+                                    ` — ${Math.abs(vs)} ${vs >= 0 ? 'ahead of' : 'behind'} ${m.year - 1} at this date`;
+                                return `${ctx.dataset.label}: ${m.count_so_far} days through ${m.last_date}${cmp}`;
+                            }
+                            return `${ctx.dataset.label}: ${ctx.parsed.y} days`;
+                        },
+                    } } },
                 scales: {
                     x: { ticks: { maxTicksLimit: 10 } },
                     y: { title: { display: true, text: 'Days ≥ 80°F', color: '#9ca3af', font: { size: 11 } } }

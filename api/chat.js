@@ -609,10 +609,11 @@ async function generateSuggestions(query, reply, agentKey, apiKey) {
     if (!apiKey) return [];
     try {
         const agentContext = {
-            running: 'running, training, pace, races',
-            career:  'career, data engineering, AI engineering',
-            travel:  'travel, hiking, destinations',
-            general: 'Yash Hooda, projects, skills',
+            running:  'running, training, pace, races',
+            aviation: 'aviation, flight training, becoming an airline pilot, ATP, PPL',
+            career:   'aviation career, becoming an airline pilot, ATP, United Aviate',
+            travel:   'travel, hiking, destinations',
+            general:  'Yash Hooda, projects, aviation journey',
         }[agentKey] || 'Yash Hooda';
         const prompt =
             `Generate 3 short follow-up questions (max 8 words each) for a chatbot about ${agentContext}.\n` +

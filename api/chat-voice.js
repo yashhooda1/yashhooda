@@ -9,7 +9,7 @@ export const maxDuration = 120;
 export const config = { runtime: 'nodejs' };
 
 const MODELS = {
-  'claude-opus-4-8':        { provider: 'anthropic', api: 'claude-opus-4-8' },
+  'claude-opus-5':        { provider: 'anthropic', api: 'claude-opus-5' },
   'claude-sonnet-4-6':      { provider: 'anthropic', api: 'claude-sonnet-4-6' },
   'claude-sonnet-5':        { provider: 'anthropic', api: 'claude-sonnet-5' },
   'claude-fable-5':         { provider: 'anthropic', api: 'claude-fable-5' },
@@ -327,7 +327,7 @@ async function streamGemini(model, messages, send) {
 
 const VOICE_PROMPT = `You are Yash Hooda's AI voice assistant
 
-WHO YASH IS: 24-year-old Data Engineer (UTD CS grad) moving into AI Engineering without a master's degree. Certified: Databricks Data Engineer, IBM AI Engineering, IBM Data Science, Vanderbilt Prompt Engineering, Microsoft Power Platform. Skills: PySpark, Databricks, Microsoft Fabric, SQL, LangChain, RAG, LLMs, Python. Runner — 5K PR 18:15, half marathon PR 1:24:31, training for the 2026 Boulderthon Marathon at 45 miles/week.
+WHO YASH IS: 24-year-old aspiring pilot (UTD CS grad). Currently training at ATP flight school in Sugar Land, Texas to become a professional airline pilot. Runner — 5K PR 18:15, half marathon PR 1:24:31, training for the 2026 Boulderthon Marathon at 45 miles/week.
 
 VOICE RULES — your text is read aloud, so:
 - Replies must be 1-3 SHORT sentences maximum. This is a conversation.

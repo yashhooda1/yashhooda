@@ -3615,6 +3615,90 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </p>
     </section>
 
+    <!-- RUNNING -->
+    <section id="running">
+        <h2>🏃 Running Journey</h2>
+        <p>Running has been my passion and a source of discipline and motivation. I've competed in various distances and continue to push my limits. Notable achievements include:</p>
+
+        <div class="pr-grid">
+            <div class="pr-card">
+                <div class="pr-distance">Marathon PR</div>
+                <div class="pr-time">TBD</div>
+                <div class="pr-event">In Training</div>
+            </div>
+            <div class="pr-card">
+                <div class="pr-distance">Half Marathon PR</div>
+                <div class="pr-time">1:24:31</div>
+                <div class="pr-event">2025 Aramco Houston HM</div>
+            </div>
+            <div class="pr-card">
+                <div class="pr-distance">8K PR</div>
+                <div class="pr-time">29:48</div>
+                <div class="pr-event">2025 Sugar Land Turkey Trot</div>
+            </div>
+            <div class="pr-card">
+                <div class="pr-distance">5-Mile PR</div>
+                <div class="pr-time">30:22</div>
+                <div class="pr-event">2025 Sugar Land Turkey Trot</div>
+            </div>
+            <div class="pr-card">
+                <div class="pr-distance">5K PR</div>
+                <div class="pr-time">18:15</div>
+                <div class="pr-event">2025 Women's Quarter Marathon</div>
+            </div>
+        </div>
+
+        <div class="training-status">
+            <div class="training-dot"></div>
+            <div class="training-text">
+                <strong>Currently Training:</strong> 2026 Boulderthon Marathon<br>
+                <span style="font-size:0.8rem; color: var(--text-muted);">Last Race: 2026 NYCRuns Brooklyn Experience Half Marathon — 1:27:41</span>
+            </div>
+        </div>
+
+        <ul style="margin-top: 1.25rem;">
+            <li>Marathon Personal Record: TBD</li>
+            <li>Half Marathon Personal Best: 1:24:31 (2025 Aramco Houston Half Marathon)
+                <a href="https://rtrt.me/render/badges?e=HOU-2025&pid=RX4HKW35&resp=1&bgcolor=fff&filename=hou-2025rx4hkw35" target="_blank">View Badge</a>
+            </li>
+            <li>8k Personal Record: 29:48 (2025 40th annual Sugar Land Turkey Trot)</li>
+            <li>5-mile Personal Record: 30:22 (2025 40th annual Sugar Land Turkey Trot)
+                <a href="https://runsignup.com/Race/Results/174287/IndividualResult/RRJFK?resultSetId=610427#U114846388" target="_blank">View Results</a>
+            </li>
+            <li>5k Personal Record: 18:15 (2025 Women's Quarter Marathon - Houston Running Co)
+                <a href="https://results.raceroster.com/v2/en-US/results/gmd6pbsxdkfxvzrk/detail/t4zy2fb9zsxzejfg" target="_blank">View Results</a>
+            </li>
+            <li>Current Weekly Mileage: <span id="weekly-miles-running">--</span> miles this week (live from Strava)</li>
+            <li>Currently Training For: 2026 Boulderthon Marathon</li>
+            <li>Last Race + Time: 2026 NYCRuns Brooklyn Experience Half Marathon - 1:27:41
+                <a href="https://nycruns.com/race-results?race=nycruns-brooklyn-experience-half-marathon-2026&result=2961804" target="_blank">View Results</a>
+            </li>
+        </ul>
+        <p style="margin-top: 1rem;">Follow my training journey on my public Strava account: <a href="https://www.strava.com/athletes/89409717" target="_blank">here</a>.</p>
+    </section>
+
+    <!-- RUNNING ANALYTICS -->
+    <section id="running-analytics">
+        <h2>📊 Strava Intelligence</h2>
+        <div id="analytics-content">
+            <div class="analytics-loading">Analyzing your training data...</div>
+        </div>
+    </section>
+
+    <!-- STRAVA LIVE FEED -->
+    <section id="strava-feed">
+        <div class="strava-header">
+        <h2 style="margin-bottom:0;">🏃 Live Training Feed</h2>
+        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <span class="strava-live-badge">LIVE FROM STRAVA</span>
+            <a href="https://www.strava.com/athletes/89409717" target="_blank" class="strava-view-all">View Full Profile →</a>
+        </div>
+        </div>
+        <div id="strava-grid" class="strava-grid">
+        <div class="strava-loading">Loading latest activities...</div>
+        </div>
+    </section>
+
     <!-- ═══════════════ THIS WEEK (paste after </section> of #datacenters) ═══════════════ -->
     <section id="thisweek">
         <h2>⚡ This Week — Live Activity</h2>
@@ -3707,89 +3791,6 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </div>
     </section>
 
-    <!-- RUNNING -->
-    <section id="running">
-        <h2>🏃 Running Journey</h2>
-        <p>Running has been my passion and a source of discipline and motivation. I've competed in various distances and continue to push my limits. Notable achievements include:</p>
-
-        <div class="pr-grid">
-            <div class="pr-card">
-                <div class="pr-distance">Marathon PR</div>
-                <div class="pr-time">TBD</div>
-                <div class="pr-event">In Training</div>
-            </div>
-            <div class="pr-card">
-                <div class="pr-distance">Half Marathon PR</div>
-                <div class="pr-time">1:24:31</div>
-                <div class="pr-event">2025 Aramco Houston HM</div>
-            </div>
-            <div class="pr-card">
-                <div class="pr-distance">8K PR</div>
-                <div class="pr-time">29:48</div>
-                <div class="pr-event">2025 Sugar Land Turkey Trot</div>
-            </div>
-            <div class="pr-card">
-                <div class="pr-distance">5-Mile PR</div>
-                <div class="pr-time">30:22</div>
-                <div class="pr-event">2025 Sugar Land Turkey Trot</div>
-            </div>
-            <div class="pr-card">
-                <div class="pr-distance">5K PR</div>
-                <div class="pr-time">18:15</div>
-                <div class="pr-event">2025 Women's Quarter Marathon</div>
-            </div>
-        </div>
-
-        <div class="training-status">
-            <div class="training-dot"></div>
-            <div class="training-text">
-                <strong>Currently Training:</strong> 2026 Boulderthon Marathon<br>
-                <span style="font-size:0.8rem; color: var(--text-muted);">Last Race: 2026 NYCRuns Brooklyn Experience Half Marathon — 1:27:41</span>
-            </div>
-        </div>
-
-        <ul style="margin-top: 1.25rem;">
-            <li>Marathon Personal Record: TBD</li>
-            <li>Half Marathon Personal Best: 1:24:31 (2025 Aramco Houston Half Marathon)
-                <a href="https://rtrt.me/render/badges?e=HOU-2025&pid=RX4HKW35&resp=1&bgcolor=fff&filename=hou-2025rx4hkw35" target="_blank">View Badge</a>
-            </li>
-            <li>8k Personal Record: 29:48 (2025 40th annual Sugar Land Turkey Trot)</li>
-            <li>5-mile Personal Record: 30:22 (2025 40th annual Sugar Land Turkey Trot)
-                <a href="https://runsignup.com/Race/Results/174287/IndividualResult/RRJFK?resultSetId=610427#U114846388" target="_blank">View Results</a>
-            </li>
-            <li>5k Personal Record: 18:15 (2025 Women's Quarter Marathon - Houston Running Co)
-                <a href="https://results.raceroster.com/v2/en-US/results/gmd6pbsxdkfxvzrk/detail/t4zy2fb9zsxzejfg" target="_blank">View Results</a>
-            </li>
-            <li>Current Weekly Mileage: <span id="weekly-miles-running">--</span> miles this week (live from Strava)</li>
-            <li>Currently Training For: 2026 Boulderthon Marathon</li>
-            <li>Last Race + Time: 2026 NYCRuns Brooklyn Experience Half Marathon - 1:27:41
-                <a href="https://nycruns.com/race-results?race=nycruns-brooklyn-experience-half-marathon-2026&result=2961804" target="_blank">View Results</a>
-            </li>
-        </ul>
-        <p style="margin-top: 1rem;">Follow my training journey on my public Strava account: <a href="https://www.strava.com/athletes/89409717" target="_blank">here</a>.</p>
-    </section>
-
-    <!-- RUNNING ANALYTICS -->
-    <section id="running-analytics">
-        <h2>📊 Strava Intelligence</h2>
-        <div id="analytics-content">
-            <div class="analytics-loading">Analyzing your training data...</div>
-        </div>
-    </section>
-
-    <!-- STRAVA LIVE FEED -->
-    <section id="strava-feed">
-        <div class="strava-header">
-        <h2 style="margin-bottom:0;">🏃 Live Training Feed</h2>
-        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-            <span class="strava-live-badge">LIVE FROM STRAVA</span>
-            <a href="https://www.strava.com/athletes/89409717" target="_blank" class="strava-view-all">View Full Profile →</a>
-        </div>
-        </div>
-        <div id="strava-grid" class="strava-grid">
-        <div class="strava-loading">Loading latest activities...</div>
-        </div>
-    </section>
 
     <!-- HIKES -->
     <section id="hikes">

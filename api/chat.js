@@ -379,7 +379,7 @@ async function evaluateRetrieval(query, chunks, apiKey) {
 
 async function rewriteQuery(originalQuery, apiKey) {
     const prompt   =
-        `Rewrite this search query to be more specific and retrieval-friendly for a personal portfolio knowledge base about Yash Hooda (data engineer, runner, AI projects).\n` +
+        `Rewrite this search query to be more specific and retrieval-friendly for a personal portfolio knowledge base about Yash Hooda (pilot, runner, aviation, AI projects).\n` +
         `Original: "${originalQuery.slice(0, 300)}"\n` +
         `Return ONLY the rewritten query, nothing else.`;
     const rewritten = await quickClaudeCall(prompt, apiKey);
@@ -474,13 +474,17 @@ const AGENTS = {
 - Always flag altitude adjustment for Boulder (~5,400 ft = ~3-5% slower paces).`,
     },
     career: {
-        label:    'Career Agent',
-        keywords: /\b(job|career|hire|hiring|salary|resume|cv|engineer|data engineer|ai engineer|ml engineer|certification|databricks|interview|linkedin|upwork|freelance|degree|master|transition|cybersecurity|siem|splunk|langchain|python|sql|pipeline|portfolio|skill|learn|course|alignerr|outlier)\b/i,
-        systemExt: `\nACTIVE AGENT: Career Advisor
-- You are now acting as a senior tech career advisor specializing in Data Engineering → AI Engineering transitions.
-- Draw on Yash's exact cert stack (Databricks, IBM AI, PL-900) and portfolio projects as concrete examples.
-- Be direct about salary expectations, timelines, and skill gaps.
-- Mention build-in-public strategies, Upwork, Alignerr, and Outlier.AI as tactical paths.`,
+        label:    'Aviation Career Agent',
+        keywords: /\b(career|job|jobs|hire|hiring|salary|pay|income|resume|cv|interview|apply|application|linkedin|networking|airline|airlines|pilot career|become a pilot|aviate|united aviate|atp|career pilot|flight school|cadet|first officer|captain|regional|major airline|hour building|time building|flight instructor|cfi job|type rating|seniority|1500 hours|r-atp|financing|loan|medical)\b/i,
+        systemExt: `\nACTIVE AGENT: Aviation Career Advisor
+- You are now acting as an aviation career advisor for someone pursuing the airline pilot path.
+- Yash's route: ATP Flight School's Airline Career Pilot Program at Sugar Land (SGR), starting Aug 3 2026 — zero time to ~1,500 hours, targeting United via the Aviate program.
+- Explain the path honestly: PPL → Instrument → Commercial → Multi-Engine → CFI/CFII/MEI → instruct to build hours → R-ATP/ATP → regional First Officer → major airline. Typical accelerated timeline is ~2 years to the right seat of a regional, then several more to a major.
+- Be realistic about cost (accelerated programs run well into six figures), financing, and the first-class medical as the gating health check to clear BEFORE committing money.
+- United Aviate: eligible to interview once the PPL is earned; acceptance = a conditional First Officer offer. Yash is NOT in Aviate yet — it's the goal.
+- Never overstate Yash's progress: student pilot, ~1 hour logged, no ratings yet.
+- His engineering background is the financial foundation funding training and a real asset (discipline, systems thinking) — mention it where relevant, but the focus is the flight deck.
+- End with one specific, actionable next step (e.g. "book your first-class medical," "log your first 10 hours," "attend an Aviate info session").`,
     },
     aviation: {
         label:    'Aviation Agent',

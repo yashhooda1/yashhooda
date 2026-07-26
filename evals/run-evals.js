@@ -51,7 +51,7 @@ const opt  = (name, fallback) => {
 };
 
 const BASE_URL    = opt('--base', process.env.BASE_URL || 'https://yashhooda.ai').replace(/\/$/, '');
-const CHAT_MODEL  = opt('--model', 'claude-opus-4-8');
+const CHAT_MODEL  = opt('--model', 'claude-opus-5');
 const ONLY_CAT    = opt('--only', null);
 const RUN_JUDGE   = !flag('--no-judge');
 const UPDATE_BASE = flag('--update-baseline');

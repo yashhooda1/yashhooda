@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yash Hooda - AI & Data Engineer </title>
+    <title>Yash Hooda - Aspiring Pilot </title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -451,6 +451,11 @@
             border-color: var(--green);
             transform: translateY(-1px);
         }
+        .skill-tag.av { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3); color:#93c5fd; }
+        .skill-tag.av:hover { background: rgba(59,130,246,0.18); border-color:#3b82f6; }
+        .skill-tag.gen { background: rgba(148,163,184,0.08); border-color: rgba(148,163,184,0.28); color:#cbd5e1; }
+        .skill-tag.gen:hover { background: rgba(148,163,184,0.16); border-color:#94a3b8; }
+        .skill-group-label { font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin:1rem 0 0.5rem; width:100%; }
 
         /* ── PROJECTS ── */
         .projects-grid {
@@ -2863,7 +2868,7 @@
 <!-- HEADER -->
 <header>
     <h1>Yash Hooda</h1>
-    <p>AI Engineer & Data Engineer | Aspiring Airline Pilot ✈️ | Runner</p>
+    <p>Aspiring Airline Pilot ✈️ | Former AI Engineer & Data Engineer | Runner</p>
     <div class="header-badges">
         <span class="badge">UTD Computer Science</span>
         <span class="badge">Databricks Certified</span>
@@ -2999,29 +3004,40 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     <!-- ABOUT -->
     <section id="about">
         <h2>⚡ About Me</h2>
-        <p>I'm a 24-year-old AI & Data Engineer building intelligent systems that solve real-world challenges. I hold a Bachelor of Science in Computer Science from the University of Texas at Dallas, along with professional certifications in <strong>IBM AI Engineering</strong>, <strong>IBM Data Science</strong>, and the<strong> Databricks Certified Data Engineer Associate</strong>.</p>
-        <p>My core expertise lies in <strong>Data Engineering</strong> with a strong focus on building scalable, efficient data platforms that transform complex datasets into actionable insights. I specialize in designing and optimizing end-to-end data pipelines, working extensively with modern data stack technologies including Microsoft Fabric, Databricks, PySpark, SQL, and distributed data processing systems.</p>
-        <p>My work experience spans data modeling, ETL/ELT pipeline development, and large-scale data transformation, with a focus on performance optimization, reliability, and cost efficiency. I am passionate about enabling data-driven decision-making by building robust data infrastructure that supports analytics, reporting, and advanced use cases.</p>
-        <p>In addition to my data engineering expertise, I have a strong foundation in artificial intelligence and machine learning. I actively explore applications of AI, including NLP and LLMs, to enhance data workflows and unlock new capabilities within modern data ecosystems. I thrive on building innovative, AI-powered solutions and am continually exploring the frontiers of artificial intelligence and its applications across various industries. My ultimate goal is to harness AI to deliver impactful, real-world solutions that improve lives.</p>
-        <p>I'm also highly proficient with today's most advanced AI tools, including <strong>ChatGPT-4o</strong>, <strong>Gemini 2.5 Flash</strong>, <strong>Grok-3</strong>, <strong>Microsoft CoPilot</strong>, <strong>Claude Sonnet 4</strong>, <strong>Perplexity</strong>, <strong>DeepSeek R1</strong>, and <strong>Meta AI Llama 4 Maverick</strong>. I actively experiment with these platforms to build smarter, more adaptive systems and stay ahead in the rapidly evolving AI landscape.</p>
-        <p>Beyond tech, I live an active and curious life. I'm an avid runner with a love for aviation, astronomy, hiking, sports, and travel. I also enjoy unwinding with Netflix or documentaries, and I value spending time with family and friends. In my free time, I'm often reading about the latest breakthroughs in technology, AI, and the future of intelligent systems.</p>
+        <p>I'm a 24-year-old engineer training to become an <strong>airline pilot</strong>. I've enrolled in ATP Flight School's <strong>Airline Career Pilot Program</strong> at Sugar Land Regional Airport (SGR) — training begins August 3, 2026 — working toward my Private Pilot Certificate with my sights set on <strong>United Airlines through the Aviate program</strong>. I hold a BS in Computer Science from UT Dallas and certifications in IBM AI Engineering, IBM Data Science, and the Databricks Certified Data Engineer Associate — the engineering career that funds my path to the flight deck.</p>
+        <p>Flying and engineering reward the same instincts: discipline, systems thinking, and running the checklist right every single time. My background is in <strong>AI &amp; Data Engineering</strong> — designing and optimizing end-to-end data pipelines across Microsoft Fabric, Databricks, PySpark, and SQL, and shipping full-stack AI systems (multi-model LLM gateways, hybrid RAG, agentic loops) that run in production on real traffic. That same obsession with reliability under real constraints is exactly what the cockpit demands.</p>
+        <p>My love of aviation doesn't stop at the logbook — I build for it too. <strong>Infinite Flight Live Tracker</strong> is my real-time flight-tracking platform: a live map of every aircraft on a server coloured by flight phase, origin&rarr;destination cards with live ETAs, arrival weather and 5-day forecasts, ATC frequencies, and pilot logbooks — all served through a FastAPI backend that proxies and caches the Live API. This very site runs a live ADS-B flight tracker for the same reason: aviation is where my curiosity and my code meet.</p>
+        <p>Beyond the flight deck, I'm a competitive marathoner chasing a sub-3:00 finish, with a lifelong pull toward aviation, weather systems, astronomy, and sport. I value time with family and friends, and I'm happiest reading about — or building — whatever comes next.</p>
 
         <div class="skill-cloud" style="margin-top: 1.5rem;">
-            <span class="skill-tag">PySpark</span>
-            <span class="skill-tag">Databricks</span>
-            <span class="badge">AI Engineer</span>
-            <span class="skill-tag">Microsoft Fabric</span>
-            <span class="skill-tag">SQL</span>
+            <div class="skill-group-label">✈️ Aviation &amp; Flight Training (in progress)</div>
+            <span class="skill-tag av">Student Pilot · PPL (in training)</span>
+            <span class="skill-tag av">ATP Airline Career Pilot Program</span>
+            <span class="skill-tag av">Preflight &amp; Flight Planning</span>
+            <span class="skill-tag av">Aviation Weather</span>
+            <span class="skill-tag av">Radio Comms / ATC (learning)</span>
+            <span class="skill-tag av">Aeronautical Decision-Making</span>
+
+            <div class="skill-group-label">🧭 Transferable &amp; General</div>
+            <span class="skill-tag gen">Communication</span>
+            <span class="skill-tag gen">Problem Solving</span>
+            <span class="skill-tag gen">Systems Thinking</span>
+            <span class="skill-tag gen">Decision-Making Under Pressure</span>
+            <span class="skill-tag gen">Attention to Detail</span>
+            <span class="skill-tag gen">Discipline &amp; Consistency</span>
+            <span class="skill-tag gen">Self-Directed Learning</span>
+            <span class="skill-tag gen">Adaptability</span>
+
+            <div class="skill-group-label">⚙️ Technical (Engineering)</div>
             <span class="skill-tag">Python</span>
-            <span class="skill-tag">ETL/ELT</span>
+            <span class="skill-tag">PySpark / Databricks</span>
+            <span class="skill-tag">SQL</span>
+            <span class="skill-tag">Data Pipelines (ETL/ELT)</span>
+            <span class="skill-tag">LLMs / RAG</span>
+            <span class="skill-tag">FastAPI</span>
+            <span class="skill-tag">Microsoft Fabric</span>
             <span class="skill-tag">Delta Lake</span>
-            <span class="skill-tag">OpenAI API</span>
-            <span class="skill-tag">LangChain</span>
-            <span class="skill-tag">Streamlit</span>
-            <span class="skill-tag">scikit-learn</span>
-            <span class="skill-tag">NLP / LLMs</span>
-            <span class="skill-tag">Deep Learning</span>
-            <span class="skill-tag">Prompt Engineering</span>
+            <span class="skill-tag">Cloud Deploy (Vercel / Railway)</span>
         </div>
     </section>
 
@@ -3031,6 +3047,23 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <p>Here are some of my notable projects:</p>
 
         <div class="projects-grid">
+
+            <div class="project-card">
+                <div class="project-title">✈️ Infinite Flight Live Tracker</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Python</span>
+                    <span class="tech-pill">FastAPI</span>
+                    <span class="tech-pill">Leaflet</span>
+                    <span class="tech-pill">Live API</span>
+                    <span class="tech-pill">OpenWeatherMap</span>
+                    <span class="tech-pill">Render</span>
+                </div>
+                <div class="project-desc">A real-time flight tracker for the Infinite Flight simulator. Live map of every aircraft on a server (coloured by flight phase), origin&rarr;destination cards with live ETAs, arrival weather + 5-day forecast, switchable satellite &amp; day/night layers, ATC frequencies, and pilot logbooks. A FastAPI backend proxies and caches the Live API so the keys never touch the browser.</div>
+                <div class="project-links">
+                    <a href="https://if-flight-tracker.onrender.com" target="_blank" rel="noopener" class="project-btn">🌐 Live Demo</a>
+                    <a href="https://github.com/yashhooda1/IF-Flight-Tracker" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
 
             <div class="project-card">
                 <div class="project-title">🤖 HoodaAgents AI Hiring Engine</div>
@@ -3103,22 +3136,6 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
 
-            <div class="project-card">
-                <div class="project-title">✈️ Infinite Flight Live Tracker</div>
-                <div class="project-tech">
-                    <span class="tech-pill">Python</span>
-                    <span class="tech-pill">FastAPI</span>
-                    <span class="tech-pill">Leaflet</span>
-                    <span class="tech-pill">Live API</span>
-                    <span class="tech-pill">OpenWeatherMap</span>
-                    <span class="tech-pill">Render</span>
-                </div>
-                <div class="project-desc">A real-time flight tracker for the Infinite Flight simulator. Live map of every aircraft on a server (coloured by flight phase), origin&rarr;destination cards with live ETAs, arrival weather + 5-day forecast, switchable satellite &amp; day/night layers, ATC frequencies, and pilot logbooks. A FastAPI backend proxies and caches the Live API so the keys never touch the browser.</div>
-                <div class="project-links">
-                    <a href="https://if-flight-tracker.onrender.com" target="_blank" rel="noopener" class="project-btn">🌐 Live Demo</a>
-                    <a href="https://github.com/yashhooda1/IF-Flight-Tracker" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
-                </div>
-            </div>
 
             <div class="project-card">
                 <div class="project-title">🧁 Nothing Bundt Cakes — MIS Dashboard</div>

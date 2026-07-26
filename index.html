@@ -1201,6 +1201,10 @@
         .flight-status-pill.enroute { background: rgba(76,175,80,0.15); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
         .flight-status-pill.scheduled { background: rgba(147,197,253,0.1); color: #93c5fd; border: 1px solid rgba(147,197,253,0.2); }
         .flight-status-pill.landed { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
+        /* ── PILOT JOURNEY ── */
+        .pilot-step { font-family:'Space Mono',monospace; font-size:0.72rem; padding:0.4rem 0.75rem; border-radius:6px; background:var(--bg-elevated); border:1px solid rgba(255,255,255,0.08); color:var(--text-muted); transition:all 0.2s; }
+        .pilot-step.active { background:rgba(59,130,246,0.15); border-color:#3b82f6; color:#93c5fd; box-shadow:0 0 0 1px rgba(59,130,246,0.15); }
+        .pilot-step.done { color:var(--green); border-color:rgba(76,175,80,0.3); }
         /* ── SPORTS SCORES ── */
         .sports-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
         .sports-tab { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.78rem; transition: all 0.2s; letter-spacing: 0.03em; display: flex; align-items: center; gap: 0.4rem; }
@@ -2859,12 +2863,13 @@
 <!-- HEADER -->
 <header>
     <h1>Yash Hooda</h1>
-    <p>AI Engineer & Data Engineer | Building Intelligent Systems | Runner</p>
+    <p>AI Engineer & Data Engineer | Aspiring Airline Pilot ✈️ | Runner</p>
     <div class="header-badges">
         <span class="badge">UTD Computer Science</span>
         <span class="badge">Databricks Certified</span>
         <span class="badge">IBM AI Engineering</span>
         <span class="badge">IBM Data Science</span>
+        <span class="badge" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#93c5fd;">✈️ Training @ ATP Flight School</span>
         <span class="badge">Runner · <span id="weekly-miles-badge">--</span> mi/wk</span>
     </div>
     <div class="header-cta">
@@ -3910,9 +3915,51 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <div id="forecast-container" style="display:none;"></div>
     </section>
 
-    <!-- AVIATION TRACKER -->
+    <!-- AVIATION -->
     <section id="aviation">
-        <h2>✈️ Live Flight Tracker</h2>
+        <!-- ══ PILOT JOURNEY (added) ══ -->
+        <h2>✈️ My Path to the Flight Deck</h2>
+        <p>I'm training to become an airline pilot through <strong>ATP Flight School's Airline Career Pilot Program</strong> at Sugar Land Regional Airport (SGR) — the accelerated, airline-oriented track that runs from zero time to 1,500 hours, backed by Career Track&trade; agreements to the major carriers. Same discipline and systems thinking I bring to engineering, now pointed at the flight deck.</p>
+
+        <div class="aviation-stats-row" style="margin:1.25rem 0;">
+            <div class="aviation-stat">
+                <span class="aviation-stat-val" style="font-size:0.95rem;">ATP</span>
+                <div class="aviation-stat-label">Flight School</div>
+            </div>
+            <div class="aviation-stat">
+                <span class="aviation-stat-val" style="font-size:0.95rem;">SGR</span>
+                <div class="aviation-stat-label">Sugar Land, TX</div>
+            </div>
+            <div class="aviation-stat">
+                <span class="aviation-stat-val" style="font-size:0.95rem;">ACPP</span>
+                <div class="aviation-stat-label">Career Pilot Program</div>
+            </div>
+            <div class="aviation-stat">
+                <!-- UPDATE hours as you log them -->
+                <span class="aviation-stat-val" id="pilot-hours">--</span>
+                <div class="aviation-stat-label">Hours Logged</div>
+            </div>
+            <div class="aviation-stat">
+                <!-- UPDATE current stage: move the "active" class below to match -->
+                <span class="aviation-stat-val" style="font-size:0.95rem;" id="pilot-stage">Private</span>
+                <div class="aviation-stat-label">Currently Training</div>
+            </div>
+        </div>
+
+        <!-- Rating roadmap: mark completed with class "done", current with class "active" -->
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+            <span class="pilot-step active">Private (PPL)</span>
+            <span class="pilot-step">Instrument</span>
+            <span class="pilot-step">Commercial</span>
+            <span class="pilot-step">Multi-Engine</span>
+            <span class="pilot-step">CFI</span>
+            <span class="pilot-step">CFII / MEI</span>
+            <span class="pilot-step">1,500 hrs &rarr; ATP</span>
+        </div>
+        <p style="font-size:0.72rem;color:var(--text-muted);font-family:'Space Mono',monospace;">&#9656; Zero time to the right seat. Current stage highlighted &mdash; updates as I check off ratings.</p>
+        <!-- ══ END PILOT JOURNEY ══ -->
+
+        <h2 style="margin-top:2.5rem;">✈️ Live Flight Tracker</h2>
         <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
 
         <div class="aviation-bar">

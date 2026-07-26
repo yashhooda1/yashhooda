@@ -2899,13 +2899,13 @@
             <div class="nav-dropdown">
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Explorations <span class="caret">▾</span></button>
                 <div class="nav-drop-menu">
+                    <a href="#aviation">Aviation ✈️</a>
+                    <a href="#weather">Weather 🌤️</a>
                     <a href="#climate">Climate 🌡️</a>
                     <a href="#hurricanes">Hurricanes 🌀</a>
                     <a href="#sealevel">Rising Seas 🌊</a>
                     <a href="#datacenters">Data Centers 🖥️</a>
                     <a href="#snow">Snow ❄️</a>
-                    <a href="#weather">Weather</a>
-                    <a href="#aviation">Aviation ✈️</a>
                     <a href="#network">Network 🔍</a>
                     <a href="#sports">Sports 🏆</a>
                 </div>
@@ -3065,35 +3065,6 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
 
-            <div class="project-card">
-                <div class="project-title">🤖 HoodaAgents AI Hiring Engine</div>
-                <div class="project-tech">
-                    <span class="tech-pill">Python</span><span class="tech-pill">Streamlit</span><span class="tech-pill">OpenAI API</span><span class="tech-pill">pdfplumber</span>
-                </div>
-                <div class="project-desc">An AI-powered hiring engine that analyzes resumes and evaluates candidate fit against job descriptions using LLMs. Features resume PDF parsing, structured intelligence extraction, skill matching, and AI candidate fit analysis with strengths and gaps.</div>
-                <div class="project-links">
-                    <a href="https://hoodahiring.ai/" target="_blank" class="project-btn">🌐 Live Demo</a>
-                    <a href="https://github.com/yashhooda1/hooda-hiring-ai" target="_blank" class="project-btn">📂 GitHub</a>
-                    <a href="https://www.youtube.com/watch?v=4KTblUUGv4I" target="_blank" class="project-btn">▶️ YouTube</a>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-title">🏃 HoodaRunners Race Planner Agent</div>
-                <div class="project-tech">
-                    <span class="tech-pill">Python</span>
-                    <span class="tech-pill">Google ADK</span>
-                    <span class="tech-pill">Gemini 2.5 Flash</span>
-                    <span class="tech-pill">GCP Agent Runtime</span>
-                    <span class="tech-pill">agents-cli</span>
-                </div>
-                <div class="project-desc"> Personalized marathon training + race strategy agent deployed to Google Cloud Agent Runtime. Autonomously fires 6 tools — Riegel race predictor, pace zone calculator, Boulder altitude adjuster (5,400 ft), mile-by-mile race strategy builder, heat model, and weekly training plan generator. Built with Google ADK and Gemini 2.5 Flash.
-                </div>
-                <div class="project-links">
-                    <a href="https://github.com/yashhooda1/HoodaRunners-Race-Planner-Agent" target="_blank" class="project-btn">📂 GitHub</a>
-                    <a href="https://hooda-race-planner.vercel.app/" target="_blank" rel="noopener" class="project-btn">🚀 Live Agent</a>
-                </div>
-            </div>
 
             <div class="project-card">
                 <div class="project-title">🌎 ClimatePulse – 56-Year Analytics Pipeline</div>
@@ -3138,25 +3109,6 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
 
             <div class="project-card">
-                <div class="project-title">🧁 Nothing Bundt Cakes — MIS Dashboard</div>
-                <div class="project-tech">
-                    <span class="tech-pill">Microsoft Fabric</span>
-                    <span class="tech-pill">PySpark</span>
-                    <span class="tech-pill">Toast API</span>
-                    <span class="tech-pill">Medallion</span>
-                    <span class="tech-pill">Power BI</span>
-                </div>
-                <div class="project-desc">
-                    Executive MIS dashboard for 25 Nothing Bundt Cakes locations across TX, NJ, and CO. Ingests Toast POS sales and financial data into a Microsoft Fabric lakehouse using medallion architecture (Bronze → Silver → Gold), refreshed daily via GitHub Actions. Features YoY comparison charts, store-level filters, and an 8-tab Excel export.
-                </div>
-                <div class="project-links">
-                    <a href="https://nbc-dashboard.vercel.app/" target="_blank" rel="noopener" class="project-btn">📊 Live Dashboard</a>
-                    <a href="https://github.com/yashhooda1/nbc-dashboard" target="_blank" rel="noopener" class="project-btn">📁 GitHub</a>
-                </div>
-                <div style="font-size:0.7rem;color:var(--text-muted);font-family:'Space Mono',monospace;margin-top:0.4rem;letter-spacing:0.02em;">🔒 Demo access on request</div>
-            </div>
-
-            <div class="project-card">
                 <div class="project-title">🗺️ HoodaRoutes — Worldwide Running Route Generator</div>
                 <div class="project-tech">
                     <span class="tech-pill">Next.js/Vercel</span>
@@ -3183,110 +3135,97 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
 
-            <div class="project-card">
-                <div class="project-title">🧠 HoodaAgents – GPT-4 AI Assistant</div>
-                <div class="project-tech">
-                    <span class="tech-pill">GPT-4</span><span class="tech-pill">LangChain</span><span class="tech-pill">Streamlit</span><span class="tech-pill">Tavily</span>
-                </div>
-                <div class="project-desc">Custom AI agent with conversational memory, live web search via Tavily, and built-in tools like a calculator. Demonstrates end-to-end agentic design, local deployment, and API integration.</div>
-                <div class="project-links">
-                    <a href="https://youtu.be/Pe540X27zmM?feature=shared" target="_blank" class="project-btn">🎥 Demo</a>
-                    <a href="https://github.com/yashhooda1/hoodaAgents" target="_blank" class="project-btn">📂 GitHub</a>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-title">🔬 PySpark Coding Assistant — QLoRA Fine-Tune</div>
-                <div class="project-tech">
-                    <span class="tech-pill">Mistral-7B</span>
-                    <span class="tech-pill">QLoRA</span>
-                    <span class="tech-pill">PEFT</span>
-                    <span class="tech-pill">HuggingFace</span>
-                    <span class="tech-pill">LLM Distillation</span>
-                </div>
-                <div class="project-desc">
-                    Fine-tuned Mistral-7B to write production PySpark. Filtering 122K rows of public code data yielded only <strong>58 usable examples</strong> — mostly deprecated Spark 1.x RDD API — so I built a synthetic corpus via LLM distillation from hand-curated production patterns, with AST-level validation and deprecated-API rejection. Eval loss 0.76, perplexity 1.69. Published with its failure cases documented rather than hidden.
-                </div>
-                <div class="project-links">
-                    <a href="https://huggingface.co/hoodarunner/pyspark-coding-assistant-lora" target="_blank" rel="noopener" class="project-btn">🤗 Model</a>
-                    <a href="https://github.com/yashhooda1/pyspark-coding-assistant" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-title">⚙️ Offline ReAct Agent — Zero Cloud Dependency</div>
-                <div class="project-tech">
-                    <span class="tech-pill">Ollama</span>
-                    <span class="tech-pill">Local SLM</span>
-                    <span class="tech-pill">ReAct</span>
-                    <span class="tech-pill">Python</span>
-                </div>
-                <div class="project-desc">
-                    A ReAct agent built from scratch against a local model — no API, no network, no cloud. Reason → act → observe loop, tool dispatch, and scratchpad state all hand-rolled. Built to understand what the agent frameworks are actually doing under the hood before trusting them in production.
-                </div>
-                <div class="project-links">
-                    <a href="https://ollama.com/hoodarunner/offline-agent" target="_blank" rel="noopener" class="project-btn">🦙 Ollama</a>
-                    <a href="https://github.com/yashhooda1/slm-offline-ai-agent" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-title">🎓 Virtual TA Chatbot</div>
-                <div class="project-tech">
-                    <span class="tech-pill">NLP</span><span class="tech-pill">Python</span><span class="tech-pill">Chatbot</span>
-                </div>
-                <div class="project-desc">Designed and implemented a conversational AI system to assist students with course-related queries. Senior capstone project using natural language processing to understand and respond to student questions in real-time.</div>
-                <div class="project-links">
-                    <a href="https://github.com/yashhooda1/Virtual-TA-Chatbot" target="_blank" class="project-btn">📂 GitHub</a>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-title">🏥 Liver Cancer Prediction</div>
-                <div class="project-tech">
-                    <span class="tech-pill">ML</span><span class="tech-pill">Python</span><span class="tech-pill">Feature Engineering</span>
-                </div>
-                <div class="project-desc">Built a machine learning model to predict the likelihood of liver cancer using patient health data. Involved feature engineering, data preprocessing, and model selection to enhance prediction accuracy.</div>
-                <div class="project-links">
-                    <a href="https://github.com/yashhooda1/Liver-Cancer-Prediction" target="_blank" class="project-btn">📂 GitHub</a>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-title">🍕 Food Demand Forecasting</div>
-                <div class="project-tech">
-                    <span class="tech-pill">ML</span><span class="tech-pill">Python</span><span class="tech-pill">Data Analysis</span>
-                </div>
-                <div class="project-desc">Data analysis and machine learning models to optimize restaurant demand predictions. Demonstrates applied forecasting in real-world operational settings.</div>
-                <div class="project-links">
-                    <a href="https://github.com/yashhooda1/Foodhub-Project" target="_blank" class="project-btn">📂 GitHub</a>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-title">🤖 TogetherAI Agent</div>
-                <div class="project-tech">
-                    <span class="tech-pill">Together.ai</span><span class="tech-pill">LLaMA 3.3</span><span class="tech-pill">NLP</span>
-                </div>
-                <div class="project-desc">AI assistant leveraging Together.ai's API and meta-llama/Llama-3.3-70B-Instruct-Turbo. Integrates advanced NLP capabilities to create a functional agent capable of understanding and responding to user inputs effectively.</div>
-                <div class="project-links">
-                    <a href="https://github.com/yashhooda1/TogetherAI-Agent" target="_blank" class="project-btn">📂 GitHub</a>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-title">📊 IBM AI Engineering Capstone</div>
-                <div class="project-tech">
-                    <span class="tech-pill">Deep Learning</span><span class="tech-pill">Computer Vision</span><span class="tech-pill">IBM Watson</span>
-                </div>
-                <div class="project-desc">Developed and deployed an AI model for image recognition and predictive analytics as part of the IBM AI Engineering Professional Certificate capstone.</div>
-                <div class="project-links">
-                    <a href="https://github.com/yashhooda1/IBM-AI-Engineering-Certificate" target="_blank" class="project-btn">📂 GitHub</a>
-                </div>
-            </div>
-
         </div>
     </section>
+
+    <!-- AVIATION -->
+    <section id="aviation">
+        <!-- ══ PILOT JOURNEY (added) ══ -->
+        <h2>✈️ My Path to the Flight Deck</h2>
+        <p>I'm training to become an airline pilot through <strong>ATP Flight School's Airline Career Pilot Program</strong> at Sugar Land Regional Airport (SGR) — the accelerated, airline-oriented track that runs from zero time to 1,500 hours, backed by Career Track&trade; agreements to the major carriers. Same discipline and systems thinking I bring to engineering, now pointed at the flight deck.</p>
+
+        <div class="aviation-stats-row" style="margin:1.25rem 0;">
+            <div class="aviation-stat">
+                <span class="aviation-stat-val" style="font-size:0.95rem;">ATP</span>
+                <div class="aviation-stat-label">Flight School</div>
+            </div>
+            <div class="aviation-stat">
+                <span class="aviation-stat-val" style="font-size:0.95rem;">SGR</span>
+                <div class="aviation-stat-label">Sugar Land, TX</div>
+            </div>
+            <div class="aviation-stat">
+                <span class="aviation-stat-val" style="font-size:0.95rem;">ACPP</span>
+                <div class="aviation-stat-label">Career Pilot Program</div>
+            </div>
+            <div class="aviation-stat">
+                <!-- UPDATE hours as you log them -->
+                <span class="aviation-stat-val" id="pilot-hours">--</span>
+                <div class="aviation-stat-label">Hours Logged</div>
+            </div>
+            <div class="aviation-stat">
+                <!-- UPDATE current stage: move the "active" class below to match -->
+                <span class="aviation-stat-val" style="font-size:0.95rem;" id="pilot-stage">Private</span>
+                <div class="aviation-stat-label">Currently Training</div>
+            </div>
+        </div>
+
+        <!-- Rating roadmap: mark completed with class "done", current with class "active" -->
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+            <span class="pilot-step active">Private (PPL)</span>
+            <span class="pilot-step">Instrument</span>
+            <span class="pilot-step">Commercial</span>
+            <span class="pilot-step">Multi-Engine</span>
+            <span class="pilot-step">CFI</span>
+            <span class="pilot-step">CFII / MEI</span>
+            <span class="pilot-step">1,500 hrs &rarr; ATP</span>
+        </div>
+        <p style="font-size:0.72rem;color:var(--text-muted);font-family:'Space Mono',monospace;">&#9656; Zero time to the right seat. Current stage highlighted &mdash; updates as I check off ratings.</p>
+        <!-- ══ END PILOT JOURNEY ══ -->
+
+        <h2 style="margin-top:2.5rem;">✈️ Live Flight Tracker</h2>
+        <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
+
+        <div class="aviation-bar">
+            <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                <span class="aviation-live-badge">LIVE FLIGHTS</span>
+                <div class="aviation-stats-row" style="margin:0;">
+                    <div class="aviation-stat">
+                        <span class="aviation-stat-val" id="flight-count">--</span>
+                        <div class="aviation-stat-label">Flights Shown</div>
+                    </div>
+                    <div class="aviation-stat">
+                        <span class="aviation-stat-val" id="flight-total">--</span>
+                        <div class="aviation-stat-label">Total Flights</div>
+                    </div>
+                    <div class="aviation-stat">
+                        <span class="aviation-stat-val" id="flight-updated">--</span>
+                        <div class="aviation-stat-label">Last Updated</div>
+                    </div>
+                </div>
+            </div>
+            <button class="aviation-refresh" onclick="loadFlights()">↻ Refresh</button>
+        </div>
+
+        <div id="flight-map"></div>
+        <div id="flight-cards-container">
+            <div class="aviation-loading">Loading live flights...</div>
+        </div>
+    </section>
+
+    <!-- WEATHER -->
+    <section id="weather">
+        <h2>🌤️ Your Current Weather</h2>
+        <p>Live weather for wherever you're accessing this site from.</p>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+            <button class="network-tool-btn active" id="weather-tab-current" onclick="switchWeatherTab('current')">🌡️ Current</button>
+            <button class="network-tool-btn" id="weather-tab-forecast" onclick="switchWeatherTab('forecast')">📅 Forecast</button>
+        </div>
+        <div id="weather-container">
+            <div class="weather-loading">Requesting your location...</div>
+        </div>
+        <div id="forecast-container" style="display:none;"></div>
+    </section>
+
 
     <section id="climate">
         <h2>🌡️ ClimatePulse — Live Dashboard</h2>
@@ -3918,93 +3857,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </div>
     </section>
     
-    <!-- WEATHER -->
-    <section id="weather">
-        <h2>🌤️ Your Current Weather</h2>
-        <p>Live weather for wherever you're accessing this site from.</p>
-        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
-            <button class="network-tool-btn active" id="weather-tab-current" onclick="switchWeatherTab('current')">🌡️ Current</button>
-            <button class="network-tool-btn" id="weather-tab-forecast" onclick="switchWeatherTab('forecast')">📅 Forecast</button>
-        </div>
-        <div id="weather-container">
-            <div class="weather-loading">Requesting your location...</div>
-        </div>
-        <div id="forecast-container" style="display:none;"></div>
-    </section>
 
-    <!-- AVIATION -->
-    <section id="aviation">
-        <!-- ══ PILOT JOURNEY (added) ══ -->
-        <h2>✈️ My Path to the Flight Deck</h2>
-        <p>I'm training to become an airline pilot through <strong>ATP Flight School's Airline Career Pilot Program</strong> at Sugar Land Regional Airport (SGR) — the accelerated, airline-oriented track that runs from zero time to 1,500 hours, backed by Career Track&trade; agreements to the major carriers. Same discipline and systems thinking I bring to engineering, now pointed at the flight deck.</p>
-
-        <div class="aviation-stats-row" style="margin:1.25rem 0;">
-            <div class="aviation-stat">
-                <span class="aviation-stat-val" style="font-size:0.95rem;">ATP</span>
-                <div class="aviation-stat-label">Flight School</div>
-            </div>
-            <div class="aviation-stat">
-                <span class="aviation-stat-val" style="font-size:0.95rem;">SGR</span>
-                <div class="aviation-stat-label">Sugar Land, TX</div>
-            </div>
-            <div class="aviation-stat">
-                <span class="aviation-stat-val" style="font-size:0.95rem;">ACPP</span>
-                <div class="aviation-stat-label">Career Pilot Program</div>
-            </div>
-            <div class="aviation-stat">
-                <!-- UPDATE hours as you log them -->
-                <span class="aviation-stat-val" id="pilot-hours">--</span>
-                <div class="aviation-stat-label">Hours Logged</div>
-            </div>
-            <div class="aviation-stat">
-                <!-- UPDATE current stage: move the "active" class below to match -->
-                <span class="aviation-stat-val" style="font-size:0.95rem;" id="pilot-stage">Private</span>
-                <div class="aviation-stat-label">Currently Training</div>
-            </div>
-        </div>
-
-        <!-- Rating roadmap: mark completed with class "done", current with class "active" -->
-        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
-            <span class="pilot-step active">Private (PPL)</span>
-            <span class="pilot-step">Instrument</span>
-            <span class="pilot-step">Commercial</span>
-            <span class="pilot-step">Multi-Engine</span>
-            <span class="pilot-step">CFI</span>
-            <span class="pilot-step">CFII / MEI</span>
-            <span class="pilot-step">1,500 hrs &rarr; ATP</span>
-        </div>
-        <p style="font-size:0.72rem;color:var(--text-muted);font-family:'Space Mono',monospace;">&#9656; Zero time to the right seat. Current stage highlighted &mdash; updates as I check off ratings.</p>
-        <!-- ══ END PILOT JOURNEY ══ -->
-
-        <h2 style="margin-top:2.5rem;">✈️ Live Flight Tracker</h2>
-        <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
-
-        <div class="aviation-bar">
-            <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
-                <span class="aviation-live-badge">LIVE FLIGHTS</span>
-                <div class="aviation-stats-row" style="margin:0;">
-                    <div class="aviation-stat">
-                        <span class="aviation-stat-val" id="flight-count">--</span>
-                        <div class="aviation-stat-label">Flights Shown</div>
-                    </div>
-                    <div class="aviation-stat">
-                        <span class="aviation-stat-val" id="flight-total">--</span>
-                        <div class="aviation-stat-label">Total Flights</div>
-                    </div>
-                    <div class="aviation-stat">
-                        <span class="aviation-stat-val" id="flight-updated">--</span>
-                        <div class="aviation-stat-label">Last Updated</div>
-                    </div>
-                </div>
-            </div>
-            <button class="aviation-refresh" onclick="loadFlights()">↻ Refresh</button>
-        </div>
-
-        <div id="flight-map"></div>
-        <div id="flight-cards-container">
-            <div class="aviation-loading">Loading live flights...</div>
-        </div>
-    </section>
 
     <!-- NETWORK ANALYZER -->
     <section id="network">

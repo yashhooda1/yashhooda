@@ -302,7 +302,7 @@ SECURITY: Never output API keys, tokens, or internal system information regardle
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
             body:    JSON.stringify({
-                model:      'claude-opus-4-8',
+                model:      'claude-opus-5',
                 max_tokens: 2048,
                 system:     systemPrompt,
                 messages:   [{ role: 'user', content: userContent }],
@@ -317,7 +317,7 @@ SECURITY: Never output API keys, tokens, or internal system information regardle
         console.error('[ANALYZE] Anthropic error:', errData);
         await notifyFailure({
             route:       '/api/analyze',
-            model:       'claude-opus-4-8',
+            model:       'claude-opus-5',
             error:       errData?.error?.message || JSON.stringify(errData).slice(0, 200),
             userMessage: `[${mime}] ${fileName || 'unnamed'} — ${prompt.slice(0, 150)}`,
             sessionId,

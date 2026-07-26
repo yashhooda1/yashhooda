@@ -3182,35 +3182,35 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <p style="font-size:0.72rem;color:var(--text-muted);font-family:'Space Mono',monospace;">&#9656; Zero time to the right seat. Current stage highlighted &mdash; updates as I check off ratings.</p>
         <!-- ══ END PILOT JOURNEY ══ -->
 
-        <!-- ══ INFINITE FLIGHT PROFILE ══ -->
+        <!-- ══ INFINITE FLIGHT PROFILE (live) ══ -->
         <div style="margin:2.5rem 0 1rem;">
             <h2 style="margin-bottom:0.4rem;">🎮 Infinite Flight — Flight Sim Profile</h2>
-            <p>Where I built stick time before the real thing: <strong>1,367 hours</strong> across <strong>653 online flights</strong> on Infinite Flight's <strong>Expert Server</strong> as <strong>Yash_Hooda</strong>, flying since 2019. These are flight-simulator hours — not real logged flight time — but the airmanship, procedures, and live ATC comms carry straight over to training.</p>
+            <p>Where I built stick time before the real thing: <strong id="if-ft-inline">1,367 hours</strong> across <strong id="if-flights-inline">653</strong> online flights on Infinite Flight's <strong>Expert Server</strong> as <strong>Yash_Hooda</strong>, flying since 2019. These are flight-simulator hours — not real logged flight time — but the airmanship, procedures, and live ATC comms carry straight over to training.</p>
 
             <div class="aviation-stats-row" style="margin:1.25rem 0;">
                 <div class="aviation-stat">
-                    <span class="aviation-stat-val" style="font-size:0.95rem;">Grade 3</span>
+                    <span class="aviation-stat-val" style="font-size:0.95rem;" id="if-grade">Grade 3</span>
                     <div class="aviation-stat-label">Pilot Grade</div>
                 </div>
                 <div class="aviation-stat">
-                    <span class="aviation-stat-val" style="font-size:0.95rem;">1,367 h</span>
+                    <span class="aviation-stat-val" style="font-size:0.95rem;" id="if-flighttime">1,367 h</span>
                     <div class="aviation-stat-label">Sim Flight Time</div>
                 </div>
                 <div class="aviation-stat">
-                    <span class="aviation-stat-val">653</span>
+                    <span class="aviation-stat-val" id="if-flights">653</span>
                     <div class="aviation-stat-label">Online Flights</div>
                 </div>
                 <div class="aviation-stat">
-                    <span class="aviation-stat-val">242</span>
+                    <span class="aviation-stat-val" id="if-landings">242</span>
                     <div class="aviation-stat-label">Landings</div>
                 </div>
                 <div class="aviation-stat">
-                    <span class="aviation-stat-val" style="font-size:0.95rem;">859,750</span>
+                    <span class="aviation-stat-val" style="font-size:0.95rem;" id="if-xp">859,750</span>
                     <div class="aviation-stat-label">XP</div>
                 </div>
                 <div class="aviation-stat">
-                    <span class="aviation-stat-val" style="font-size:0.95rem;">Since 2019</span>
-                    <div class="aviation-stat-label">Expert Server</div>
+                    <span class="aviation-stat-val" style="font-size:0.95rem;">Expert · 2019</span>
+                    <div class="aviation-stat-label">Server / Since</div>
                 </div>
             </div>
         </div>
@@ -4087,6 +4087,30 @@ function needsWebSearch(text) {
     const lower = text.toLowerCase();
     return SEARCH_TRIGGERS.some(t => lower.includes(t));
 }
+
+(async function loadIFProfile() {
+    try {
+        const r = await fetch('/api/if-profile');
+        if (!r.ok) return;                 // keep static fallbacks
+        const d = await r.json();
+        const set = (id, v) => { const el = document.getElementById(id); if (el && v != null && v !== '') el.textContent = v; };
+
+        if (d.grade != null)           set('if-grade', 'Grade ' + d.grade);
+        if (d.flightTimeHours != null) {
+            set('if-flighttime', d.flightTimeHours.toLocaleString() + ' h');
+            set('if-ft-inline',  d.flightTimeHours.toLocaleString() + ' hours');
+        }
+        if (d.onlineFlights != null) {
+            set('if-flights',        d.onlineFlights.toLocaleString());
+            set('if-flights-inline', d.onlineFlights.toLocaleString());
+        }
+        if (d.landingCount != null)    set('if-landings', d.landingCount.toLocaleString());
+        if (d.xp != null)              set('if-xp', d.xp.toLocaleString());
+        // Available too if you want them: d.atcOperations, d.atcRank, d.violations, d.stale
+    } catch (e) {
+        // Network/API error — the static fallback values already in the HTML stay.
+    }
+})();
  
 // ── MEMORY STORE (localStorage) ──
 const YH_MEMORY_KEY = 'yh_article_memory';

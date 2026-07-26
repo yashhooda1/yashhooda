@@ -264,7 +264,7 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
+          model: 'claude-sonnet-5',
           max_tokens: 700,
           messages: [{ role: 'user', content: coachPrompt }],
         }),

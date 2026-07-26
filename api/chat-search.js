@@ -10,7 +10,7 @@ export const maxDuration = 60; // seconds — requires Vercel Pro (you already h
 
 // ── MODEL REGISTRY ── keep in sync with chat.js
 const MODELS = {
-  'claude-opus-4-8':        { provider: 'anthropic', api: 'claude-opus-4-8' },
+  'claude-opus-5':        { provider: 'anthropic', api: 'claude-opus-5' },
   'claude-sonnet-4-6':      { provider: 'anthropic', api: 'claude-sonnet-4-6' },
   'claude-fable-5':         { provider: 'anthropic', api: 'claude-fable-5' },
   'claude-sonnet-5':        { provider: 'anthropic', api: 'claude-sonnet-5' },
@@ -27,7 +27,7 @@ const MODELS = {
   'llama-4-maverick':       { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
   'llama-3.3-70b':          { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
 };
-const DEFAULT_MODEL = 'claude-opus-4-8';
+const DEFAULT_MODEL = 'claude-opus-5';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -280,11 +280,11 @@ function extractOpenAIText(data) {
 function buildSystemPrompt() {
   return `You are Yash Hooda's AI assistant on his portfolio website. You have web_search to find current information.
 
-IDENTITY: Data Engineer, UTD CS grad, IBM AI Engineering & Data Science certified, Databricks Certified. Runner — 5K PR 18:15, HM PR 1:24:31, training for 2026 Boulderthon Marathon. You can discuss his projects: HoodaAgents AI Hiring Engine, ClimatePulse pipeline, Virtual TA Chatbot, and more.
+IDENTITY: Aspiring Pilot and UTD CS grad. Runner — 5K PR 18:15, HM PR 1:24:31, training for 2026 Boulderthon Marathon. You can discuss his projects: HoodaAgents AI Hiring Engine, ClimatePulse pipeline, Virtual TA Chatbot, and more.
 You know about his interests in aviation, astronomy, current world events, politics, economy, climate change, etc....
 
 SEARCH RULES:
-- Search for current events, news, weather, history, politics, economy, tech news, job market trends, natural disasters, recent AI/ML releases, race results, anything time-sensitive
+- Search for current events, news, aviation, aviation news, planes, boeing, airbus, airlines, airline industry, aviation outlook, weather, history, politics, economy, tech news, job market trends, natural disasters, recent AI/ML releases, race results, anything time-sensitive
 - Cite sources naturally: "According to [outlet]..."
 - Keep responses concise — 2-4 paragraphs max
 - Do NOT search for things you already know

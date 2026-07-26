@@ -637,7 +637,7 @@ async function generateSuggestions(query, reply, agentKey, apiKey) {
 // MODEL REGISTRY
 // ══════════════════════════════════════════════════════
 const MODELS = {
-    'claude-opus-5':    { provider: 'anthropic', api: 'claude-opus-5' },
+    'claude-opus-5':      { provider: 'anthropic', api: 'claude-opus-5' },
     'claude-sonnet-4-6':  { provider: 'anthropic', api: 'claude-sonnet-4-6' },
     'claude-sonnet-5':    { provider: 'anthropic', api: 'claude-sonnet-5' },
     'claude-fable-5':     { provider: 'anthropic', api: 'claude-fable-5' },
@@ -654,7 +654,7 @@ const MODELS = {
     'llama-4-maverick':   { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
     'llama-3.3-70b':      { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
 };
-const DEFAULT_MODEL = 'gpt-5.5';
+const DEFAULT_MODEL = 'opus-5';
 
 // ══════════════════════════════════════════════════════
 // MESSAGE FORMAT CONVERTERS

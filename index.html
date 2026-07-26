@@ -5619,7 +5619,7 @@ function providerLogo(provider) {
     
 // ── AI MODEL SELECTION ──
 const AI_MODELS = [
-    { key: 'claude-opus-5',   name: 'Claude Opus 5',    provider: 'Anthropic', note: 'Smartest, best for deep advice' },
+    { key: 'claude-opus-5',     name: 'Claude Opus 5',      provider: 'Anthropic', note: 'Smartest, best for deep advice' },
     { key: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6',  provider: 'Anthropic', note: 'Fast and capable, great default' },
     { key: 'claude-fable-5',    name: 'Claude Fable 5',     provider: 'Anthropic', note: 'Anthropic\'s most capable model' },
     { key: 'claude-sonnet-5',   name: 'Claude Sonnet 5',    provider: 'Anthropic', note: 'Newest Sonnet — fast, capable, great everyday default' },
@@ -5637,7 +5637,7 @@ const AI_MODELS = [
     { key: 'llama-3.3-70b',     name: 'Llama 3.3 70B',      provider: 'Meta',      note: 'Strong open-source model' },
 ];
 
-let selectedModel = localStorage.getItem('hooda_model') || 'claude-opus-5';
+let selectedModel = localStorage.getItem('hooda_model') || 'gpt-5.5';
 
 function modelName(key) {
     const m = AI_MODELS.find(x => x.key === key);

@@ -632,7 +632,7 @@ async function generateSuggestions(query, reply, agentKey, apiKey) {
 // MODEL REGISTRY
 // ══════════════════════════════════════════════════════
 const MODELS = {
-    'claude-opus-4-8':    { provider: 'anthropic', api: 'claude-opus-4-8' },
+    'claude-opus-5':    { provider: 'anthropic', api: 'claude-opus-5' },
     'claude-sonnet-4-6':  { provider: 'anthropic', api: 'claude-sonnet-4-6' },
     'claude-sonnet-5':    { provider: 'anthropic', api: 'claude-sonnet-5' },
     'claude-fable-5':     { provider: 'anthropic', api: 'claude-fable-5' },

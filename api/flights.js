@@ -2,14 +2,16 @@
 // No API key, no per-call cost. Replaces the paid FlightAware AeroAPI path.
 //
 // Returns the same JSON shape the map already expects, so no frontend change
-// is needed. Airline is derived from the callsign on the frontend; raw ADS-B
-// doesn't broadcast origin/destination, so those stay null (see note below).
+// is needed. Origin/destination are filled from adsb.lol's free "routeset"
+// endpoint (best-effort — the map still renders if that lookup fails).
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
+
+  const UA = 'YashHoodaPortfolio/1.0';
 
   // Shape one adsb.lol aircraft record into the map's flight object.
   function shapeAdsb(aircraft) {
@@ -23,8 +25,8 @@ export default async function handler(req, res) {
           icao:          a.hex || null,
           callsign:      a.flight?.trim() || a.hex || null,
           airline:       null,              // frontend derives from callsign prefix
-          origin:        null, origin_iata: null,
-          dest:          null, dest_iata:   null,
+          origin:        null, origin_iata: null, origin_name: null,
+          dest:          null, dest_iata:   null, dest_name:   null,
           lat:           parseFloat(a.lat),
           lon:           parseFloat(a.lon),
           altitude_ft,
@@ -36,6 +38,59 @@ export default async function handler(req, res) {
         };
       })
       .filter(f => f.altitude_ft > 1000); // drop ground/low readings
+  }
+
+  // Fill origin/destination via adsb.lol's ADSBExchange-compatible routeset API.
+  // Best-effort: any failure leaves routes null and never breaks the map.
+  async function enrichRoutes(flights) {
+    const withCs = flights.filter(f => f.callsign && f.callsign !== f.icao);
+    if (!withCs.length) return;
+    const planes = withCs.map(f => ({ callsign: f.callsign.trim(), lat: f.lat, lng: f.lon }));
+
+    let data;
+    try {
+      const r = await fetch('https://api.adsb.lol/api/0/routeset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'User-Agent': UA },
+        body: JSON.stringify({ planes }),
+        signal: AbortSignal.timeout(9000),
+      });
+      if (!r.ok) return;
+      data = await r.json();
+    } catch (_) {
+      return; // routes are a bonus, not a requirement
+    }
+    if (!Array.isArray(data)) return;
+
+    const apply = (f, route) => {
+      if (!route || route.plausible === false) return;
+      const airports = Array.isArray(route._airports) ? route._airports : [];
+      if (airports.length >= 2) {
+        const o = airports[0], d = airports[airports.length - 1];
+        f.origin      = o.location || o.name || o.iata || null;
+        f.origin_iata = o.iata || null;
+        f.origin_name = o.name || null;
+        f.dest        = d.location || d.name || d.iata || null;
+        f.dest_iata   = d.iata || null;
+        f.dest_name   = d.name || null;
+      } else if (typeof route.airport_codes === 'string' && route.airport_codes.includes('-')) {
+        const [o, d] = route.airport_codes.split('-');
+        f.origin = f.origin_iata = o || null;
+        f.dest   = f.dest_iata   = d || null;
+      }
+    };
+
+    // The routeset response mirrors the request order; fall back to callsign map.
+    if (data.length === withCs.length) {
+      withCs.forEach((f, i) => apply(f, data[i]));
+    } else {
+      const byCs = new Map();
+      for (const route of data) {
+        const cs = ((route && route.callsign) || '').trim();
+        if (cs && !byCs.has(cs)) byCs.set(cs, route);
+      }
+      for (const f of withCs) apply(f, byCs.get(f.callsign.trim()));
+    }
   }
 
   // Global sampling points (lat, lon, radius in nm). adsb.lol has worldwide
@@ -62,7 +117,7 @@ export default async function handler(req, res) {
     const results = await Promise.allSettled(
       regions.map(({ lat, lon, dist }) =>
         fetch(`https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${dist}`, {
-          headers: { 'User-Agent': 'YashHoodaPortfolio/1.0', 'Accept': 'application/json' },
+          headers: { 'User-Agent': UA, 'Accept': 'application/json' },
           signal: AbortSignal.timeout(8000),
         }).then(r => (r.ok ? r.json().then(d => d.ac || []) : []))
          .catch(() => [])
@@ -89,6 +144,9 @@ export default async function handler(req, res) {
     const MAX_MARKERS = 300;
     const step = Math.max(1, Math.floor(shaped.length / MAX_MARKERS));
     const flights = shaped.filter((_, i) => i % step === 0).slice(0, MAX_MARKERS);
+
+    // Fill origin/destination for the markers we're actually showing.
+    await enrichRoutes(flights);
 
     // Vercel edge-caches the response, so many visitors = one upstream refresh.
     res.setHeader('Cache-Control', 's-maxage=45, stale-while-revalidate=90');

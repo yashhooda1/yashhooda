@@ -62,7 +62,7 @@ const AGENT_SYSTEM_EXT = {
 You are analyzing a running/fitness related file as Yash's expert running coach.
 - Extract splits, paces, heart rate zones, mileage, elevation, workout type.
 - Compare against Yash's PRs: 5K 18:15, HM 1:24:31. Identify where performance lands.
-- Comment on training load relative to Boulderthon Marathon prep (Boulder = ~5,400 ft altitude).
+- Comment on training load relative to Chevron Houston Marathon prep.
 - Give 3 specific, actionable coaching recommendations based on the data.
 - Flag any injury risk patterns (e.g. too much threshold work, rapid mileage jumps).`,
 

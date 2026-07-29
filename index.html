@@ -1358,6 +1358,19 @@
         .weather-denied { font-size: 0.82rem; color: var(--text-muted); padding: 1rem; display: flex; align-items: center; gap: 0.5rem; }
         .weather-retry { font-family: 'Space Mono', monospace; font-size: 0.72rem; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: var(--green); padding: 0.25rem 0.65rem; border-radius: 5px; cursor: pointer; transition: all 0.2s; margin-left: auto; }
         .weather-retry:hover { background: rgba(76,175,80,0.2); }
+        /* ── HOURLY FORECAST ── */
+        .hourly-header { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--green); margin: 0.75rem 0 0.6rem; letter-spacing: 0.03em; }
+        .hourly-strip { display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 0.5rem; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+        .hourly-strip::-webkit-scrollbar { height: 4px; }
+        .hourly-strip::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.35); border-radius: 2px; }
+        .hourly-card { flex: 0 0 auto; width: 78px; scroll-snap-align: start; background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 0.7rem 0.4rem; text-align: center; }
+        .hourly-card:first-child { border-color: rgba(76,175,80,0.45); }
+        .hourly-time { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--green); letter-spacing: 0.02em; }
+        .hourly-icon { font-size: 1.5rem; margin: 0.35rem 0 0.25rem; }
+        .hourly-temp { font-family: 'Space Mono', monospace; font-size: 1.05rem; color: var(--text); font-weight: 700; }
+        .hourly-feels { font-size: 0.62rem; color: var(--text-muted); margin-top: 0.1rem; }
+        .hourly-pop, .hourly-wind { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .hourly-hint { font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: 0.3rem; opacity: 0.6; }
         /* ── NETWORK ANALYZER ── */
         .network-tools { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
         .network-tool-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.78rem; transition: all 0.2s; letter-spacing: 0.03em; display: flex; align-items: center; gap: 0.4rem; }
@@ -3245,11 +3258,13 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
             <button class="network-tool-btn active" id="weather-tab-current" onclick="switchWeatherTab('current')">🌡️ Current</button>
             <button class="network-tool-btn" id="weather-tab-forecast" onclick="switchWeatherTab('forecast')">📅 Forecast</button>
+            <button class="weather-tab" onclick="switchWeatherTab('hourly')">🕐 Hourly</button>
         </div>
         <div id="weather-container">
             <div class="weather-loading">Requesting your location...</div>
         </div>
         <div id="forecast-container" style="display:none;"></div>
+        <div id="hourly-container" style="display:none"></div>
     </section>
 
 
@@ -7451,6 +7466,8 @@ function switchWeatherTab(tab) {
     document.getElementById('weather-tab-forecast').classList.toggle('active', tab === 'forecast');
     document.getElementById('weather-container').style.display = tab === 'current' ? '' : 'none';
     document.getElementById('forecast-container').style.display = tab === 'forecast' ? '' : 'none';
+    document.getElementById('hourly-container').style.display = tab === 'hourly' ? '' : 'none';
+    if (tab === 'hourly' && cachedWeatherCoords) loadHourly(cachedWeatherCoords.lat, cachedWeatherCoords.lon, cachedLocationLabel);
     if (tab === 'forecast' && cachedWeatherCoords) loadForecast(cachedWeatherCoords.lat, cachedWeatherCoords.lon, cachedLocationLabel);
 }
 
@@ -7576,6 +7593,58 @@ async function loadForecast(lat, lon, locationLabel) {
         `;
     } catch(err) {
         container.innerHTML = '<div class="weather-denied">⚠️ Could not load forecast.</div>';
+    }
+}
+
+async function loadHourly(lat, lon, label) {
+    const container = document.getElementById('hourly-container');
+    if (!container) return;
+    container.innerHTML = '<div class="weather-loading">Fetching hourly forecast...</div>';
+    try {
+        const res = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+            `&current=temperature_2m` +
+            `&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m` +
+            `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=2`
+        );
+        const data = await res.json();
+        const h = data.hourly;
+
+        // hourly arrays start at local midnight — find the current hour
+        const nowHour = data.current.time.slice(0, 13);
+        let start = h.time.findIndex(t => t.slice(0, 13) >= nowHour);
+        if (start === -1) start = 0;
+
+        const idx = [];
+        for (let i = start; i < start + 12 && i < h.time.length; i++) idx.push(i);
+
+        container.innerHTML = `
+            <div class="hourly-header">📍 ${label} — Next 12 Hours</div>
+            <div class="hourly-strip">
+              ${idx.map((i, n) => {
+                let code = h.weather_code[i];
+                const pop = h.precipitation_probability[i] ?? 0;
+                if ((code === 95 || code === 96 || code === 99) && pop < 30) code = 2;
+                if ((code === 61 || code === 63) && pop < 20) code = 51;
+                const { icon, label: desc } = WMO_CODES[code] || { icon: '🌡️', label: 'Unknown' };
+                let hr = parseInt(h.time[i].slice(11, 13), 10);
+                const ampm = hr >= 12 ? 'PM' : 'AM';
+                hr = hr % 12 || 12;
+                return `
+                  <div class="hourly-card">
+                    <div class="hourly-time">${n === 0 ? 'Now' : hr + ampm}</div>
+                    <div class="hourly-icon" title="${desc}">${icon}</div>
+                    <div class="hourly-temp">${Math.round(h.temperature_2m[i])}°</div>
+                    <div class="hourly-feels">feels ${Math.round(h.apparent_temperature[i])}°</div>
+                    <div class="hourly-pop">💧 ${pop}%</div>
+                    <div class="hourly-wind">💨 ${Math.round(h.wind_speed_10m[i])}</div>
+                  </div>`;
+              }).join('')}
+            </div>
+            <div class="hourly-hint">← swipe for later hours →</div>
+        `;
+    } catch (e) {
+        container.innerHTML = '<div class="weather-denied">⚠️ Could not load hourly forecast.</div>';
     }
 }
 

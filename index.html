@@ -3739,7 +3739,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <div class="cp-kpi-cell"><span class="cp-kpi-val hot" id="tw-long">—</span><span class="cp-kpi-label">Longest run (mi)</span></div>
             <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="tw-commits">—</span><span class="cp-kpi-label">Commits</span></div>
             <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="tw-repos">—</span><span class="cp-kpi-label">Active repos</span></div>
-            <div class="cp-kpi-cell"><span class="cp-kpi-val" id="tw-countdown">—</span><span class="cp-kpi-label">Days to Boulderthon</span></div>
+            <div class="cp-kpi-cell"><span class="cp-kpi-val" id="tw-countdown">—</span><span class="cp-kpi-label">Days to Chevron Houston Marathon</span></div>
         </div>
 
         <!-- Tabs -->
@@ -4539,8 +4539,8 @@ function handleRecClick(action, idx) {
     const actionMap = {
         'Take an easy day or rest':       'What should my easy recovery run look like today?',
         'Schedule a quality workout':      'What quality workout should I do today given my fitness?',
-        'Begin taper protocol':            'Give me a taper plan for the Boulderthon Marathon',
-        'Check training plan':             'How is my Boulderthon training going and what should I focus on?',
+        'Begin taper protocol':            'Give me a taper plan for the Chevron Houston Marathon',
+        'Check training plan':             'How is my Chevron Houston Marathon training going and what should I focus on?',
         'Adjust run time or go to treadmill': 'How do I adjust my run for extreme heat today?',
         'Adjust run pace for conditions':  'What pace adjustment should I make for today\'s heat and humidity?',
         'Push a commit today':             'What should I work on and commit to GitHub today?',
@@ -9584,7 +9584,7 @@ window.cpUpdateSignal = function (tab) {
         set('tw-long', r.longest_run_miles ?? '—');
         set('tw-commits', c.week_commits ?? '—');
         set('tw-repos', (c.active_repos || []).length || '—');
-        set('tw-countdown', r.days_to_boulderthon ?? '—');
+        set('tw-countdown', r.days_to_chevron_houston_marathon ?? '—');
         if (TW.data.generated_at) {
             const d = new Date(TW.data.generated_at);
             set('tw-updated', 'updated ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));

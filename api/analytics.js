@@ -233,7 +233,7 @@ TEMPERATURE SCIENCE (El Helou 2012, Ely 2007):
     // 9. ── AI INSIGHTS via Claude ──
     // AFTER — Gemini Flash, free, works now
     const coachPrompt = `You are a world-class running coach analyzing Yash Hooda's training data.
-Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00. Currently training for 2026 Boulderthon Marathon (Boulder, CO — altitude 5,400 ft).
+Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00. Currently training for 2027 Chevron Houston Marathon (goal: sub 3 at sea level).
 CTL (fitness): ${ctlRounded}, ATL (fatigue): ${atlRounded}, Form: ${form}
 Pace zones (last 30 runs): ${JSON.stringify(paceZones)}
 ${weatherContext}

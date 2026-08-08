@@ -83,10 +83,10 @@ function selectModel(language, taskType) {
         return { provider: 'openai', model: 'gpt-4o', maxTokens: 4096 };
     }
     if (taskType === 'debug') {
-        return { provider: 'anthropic', model: 'claude-opus-5', maxTokens: 8000 };
+        return { provider: 'anthropic', model: 'claude-opus-5', maxTokens: 12000, effort: 'low' };
     }
     if (['python', 'sql', 'pyspark', 'bash', 'r'].includes(language?.toLowerCase())) {
-        return { provider: 'anthropic', model: 'claude-opus-5', maxTokens: 4096 };
+        return { provider: 'anthropic', model: 'claude-opus-5', maxTokens: 8000, effort: 'low' };
     }
     return { provider: 'anthropic', model: 'claude-sonnet-4-6', maxTokens: 4096 };
 }

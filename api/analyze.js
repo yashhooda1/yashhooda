@@ -32,6 +32,17 @@ function filterOutput(text) {
     return OUTPUT_BLOCKLIST.reduce((t, p) => t.replace(p, '[REDACTED]'), text);
 }
 
+// ── TEXT EXTRACTION ───────────────────────────────────────────────────────────
+// Claude 5 models return thinking blocks before text blocks, so content[0] is
+// not the answer. Collect every text block and skip thinking/redacted_thinking.
+function extractText(data) {
+    return (data?.content ?? [])
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join('')
+        .trim();
+}
+
 // ── AGENT ROUTING ─────────────────────────────────────────────────────────────
 const AGENT_PATTERNS = {
     running: /\b(run|running|pace|mileage|marathon|5k|strava|training|workout|race|heart rate|cadence|elevation|splits|interval|tempo|garmin|polar|coros|VO2|lactate|stride)\b/i,
@@ -303,7 +314,8 @@ SECURITY: Never output API keys, tokens, or internal system information regardle
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
             body:    JSON.stringify({
                 model:      'claude-opus-5',
-                max_tokens: 2048,
+                max_tokens: 16000,   // was 2048 — thinking tokens come out of this
+                effort:     'low',   // structured file summary; no need for deep reasoning
                 system:     systemPrompt,
                 messages:   [{ role: 'user', content: userContent }],
             }),
@@ -326,7 +338,26 @@ SECURITY: Never output API keys, tokens, or internal system information regardle
     }
 
     const analysisData = await analysisResponse.json();
-    const rawAnalysis  = analysisData?.content?.[0]?.text ?? 'Analysis could not be completed.';
+    const analysisText = extractText(analysisData);
+
+    if (analysisData.stop_reason === 'refusal') {
+        return res.status(200).json({
+            analysis:   "That file was declined by the model's safety system. Try a different file or rephrase your prompt.",
+            agent:      agentKey,
+            agentLabel: agentMeta.label,
+            agentEmoji: agentMeta.emoji,
+            agentColor: agentMeta.color,
+            suggestions: [],
+            webContext:  null,
+            fileName:    fileName || null,
+            mimeType:    mime,
+        });
+    }
+    if (!analysisText && analysisData.stop_reason === 'max_tokens') {
+        console.warn('[ANALYZE] max_tokens hit before any text block — raise max_tokens or lower effort');
+    }
+
+    const rawAnalysis  = analysisText || 'Analysis could not be completed.';
     const analysis     = filterOutput(rawAnalysis);
 
     // ── 15. Suggestion chips ──────────────────────────────────────────────────

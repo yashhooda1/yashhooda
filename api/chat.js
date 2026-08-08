@@ -1324,7 +1324,6 @@ export default async function handler(req, res) {
       		 	 messages,
     	  	};
    			 // Portfolio chat doesn't need deep reasoning — hold down cost + latency.
-   			 if (THINKS_BY_DEFAULT) payload.effort = 'low';
 
     		const response = await fetch('https://api.anthropic.com/v1/messages', {
        			 method:  'POST',

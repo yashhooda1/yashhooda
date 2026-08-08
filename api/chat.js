@@ -1312,37 +1312,54 @@ export default async function handler(req, res) {
             reply = filterOutput(data.choices?.[0]?.message?.content ?? 'Reach Yash at yash.hooda6@gmail.com!');
 
         } else if (cfg.provider === 'anthropic') {
-            // NOTE: NO output_config here — it causes 400 errors on Claude models
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-                body:    JSON.stringify({
-                    model:      cfg.api,
-                    max_tokens: 4096,
-                    system:     systemBlocks,
-                    messages,
-                }),
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                console.error('[Anthropic] Error:', JSON.stringify(data));
-                await notifyFailure({ route: '/api/chat [Anthropic]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0, 200), userMessage: queryText, sessionId });
-                return res.status(502).json({ error: 'Upstream API error', detail: data });
-            }
-            // Fable 5 can refuse (200 + stop_reason:"refusal") or silently reroute
-            // cyber/bio/chem/distillation prompts to Opus 4.8. Detect + surface it.
-            if (data.stop_reason === 'refusal') {
-                reply = "That request was declined by the model's safety system. Try rephrasing, or pick a different model.";
-            } else {
-                reply = filterOutput(data.content?.[0]?.text ?? 'Reach Yash at yash.hooda6@gmail.com!');
-            }
-            // If the safeguard rerouted, the response reports the model that actually answered.
-            if (data.model && data.model !== cfg.api) {
-                console.warn(`[Fable] request rerouted: ${cfg.api} → ${data.model}`);
-            }
-            reply = filterOutput(data.content?.[0]?.text ?? 'Reach Yash at yash.hooda6@gmail.com!');
+   		 	// NOTE: NO output_config here — it causes 400 errors on Claude models
+    		// Claude 5 models think by default and their content[0] is a `thinking`
+   			// block, not text. Thinking tokens also count against max_tokens.
+   		 	const THINKS_BY_DEFAULT = /^claude-(opus-5|sonnet-5|fable-5|mythos-5)/.test(cfg.api);
 
-        } else {
+   		 	const payload = {
+      			 model:      cfg.api,
+      			 max_tokens: THINKS_BY_DEFAULT ? 16000 : 4096,
+      		 	 system:     systemBlocks,
+      		 	 messages,
+    	  	};
+   			 // Portfolio chat doesn't need deep reasoning — hold down cost + latency.
+   			 if (THINKS_BY_DEFAULT) payload.effort = 'low';
+
+    		const response = await fetch('https://api.anthropic.com/v1/messages', {
+       			 method:  'POST',
+       			 headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+       			 body:    JSON.stringify(payload),
+    		});
+    		const data = await response.json();
+    		if (!response.ok) {
+      	 		 console.error('[Anthropic] Error:', JSON.stringify(data));
+      	 		 await notifyFailure({ route: '/api/chat [Anthropic]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0, 200), userMessage: queryText, sessionId });
+       	 		 return res.status(502).json({ error: 'Upstream API error', detail: data });
+    		}
+
+    		// Collect EVERY text block; skip thinking / redacted_thinking / tool blocks.
+   			const textOut = (data.content ?? [])
+    	  	  	.filter(b => b.type === 'text')
+     	  	    .map(b => b.text)
+        	    .join('')
+     	   	    .trim();
+
+   		 	 if (data.stop_reason === 'refusal') {
+    	   	 	reply = "That request was declined by the model's safety system. Try rephrasing, or pick a different model.";
+   			 } else if (!textOut && data.stop_reason === 'max_tokens') {
+    	   	 	reply = "That answer ran out of room before it finished. Try a shorter question, or switch models.";
+     	  		console.warn(`[Anthropic] max_tokens hit before any text — model: ${cfg.api}`);
+   		 	} else {
+    	  	 	reply = filterOutput(textOut || 'Reach Yash at yash.hooda6@gmail.com!');
+   			}
+
+   			 // If the safeguard rerouted, the response reports the model that actually answered.
+   			if (data.model && data.model !== cfg.api) {
+       	 		console.warn(`[Fable] request rerouted: ${cfg.api} → ${data.model}`);
+   			}
+
+			} else {
             // OpenAI Responses API — auto-fallback to gpt-5.5 if a gpt-5.6 preview
             // model isn't allowlisted on this account yet.
             const callOpenAI = (modelApi) => fetch('https://api.openai.com/v1/responses', {

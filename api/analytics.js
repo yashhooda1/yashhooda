@@ -13,6 +13,11 @@ export default async function handler(req, res) {
 
   try {
     // 1. Get Strava access token
+    const tokenRes = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, refresh_token: refreshToken, grant_type: 'refresh_token' }),
+    });
     const tokenData = await tokenRes.json();
     const access_token = tokenData?.access_token;
     if (!access_token) {
@@ -291,8 +296,9 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
           insights = insightText;
         } else {
           console.error('Claude insights empty:', JSON.stringify(claudeData).slice(0, 300));
-        }
-      } catch (e) {
+            }
+      }
+    } catch (e) {
       console.error('Claude insights fetch failed:', e.message);
     }
 

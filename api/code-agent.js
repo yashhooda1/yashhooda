@@ -123,19 +123,40 @@ async function callModel(cfg, messages) {
     // Anthropic
     const systemMsg = messages.find(m => m.role === 'system');
     const userMsgs  = messages.filter(m => m.role !== 'system');
+
+    // Claude 5 models think by default: content[0] is a thinking block, and
+    // thinking tokens are drawn from the same max_tokens budget as the answer.
+    const THINKS_BY_DEFAULT = /^claude-(opus-5|sonnet-5|fable-5|mythos-5)/.test(cfg.model);
+
+    const payload = {
+        model:      cfg.model,
+        max_tokens: cfg.maxTokens,
+        ...(systemMsg ? { system: systemMsg.content } : {}),
+        messages:   userMsgs.map(m => ({ role: 'user', content: m.content })),
+    };
+    if (THINKS_BY_DEFAULT) payload.effort = cfg.effort ?? 'low';
+
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-        body:    JSON.stringify({
-            model:      cfg.model,
-            max_tokens: cfg.maxTokens,
-            ...(systemMsg ? { system: systemMsg.content } : {}),
-            messages:   userMsgs.map(m => ({ role: 'user', content: m.content })),
-        }),
+        body:    JSON.stringify(payload),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(`Anthropic ${res.status}: ${JSON.stringify(data)}`);
-    return data.content?.[0]?.text?.trim() ?? '';
+
+    const text = (data.content ?? [])
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join('')
+        .trim();
+
+    if (data.stop_reason === 'refusal') {
+        throw new Error(`Anthropic ${cfg.model}: declined by the safety system`);
+    }
+    if (!text && data.stop_reason === 'max_tokens') {
+        throw new Error(`Anthropic ${cfg.model}: max_tokens (${cfg.maxTokens}) consumed by thinking before any text`);
+    }
+    return text;
 }
 
 // ── TOOL 1: LANGUAGE DETECTOR ─────────────────────────────────────────────────

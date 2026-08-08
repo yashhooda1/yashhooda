@@ -265,13 +265,20 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 700,
+          max_tokens: 8000,
+          effort: 'low'
           messages: [{ role: 'user', content: coachPrompt }],
         }),
       });
       const claudeData = await claudeRes.json();
-      if (claudeData.content?.[0]?.text) {
-        insights = claudeData.content[0].text.trim();
+      const insightText = (claudeData.content ?? [])
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join('')
+        .trim();
+
+      if (insightText) {
+        insights = insightText;
       } else {
         console.error('Claude insights error:', JSON.stringify(claudeData).slice(0, 300));
       }

@@ -2970,7 +2970,7 @@
             <a href="#tars">TARS</a>
             <a href="#buildlog">Build Log 📋</a>
             <a href="#contact">Contact</a>
-            <a href="#" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
+            <a href="#" id="nav-ai-chat" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
         </div>
     </div>
 </nav>
@@ -3105,7 +3105,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     attack campaign.
                 </div>
                 <div class="project-links">
-                    <a href="#" class="project-btn" onclick="document.querySelector('.ai-chat-btn').click(); return false;">💬 Try AI Chat</a>
+                    <a href="#" class="nav-chat-btn" onclick="document.getElementById('nav-ai-chat').click(); return false;">💬 Try AI Chat</a>
                     <a href="https://github.com/yashhooda1/yashhooda" target="_blank" class="project-btn">📂 GitHub</a>
                 </div>
             </div>

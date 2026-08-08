@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -11,20 +13,23 @@ export default async function handler(req, res) {
 
   try {
     // 1. Get Strava access token
-    const tokenRes = await fetch('https://www.strava.com/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, refresh_token: refreshToken, grant_type: 'refresh_token' }),
-    });
-    const { access_token } = await tokenRes.json();
+    const tokenData = await tokenRes.json();
+    const access_token = tokenData?.access_token;
+    if (!access_token) {
+      console.error('Strava token exchange failed:', JSON.stringify(tokenData).slice(0, 300));
+      return res.status(502).json({ error: 'Strava auth failed', detail: tokenData });
+    }
 
-    // 2. Fetch last 60 activities
     const actRes = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=60&page=1', {
       headers: { Authorization: `Bearer ${access_token}` }
     });
     const activities = await actRes.json();
 
-    // 3. Filter runs only
+    if (!Array.isArray(activities)) {
+      console.error(`Strava activities ${actRes.status}:`, JSON.stringify(activities).slice(0, 300));
+      return res.status(502).json({ error: 'Strava activities unavailable', detail: activities });
+    }
+
     const runs = activities.filter(a => a.type === 'Run');
 
     // 4. ── WEEKLY MILEAGE TREND (last 8 weeks) ──

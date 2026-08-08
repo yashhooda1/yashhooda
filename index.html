@@ -3079,35 +3079,34 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
         <div class="projects-grid">
 
-
             <div class="project-card">
-                <h3>🧠 HoodaAgents — Agentic AI Platform</h3>
-                <div class="project-tags">
-                    <span class="tag">AI / LLM Engineering</span>
-                    <span class="tag">Ollama</span>
-                    <span class="tag">Claude API</span>
-                    <span class="tag">OpenAI API</span>
-                    <span class="tag">LangGraph</span>
-                    <span class="tag">LangChain</span>
-                    <span class="tag">RAG (hybrid + RRF + reranking)</span>
-                    <span class="tag">CRAG</span>
-                    <span class="tag">Agentic loops / ReAct</span>
-                    <span class="tag">QLoRA fine-tuning</span>
-                    <span class="tag">MLflow</span>
-                    <span class="tag">Evals</span>
-                    <span class="tag">Vector search (Upstash, FAISS, Chroma)</span>
+                <div class="project-title">🧠 HoodaAgents — Agentic AI Platform</div>
+                <div class="project-tech">
+                    <span class="tech-pill">AI / LLM Engineering</span>
+                    <span class="tech-pill">Ollama</span>
+                    <span class="tech-pill">Claude API</span>
+                    <span class="tech-pill">OpenAI API</span>
+                    <span class="tech-pill">LangGraph</span>
+                    <span class="tech-pill">LangChain</span>
+                    <span class="tech-pill">Hybrid RAG (dense + sparse retrieval, RRF fusion, CRAG grading, cross-encoder reranking)</span>
+                    <span class="tech-pill">Vector Search (Upstash, FAISS, and Chroma)</span>
+                    <span class="tech-pill">Multi-model gateway routes</span>
+                    <span class="tech-pill">7-layer security gateway</span>
+                    <span class="tech-pill">Agentic ReAct loops</span>
                 </div>
-                <p>
-                    Full-stack AI application · Node.js · Vercel · Upstash. Not a portfolio site —
-                    an AI application that happens to have my resume in it. Live ADS-B flight
-                    tracker, my pilot-training journey, a hybrid RAG chatbot (dense + sparse
-                    retrieval, RRF, CRAG grading, cross-encoder reranking), a multi-model gateway
-                    (Claude, GPT, Grok, Gemini, Llama), and a 7-layer security gateway. Survived a
-                    sustained real-world attack campaign — defenses held.
-                </p>
+                <div class="project-desc">
+                    Full-stack AI application — Node.js, Vercel, Upstash. Not a portfolio site;
+                    an AI application that happens to have my resume in it. Hybrid RAG chatbot
+                    (dense + sparse retrieval, RRF fusion, CRAG grading, cross-encoder reranking)
+                    over vector search in Upstash, FAISS, and Chroma. Multi-model gateway routes
+                    across Claude, GPT, Grok, Gemini, and Llama. Agentic ReAct loops, QLoRA
+                    fine-tuning tracked in MLflow, and an eval harness on the retrieval layer.
+                    Backed by a 7-layer security gateway that held through a sustained real-world
+                    attack campaign.
+                </div>
                 <div class="project-links">
-                    <a href="#" class="btn-project" onclick="document.getElementById('ai-chat-toggle').click(); return false;">💬 Try AI Chat</a>
-                    <a href="https://github.com/yashhooda1/yashhooda" target="_blank" class="btn-project">📂 GitHub</a>
+                    <a href="#" class="project-btn" onclick="document.querySelector('.ai-chat-btn').click(); return false;">💬 Try AI Chat</a>
+                    <a href="https://github.com/yashhooda1/yashhooda" target="_blank" class="project-btn">📂 GitHub</a>
                 </div>
             </div>
 

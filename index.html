@@ -1196,6 +1196,64 @@
           font-variant-numeric: tabular-nums;
         }
         .vc-num.vc-loading { opacity: 0.4; }
+        .kill-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 0.9rem;
+            border: 1px solid rgba(251, 146, 60, 0.4);
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: #9ca3af;
+            background: rgba(251, 146, 60, 0.07);
+            cursor: default;
+            white-space: nowrap;
+        }
+        .ks-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fb923c;
+            box-shadow: 0 0 8px rgba(251, 146, 60, 0.8);
+            animation: ks-pulse 2s ease-in-out infinite;
+        }
+        @keyframes ks-pulse {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.35; }
+        }
+        .ks-state {
+            color: #fb923c;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        /* OFF state */
+        .kill-switch.ks-off {
+            border-color: rgba(74, 222, 128, 0.35);
+            background: rgba(74, 222, 128, 0.05);
+        }
+        .kill-switch.ks-off .ks-dot {
+            background: #4ade80;
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+            animation: none;
+        }
+        .kill-switch.ks-off .ks-state { color: #4ade80; }
+
+        .kill-switch-note {
+            margin: 1rem auto 0;
+            max-width: 620px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            color: #9ca3af;
+            text-align: center;
+            opacity: 0.85;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ks-dot { animation: none; }
+        }
         /* ── AVIATION TRACKER ── */
         .aviation-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
         .aviation-live-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
@@ -2921,14 +2979,22 @@
         <span class="badge">Runner · <span id="weekly-miles-badge">--</span> mi/wk</span>
     </div>
     <div class="header-cta">
-        <a href="#projects" class="btn-primary">🚀 View Projects</a>
-        <a href="https://github.com/yashhooda1" target="_blank" class="btn-secondary">⭐ GitHub</a>
-        <a class="view-counter" href="#" id="view-counter" aria-label="Site view count">
-          <span class="vc-eye">👁</span>
-          <span class="vc-label">views</span>
-          <span class="vc-num" id="vc-num">—</span>
-        </a>
-    </div>
+            <a href="#projects" class="btn-primary">🚀 View Projects</a>
+            <a href="https://github.com/yashhooda1" target="_blank" class="btn-secondary">⭐ GitHub</a>
+            <a class="view-counter" href="#" id="view-counter" aria-label="Site view count">
+                <span class="vc-eye">👁</span>
+                <span class="vc-label">views</span>
+                <span class="vc-num" id="vc-num">—</span>
+            </a>
+            <span class="kill-switch" id="kill-switch" role="status" aria-live="polite">
+                <span class="ks-dot"></span>
+                <span class="ks-label">kill switch</span>
+                <span class="ks-state" id="ks-state">ON</span>
+            </span>
+        </div>
+        <p class="kill-switch-note" id="kill-switch-note">
+            ⚠️ Due to high operating costs, HoodaAgents is currently available by request only.
+        </p>
 </header>
 
 <!-- NAV -->
@@ -8392,6 +8458,27 @@ loadStrava();
   }
 })();
 
+// Flip to false when HoodaAgents is fully open again.
+const HOODAAGENTS_KILL_SWITCH = true;
+
+(function renderKillSwitch() {
+    const el   = document.getElementById('kill-switch');
+    const st   = document.getElementById('ks-state');
+    const note = document.getElementById('kill-switch-note');
+    if (!el || !st) return;
+
+    if (HOODAAGENTS_KILL_SWITCH) {
+        el.classList.remove('ks-off');
+        st.textContent = 'ON';
+        el.title = 'HoodaAgents is rate-limited — available by request';
+        if (note) note.style.display = '';
+    } else {
+        el.classList.add('ks-off');
+        st.textContent = 'OFF';
+        el.title = 'HoodaAgents is fully available';
+        if (note) note.style.display = 'none';
+    }
+})();
 // ── CLIMATEPULSE DASHBOARD ──
 // ── CLIMATEPULSE DASHBOARD v2 — drop-in replacement for the existing IIFE ──
 // Supports 6 cities with toggle selector. Paste this inside your <script> block,

@@ -265,24 +265,29 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
         },
         body: JSON.stringify({
           model: 'claude-sonnet-5',
-          max_tokens: 8000,
-          effort: 'low',
+          max_tokens: 2000,
+          thinking: { type: 'disabled' },
           messages: [{ role: 'user', content: coachPrompt }],
         }),
       });
-      const claudeData = await claudeRes.json();
-      const insightText = (claudeData.content ?? [])
-        .filter(b => b.type === 'text')
-        .map(b => b.text)
-        .join('')
-        .trim();
 
-      if (insightText) {
-        insights = insightText;
+      if (!claudeRes.ok) {
+        const errBody = await claudeRes.text();
+        console.error(`Claude insights ${claudeRes.status}:`, errBody.slice(0, 400));
       } else {
-        console.error('Claude insights error:', JSON.stringify(claudeData).slice(0, 300));
-      }
-    } catch (e) {
+        const claudeData = await claudeRes.json();
+        const insightText = (claudeData.content ?? [])
+          .filter(b => b.type === 'text')
+          .map(b => b.text)
+          .join('')
+          .trim();
+
+        if (insightText) {
+          insights = insightText;
+        } else {
+          console.error('Claude insights empty:', JSON.stringify(claudeData).slice(0, 300));
+        }
+      } catch (e) {
       console.error('Claude insights fetch failed:', e.message);
     }
 

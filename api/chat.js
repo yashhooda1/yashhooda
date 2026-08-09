@@ -788,12 +788,10 @@ AVIATION & WEATHER:
 4. 🌊 Rising Seas & 🖥️ Data Centers — coastal-risk / sea-level dashboard and an AI-data-center energy & water footprint dashboard, both with honest, sourced framing.
  
 ENGINEERING (condensed — the foundation):
-5. HoodaAgents AI Hiring Engine — resume analysis + candidate-fit scoring with LLMs. Live at hoodahiring.ai
-6. Nothing Bundt Cakes MIS Dashboard — executive dashboard for 25 franchise stores (TX/NJ/CO) from Toast POS via medallion pipeline. GitHub: yashhooda1/nbc-dashboard
-7. HoodaRoutes (routes.yashhooda.ai) — worldwide running-route generator with Strava OAuth, OpenRouteService routing, one-tap "Send to Garmin," and a companion Connect IQ watch app on a Forerunner 970.
-8. Garmin MCP Server (mcp-garmin) — MCP server letting Claude read Garmin activities and push structured workouts/plans to a watch. GitHub: yashhooda1/mcp-garmin
-9. PySpark Coding Assistant — Mistral-7B QLoRA fine-tune for production PySpark (honest results, failure cases published). huggingface.co/hoodarunner/pyspark-coding-assistant-lora
-10. Offline ReAct Agent — a from-scratch ReAct agent against a local Ollama model, zero cloud dependency. ollama.com/hoodarunner/offline-agent
+5. 🧠 HoodaAgents — Agentic AI Platform - Full-stack AI application — Node.js, Vercel, Upstash. Not a portfolio site; an AI application that happens to have my resume in it. Hybrid RAG chatbot (dense + sparse retrieval, RRF fusion, CRAG grading, cross-encoder reranking) over vector search in Upstash, FAISS, and Chroma. Multi-model gateway routes across Claude, GPT, Grok, Gemini, and Llama. Agentic ReAct loops, QLoRA fine-tuning tracked in MLflow, and an eval harness on the retrieval layer. Backed by a 7-layer security gateway that held through a sustained real-world attack campaign.
+6. Garmin MCP Server (mcp-garmin) — MCP server letting Claude read Garmin activities and push structured workouts/plans to a watch. GitHub: yashhooda1/mcp-garmin
+7. PySpark Coding Assistant — Mistral-7B QLoRA fine-tune for production PySpark (honest results, failure cases published). huggingface.co/hoodarunner/pyspark-coding-assistant-lora
+8. Offline ReAct Agent — a from-scratch ReAct agent against a local Ollama model, zero cloud dependency. ollama.com/hoodarunner/offline-agent
 (Earlier work: Virtual TA chatbot, IBM AI capstone, various LangChain/GPT assistants.)
  
 ═══════════════════════════════════════

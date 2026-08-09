@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yash Hooda - Aspiring Pilot </title>
+    <title>Yash Hooda - AI and Software/Data Engineer </title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -2851,7 +2851,7 @@
         <button class="chat-tab save-tab-btn" id="save-tab-btn" onclick="saveCurrentChat()" title="Save current chat">💾</button>
     </div>
     <div class="chat-messages" id="chat-messages">
-        <div class="msg bot">Hey! 👋 I'm Yash's AI assistant. I can talk about his projects &amp; skills, give career advice for aviation, running coaching, or tips on balancing a demanding job with your goals. What's on your mind?</div>
+        <div class="msg bot">Hey! 👋 I'm Yash's AI assistant. I can talk about his projects &amp; skills, give career advice for data and AI engineering, running coaching, or tips on balancing a demanding job with your goals. What's on your mind?</div>
     </div>
     <!-- History Panel -->
     <div class="chat-history-panel" id="history-panel">
@@ -2871,17 +2871,18 @@
                 <button class="chat-new-btn" style="width:100%" onclick="newChat()">＋ New Chat</button>
             </div>
             <span class="quick-section-label">👤 About Yash</span>
-            <button class="quick-btn wide-btn" onclick="quickAsk('Why is Yash becoming an airline pilot?')">Why is Yash becoming a pilot?</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('What kind of engineering work does Yash do?')">What does Yash work on?</button>
             <button class="quick-btn wide-btn" onclick="quickAsk('Tell me about his projects')">Tell me about his projects</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('Is Yash available for work right now?')">Is Yash available for work?</button>
             <button class="quick-btn wide-btn" onclick="quickAsk('How can I contact Yash?')">How can I contact Yash?</button>
-            <span class="quick-section-label">✈️ Aviation</span>
-            <button class="quick-btn wide-btn" onclick="quickAsk('What is Yash path to becoming an airline pilot?')">Yash's path to the airlines</button>
-            <button class="quick-btn wide-btn" onclick="quickAsk('What are Yash Infinite Flight simulator stats?')">Yash's Infinite Flight stats</button>
-            <button class="quick-btn wide-btn" onclick="quickAsk('Is Yash a licensed pilot yet?')">Is Yash a licensed pilot yet?</button>
-            <span class="quick-section-label">🎯 Aviation Career Advice</span>
-            <button class="quick-btn wide-btn" onclick="quickAsk('How do I become an airline pilot?')">How do I become an airline pilot?</button>
-            <button class="quick-btn wide-btn" onclick="quickAsk('What is the ATP to United Aviate path?')">The ATP → United Aviate path</button>
-            <button class="quick-btn wide-btn" onclick="quickAsk('Do I need a college degree to fly for the airlines?')">Do I need a degree to fly?</button>
+            <span class="quick-section-label">🧠 AI Engineering</span>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How does the RAG pipeline on this site work?')">How does this site's RAG work?</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('What does the 7-layer security gateway actually do?')">The 7-layer security gateway</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How does the multi-model gateway route between Claude, GPT and Gemini?')">The multi-model gateway</button>
+            <span class="quick-section-label">🛠️ Data Engineering</span>
+            <button class="quick-btn wide-btn" onclick="quickAsk('Walk me through the ClimatePulse pipeline architecture')">The ClimatePulse architecture</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('What is medallion architecture and when should I use it?')">What is medallion architecture?</button>
+            <button class="quick-btn wide-btn" onclick="quickAsk('How do I break into data engineering?')">How do I break into data engineering?</button>
             <span class="quick-section-label">🏃 Running Coaching</span>
             <button class="quick-btn wide-btn" onclick="quickAsk('How do I run a faster 5K?')">How do I run a faster 5K?</button>
             <button class="quick-btn wide-btn" onclick="quickAsk('How do I train for my first marathon?')">How do I train for my first marathon?</button>
@@ -2972,10 +2973,10 @@
 <!-- HEADER -->
 <header>
     <h1>Yash Hooda</h1>
-    <p>Aspiring Airline Pilot ✈️ | AI Engineer & Data Engineer | Runner</p>
+    <p>AI Engineer &amp; Data Engineer | Production LLM &amp; Data Systems | Runner</p>
     <div class="header-badges">
         <span class="badge">UTD Computer Science Alumni</span>
-        <span class="badge" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#93c5fd;">✈️ Training @ ATP Flight School</span>
+        <span class="badge" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#93c5fd;">⚡ Databricks Certified Data Engineer</span>
         <span class="badge">Runner · <span id="weekly-miles-badge">--</span> mi/wk</span>
     </div>
     <div class="header-cta">
@@ -3011,7 +3012,7 @@
             <div class="nav-dropdown">
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Explorations <span class="caret">▾</span></button>
                 <div class="nav-drop-menu">
-                    <a href="#aviation">Aviation ✈️</a>
+                    <a href="#aviation">Flight Tracker ✈️</a>
                     <a href="#weather">Weather 🌤️</a>
                     <a href="#climate">Climate 🌡️</a>
                     <a href="#hurricanes">Hurricanes 🌀</a>
@@ -3104,19 +3105,18 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     <!-- ABOUT -->
     <section id="about">
         <h2>⚡ About Me</h2>
-        <p>I'm a 24-year-old engineer training to become an <strong>airline pilot</strong>. I've enrolled in ATP Flight School's <strong>Airline Career Pilot Program</strong> at Sugar Land Regional Airport (SGR) — training begins August 3, 2026 — working toward my Private Pilot Certificate with my sights set on <strong>United Airlines through the Aviate program</strong>. I hold a BS in Computer Science from UT Dallas and certifications in IBM AI Engineering, IBM Data Science, and the Databricks Certified Data Engineer Associate — the engineering career that funds my path to the flight deck.</p>
-        <p>Flying and engineering reward the same instincts: discipline, systems thinking, and running the checklist right every single time. My background is in <strong>AI &amp; Data Engineering</strong> — designing and optimizing end-to-end data pipelines across Microsoft Fabric, Databricks, PySpark, and SQL, and shipping full-stack AI systems (multi-model LLM gateways, hybrid RAG, agentic loops) that run in production on real traffic. That same obsession with reliability under real constraints is exactly what the cockpit demands.</p>
-        <p>My love of aviation doesn't stop at the logbook — I build for it too. <strong>Infinite Flight Live Tracker</strong> is my real-time flight-tracking platform: a live map of every aircraft on a server coloured by flight phase, origin&rarr;destination cards with live ETAs, arrival weather and 5-day forecasts, ATC frequencies, and pilot logbooks — all served through a FastAPI backend that proxies and caches the Live API. This very site runs a live ADS-B flight tracker for the same reason: aviation is where my curiosity and my code meet.</p>
-        <p>Beyond the flight deck, I'm a competitive marathoner chasing a sub-3:00 finish, with a lifelong pull toward aviation, weather systems, astronomy, and sport. I value time with family and friends, and I'm happiest reading about — or building — whatever comes next.</p>
+        <p>I'm a 24-year-old <strong>AI &amp; Data Engineer</strong> who builds production systems — the kind with rate limiters, kill switches, retries and real traffic, not the kind that lives in a notebook. I hold a BS in Computer Science from UT Dallas and certifications in IBM AI Engineering, IBM Data Science, and the Databricks Certified Data Engineer Associate.</p>
+        <p>My work spans both halves of the stack: designing and optimizing end-to-end data pipelines across Microsoft Fabric, Databricks, PySpark and SQL, and shipping full-stack AI systems — multi-model LLM gateways, hybrid RAG with reranking, agentic loops, and offline eval harnesses. This site is one of them. It runs a hybrid retrieval pipeline, a gateway across five model providers, and a seven-layer security stack that has taken sustained real attack traffic and held.</p>
+        <p>Most of my side projects live where messy public data meets automation. <strong>ClimatePulse</strong> is a 57-year NOAA pipeline across 13 global stations with a Bronze&rarr;Silver&rarr;Gold architecture, refreshed daily by GitHub Actions — incremental per-station caching cut each run from 741 API calls to 13. The <strong>live flight tracker</strong> on this page is real-time geospatial ingestion. <strong>mcp-garmin</strong> came from reverse-engineering Garmin's undocumented workout schema into a typed spec an LLM can drive.</p>
+        <p>Outside the terminal I'm a competitive marathoner chasing a sub-3:00 finish, with a lifelong pull toward weather systems, astronomy, and sport. I value time with family and friends, and I'm happiest reading about — or building — whatever comes next.</p>
 
-        <div class="skill-cloud" style="margin-top: 1.5rem;">
-            <div class="skill-group-label">✈️ Aviation &amp; Flight Training (in progress)</div>
-            <span class="skill-tag av">Student Pilot · PPL (in training)</span>
-            <span class="skill-tag av">ATP Airline Career Pilot Program</span>
-            <span class="skill-tag av">Preflight &amp; Flight Planning</span>
-            <span class="skill-tag av">Aviation Weather</span>
-            <span class="skill-tag av">Radio Comms / ATC (learning)</span>
-            <span class="skill-tag av">Aeronautical Decision-Making</span>
+        <div class="skill-group-label">🧠 AI &amp; LLM Engineering</div>
+            <span class="skill-tag av">Hybrid RAG · RRF · Reranking</span>
+            <span class="skill-tag av">Agentic / ReAct Loops</span>
+            <span class="skill-tag av">QLoRA Fine-Tuning</span>
+            <span class="skill-tag av">Eval Harnesses &amp; Golden Sets</span>
+            <span class="skill-tag av">Vector Search (Upstash · FAISS · Chroma)</span>
+            <span class="skill-tag av">MCP Servers</span>
 
             <div class="skill-group-label">🧭 Transferable &amp; General</div>
             <span class="skill-tag gen">Communication</span>
@@ -3242,81 +3242,6 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
     <!-- AVIATION -->
     <section id="aviation">
-        <!-- ══ PILOT JOURNEY (added) ══ -->
-        <h2>✈️ My Path to the Flight Deck</h2>
-        <p>I'm training to become an airline pilot through <strong>ATP Flight School's Airline Career Pilot Program</strong> at Sugar Land Regional Airport (SGR) — the accelerated, airline-oriented track that runs from zero time to 1,500 hours, backed by Career Track&trade; agreements to the major carriers. Same discipline and systems thinking I bring to engineering, now pointed at the flight deck.</p>
-
-        <div class="aviation-stats-row" style="margin:1.25rem 0;">
-            <div class="aviation-stat">
-                <span class="aviation-stat-val" style="font-size:0.95rem;">ATP</span>
-                <div class="aviation-stat-label">Flight School</div>
-            </div>
-            <div class="aviation-stat">
-                <span class="aviation-stat-val" style="font-size:0.95rem;">SGR</span>
-                <div class="aviation-stat-label">Sugar Land, TX</div>
-            </div>
-            <div class="aviation-stat">
-                <span class="aviation-stat-val" style="font-size:0.95rem;">ACPP</span>
-                <div class="aviation-stat-label">Career Pilot Program</div>
-            </div>
-            <div class="aviation-stat">
-                <!-- UPDATE hours as you log them -->
-                <span class="aviation-stat-val" id="pilot-hours">5</span>
-                <div class="aviation-stat-label">Hours Logged</div>
-            </div>
-            <div class="aviation-stat">
-                <!-- UPDATE current stage: move the "active" class below to match -->
-                <span class="aviation-stat-val" style="font-size:0.95rem;" id="pilot-stage">Private</span>
-                <div class="aviation-stat-label">Currently Training</div>
-            </div>
-        </div>
-
-        <!-- Rating roadmap: mark completed with class "done", current with class "active" -->
-        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
-            <span class="pilot-step active">Private (PPL)</span>
-            <span class="pilot-step">Instrument</span>
-            <span class="pilot-step">Commercial</span>
-            <span class="pilot-step">Multi-Engine</span>
-            <span class="pilot-step">CFI</span>
-            <span class="pilot-step">CFII / MEI</span>
-            <span class="pilot-step">1,500 hrs &rarr; ATP</span>
-        </div>
-        <p style="font-size:0.72rem;color:var(--text-muted);font-family:'Space Mono',monospace;">&#9656; Zero time to the right seat. Current stage highlighted &mdash; updates as I check off ratings.</p>
-        <!-- ══ END PILOT JOURNEY ══ -->
-
-        <!-- ══ INFINITE FLIGHT PROFILE (live) ══ -->
-        <div style="margin:2.5rem 0 1rem;">
-            <h2 style="margin-bottom:0.4rem;">🎮 Infinite Flight — Flight Sim Profile</h2>
-            <p>Where I built stick time before the real thing: <strong id="if-ft-inline">1,367 hours</strong> across <strong id="if-flights-inline">653</strong> online flights on Infinite Flight's <strong>Expert Server</strong> as <strong>Yash_Hooda</strong>, flying since 2019. These are flight-simulator hours — not real logged flight time — but the airmanship, procedures, and live ATC comms carry straight over to training.</p>
-
-            <div class="aviation-stats-row" style="margin:1.25rem 0;">
-                <div class="aviation-stat">
-                    <span class="aviation-stat-val" style="font-size:0.95rem;" id="if-grade">Grade 3</span>
-                    <div class="aviation-stat-label">Pilot Grade</div>
-                </div>
-                <div class="aviation-stat">
-                    <span class="aviation-stat-val" style="font-size:0.95rem;" id="if-flighttime">1,367 h</span>
-                    <div class="aviation-stat-label">Sim Flight Time</div>
-                </div>
-                <div class="aviation-stat">
-                    <span class="aviation-stat-val" id="if-flights">653</span>
-                    <div class="aviation-stat-label">Online Flights</div>
-                </div>
-                <div class="aviation-stat">
-                    <span class="aviation-stat-val" id="if-landings">242</span>
-                    <div class="aviation-stat-label">Landings</div>
-                </div>
-                <div class="aviation-stat">
-                    <span class="aviation-stat-val" style="font-size:0.95rem;" id="if-xp">859,750</span>
-                    <div class="aviation-stat-label">XP</div>
-                </div>
-                <div class="aviation-stat">
-                    <span class="aviation-stat-val" style="font-size:0.95rem;">Expert · 2019</span>
-                    <div class="aviation-stat-label">Server / Since</div>
-                </div>
-            </div>
-        </div>
-        <!-- ══ END INFINITE FLIGHT PROFILE ══ -->
 
         <h2 style="margin-top:2.5rem;">✈️ Live Flight Tracker</h2>
         <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>

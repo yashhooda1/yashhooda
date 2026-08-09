@@ -1,43 +1,42 @@
-# Yash Hooda — ✈️ Aspiring Airline Pilot | AI & Data Engineer
+# Yash Hooda — AI & Data Engineer
 **Live:** [yashhooda.ai](https://www.yashhooda.ai)
 
-I'm training to become an **airline pilot** — enrolled in [ATP Flight School's](https://atpflightschool.com) Airline Career Pilot Program at Sugar Land Regional Airport (SGR), working toward my Private Pilot Certificate with my sights set on **United Airlines through the Aviate program**. This is my full-stack personal portfolio, and it reflects that pivot: a live flight tracker and a "path to the flight deck" journey up front, backed by the AI & data engineering work that funds the training.
+My full-stack personal portfolio — and a working demonstration of the systems I build. Not a static resume page: a production AI application with a hybrid RAG chatbot, real-time flight tracking, live Strava training analytics, a 57-year climate analytics pipeline, Atlantic hurricane correlation analytics, a rising-seas & coastal-risk dashboard, a data-center growth & environmental-impact dashboard, network analysis tools, interactive snow & hike photo albums, live weather, and a 7-layer secure AI gateway — all deployed on Vercel.
 
-Under the hood it's a production-grade AI chatbot, real-time flight tracking, live Strava training analytics, a 56-year climate analytics pipeline, Atlantic hurricane correlation analytics, a rising-seas & coastal-risk dashboard, a data-center growth & environmental-impact dashboard, network analysis tools, interactive snow & hike photo albums, live weather, and a secure AI gateway — all deployed on Vercel.
-
-> **Aviation status (kept honest):** student pilot, just starting — ~1 hour logged, training begins Aug 3, 2026, PPL not yet earned, and Aviate is the goal, not a current acceptance.
+Everything here runs unattended on real traffic. The chatbot has taken sustained real-world attack traffic and held; the climate pipeline refreshes itself daily against no-cost public data; the dashboards degrade to last-known-good rather than failing.
 
 ---
 
-## ✈️ The Aviation Angle
+## 🧠 What's Actually Interesting Here
 
-Aviation and weather run through this whole project — not just as a tracker, but as the direction I'm heading:
+If you're skimming, these are the parts worth reading the code for:
 
-- **Live Flight Tracker** — an interactive map of aircraft in the air, right on the homepage.
-- **"My Path to the Flight Deck"** — the ATP → PPL → Instrument → Commercial → CFI → 1,500 hrs → United Aviate roadmap, with current stage highlighted.
-- **Weather & climate work** — the ClimatePulse, hurricane, and sea-level dashboards aren't a detour from aviation; reading weather is a core pilot skill, and this is where my curiosity and my code meet.
-- **Infinite Flight Live Tracker** — a separate project ([repo](https://github.com/yashhooda1/IF-Flight-Tracker)) tracking every aircraft on an Infinite Flight server with live ETAs, arrival weather, ATC frequencies, and pilot logbooks.
+- **Hybrid retrieval** — dense + sparse retrieval with Reciprocal Rank Fusion, CRAG relevance grading, and a cross-encoder reranking pass before anything reaches the model. `api/chat.js`.
+- **Multi-model gateway** — one router across Anthropic and OpenAI with per-model capability handling and graceful degradation when a provider errors.
+- **Agent routing** — lightweight keyword-based routing into specialist system-prompt extensions (engineering deep-dive, running coach, career advisor) rather than a single monolithic prompt.
+- **Medallion pipeline in anger** — ClimatePulse's Bronze→Silver→Gold layering with incremental per-station parquet caching, which cut each run from **741 NOAA API calls to 13**, plus dead-station handling, freshness checks, and per-station validation floors.
+- **Honest analytics** — the hurricane, sea-level, and data-center dashboards all state their uncertainty in the UI: association vs. attribution, contested per-query figures shown as ranges, millennial ice ceilings labeled as ceilings rather than forecasts.
+- **Defense in depth** — a 7-layer security gateway built in response to real attack traffic, not as a checkbox. See the Security section.
 
 ---
 
 ## Features
 
-### ✈️ Aviation Tracker
-- Live flights on an interactive Leaflet map with plane icons
+### 🛰️ Live Flight Tracker
+- Real-time geospatial ingestion — live aircraft on an interactive Leaflet map with plane icons
 - Flight cards with altitude, speed, heading, climb rate
-- Click any card to locate the plane on the map
+- Click any card to locate the aircraft on the map
 - Auto-refreshes on an interval to conserve API quota
-- Paired on-site with the **pilot journey** block: ATP program, training roadmap, and current PPL progress
 
 ### 🤖 AI Chatbot (HoodaAgents)
-- Powered by **Claude (Anthropic)** and **GPT-5.x (OpenAI)** with plug-and-switch model routing
-- **RAG** (Retrieval Augmented Generation) via Upstash Vector — retrieves relevant context from a knowledge base
+- Powered by **Claude (Anthropic)** and **GPT (OpenAI)** with plug-and-switch model routing
+- **RAG** (Retrieval Augmented Generation) via Upstash Vector — hybrid retrieval with RRF fusion, CRAG grading, and cross-encoder reranking
 - **Persistent memory** via Upstash Redis — remembers past conversations per session (30 days)
 - **Voice input** via Web Speech API + **voice output** via OpenAI TTS (nova voice)
 - **Page control workflows** — bot can scroll to sections, open links, read live stats aloud
 - **Chat history** — save, load, and delete past conversations
 - **Secure AI Gateway** — 7-layer security architecture (see Security section)
-- Aviation-aware persona: guides visitors through my flight-training journey alongside engineering and running
+- Agent routing — specialist modes for engineering deep-dives, running coaching, and career advice
 
 ### 🏃 Live Training Dashboard
 - **Live Training Feed** — last 30 Strava activities with interactive route maps (Leaflet.js), pace, HR, suffer score, kudos
@@ -48,11 +47,11 @@ Aviation and weather run through this whole project — not just as a tracker, b
 - Live weather for visitor's current location via **Open-Meteo API** (no API key required)
 - Reverse geocoding via Nominatim (OpenStreetMap)
 - Shows temp, feels like, humidity, wind speed/direction, precipitation
-- The everyday face of the weather knowledge that matters in the cockpit
 
 ### 🌡️ ClimatePulse — Live Climate Dashboard
-- **56 years (1970–present)** of NOAA daily station data across **13 cities** — Houston (IAH), Newark (EWR), Dallas (DAL), Denver (DEN), London (LHR), Chicago (ORD), Helsinki (HEL), Paris (CDG), Amsterdam (AMS), Rome (FCO), Brussels (BRU), Los Angeles (LAX), and Delhi (DEL)
-- **Bronze → Silver → Gold medallion pipeline** in a separate [`climatepulse`](https://github.com/yashhooda1/climatepulse) repo, refreshed **daily** via a GitHub Actions cron (Every Day at 04:00 UTC) that computes the gold layer and pushes `public_data_climate_gold.json` into this repo
+- **57 years (1970–present)** of NOAA daily station data across **13 cities** — Houston (IAH), Newark (EWR), Dallas (DAL), Denver (DEN), London (LHR), Chicago (ORD), Helsinki (HEL), Paris (CDG), Amsterdam (AMS), Rome (FCO), Brussels (BRU), Los Angeles (LAX), and Delhi (DEL)
+- **Bronze → Silver → Gold medallion pipeline** in a separate [`climatepulse`](https://github.com/yashhooda1/climatepulse) repo, refreshed **daily** via a GitHub Actions cron (every day at 04:00 UTC) that computes the gold layer and pushes `public_data_climate_gold.json` into this repo
+- **Incremental caching** — per-station parquet files mean each run pulls only new data, reducing NOAA API calls from 741 to 13 per run
 - **Four interactive tabs** — Annual Trend (with linear-regression trend lines, °F/decade), Seasonal climatology, Heat Days (≥ 80°F), and Winter Lows
 - **City-compare toggles** and a KPI strip showing per-station warming slopes
 - Served by `/api/climate` with a last-known-good SEED fallback, so the dashboard always renders
@@ -183,8 +182,8 @@ AVIATIONSTACK_API_KEY=...
 
 ### 1. Clone and push to GitHub
 ```bash
-git clone https://github.com/yashhooda1/yashhooda1.github.io
-cd yashhooda1.github.io
+git clone https://github.com/yashhooda1/yashhooda
+cd yashhooda
 git add .
 git commit -m "your message"
 git push
@@ -234,7 +233,7 @@ Browser
 
 ## Security Architecture
 
-The chatbot implements a **7-layer secure AI gateway**:
+The chatbot implements a **7-layer secure AI gateway**, built in response to sustained real-world attack traffic:
 
 | Layer | Description |
 |-------|-------------|
@@ -268,8 +267,10 @@ ClimatePulse, Hurricane Analytics, Rising Seas & Data Centers add **no marginal 
 
 ## About
 
-**Yash Hooda** — Aspiring Airline Pilot ✈️ | AI & Data Engineer | Runner
+**Yash Hooda** — AI & Data Engineer | Runner
 
-Training toward the flight deck at ATP Flight School (Sugar Land Regional, SGR), targeting United Aviate. AI & data engineering is the foundation that funds the journey — and, in a portfolio like this one, the proof that I build reliable systems under real constraints.
+I build production data and AI systems — pipelines that run unattended, retrieval that actually retrieves, and gateways that hold under attack. BS Computer Science, UT Dallas. Databricks Certified Data Engineer Associate. This repo is the proof rather than the pitch.
 
-[yashhooda.ai](https://www.yashhooda.ai) · [github.com/yashhooda1](https://github.com/yashhooda1) · [linkedin.com/in/yash-hooda-384430242](https://linkedin.com/in/yash-hooda-384430242)
+Currently open to Data Engineering and AI Engineering roles.
+
+[yashhooda.ai](https://www.yashhooda.ai) · [github.com/yashhooda1](https://github.com/yashhooda1) · [linkedin.com/in/yash-hooda-384430242](https://linkedin.com/in/yash-hooda-384430242) · [yash.hooda6@gmail.com](mailto:yash.hooda6@gmail.com)

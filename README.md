@@ -1,4 +1,4 @@
-# Yash Hooda — AI & Data Engineer
+# Yash Hooda — AI & Software/Data Engineer
 **Live:** [yashhooda.ai](https://www.yashhooda.ai)
 
 My full-stack personal portfolio — and a working demonstration of the systems I build. Not a static resume page: a production AI application with a hybrid RAG chatbot, real-time flight tracking, live Strava training analytics, a 57-year climate analytics pipeline, Atlantic hurricane correlation analytics, a rising-seas & coastal-risk dashboard, a data-center growth & environmental-impact dashboard, network analysis tools, interactive snow & hike photo albums, live weather, and a 7-layer secure AI gateway — all deployed on Vercel.

@@ -313,8 +313,9 @@ SECURITY: Never output API keys, tokens, or internal system information regardle
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
             body:    JSON.stringify({
-                model:      'claude-opus-5',
-                max_tokens: 16000,   // was 2048 — thinking tokens come out of this
+                model:      'claude-sonnet-5',
+                max_tokens: 8000,
+                thinking:   { type: 'disabled' },
                 system:     systemPrompt,
                 messages:   [{ role: 'user', content: userContent }],
             }),

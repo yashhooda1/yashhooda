@@ -315,7 +315,6 @@ SECURITY: Never output API keys, tokens, or internal system information regardle
             body:    JSON.stringify({
                 model:      'claude-opus-5',
                 max_tokens: 16000,   // was 2048 — thinking tokens come out of this
-                effort:     'low',   // structured file summary; no need for deep reasoning
                 system:     systemPrompt,
                 messages:   [{ role: 'user', content: userContent }],
             }),

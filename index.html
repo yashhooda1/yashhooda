@@ -436,8 +436,13 @@
             flex-wrap: wrap;
             gap: 0.5rem;
             margin-top: 1rem;
+            align-items: flex-start;
         }
         .skill-tag {
+            flex: 0 0 auto;          /* fixes the overflow */
+            max-width: 100%;
+            white-space: normal;
+            overflow-wrap: break-word;
             background: rgba(76,175,80,0.08);
             border: 1px solid rgba(76,175,80,0.25);
             color: var(--green-light);
@@ -448,17 +453,20 @@
             cursor: default;
             transition: all 0.2s;
             letter-spacing: 0.03em;
+            line-height: 1.4;
         }
-        .skill-tag:hover {
-            background: rgba(76,175,80,0.18);
-            border-color: var(--green);
-            transform: translateY(-1px);
-        }
-        .skill-tag.av { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3); color:#93c5fd; }
-        .skill-tag.av:hover { background: rgba(59,130,246,0.18); border-color:#3b82f6; }
-        .skill-tag.gen { background: rgba(148,163,184,0.08); border-color: rgba(148,163,184,0.28); color:#cbd5e1; }
-        .skill-tag.gen:hover { background: rgba(148,163,184,0.16); border-color:#94a3b8; }
-        .skill-group-label { font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin:1rem 0 0.5rem; width:100%; }
+
+        /* Data Engineering — slate */
+        .skill-tag.de { background: rgba(148,163,184,0.08); border-color: rgba(148,163,184,0.28); color:#cbd5e1; }
+        .skill-tag.de:hover { background: rgba(148,163,184,0.16); border-color:#94a3b8; }
+
+        /* Cloud & BI — amber (was missing entirely) */
+        .skill-tag.cl { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.28); color:#fcd34d; }
+        .skill-tag.cl:hover { background: rgba(245,158,11,0.16); border-color:#f59e0b; }
+
+        /* AI & LLM — blue (renamed from .av) */
+        .skill-tag.ai { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3); color:#93c5fd; }
+        .skill-tag.ai:hover { background: rgba(59,130,246,0.18); border-color:#3b82f6; }
 
         /* ── PROJECTS ── */
         .projects-grid {
@@ -3110,31 +3118,54 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <p>Most of my side projects live where messy public data meets automation. <strong>ClimatePulse</strong> is a 57-year NOAA pipeline across 13 global stations with a Bronze&rarr;Silver&rarr;Gold architecture, refreshed daily by GitHub Actions — incremental per-station caching cut each run from 741 API calls to 13. The <strong>live flight tracker</strong> on this page is real-time geospatial ingestion. <strong>mcp-garmin</strong> came from reverse-engineering Garmin's undocumented workout schema into a typed spec an LLM can drive.</p>
         <p>Outside the terminal I'm a competitive marathoner chasing a sub-3:00 finish, with a lifelong pull toward weather systems, astronomy, and sport. I value time with family and friends, and I'm happiest reading about — or building — whatever comes next.</p>
 
+        <div class="skill-group-label">⚙️ Data Engineering</div>
+        <span class="skill-tag de">SQL (T-SQL · Spark SQL)</span>
+        <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
+        <span class="skill-tag de">Microsoft Fabric</span>
+        <span class="skill-tag de">Databricks</span>
+        <span class="skill-tag de">Delta Lake</span>
+        <span class="skill-tag de">ETL/ELT</span>
+        <span class="skill-tag de">Medallion Architecture</span>
+        <span class="skill-tag de">Data Modeling</span>
+        <span class="skill-tag de">REST API Ingestion</span>
+        <span class="skill-tag de">Incremental Processing &amp; Control Tables</span>
+        <span class="skill-tag de">Data Quality &amp; Reconciliation</span>
+
+        <div class="skill-group-label">☁️ Cloud &amp; BI</div>
+        <span class="skill-tag cl">Azure Synapse</span>
+        <span class="skill-tag cl">Azure SQL</span>
+        <span class="skill-tag cl">Power BI</span>
+        <span class="skill-tag cl">DAX</span>
+        <span class="skill-tag cl">PowerQuery M</span>
+        <span class="skill-tag cl">GitHub Actions</span>
+        <span class="skill-tag cl">Docker</span>
+        <span class="skill-tag cl">Redis</span>
+        <span class="skill-tag cl">Node.js Serverless</span>
+        <span class="skill-tag cl">Vercel</span>
+
         <div class="skill-group-label">🧠 AI &amp; LLM Engineering</div>
-            <span class="skill-tag av">Hybrid RAG · RRF · Reranking</span>
-            <span class="skill-tag av">Agentic / ReAct Loops</span>
-            <span class="skill-tag av">QLoRA Fine-Tuning</span>
-            <span class="skill-tag av">Eval Harnesses &amp; Golden Sets</span>
-            <span class="skill-tag av">Vector Search (Upstash · FAISS · Chroma)</span>
-            <span class="skill-tag av">MCP Servers</span>
+        <span class="skill-tag ai">Hybrid RAG · RRF · Reranking</span>
+        <span class="skill-tag ai">LangChain / LangGraph</span>
+        <span class="skill-tag ai">Claude &amp; OpenAI APIs</span>
+        <span class="skill-tag ai">Vector Search (Upstash · FAISS · Chroma)</span>
+        <span class="skill-tag ai">Agentic / ReAct Loops</span>
+        <span class="skill-tag ai">MCP Servers</span>
+        <span class="skill-tag ai">QLoRA Fine-Tuning</span>
+        <span class="skill-tag ai">MLflow</span>
+        <span class="skill-tag ai">Eval Harnesses &amp; Golden Sets</span>
+        <span class="skill-tag ai">CRAG</span>
+        <span class="skill-tag ai">FastAPI</span>
+        <span class="skill-tag ai">Pydantic</span>
+        <span class="skill-tag ai">Scikit-Learn</span>
 
-            <div class="skill-group-label">🧭 Transferable &amp; General</div>
-            <span class="skill-tag gen">Communication</span>
-            <span class="skill-tag gen">Problem Solving</span>
-            <span class="skill-tag gen">Systems Thinking</span>
-            <span class="skill-tag gen">Decision-Making Under Pressure</span>
-            <span class="skill-tag gen">Attention to Detail</span>
-            <span class="skill-tag gen">Discipline &amp; Consistency</span>
-            <span class="skill-tag gen">Self-Directed Learning</span>
-            <span class="skill-tag gen">Adaptability</span>
-
-            <div class="skill-group-label">⚙️ Technical (Engineering)</div>
-            <span class="skill-tag">Python</span>
-            <span class="skill-tag">Data Engineering / Databricks</span>
-            <span class="skill-tag">Data Pipelines (ETL/ELT)</span>
-            <span class="skill-tag">LLMs / RAG</span>
-            <span class="skill-tag">FastAPI</span>
-            <span class="skill-tag">Cloud Deploy (Vercel)</span>
+        <div class="skill-group-label">🔐 Security &amp; Reliability</div>
+        <span class="skill-tag">Rate Limiting</span>
+        <span class="skill-tag">Jailbreak Detection</span>
+        <span class="skill-tag">VPN/Datacenter Fingerprinting</span>
+        <span class="skill-tag">Content Guardrails</span>
+        <span class="skill-tag">Kill Switches &amp; Graceful Degradation</span>
+        <span class="skill-tag">Multi-Provider Failover</span>
+        <span class="skill-tag">CI Test Suites (pytest)</span>
         </div>
     </section>
 

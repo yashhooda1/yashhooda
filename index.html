@@ -3249,6 +3249,40 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
 
             <div class="project-card">
+                <div class="project-title">🔥 PySpark Coding Assistant — QLoRA on Mistral-7B</div>
+                <div class="project-tech">
+                    <span class="tech-pill">AI / LLM Engineering</span>
+                    <span class="skill-tag ai">QLoRA Fine-Tuning</span>
+                    <span class="skill-tag ai">Eval Harnesses &amp; Golden Sets</span>
+                    <span class="skill-tag ai">MLflow</span>
+                    <span class="tech-pill">HuggingFace PEFT</span>
+                    <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
+                    <span class="skill-tag de">Delta Lake</span>
+                    <span class="skill-tag de">Data Quality &amp; Reconciliation</span>
+                </div>
+                <div class="project-desc">
+                    End-to-end fine-tuning pipeline for a PySpark coding assistant, built on a free
+                    Colab T4. Public code corpora turned out to be unusable — filtering 122k rows
+                    yielded 58 examples, mostly Spark 1.x RDD-era API — so the training set is
+                    synthetic, distilled from 15 hand-written production seeds and expanded to 191
+                    validated examples. Every example passes AST parse, required-symbol, and
+                    deprecated-API checks before entering the corpus.
+                    <br><br>
+                    Trained in 11 minutes at 6.3&nbsp;GB peak VRAM: validation loss 0.757, perplexity
+                    1.69, mean token accuracy 0.833. On held-out prompts it scored 1 of 3 — it learned
+                    idiomatic form but not operator semantics, confusing <code>left_anti</code> with
+                    <code>left_semi</code>. Published with that result documented rather than omitted,
+                    because the binding constraint is corpus size, not architecture. Adapter and
+                    dataset are both on HuggingFace Hub.
+                </div>
+                <div class="project-links">
+                    <a href="https://huggingface.co/hoodarunner/pyspark-coding-assistant-lora" target="_blank" rel="noopener" class="project-btn">🤗 Model</a>
+                    <a href="https://huggingface.co/datasets/hoodarunner/pyspark-production-patterns" target="_blank" rel="noopener" class="project-btn">📊 Dataset</a>
+                    <a href="https://github.com/yashhooda1/pyspark-coding-assistant" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
                 <div class="project-title">✈️ Infinite Flight Live Tracker</div>
                 <div class="project-tech">
                     <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>

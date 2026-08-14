@@ -3180,6 +3180,7 @@
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Explorations <span class="caret">▾</span></button>
                 <div class="nav-drop-menu">
                     <a href="#aviation">Flight Tracker ✈️</a>
+                    <a href="#metar">METAR ✈️📡📄📊</a>
                     <a href="#weather">Weather 🌤️</a>
                     <a href="#climate">Climate 🌡️</a>
                     <a href="#hurricanes">Hurricanes 🌀</a>
@@ -3585,6 +3586,37 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </div>
     </section>
 
+    <section id="metar">
+        <h2>🌪️ METAR Stream — Live US Airspace</h2>
+        <p>
+            A snapshot from my real-time streaming pipeline: Kafka → Spark Structured
+            Streaming → Delta Lake, ingesting surface observations from every reporting
+            US airport weather station. Flight categories below are the FAA standard —
+            the same four a pilot checks before departing.
+        </p>
+ 
+        <div class="metar-wrap">
+            <div class="metar-meta" id="metar-meta">Loading pipeline snapshot…</div>
+ 
+            <div class="metar-stats" id="metar-stats"></div>
+ 
+            <h3>Current flight conditions</h3>
+            <div class="cat-bar" id="metar-catbar"></div>
+            <div class="cat-legend">
+                <span><i style="background:#1a9850"></i>VFR — clear</span>
+                <span><i style="background:#2b6cb0"></i>MVFR — marginal</span>
+                <span><i style="background:#c0392b"></i>IFR — instruments required</span>
+                <span><i style="background:#8e44ad"></i>LIFR — low instrument</span>
+            </div>
+ 
+            <h3>Strongest wind gusts observed</h3>
+            <div id="metar-gusts"></div>
+ 
+            <h3 style="margin-top:2rem">Active alerts</h3>
+            <div id="metar-alerts"></div>
+        </div>
+    </section>
+
     <!-- WEATHER -->
     <section id="weather">
         <h2>🌤️ Your Current Weather</h2>
@@ -3696,36 +3728,6 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </div>
     </section>
 
-    <section id="metar">
-        <h2>🌪️ METAR Stream — Live US Airspace</h2>
-        <p>
-            A snapshot from my real-time streaming pipeline: Kafka → Spark Structured
-            Streaming → Delta Lake, ingesting surface observations from every reporting
-            US airport weather station. Flight categories below are the FAA standard —
-            the same four a pilot checks before departing.
-        </p>
- 
-        <div class="metar-wrap">
-            <div class="metar-meta" id="metar-meta">Loading pipeline snapshot…</div>
- 
-            <div class="metar-stats" id="metar-stats"></div>
- 
-            <h3>Current flight conditions</h3>
-            <div class="cat-bar" id="metar-catbar"></div>
-            <div class="cat-legend">
-                <span><i style="background:#1a9850"></i>VFR — clear</span>
-                <span><i style="background:#2b6cb0"></i>MVFR — marginal</span>
-                <span><i style="background:#c0392b"></i>IFR — instruments required</span>
-                <span><i style="background:#8e44ad"></i>LIFR — low instrument</span>
-            </div>
- 
-            <h3>Strongest wind gusts observed</h3>
-            <div id="metar-gusts"></div>
- 
-            <h3 style="margin-top:2rem">Active alerts</h3>
-            <div id="metar-alerts"></div>
-        </div>
-    </section>
 
     <!-- ═══════════════ HURRICANE ANALYTICS (paste after </section> of #climate) ═══════════════ -->
     <section id="hurricanes">

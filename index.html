@@ -2681,6 +2681,165 @@
             margin-bottom: 0.6rem;
             min-height: 1.2rem;
         }
+
+        #metar .metar-wrap { margin-top: 1.25rem; }
+ 
+        #metar .metar-meta {
+            font-size: 0.82rem;
+            opacity: 0.65;
+            margin-bottom: 1.25rem;
+            font-variant-numeric: tabular-nums;
+        }
+ 
+        #metar .metar-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+ 
+        #metar .metar-stat {
+            border: 1px solid rgba(128,128,128,0.22);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+        }
+ 
+        #metar .metar-stat b {
+            display: block;
+            font-size: 1.55rem;
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+ 
+        #metar .metar-stat span {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            opacity: 0.6;
+        }
+ 
+        /* Flight category bar — the signature element.
+           Colors are the FAA standard, not a decorative choice. */
+        #metar .cat-bar {
+            display: flex;
+            height: 44px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 0.6rem;
+        }
+ 
+        #metar .cat-seg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+            transition: flex-grow 0.4s ease;
+            min-width: 0;
+        }
+ 
+        #metar .cat-VFR  { background: #1a9850; }  /* green   — ceiling >3000ft, vis >5sm */
+        #metar .cat-MVFR { background: #2b6cb0; }  /* blue    — marginal */
+        #metar .cat-IFR  { background: #c0392b; }  /* red     — instrument required */
+        #metar .cat-LIFR { background: #8e44ad; }  /* magenta — low instrument */
+ 
+        #metar .cat-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.76rem;
+            opacity: 0.75;
+            margin-bottom: 2rem;
+        }
+ 
+        #metar .cat-legend i {
+            display: inline-block;
+            width: 10px; height: 10px;
+            border-radius: 2px;
+            margin-right: 0.35rem;
+            vertical-align: middle;
+        }
+ 
+        #metar .gust-row {
+            display: grid;
+            grid-template-columns: 62px 1fr 56px;
+            align-items: center;
+            gap: 0.65rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.83rem;
+        }
+ 
+        #metar .gust-row code {
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+ 
+        #metar .gust-track {
+            height: 9px;
+            background: rgba(128,128,128,0.16);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+ 
+        #metar .gust-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2b6cb0, #c0392b);
+            border-radius: 5px;
+        }
+ 
+        #metar .gust-val {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            opacity: 0.8;
+        }
+ 
+        #metar table.alerts {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+ 
+        #metar table.alerts th {
+            text-align: left;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            opacity: 0.55;
+            padding: 0.4rem 0.6rem;
+            border-bottom: 1px solid rgba(128,128,128,0.25);
+        }
+ 
+        #metar table.alerts td {
+            padding: 0.45rem 0.6rem;
+            border-bottom: 1px solid rgba(128,128,128,0.12);
+        }
+ 
+        #metar .cat-chip {
+            display: inline-block;
+            padding: 0.1rem 0.45rem;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #fff;
+        }
+ 
+        #metar h3 {
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            opacity: 0.75;
+            margin: 0 0 0.75rem;
+        }
+ 
+        #metar .metar-empty { opacity: 0.6; font-size: 0.85rem; }
+ 
+        @media (prefers-reduced-motion: reduce) {
+            #metar .cat-seg { transition: none; }
+        }
         /* ── PROMPT LAB ── */
         .lab-strategy-grid {
             display: grid;
@@ -3225,6 +3384,49 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
 
             <div class="project-card">
+                <div class="project-title">🌪️ METAR Stream — Real-Time Aviation Weather</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Streaming</span>
+                    <span class="skill-tag de">Apache Kafka</span>
+                    <span class="skill-tag de">Spark Structured Streaming</span>
+                    <span class="skill-tag de">Delta Lake</span>
+                    <span class="skill-tag de">Medallion Architecture</span>
+                    <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
+                    <span class="skill-tag de">Live API</span>
+                    <span class="skill-tag de">Data Quality &amp; Reconciliation</span>
+                    <span class="skill-tag">Kill Switches &amp; Graceful Degradation</span>
+                    <span class="skill-tag cl">Docker</span>
+                    <span class="tech-pill">Redpanda</span>
+                    <span class="tech-pill">NOAA Aviation Weather API</span>
+                </div>
+                <div class="project-desc">
+                    Continuous ingestion of surface weather observations from ~1,100 US airport
+                    stations — Kafka into a Spark Structured Streaming job writing a
+                    Bronze→Silver→Gold Delta medallion, with a low-visibility and high-gust
+                    alert stream. Watermarking, event-time deduplication, per-sink
+                    checkpointing and offset-throttled backpressure.
+                    <br><br>
+                    The interesting part is what broke. The upstream API silently truncates
+                    every query at 400 results — the only clue was that the number was too
+                    round. Partitioning silver by <code>station_id</code> produced 2,364
+                    Parquet files for 38&nbsp;MB of data; repartitioning by date cut it to 6.
+                    Two Spark jobs sharing a checkpoint directory corrupted the offset log,
+                    and recovery meant rebuilding downstream layers from the replayable
+                    bronze source. A 181-second broker outage was survived with zero
+                    duplicate keys.
+                    <br><br>
+                    One hypothesis was measured and discarded: high p95 ingest lag looked
+                    like watermark drops, but direct measurement showed 2 records lost out of
+                    4,179 — 0.0%. Ingest lag and event-time lateness are different quantities.
+                     The configuration was left alone.
+                </div>
+                <div class="project-links">
+                    <a href="https://www.yashhooda.ai/#metar" class="project-btn">🌐 Live Dashboard</a>
+                    <a href="https://github.com/yashhooda1/metar-stream" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card">
                 <div class="project-title">🔌 SLM Offline Agent — Local ReAct, No API Key</div>
                 <div class="project-tech">
                     <span class="tech-pill">AI / LLM Engineering</span>
@@ -3491,6 +3693,37 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <div id="cp-legend-dynamic" class="cp-legend"></div>
             <div class="cp-chart-wrap"><canvas id="cp-winter-chart"></canvas></div>
             <p class="cp-insight" id="cp-signal-winter">Loading signal...</p>
+        </div>
+    </section>
+
+    <section id="metar">
+        <h2>🌪️ METAR Stream — Live US Airspace</h2>
+        <p>
+            A snapshot from my real-time streaming pipeline: Kafka → Spark Structured
+            Streaming → Delta Lake, ingesting surface observations from every reporting
+            US airport weather station. Flight categories below are the FAA standard —
+            the same four a pilot checks before departing.
+        </p>
+ 
+        <div class="metar-wrap">
+            <div class="metar-meta" id="metar-meta">Loading pipeline snapshot…</div>
+ 
+            <div class="metar-stats" id="metar-stats"></div>
+ 
+            <h3>Current flight conditions</h3>
+            <div class="cat-bar" id="metar-catbar"></div>
+            <div class="cat-legend">
+                <span><i style="background:#1a9850"></i>VFR — clear</span>
+                <span><i style="background:#2b6cb0"></i>MVFR — marginal</span>
+                <span><i style="background:#c0392b"></i>IFR — instruments required</span>
+                <span><i style="background:#8e44ad"></i>LIFR — low instrument</span>
+            </div>
+ 
+            <h3>Strongest wind gusts observed</h3>
+            <div id="metar-gusts"></div>
+ 
+            <h3 style="margin-top:2rem">Active alerts</h3>
+            <div id="metar-alerts"></div>
         </div>
     </section>
 
@@ -7824,6 +8057,84 @@ async function loadTropicalAlert() {
 }
 
 loadWeather();
+
+(function () {
+    const SRC = 'https://raw.githubusercontent.com/yashhooda1/metar-stream/main/docs/metar_dashboard.json';
+    const CAT_COLOR = { VFR: '#1a9850', MVFR: '#2b6cb0', IFR: '#c0392b', LIFR: '#8e44ad' };
+    const $ = (id) => document.getElementById(id);
+ 
+    const fmt = (n) => n.toLocaleString();
+    const when = (iso) => new Date(iso).toLocaleString(undefined,
+        { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+ 
+    fetch(SRC)
+        .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(render)
+        .catch(() => {
+            $('metar-meta').textContent =
+                'Snapshot unavailable. The pipeline publishes on each run — check back shortly.';
+        });
+ 
+    function render(d) {
+        $('metar-meta').textContent =
+            'Snapshot ' + when(d.generated_at) +
+            ' · observations spanning ' + when(d.window.from) + ' to ' + when(d.window.to);
+ 
+        $('metar-stats').innerHTML = [
+            [fmt(d.stats.stations), 'stations reporting'],
+            [fmt(d.stats.observations_retained), 'observations retained'],
+            [fmt(d.stats.messages_ingested), 'messages ingested'],
+            [d.stats.dedupe_pct + '%', 'removed as duplicates']
+        ].map(([v, l]) =>
+            '<div class="metar-stat"><b>' + v + '</b><span>' + l + '</span></div>'
+        ).join('');
+ 
+        const cats = d.flight_categories;
+        const total = Object.values(cats).reduce((a, b) => a + b, 0) || 1;
+        $('metar-catbar').innerHTML = ['VFR', 'MVFR', 'IFR', 'LIFR']
+            .filter((c) => cats[c] > 0)
+            .map((c) => {
+                const pct = (100 * cats[c] / total);
+                return '<div class="cat-seg cat-' + c + '" style="flex:' + cats[c] + '">' +
+                    (pct > 7 ? c + ' ' + Math.round(pct) + '%' : '') + '</div>';
+            }).join('');
+ 
+        const max = Math.max(...d.top_gusts.map((g) => g.gust_kt), 1);
+        $('metar-gusts').innerHTML = d.top_gusts.map((g) =>
+            '<div class="gust-row">' +
+                '<code>' + g.station + '</code>' +
+                '<div class="gust-track"><div class="gust-fill" style="width:' +
+                    (100 * g.gust_kt / max) + '%"></div></div>' +
+                '<div class="gust-val">' + g.gust_kt + ' kt</div>' +
+            '</div>'
+        ).join('');
+ 
+        if (!d.alerts.length) {
+            $('metar-alerts').innerHTML =
+                '<p class="metar-empty">No IFR conditions or high-gust reports in this snapshot. ' +
+                'Clear skies across the reporting network.</p>';
+            return;
+        }
+ 
+        $('metar-alerts').innerHTML =
+            '<table class="alerts"><thead><tr>' +
+            '<th>Station</th><th>Airport</th><th>Condition</th><th>Gust</th><th>Observed</th>' +
+            '</tr></thead><tbody>' +
+            d.alerts.map((a) =>
+                '<tr>' +
+                    '<td><code>' + a.station + '</code></td>' +
+                    '<td>' + (a.name || '—') + '</td>' +
+                    '<td>' + (a.category
+                        ? '<span class="cat-chip" style="background:' +
+                          (CAT_COLOR[a.category] || '#666') + '">' + a.category + '</span>'
+                        : '—') + '</td>' +
+                    '<td>' + (a.gust_kt != null ? a.gust_kt + ' kt' : '—') + '</td>' +
+                    '<td>' + when(a.observed_at) + '</td>' +
+                '</tr>'
+            ).join('') +
+            '</tbody></table>';
+    }
+})();
 
 // export current chat as txt transcript ──
 async function exportCurrentChat() {

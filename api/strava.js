@@ -41,6 +41,58 @@ async function geocodeCached(lat, lon) {
 }
 
 
+// Fetch every photo attached to an activity.
+// `photo_sources=true` is mandatory — without it Strava only returns legacy
+// Instagram photos (i.e. an empty array). `size` must be set or you get
+// low-res placeholders back.
+// Cached hard in Redis: photos on a finished activity never change, so this is
+// a one-time API cost per activity rather than a per-request one.
+async function photosCached(activityId, accessToken) {
+  const key = `strava:photos:${activityId}`;
+
+  if (redis) {
+    try {
+      const hit = await redis.get(key);
+      if (hit !== null && hit !== undefined) return hit;
+    } catch { /* fall through to fetch */ }
+  }
+
+  let photos = [];
+  try {
+    const r = await fetch(
+      `https://www.strava.com/api/v3/activities/${activityId}/photos?photo_sources=true&size=1200`,
+      { headers: { Authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(4000) }
+    );
+
+    if (r.status === 429) {
+      // Rate limited — return empty but DON'T cache, so we retry next sync.
+      console.warn('Strava photos 429; usage:', r.headers.get('X-RateLimit-Usage'));
+      return [];
+    }
+
+    if (r.ok) {
+      const raw = await r.json();
+      photos = (Array.isArray(raw) ? raw : [])
+        .map(p => {
+          const url = p.urls ? Object.values(p.urls)[0] : null;
+          const dim = p.sizes ? Object.values(p.sizes)[0] : null;
+          if (!url) return null;
+          return {
+            url,
+            w: Array.isArray(dim) ? dim[0] : null,
+            h: Array.isArray(dim) ? dim[1] : null,
+            caption: p.caption || '',
+          };
+        })
+        .filter(Boolean);
+    }
+  } catch { /* leave empty */ }
+
+  if (redis) { try { await redis.set(key, photos, { ex: 60 * 60 * 24 * 7 }); } catch {} }
+  return photos;
+}
+
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -85,9 +137,21 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: 'Activities fetch failed', detail: activities });
     }
 
-    // 3a. Fetch descriptions with timeout to avoid blocking mobile
+    // 3a. Fetch descriptions with timeout to avoid blocking mobile.
+    //     Now Redis-cached (6h) — this endpoint was previously hit on every
+    //     cold request, which alone was pushing the daily read limit.
     const descriptions = {};
-    const descTimeout = (id) => new Promise(resolve => {
+    const descTimeout = (id) => new Promise(async resolve => {
+        const dkey = `strava:desc:${id}`;
+        if (redis) {
+            try {
+                const hit = await redis.get(dkey);
+                if (hit !== null && hit !== undefined) {
+                    descriptions[id] = hit || null;
+                    return resolve();
+                }
+            } catch {}
+        }
         const controller = new AbortController();
         const timer = setTimeout(() => { controller.abort(); resolve(); }, 3000);
         fetch(`https://www.strava.com/api/v3/activities/${id}`, {
@@ -95,11 +159,27 @@ export default async function handler(req, res) {
             signal: controller.signal
         })
         .then(r => r.json())
-        .then(d => { descriptions[id] = d.description || null; })
+        .then(async d => {
+            descriptions[id] = d.description || null;
+            if (redis) { try { await redis.set(dkey, d.description || '', { ex: 60 * 60 * 6 }); } catch {} }
+        })
         .catch(() => {})
         .finally(() => { clearTimeout(timer); resolve(); });
     });
     await Promise.all(activities.slice(0, 6).map(a => descTimeout(a.id)));
+
+    // 3a-ii. Photos — only for activities that actually have them (the summary
+    //        payload tells us via total_photo_count, so we skip the empty ones
+    //        for free), capped at the 12 most recent so a backfill can never
+    //        fan out into a rate-limit wipeout.
+    const photoTargets = activities
+      .filter(a => (a.total_photo_count || 0) > 0)
+      .slice(0, 12);
+
+    const photosById = {};
+    await Promise.all(photoTargets.map(async (a) => {
+      photosById[a.id] = await photosCached(a.id, accessToken);
+    }));
 
     // Dedupe coordinates within this request → one geocode per unique spot, not per activity.
     const coordKey = (a) =>
@@ -143,6 +223,8 @@ export default async function handler(req, res) {
       kudos:         a.kudos_count,
       suffer_score:  a.suffer_score || null,
       map_polyline:  a.map?.summary_polyline || null,
+      photos:        photosById[a.id] || [],
+      photo_count:   a.total_photo_count || 0,
     }));
 
     // Cache for 5 minutes

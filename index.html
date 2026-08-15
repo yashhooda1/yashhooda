@@ -3401,11 +3401,13 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <span class="tech-pill">NOAA Aviation Weather API</span>
                 </div>
                 <div class="project-desc">
-                    Continuous ingestion of surface weather observations from ~1,100 US airport
-                    stations — Kafka into a Spark Structured Streaming job writing a
-                    Bronze→Silver→Gold Delta medallion, with a low-visibility and high-gust
-                    alert stream. Watermarking, event-time deduplication, per-sink
-                    checkpointing and offset-throttled backpressure.
+                    Continuous ingestion of surface weather observations from ~1,100 North
+                    American airport stations — Kafka into a Spark Structured Streaming job
+                    writing a Bronze→Silver→Gold Delta medallion, with a low-visibility and
+                    high-gust alert stream. Watermarking, event-time deduplication, per-sink
+                    checkpointing and offset-throttled backpressure. Measured over 25.6 hours:
+                    240,997 raw messages ingested, 10,018 observations retained after dedupe,
+                    zero duplicate keys.
                     <br><br>
                     The interesting part is what broke. The upstream API silently truncates
                     every query at 400 results — the only clue was that the number was too
@@ -3416,10 +3418,12 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     bronze source. A 181-second broker outage was survived with zero
                     duplicate keys.
                     <br><br>
-                    One hypothesis was measured and discarded: high p95 ingest lag looked
+                    Two hypotheses were measured and discarded. High p95 ingest lag looked
                     like watermark drops, but direct measurement showed 2 records lost out of
-                    4,179 — 0.0%. Ingest lag and event-time lateness are different quantities.
-                     The configuration was left alone.
+                    4,179 — 0.0%; ingest lag and event-time lateness are different quantities,
+                    and the config was left alone. And the coverage wasn't US-only: grouping
+                    station IDs by ICAO prefix showed 996 US, 90 Canadian, 18 Mexican. The
+                    bounding boxes were drawn against API result limits, not borders.
                 </div>
                 <div class="project-links">
                     <a href="https://www.yashhooda.ai/#metar" class="project-btn">🌐 Live Dashboard</a>

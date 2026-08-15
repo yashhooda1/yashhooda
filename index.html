@@ -1564,6 +1564,16 @@
         .strava-error { color: var(--text-muted); font-size: 0.85rem; padding: 1.5rem; text-align: center; }
         .strava-view-all { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(252,76,2,0.08); border: 1px solid rgba(252,76,2,0.25); color: #fc4c02; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.75rem; font-family: 'Space Mono', monospace; text-decoration: none; transition: all 0.2s; letter-spacing: 0.03em; }
         .strava-view-all:hover { background: rgba(252,76,2,0.15); border-color: #fc4c02; color: #fc4c02; }
+        /* ── Strava activity photos ── */
+        .strava-photos { display: grid; gap: 4px; margin: 0.65rem 0 0.25rem; grid-template-columns: repeat(3, 1fr); }
+        .strava-photos.count-1 { grid-template-columns: 1fr; }
+        .strava-photos.count-2 { grid-template-columns: repeat(2, 1fr); }
+        .strava-photo-wrap { position: relative; overflow: hidden; border-radius: 6px; cursor: zoom-in; background: rgba(255,255,255,0.04); border: 1px solid rgba(252,76,2,0.18); transition: border-color .15s ease; }
+        .strava-photo-wrap:hover { border-color: rgba(252,76,2,0.55); }
+        .strava-photo { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; transition: transform .25s ease; }
+        .strava-photos.count-1 .strava-photo { aspect-ratio: 16 / 10; }
+        .strava-photo-wrap:hover .strava-photo { transform: scale(1.05); }
+        .strava-photo-more { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); color: #fff; font-family: 'Space Mono', monospace; font-size: 0.95rem; font-weight: 700; }
         .strava-map { height: 140px; border-radius: 6px; margin: 0.65rem 0 0.5rem; overflow: hidden; background: rgba(255,255,255,0.04); }
         .strava-map .leaflet-container { background: #1a1a2e; }
         /* ── Dark Web Intel ────────────────────────────────── */
@@ -8733,6 +8743,21 @@ async function loadStrava() {
         const typeIcon = t => ({'Run':'🏃','Ride':'🚴','Swim':'🏊','Hike':'🥾','Walk':'🚶','VirtualRun':'🏃','TrailRun':'🏔️','Workout':'💪'}[t] || '🏃');
         const fmtTime = s => { const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60; return h > 0 ? `${h}h ${m}m` : `${m}:${sec.toString().padStart(2,'0')}`; };
         const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        // ── Photo strip: up to 3 thumbs, "+N" badge on the last if there are more ──
+        const esc = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        window.__stravaPhotos = window.__stravaPhotos || {};
+        const photoStrip = (a) => {
+            const ph = a.photos || [];
+            if (!ph.length) return '';
+            window.__stravaPhotos[a.id] = ph;
+            const shown = ph.slice(0, 3);
+            const extra = ph.length - shown.length;
+            return `<div class="strava-photos count-${shown.length}">` + shown.map((p, i) => `
+                <div class="strava-photo-wrap" onclick="openStravaLightbox('${a.id}', ${i})">
+                    <img class="strava-photo" loading="lazy" decoding="async" src="${esc(p.url)}" alt="${esc(p.caption) || 'Activity photo'}" onerror="this.parentElement.style.display='none'">
+                    ${(extra > 0 && i === shown.length - 1) ? `<div class="strava-photo-more">+${extra}</div>` : ''}
+                </div>`).join('') + `</div>`;
+        };
         grid.innerHTML = acts.map(a => `
             <div class="strava-card">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.6rem;">
@@ -8749,6 +8774,7 @@ async function loadStrava() {
                     ${a.elevation_ft > 0 ? `<div class="strava-stat"><span class="strava-stat-val">${a.elevation_ft} ft</span><span class="strava-stat-label">Elevation</span></div>` : ''}
                     ${a.suffer_score ? `<div class="strava-stat"><span class="strava-stat-val">${a.suffer_score}</span><span class="strava-stat-label">Suffer Score</span></div>` : ''}
                 </div>
+                ${photoStrip(a)}
                 ${a.map_polyline ? `<div class="strava-map" id="map-${a.id}"></div>` : ''}
                 <div class="strava-footer">
                     <span>${fmtDate(a.date)}</span>
@@ -8786,6 +8812,68 @@ async function loadStrava() {
         grid.innerHTML = '<div class="strava-error">Could not load activities. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';
     }
 }
+    // ── Strava photo lightbox ──
+(function initStravaLightbox() {
+    let state = { photos: [], idx: 0 };
+    let el = null;
+
+    function build() {
+        el = document.createElement('div');
+        el.className = 'yh-lightbox';
+        el.innerHTML = `
+            <button class="yh-lb-btn yh-lb-close" aria-label="Close">&times;</button>
+            <button class="yh-lb-btn yh-lb-prev" aria-label="Previous">&#8249;</button>
+            <img alt="">
+            <button class="yh-lb-btn yh-lb-next" aria-label="Next">&#8250;</button>
+            <div class="yh-lb-cap"></div>
+            <div class="yh-lb-count"></div>`;
+        document.body.appendChild(el);
+
+        el.querySelector('.yh-lb-close').onclick = close;
+        el.querySelector('.yh-lb-prev').onclick = e => { e.stopPropagation(); step(-1); };
+        el.querySelector('.yh-lb-next').onclick = e => { e.stopPropagation(); step(1); };
+        el.onclick = e => { if (e.target === el) close(); };
+
+        document.addEventListener('keydown', e => {
+            if (!el.classList.contains('open')) return;
+            if (e.key === 'Escape') close();
+            if (e.key === 'ArrowLeft') step(-1);
+            if (e.key === 'ArrowRight') step(1);
+        });
+    }
+
+    function render() {
+        const p = state.photos[state.idx];
+        if (!p) return;
+        el.querySelector('img').src = p.url;
+        el.querySelector('.yh-lb-cap').textContent = p.caption || '';
+        el.querySelector('.yh-lb-count').textContent = `${state.idx + 1} / ${state.photos.length}`;
+        const multi = state.photos.length > 1;
+        el.querySelector('.yh-lb-prev').style.display = multi ? 'flex' : 'none';
+        el.querySelector('.yh-lb-next').style.display = multi ? 'flex' : 'none';
+    }
+
+    function step(d) {
+        state.idx = (state.idx + d + state.photos.length) % state.photos.length;
+        render();
+    }
+
+    function close() {
+        el.classList.remove('open');
+        el.querySelector('img').src = '';
+        document.body.style.overflow = '';
+    }
+
+    window.openStravaLightbox = function (activityId, idx) {
+        if (!el) build();
+        const photos = (window.__stravaPhotos || {})[activityId];
+        if (!photos || !photos.length) return;
+        state = { photos, idx: idx || 0 };
+        render();
+        el.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    };
+})();
 loadStrava();
 
 (async function initViewCounter() {

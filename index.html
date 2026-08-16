@@ -8947,6 +8947,17 @@ async function loadStrava() {
                 </div>
             </div>
         `).join('');
+        // TEMP DEBUG — remove after
+        const dbg = document.createElement('div');
+        dbg.style.cssText = 'background:#064;color:#fff;font:11px monospace;padding:8px;grid-column:1/-1';
+        grid.appendChild(dbg);
+        setTimeout(() => {
+          const sec = document.getElementById('strava-feed');
+          dbg.textContent =
+          `acts=${acts.length} cards=${grid.children.length} ` +
+          `gridH=${grid.offsetHeight} secH=${sec ? sec.offsetHeight : 'null'} ` +
+          `secDisp=${sec ? getComputedStyle(sec).display : '?'} w=${window.innerWidth}`;
+        }, 1500);
         // ── Render route maps (all viewports, lazily) ──
         // Previously desktop-only. Mobile now gets the same maps, but each one is
         // only initialised as its card approaches the viewport, so a phone never

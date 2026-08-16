@@ -1,7 +1,7 @@
-# Yash Hooda — AI & Software/Data Engineer
+# Yash Hooda — AI & Software/Data Engineer + Aviation Enthusiast
 **Live:** [yashhooda.ai](https://www.yashhooda.ai)
 
-My full-stack personal portfolio — and a working demonstration of the systems I build. Not a static resume page: a production AI application with a hybrid RAG chatbot, real-time flight tracking, live Strava training analytics, a 57-year climate analytics pipeline, Atlantic hurricane correlation analytics, a rising-seas & coastal-risk dashboard, a data-center growth & environmental-impact dashboard, network analysis tools, interactive snow & hike photo albums, live weather, and a 7-layer secure AI gateway — all deployed on Vercel.
+My full-stack personal portfolio — and a working demonstration of the systems I build. Not a static resume page: a production AI application with a hybrid RAG chatbot, real-time flight tracking, an aviation journey & Infinite Flight dashboard, live Strava training analytics, a 57-year climate analytics pipeline, Atlantic hurricane correlation analytics, a rising-seas & coastal-risk dashboard, a data-center growth & environmental-impact dashboard, network analysis tools, interactive snow & hike photo albums, live weather, and a 7-layer secure AI gateway — all deployed on Vercel.
 
 Everything here runs unattended on real traffic. The chatbot has taken sustained real-world attack traffic and held; the climate pipeline refreshes itself daily against no-cost public data; the dashboards degrade to last-known-good rather than failing.
 
@@ -16,6 +16,7 @@ If you're skimming, these are the parts worth reading the code for:
 - **Agent routing** — lightweight keyword-based routing into specialist system-prompt extensions (engineering deep-dive, running coach, career advisor) rather than a single monolithic prompt.
 - **Medallion pipeline in anger** — ClimatePulse's Bronze→Silver→Gold layering with incremental per-station parquet caching, which cut each run from **741 NOAA API calls to 13**, plus dead-station handling, freshness checks, and per-station validation floors.
 - **Honest analytics** — the hurricane, sea-level, and data-center dashboards all state their uncertainty in the UI: association vs. attribution, contested per-query figures shown as ranges, millennial ice ceilings labeled as ceilings rather than forecasts.
+- **Domain-driven pipelines** — the aviation work isn't decorative. The METAR pipeline (Kafka → Spark Structured Streaming → Delta Lake, in a separate repo) ingests surface observations from every reporting US station and classifies them into the four FAA flight categories a pilot actually checks before departing. The flight tracker and Infinite Flight endpoints came from the same place.
 - **Defense in depth** — a 7-layer security gateway built in response to real attack traffic, not as a checkbox. See the Security section.
 
 ---
@@ -27,6 +28,12 @@ If you're skimming, these are the parts worth reading the code for:
 - Flight cards with altitude, speed, heading, climb rate
 - Click any card to locate the aircraft on the map
 - Auto-refreshes on an interval to conserve API quota
+
+### 🛫 Aviation Journey
+- Ratings path from Student → PPL → Instrument → Commercial → Multi-Engine → CFI → ATP, with current position marked
+- Real-aircraft logbook summary — total time, dual received, landings, types flown
+- **Infinite Flight simulator stats** pulled live from the [IF Live API v2](https://infiniteflight.com) — grade, flight time, online flights, landings, XP, ATC operations
+- Served by `/api/if-profile`, which proxies the Live API server-side so the key never touches the browser, caches at the edge for an hour to respect IF's polling guidance, and falls back to last-known-good so the card always renders
 
 ### 🤖 AI Chatbot (HoodaAgents)
 - Powered by **Claude (Anthropic)** and **GPT (OpenAI)** with plug-and-switch model routing
@@ -114,6 +121,7 @@ If you're skimming, these are the parts worth reading the code for:
 ├── api/
 │   ├── chat.js                 ← AI chatbot — multi-model router (Anthropic + OpenAI)
 │   ├── flights.js              ← Live flight tracker
+│   ├── if-profile.js           ← Infinite Flight Live API v2 profile stats (SEED fallback)
 │   ├── strava.js               ← Live Strava activity feed + weekly mileage
 │   ├── analytics.js            ← Training analytics — CTL/ATL/form/predictions/AI insights
 │   ├── tts.js                  ← OpenAI TTS voice output
@@ -146,6 +154,8 @@ If you're skimming, these are the parts worth reading the code for:
 | Training Data | Strava API |
 | Weather | Open-Meteo API (free, no key) |
 | Flights | AviationStack API |
+| Simulator | Infinite Flight Live API v2 |
+| Aviation Weather | NOAA METAR (separate [`metar-stream`](https://github.com/yashhooda1/metar-stream) pipeline) |
 | Climate Data | NOAA GHCN-Daily (13 stations, 1970–present) |
 | Hurricane Data | NOAA HURDAT2 · NOAA PSL TNA SST · NASA GISTEMP |
 | Sea Level Data | NASA/NOAA satellite altimetry · NOAA tide-gauge trends · USGS/NSIDC ice equivalents · NOAA 2022 SLR scenarios |
@@ -172,6 +182,7 @@ UPSTASH_VECTOR_REST_TOKEN=...
 UPSTASH_REDIS_REST_URL=...
 UPSTASH_REDIS_REST_TOKEN=...
 AVIATIONSTACK_API_KEY=...
+INFINITE_FLIGHT_API_KEY=...
 ```
 
 > **ClimatePulse, Hurricane Analytics & Rising Seas need no site-side keys.** ClimatePulse and Hurricane Analytics are served from committed gold JSON (the NOAA API token `NOAA_TOKEN` and the cross-repo push token `YASHHOODA_PAT` live as secrets on the [`climatepulse`](https://github.com/yashhooda1/climatepulse) pipeline repo, not here). Rising Seas ships a curated reference dataset in `/api/sealevel` — no token and no pipeline at all. The Data Centers dashboard works the same way via `/api/datacenters`.
@@ -218,6 +229,7 @@ Browser
   │                              ↓ Security layers
   │
   ├── GET  /api/flights     → Live flights (interactive map)
+  ├── GET  /api/if-profile  → Infinite Flight profile stats (edge-cached 1h, SEED fallback)
   ├── GET  /api/strava      → Strava OAuth + activity shaping
   ├── GET  /api/analytics   → Training analytics + Claude AI insights
   ├── POST /api/tts         → OpenAI TTS audio stream
@@ -267,9 +279,11 @@ ClimatePulse, Hurricane Analytics, Rising Seas & Data Centers add **no marginal 
 
 ## About
 
-**Yash Hooda** — AI & Data Engineer | Runner
+**Yash Hooda** — AI & Data Engineer | Runner | Aviation
 
 I build production data and AI systems — pipelines that run unattended, retrieval that actually retrieves, and gateways that hold under attack. BS Computer Science, UT Dallas. Databricks Certified Data Engineer Associate. This repo is the proof rather than the pitch.
+
+Two things outside the terminal drive most of what's in here. I'm a marathoner chasing a sub-3:00 finish — that's where the Strava intelligence and training dashboards come from. And I'm working toward my private pilot certificate with the airlines as the long-term goal, flying part-time and funding it as I go — that's where the flight tracker, the METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), and the Infinite Flight tooling come from. The domain interest came first; the engineering followed it.
 
 Currently open to Data Engineering and AI Engineering roles.
 

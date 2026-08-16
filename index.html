@@ -3002,6 +3002,23 @@
 </head>
 <body>
 
+<script>
+(function () {
+  function show(msg) {
+    var d = document.createElement('div');
+    d.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#8b0000;color:#fff;font:11px/1.4 monospace;padding:10px;white-space:pre-wrap;max-height:45vh;overflow:auto';
+    d.textContent = msg;
+    document.body.appendChild(d);
+  }
+  window.addEventListener('error', function (e) {
+    show('ERROR: ' + e.message + '\n@ ' + (e.filename || '?') + ':' + e.lineno + ':' + e.colno);
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    show('PROMISE: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason));
+  });
+})();
+</script>
+
 <div id="reading-progress"></div>
 <canvas id="particles"></canvas>
 <div class="cursor" id="cursor"></div>

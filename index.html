@@ -8930,31 +8930,67 @@ async function loadStrava() {
                 </div>
             </div>
         `).join('');
-        // ── Render route maps (desktop only) ──
-        if (window.innerWidth >= 769) {
-            setTimeout(() => {
-                acts.forEach(a => {
-                    if (!a.map_polyline) return;
-                    const el = document.getElementById(`map-${a.id}`);
-                    if (!el) return;
-                    try {
-                        if (typeof polyline === 'undefined') { el.style.display = 'none'; return; }
-                        const coords = polyline.decode(a.map_polyline);
-                        const map = L.map(el, { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, attributionControl: false });
-                        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-                        const line = L.polyline(coords, { color: '#fc4c02', weight: 3, opacity: 0.9 }).addTo(map);
+        // ── Render route maps (all viewports, lazily) ──
+        // Previously desktop-only. Mobile now gets the same maps, but each one is
+        // only initialised as its card approaches the viewport, so a phone never
+        // pays for 30 Leaflet instances + tile fetches on first paint.
+        (function initRouteMaps() {
+            const targets = acts.filter(a => a.map_polyline);
+            if (!targets.length) return;
+
+            const draw = (a, el) => {
+                if (el.dataset.mapReady) return;          // Leaflet throws if re-initialised
+                el.dataset.mapReady = '1';
+                try {
+                    if (typeof polyline === 'undefined' || typeof L === 'undefined') { el.style.display = 'none'; return; }
+                    const coords = polyline.decode(a.map_polyline);
+                    if (!coords.length) { el.style.display = 'none'; return; }
+
+                    const map = L.map(el, {
+                        zoomControl: false, dragging: false, scrollWheelZoom: false,
+                        doubleClickZoom: false, boxZoom: false, keyboard: false,
+                        // touchZoom/tap off so the map never swallows a vertical
+                        // scroll gesture on a phone.
+                        touchZoom: false, tap: false,
+                        attributionControl: false
+                    });
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+                    const line = L.polyline(coords, { color: '#fc4c02', weight: 3, opacity: 0.9 }).addTo(map);
+
+                    // Fit after layout has settled, not on a fixed timeout.
+                    requestAnimationFrame(() => {
                         map.invalidateSize();
-                        setTimeout(() => map.fitBounds(line.getBounds(), { padding: [10, 10] }), 100);
-                    } catch(e) { el.style.display = 'none'; }
+                        map.fitBounds(line.getBounds(), { padding: [10, 10] });
+                    });
+                } catch (e) { el.style.display = 'none'; }
+            };
+
+            // No IntersectionObserver → fall back to drawing everything after a beat.
+            if (!('IntersectionObserver' in window)) {
+                setTimeout(() => targets.forEach(a => {
+                    const el = document.getElementById(`map-${a.id}`);
+                    if (el) draw(a, el);
+                }), 600);
+                return;
+            }
+
+            const byId = {};
+            targets.forEach(a => { byId[`map-${a.id}`] = a; });
+
+            const io = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    const a = byId[entry.target.id];
+                    if (a) draw(a, entry.target);
+                    obs.unobserve(entry.target);
                 });
-            }, 600);
-        } else {
-            // Hide map containers on mobile
-            acts.forEach(a => {
+            }, { rootMargin: '300px 0px' });   // start loading just before it's visible
+
+            targets.forEach(a => {
                 const el = document.getElementById(`map-${a.id}`);
-                if (el) el.style.display = 'none';
+                if (el) io.observe(el);
             });
-        }
+        })();
     } catch(err) {
         console.error('Strava error:', err);
         grid.innerHTML = '<div class="strava-error">Could not load activities. <a href="https://www.strava.com/athletes/89409717" target="_blank" style="color:#fc4c02;">View on Strava →</a></div>';

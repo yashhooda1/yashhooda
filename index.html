@@ -5240,7 +5240,7 @@ window.addEventListener('scroll', () => {
 // ── SECTION REVEAL ──
 const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
-}, { threshold: 0.08 });
+}, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
 document.querySelectorAll('section').forEach(s => observer.observe(s));
 
 // ── ANIMATED COUNTERS ──
@@ -5258,7 +5258,7 @@ const countObserver = new IntersectionObserver(entries => {
         }, 35);
         countObserver.unobserve(el);
     });
-}, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
+}, { threshold: 0.5 });
 document.querySelectorAll('.stat-num[data-target]').forEach(el => countObserver.observe(el));
 
 // ── ADMIN PASSWORD (in memory only, cleared on page close) ───────────────

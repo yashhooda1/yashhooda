@@ -3234,6 +3234,7 @@
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Running <span class="caret">▾</span></button>
                 <div class="nav-drop-menu">
                     <a href="#running">Running</a>
+                    <a href="strava-feed">Live Strava feed</a>
                     <a href="#hikes">Hikes</a>
                     <a href="#thisweek">This Week ⚡</a>
                 </div>
@@ -5257,7 +5258,7 @@ const countObserver = new IntersectionObserver(entries => {
         }, 35);
         countObserver.unobserve(el);
     });
-}, { threshold: 0.5 });
+}, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
 document.querySelectorAll('.stat-num[data-target]').forEach(el => countObserver.observe(el));
 
 // ── ADMIN PASSWORD (in memory only, cleared on page close) ───────────────

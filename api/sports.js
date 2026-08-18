@@ -345,13 +345,33 @@ export default async function handler(req, res) {
         return true;
       });
       if (!events.length) throw new Error('ESPN fallback failed');
+    // REPLACE
     } else {
-      const r = await fetch(
-        `https://site.api.espn.com/apis/site/v2/sports/${espnLeagueMap[league]}/scoreboard`,
-        { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000) }
-      );
-      if (!r.ok) throw new Error('ESPN fallback failed');
-      const data = await r.json();
+      // Bare /scoreboard returns only ESPN's current window — one NFL week, one
+      // MLS matchday — so it yields results OR fixtures, never both. Ask for a range.
+      const scoreboardBase = `https://site.api.espn.com/apis/site/v2/sports/${espnLeagueMap[league]}/scoreboard`;
+      const fmt  = (d) => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+      const from = new Date(Date.now() -  8 * 86400000);
+      const to   = new Date(Date.now() + 14 * 86400000);
+
+      let data = null;
+      try {
+        const rr = await fetch(`${scoreboardBase}?dates=${fmt(from)}-${fmt(to)}&limit=200`, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          signal: AbortSignal.timeout(9000),
+        });
+        if (rr.ok) data = await rr.json();
+      } catch {}
+
+      // Offseason or an unsupported range param — fall back to the default window.
+      if (!data?.events?.length) {
+        const r = await fetch(scoreboardBase, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!r.ok) throw new Error('ESPN fallback failed');
+        data = await r.json();
+      }
       events = data.events || [];
     }
 
@@ -377,8 +397,10 @@ export default async function handler(req, res) {
       const homeAbbr = home.team?.abbreviation || 'HOME';
       const awayAbbr = away.team?.abbreviation || 'AWAY';
       const score = {};
-      const hScore = parseScore(home.score); if (hScore !== undefined) score[homeAbbr] = hScore;
-      const aScore = parseScore(away.score); if (aScore !== undefined) score[awayAbbr] = aScore;
+      if (isFinal || isLive) {
+        const hScore = parseScore(home.score); if (hScore !== undefined) score[homeAbbr] = hScore;
+        const aScore = parseScore(away.score); if (aScore !== undefined) score[awayAbbr] = aScore;
+      }
 
       // Line scores (quarters/halves)
       const homeLinescores = home.linescores || [];
@@ -439,9 +461,12 @@ export default async function handler(req, res) {
       const future = games.filter(g => g.status === 'scheduled' && g.start_date_ms >= nowMs);
       games = [...live2, ...past.slice(-6).reverse(), ...future.slice(0, 6)];
     } else {
+      const nowMs3   = Date.now();
       const live2    = games.filter(g => g.status === 'inprogress');
-      const recent   = games.filter(g => g.status === 'closed').slice(-6);
-      const upcoming = games.filter(g => g.status === 'scheduled').slice(0, 6);
+      const recent   = games.filter(g => g.status === 'closed')
+                            .sort((a,b) => b.start_date_ms - a.start_date_ms).slice(0, 6);
+      const upcoming = games.filter(g => g.status === 'scheduled' && g.start_date_ms >= nowMs3)
+                            .sort((a,b) => a.start_date_ms - b.start_date_ms).slice(0, 6);
       games = [...live2, ...recent, ...upcoming];
     }
 

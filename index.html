@@ -8811,8 +8811,12 @@ async function loadLeague(league) {
         }
 
         const live     = data.games.filter(g => g.status === 'inprogress' || g.status === 'live');
-        const recent   = data.games.filter(g => g.status === 'closed' || g.status === 'final').slice(-6);
-        const upcoming = data.games.filter(g => g.status === 'scheduled').slice(0, 6);
+        const recent   = data.games.filter(g => g.status === 'closed' || g.status === 'final')
+                                   .sort((a,b) => (b.start_date_ms || 0) - (a.start_date_ms || 0))
+                                   .slice(0, 6);
+        const upcoming = data.games.filter(g => g.status === 'scheduled')
+                                   .sort((a,b) => (a.start_date_ms || 0) - (b.start_date_ms || 0))
+                                   .slice(0, 6);
 
         let html = bannerHtml;
 

@@ -320,19 +320,47 @@ export default async function handler(req, res) {
     };
     const houstonTeams = { rockets:'hou', astros:'hou', texans:'hou' };
     const isHoustonTeam = !!houstonTeams[league];
-    const espnUrl = isHoustonTeam
-      ? `https://site.api.espn.com/apis/site/v2/sports/${espnLeagueMap[league]}/teams/${houstonTeams[league]}/schedule`
-      : `https://site.api.espn.com/apis/site/v2/sports/${espnLeagueMap[league]}/scoreboard`;
+     const baseTeamUrl = `https://site.api.espn.com/apis/site/v2/sports/${espnLeagueMap[league]}/teams/${houstonTeams[league]}/schedule`;
 
-    const r = await fetch(espnUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!r.ok) throw new Error('ESPN fallback failed');
-    const data = await r.json();
-    const events = data.events || [];
+    let events = [];
+    if (isHoustonTeam) {
+      // Team-schedule endpoint returns ONE season type per call and defaults to
+      // the current one — in August that's NFL preseason, hiding the whole season.
+      const seasonTypes = espnLeagueMap[league].startsWith('football') ? [1, 2, 3] : [2, 3];
+      const batches = await Promise.all(seasonTypes.map(async st => {
+        try {
+          const rr = await fetch(`${baseTeamUrl}?seasontype=${st}`, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (!rr.ok) return [];
+          const dd = await rr.json();
+          return dd.events || [];
+        } catch { return []; }
+      }));
+      const seenIds = new Set();
+      events = batches.flat().filter(e => {
+        if (!e?.id || seenIds.has(e.id)) return false;
+        seenIds.add(e.id);
+        return true;
+      });
+      if (!events.length) throw new Error('ESPN fallback failed');
+    } else {
+      const r = await fetch(
+        `https://site.api.espn.com/apis/site/v2/sports/${espnLeagueMap[league]}/scoreboard`,
+        { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000) }
+      );
+      if (!r.ok) throw new Error('ESPN fallback failed');
+      const data = await r.json();
+      events = data.events || [];
+    }
 
-    const parseScore = (val) => { const n = parseInt(val); return isNaN(n) ? undefined : n; };
+    const parseScore = (val) => {
+      if (val == null) return undefined;
+      const raw = (typeof val === 'object') ? (val.value ?? val.displayValue) : val;
+      const n = parseInt(raw, 10);
+      return isNaN(n) ? undefined : n;
+    };
 
     let games = events.map(event => {
       const comp = event.competitions?.[0];
@@ -341,8 +369,9 @@ export default async function handler(req, res) {
       const away = competitors.find(c => c.homeAway === 'away');
       if (!home || !away) return null;
 
-      const statusName  = event.status?.type?.name?.toLowerCase() || '';
-      const statusState = event.status?.type?.state?.toLowerCase() || '';
+      const statusObj   = event.status || comp?.status || {};
+      const statusName  = statusObj.type?.name?.toLowerCase() || '';
+      const statusState = statusObj.type?.state?.toLowerCase() || '';
       const isFinal = statusName.includes('final') || statusState === 'post';
       const isLive  = statusName.includes('progress') || statusState === 'in';
       const homeAbbr = home.team?.abbreviation || 'HOME';
@@ -361,8 +390,8 @@ export default async function handler(req, res) {
       }));
 
       // Live detail
-      const period = event.status?.period;
-      const clock  = event.status?.displayClock;
+      const period = statusObj.period ?? event.status?.period;
+      const clock  = statusObj.displayClock ?? event.status?.displayClock;
       const sportType = espnLeagueMap[league]?.split('/')[0];
       let liveDetail = null;
       if (isLive && period) {
@@ -406,8 +435,8 @@ export default async function handler(req, res) {
       games.sort((a,b) => a.start_date_ms - b.start_date_ms);
       const nowMs  = Date.now();
       const live2  = games.filter(g => g.status === 'inprogress');
-      const past   = games.filter(g => g.start_date_ms < nowMs && g.status !== 'inprogress');
-      const future = games.filter(g => g.start_date_ms >= nowMs && g.status !== 'inprogress');
+      const past   = games.filter(g => g.status === 'closed');
+      const future = games.filter(g => g.status === 'scheduled' && g.start_date_ms >= nowMs);
       games = [...live2, ...past.slice(-6).reverse(), ...future.slice(0, 6)];
     } else {
       const live2    = games.filter(g => g.status === 'inprogress');

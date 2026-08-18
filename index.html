@@ -2701,6 +2701,192 @@
             margin-bottom: 0.6rem;
             min-height: 1.2rem;
         }
+        <style>
+        /* ── CARBON & WARMING ── */
+        .co2-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .co2-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+        }
+        .co2-card-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .co2-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            line-height: 1.35;
+        }
+        .co2-val {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--green);
+            line-height: 1.15;
+            white-space: nowrap;
+        }
+        .co2-val.hot   { color: #f87171; }
+        .co2-val.blue  { color: #60a5fa; }
+        .co2-val.amber { color: #facc15; }
+        .co2-unit {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: 0.25rem;
+        }
+        .co2-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+            line-height: 1.5;
+        }
+        .co2-chip {
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid;
+            white-space: nowrap;
+        }
+        .co2-chip.observed    { color: #4ade80; border-color: #4ade8055; background: #4ade8012; }
+        .co2-chip.regression  { color: #60a5fa; border-color: #60a5fa55; background: #60a5fa12; }
+        .co2-chip.correlation { color: #facc15; border-color: #facc1555; background: #facc1512; }
+ 
+        /* AR6 range bar — observed fit plotted against the published likely range */
+        .co2-range {
+            position: relative;
+            height: 22px;
+            margin-top: 0.65rem;
+        }
+        .co2-range-track {
+            position: absolute;
+            top: 9px;
+            left: 0; right: 0;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border);
+        }
+        .co2-range-band {
+            position: absolute;
+            top: 9px;
+            height: 4px;
+            border-radius: 2px;
+            background: #60a5fa66;
+        }
+        .co2-range-mark {
+            position: absolute;
+            top: 3px;
+            width: 2px;
+            height: 16px;
+            background: var(--green);
+            transform: translateX(-1px);
+        }
+        .co2-range-mark.miss { background: #f87171; }
+        .co2-range-cap {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+ 
+        /* Shared table styling — used by both the city list and the station roster */
+        .cp-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .cp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+        .cp-table th {
+            text-align: left;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.64rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            padding: 0.5rem 0.7rem;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .cp-table td {
+            padding: 0.55rem 0.7rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .cp-table tbody tr:hover { background: var(--bg-elevated); }
+        .cp-table .num {
+            font-family: 'Space Mono', monospace;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .cp-city-dot {
+            display: inline-block;
+            width: 9px; height: 9px;
+            border-radius: 2px;
+            margin-right: 7px;
+            flex-shrink: 0;
+            vertical-align: -1px;
+        }
+        .cp-status-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            margin-right: 7px;
+            vertical-align: -1px;
+        }
+        .cp-status-dot.active      { background: #4ade80; }
+        .cp-status-dot.known_stale { background: #facc15; }
+        .cp-status-dot.stale       { background: #f87171; }
+        .cp-flag {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: #facc15;
+            letter-spacing: 0.04em;
+        }
+        .cp-note {
+            display: block;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+            line-height: 1.45;
+        }
+        .cp-signal {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-top: 0.9rem;
+            padding-left: 0.8rem;
+            border-left: 2px solid var(--border);
+        }
+        .cp-caveats {
+            margin-top: 1rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .cp-caveats summary {
+            cursor: pointer;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .cp-caveats ul { margin: 0.6rem 0 0 1rem; padding: 0; }
+        .cp-caveats li { margin-bottom: 0.45rem; }
 
         #metar .metar-wrap { margin-top: 1.25rem; }
  
@@ -3846,6 +4032,69 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <div class="cp-chart-wrap"><canvas id="cp-winter-chart"></canvas></div>
             <p class="cp-insight" id="cp-signal-winter">Loading signal...</p>
         </div>
+
+        <div id="cp-roster-block" style="margin-top:2rem;display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.75rem;">
+                <h3 style="margin:0;font-size:0.95rem;">📡 Active weather stations</h3>
+                <span id="cp-roster-summary" class="cp-refresh-badge">—</span>
+            </div>
+            <div class="cp-table-wrap">
+                <table class="cp-table">
+                    <thead>
+                        <tr>
+                            <th>Station</th>
+                            <th>GHCN ID</th>
+                            <th class="num">Complete yrs</th>
+                            <th class="num">Coverage</th>
+                            <th class="num">°F / decade</th>
+                            <th class="num">Last data</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cp-roster-body"></tbody>
+                </table>
+            </div>
+            <div class="cp-signal" id="cp-roster-signal"></div>
+        </div>
+    </section>
+
+    <section id="carbon" style="display:none;">
+        <h2>🏭 Carbon &amp; Warming</h2>
+ 
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="co2-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 13 station series
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="co2-updated">Updated monthly</span>
+                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+            </div>
+        </div>
+ 
+        <div class="co2-grid" id="co2-cards"></div>
+ 
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:0.5rem;">
+            LOCAL WARMING PER 1000 GtCO₂ EMITTED
+        </div>
+        <div class="cp-table-wrap">
+            <table class="cp-table">
+                <thead>
+                    <tr>
+                        <th>City</th>
+                        <th class="num">°F / 1000 GtCO₂</th>
+                        <th class="num">r²</th>
+                        <th class="num">Δ vs time-trend</th>
+                    </tr>
+                </thead>
+                <tbody id="co2-city-body"></tbody>
+            </table>
+        </div>
+ 
+        <div class="cp-signal" id="co2-signal"></div>
+ 
+        <details class="cp-caveats">
+            <summary>How to read these numbers</summary>
+            <ul id="co2-caveats"></ul>
+        </details>
     </section>
 
 
@@ -9713,6 +9962,234 @@ window.cpUpdateSignal = function (tab) {
         new IntersectionObserver((entries) => {
             entries.forEach(e => { if (e.isIntersecting) cpLoad(); });
         }, { threshold: 0.1 }).observe(cpSection);
+    }
+})();
+
+// ═══════════ STATION ROSTER — extends the ClimatePulse section ═══════════
+// Reads climate gold's `stations` / `stations_summary`. Both are added by the
+// roster patch in climate_pipeline.py; if the deployed gold predates that run,
+// the block stays hidden rather than rendering an empty table.
+(function () {
+    'use strict';
+ 
+    const fmt = (n, d = 0) => (n === null || n === undefined ? '—' : Number(n).toFixed(d));
+ 
+    function daysAgo(iso) {
+        const ms = Date.now() - new Date(iso + 'T00:00:00Z').getTime();
+        const d  = Math.round(ms / 86400000);
+        if (d <= 1) return 'today';
+        if (d < 60) return d + 'd ago';
+        return Math.round(d / 30) + 'mo ago';
+    }
+ 
+    function render(d) {
+        const roster = d.stations, sum = d.stations_summary;
+        if (!Array.isArray(roster) || !roster.length || !sum) return;
+ 
+        const block = document.getElementById('cp-roster-block');
+        const body  = document.getElementById('cp-roster-body');
+        if (!block || !body) return;
+ 
+        document.getElementById('cp-roster-summary').textContent =
+            `${sum.active}/${sum.total} active · ${sum.countries} countries · ${sum.station_years} station-years`;
+ 
+        body.innerHTML = roster.map(s => {
+            // record_current is the honest freshness signal. lag_days can read
+            // "a year behind" while the last COMPLETE year is far older — Rome
+            // has 2012–2024 data that the 12-month guard drops entirely.
+            const gap    = s.record_current === false;
+            const trend  = s.trend_reliable
+                ? `<span style="color:${s.slope_annual > 0 ? '#f87171' : '#60a5fa'}">${s.slope_annual > 0 ? '+' : ''}${fmt(s.slope_annual, 2)}</span>`
+                : `<span style="color:var(--text-muted)" title="under 25 complete years">—</span>`;
+ 
+            return `<tr>
+                <td>
+                    <span class="cp-status-dot ${s.status}"></span>
+                    <span class="cp-city-dot" style="background:${s.color}"></span>${s.name}
+                    ${gap ? ' <span class="cp-flag">RECORD ENDS ' + s.record_end + '</span>' : ''}
+                    ${s.note ? '<span class="cp-note">' + s.note + '</span>' : ''}
+                </td>
+                <td class="num" style="color:var(--text-muted)">${s.ghcn_id}</td>
+                <td class="num">${s.complete_years}<span style="color:var(--text-muted)"> / ${s.record_end - s.record_start + 1}</span></td>
+                <td class="num">${fmt(s.mean_coverage * 100, 0)}%</td>
+                <td class="num">${trend}</td>
+                <td class="num" style="color:var(--text-muted)">${daysAgo(s.last_data_date)}</td>
+            </tr>`;
+        }).join('');
+ 
+        // Signal computed from the roster, never hand-typed.
+        const gaps   = roster.filter(s => s.record_current === false);
+        const weak   = roster.filter(s => !s.trend_reliable);
+        const parts  = [`${sum.active} of ${sum.total} stations reporting inside the ${sum.lag_threshold}-day window.`];
+        if (gaps.length) {
+            parts.push(`${gaps.map(s => s.name.split(',')[0]).join(' and ')} still ${gaps.length > 1 ? 'serve' : 'serves'} cached history — the last <em>complete</em> calendar year is ${gaps.map(s => s.record_end).join('/')}, older than the lag figure suggests, because partial years are dropped rather than averaged.`);
+        }
+        if (weak.length) {
+            parts.push(`Trend suppressed for ${weak.map(s => s.name.split(',')[0]).join(', ')} (under 25 complete years).`);
+        }
+        document.getElementById('cp-roster-signal').innerHTML = '<strong>Signal:</strong> ' + parts.join(' ');
+ 
+        block.style.display = 'block';
+    }
+ 
+    async function load() {
+        try {
+            const res = await fetch('/api/climate');
+            if (!res.ok) return;
+            render(await res.json());
+        } catch (err) {
+            console.warn('[Roster] failed:', err);
+        }
+    }
+ 
+    const sec = document.getElementById('climate');
+    if (sec) {
+        new IntersectionObserver((entries, obs) => {
+            entries.forEach(e => { if (e.isIntersecting) { load(); obs.disconnect(); } });
+        }, { threshold: 0.1 }).observe(sec);
+    }
+})();
+ 
+ 
+// ═══════════ CARBON & WARMING ═══════════
+(function () {
+    'use strict';
+ 
+    const CO2 = { data: null, loaded: false };
+ 
+    const fmt = (n, d = 1) => (n === null || n === undefined ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }));
+ 
+    // Which cards get promoted into the top grid, and how they're styled.
+    const CARD_STYLE = {
+        emissions_annual:       'hot',
+        emissions_cumulative:   'hot',
+        concentration:          'amber',
+        global_temp:            'hot',
+        tcre:                   'blue',
+        airborne_fraction:      'blue',
+    };
+    const CARD_ORDER = ['emissions_annual', 'emissions_cumulative', 'concentration',
+                        'global_temp', 'tcre', 'airborne_fraction'];
+ 
+    function rangeBar(value, lo, hi, ok) {
+        // Pad the axis 25% either side so the band isn't flush to the edges.
+        const span = hi - lo, min = lo - span * 0.25, max = hi + span * 0.25;
+        const pct  = v => Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100));
+        return `<div class="co2-range">
+            <div class="co2-range-track"></div>
+            <div class="co2-range-band" style="left:${pct(lo)}%;width:${pct(hi) - pct(lo)}%"></div>
+            <div class="co2-range-mark ${ok ? '' : 'miss'}" style="left:${pct(value)}%"></div>
+        </div>
+        <div class="co2-range-cap">IPCC AR6 likely range ${lo}–${hi} ${ok ? '· fit lands inside' : '· fit lands OUTSIDE'}</div>`;
+    }
+ 
+    function card(e) {
+        const cls  = CARD_STYLE[e.id] || '';
+        const bits = [];
+ 
+        if (e.baseline !== undefined && e.baseline_year) {
+            bits.push(`${fmt(e.baseline, e.baseline % 1 ? 1 : 0)} in ${e.baseline_year}`);
+        }
+        if (e.detail !== undefined && e.detail_label) {
+            bits.push(`${fmt(e.detail, Math.abs(e.detail) < 10 ? 2 : 0)} ${e.detail_label}`);
+        }
+        if (e.change_pct !== undefined) bits.push(`${e.change_pct > 0 ? '+' : ''}${e.change_pct}% since ${e.baseline_year}`);
+        if (e.ci95) bits.push(`95% CI ${e.ci95[0]}–${e.ci95[1]}`);
+        if (e.r2 !== undefined) bits.push(`r² ${e.r2}`);
+ 
+        const dec = Math.abs(e.value) >= 100 ? 0 : (Math.abs(e.value) >= 10 ? 1 : 2);
+ 
+        return `<div class="co2-card">
+            <div class="co2-card-head">
+                <span class="co2-label">${e.label}</span>
+                <span class="co2-chip ${e.basis}">${e.basis}</span>
+            </div>
+            <div style="margin-top:0.5rem;">
+                <span class="co2-val ${cls}">${fmt(e.value, dec)}</span><span class="co2-unit">${e.unit || ''}</span>
+            </div>
+            ${bits.length ? `<div class="co2-sub">${bits.join(' · ')}</div>` : ''}
+            ${e.reference ? rangeBar(e.value, e.reference[0], e.reference[1], e.agrees_with_reference) : ''}
+            ${e.note ? `<div class="co2-sub" style="opacity:0.75">${e.note}</div>` : ''}
+        </div>`;
+    }
+ 
+    function render(d) {
+        const sec = document.getElementById('carbon');
+        if (!sec) return;
+ 
+        const byId = Object.fromEntries(d.effects.map(e => [e.id, e]));
+        document.getElementById('co2-cards').innerHTML =
+            CARD_ORDER.filter(id => byId[id]).map(id => card(byId[id])).join('');
+ 
+        // Header line
+        const em = d.emissions;
+        document.getElementById('co2-subtitle').textContent =
+            `${d.window[0]}–${em.latest_year} · Global Carbon Budget · NOAA Mauna Loa · NASA GISTEMP · joined to ${(d.stations || []).length} stations`;
+        if (d.generated_at) {
+            document.getElementById('co2-updated').textContent =
+                'Updated ' + new Date(d.generated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+ 
+        // Per-city table
+        const rows = d.stations || [];
+        document.getElementById('co2-city-body').innerHTML = rows.map(s => {
+            const v   = s.vs_cumulative_emissions || {};
+            const c   = s.vs_concentration || {};
+            const div = c.divergence;
+            // A large gap between the CO2 fit and the value implied by the
+            // station's own time trend means the two regressions span different
+            // windows — i.e. the record has holes. Flag it rather than hide it.
+            const wide = div !== undefined && Math.abs(div) > 0.25;
+            return `<tr>
+                <td><span class="cp-city-dot" style="background:${s.color}"></span>${s.name}
+                    ${s.trend_reliable ? '' : ' <span class="cp-flag">SHORT RECORD</span>'}</td>
+                <td class="num" style="color:${v.slope > 2 ? '#f87171' : 'var(--text)'}">${fmt(v.slope, 2)}</td>
+                <td class="num" style="color:var(--text-muted)">${v.r2 !== undefined ? v.r2.toFixed(2) : '—'}</td>
+                <td class="num" style="color:${wide ? '#facc15' : 'var(--text-muted)'}">${div !== undefined ? (div > 0 ? '+' : '') + div.toFixed(2) : '—'}</td>
+            </tr>`;
+        }).join('');
+ 
+        // Signal — computed, not hardcoded
+        const t    = (d.global || {}).tcre_observed;
+        const coll = (d.global || {}).collinearity || {};
+        const wide = rows.filter(s => Math.abs((s.vs_concentration || {}).divergence || 0) > 0.25);
+        const parts = [];
+        if (t) {
+            parts.push(`Global warming scales at ${t.slope} °C per 1000 GtCO₂ emitted (r² ${t.r2}, n=${t.n}), which lands ${t.within_ar6_likely_range ? 'inside' : 'outside'} the range IPCC AR6 assessed from models and paleoclimate — three independent observational records reproducing a published figure.`);
+        }
+        if (coll.cumulative_vs_year) {
+            parts.push(`The per-city numbers are correlations, not attribution: cumulative CO₂ tracks the calendar year at r=${coll.cumulative_vs_year}, so a single-station fit can't separate CO₂ from any other monotonic trend.`);
+        }
+        if (wide.length) {
+            parts.push(`The Δ column is a data-quality tell — ${wide.map(s => s.name.split(',')[0]).join(', ')} diverge because dropped years shift the two fits onto different windows.`);
+        }
+        document.getElementById('co2-signal').innerHTML = '<strong>Signal:</strong> ' + parts.join(' ');
+ 
+        document.getElementById('co2-caveats').innerHTML =
+            (d.caveats || []).map(c => `<li>${c}</li>`).join('');
+ 
+        sec.style.display = 'block';
+    }
+ 
+    async function load() {
+        if (CO2.loaded) return;
+        try {
+            const res = await fetch('/api/co2');
+            if (!res.ok) return;           // 503 → section stays hidden
+            CO2.data = await res.json();
+            CO2.loaded = true;
+            render(CO2.data);
+        } catch (err) {
+            console.warn('[Carbon] failed to load:', err);
+        }
+    }
+ 
+    // The section starts hidden, so observe #climate above it instead.
+    const anchor = document.getElementById('climate') || document.getElementById('carbon');
+    if (anchor) {
+        new IntersectionObserver((entries, obs) => {
+            entries.forEach(e => { if (e.isIntersecting) { load(); obs.disconnect(); } });
+        }, { threshold: 0.1 }).observe(anchor);
     }
 })();
 

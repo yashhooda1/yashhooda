@@ -3046,6 +3046,169 @@
         @media (prefers-reduced-motion: reduce) {
             #metar .cat-seg { transition: none; }
         }
+        /* ---------- Infinite Flight panel ---------- */
+        #if-flight {
+          --strip-bg: #12161b;
+          --strip-line: #2a323c;
+          --strip-ink: #e6ebf0;
+          --strip-dim: #7d8894;
+          --amber: #ffb020;
+          --live: #38d17a;
+          padding: 3rem 0;
+        }
+        #if-flight .if-head {
+          display: flex;
+          align-items: baseline;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+          margin-bottom: 1.25rem;
+        }
+        #if-flight h2 {
+          font-family: "Space Mono", ui-monospace, monospace;
+          font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          margin: 0;
+        }
+        #if-flight .if-status {
+          font-family: "Space Mono", ui-monospace, monospace;
+          font-size: 0.7rem;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--strip-dim);
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+        }
+        #if-flight .if-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--strip-dim);
+          flex: none;
+        }
+        #if-flight[data-state="live"] .if-dot {
+          background: var(--live);
+          box-shadow: 0 0 0 0 rgba(56, 209, 122, 0.6);
+          animation: if-pulse 2s infinite;
+        }
+        #if-flight[data-state="live"] .if-status { color: var(--live); }
+        #if-flight[data-state="offline"] .if-dot { background: var(--amber); }
+        #if-flight[data-state="offline"] .if-status { color: var(--amber); }
+        @keyframes if-pulse {
+          70%  { box-shadow: 0 0 0 9px rgba(56, 209, 122, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(56, 209, 122, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          #if-flight .if-dot { animation: none !important; }
+        }
+ 
+        /* ---------- the strip: an ATC paper flight strip ---------- */
+        #if-flight .if-strip {
+          background: var(--strip-bg);
+          border: 1px solid var(--strip-line);
+          border-radius: 3px;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          font-family: "Space Mono", ui-monospace, monospace;
+          overflow: hidden;
+        }
+        #if-flight .if-cell {
+          padding: 0.7rem 0.8rem;
+          border-right: 1px solid var(--strip-line);
+          border-bottom: 1px solid var(--strip-line);
+          min-width: 0;
+        }
+        #if-flight .if-cell:nth-child(4n) { border-right: none; }
+        #if-flight .if-cell.wide { grid-column: span 2; }
+        #if-flight .if-k {
+          font-size: 0.58rem;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--strip-dim);
+          display: block;
+          margin-bottom: 0.25rem;
+        }
+        #if-flight .if-v {
+          font-size: 0.95rem;
+          color: var(--strip-ink);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        #if-flight .if-v.route {
+          font-size: 1.15rem;
+          letter-spacing: 0.06em;
+        }
+        #if-flight .if-v .arrow { color: var(--amber); padding: 0 0.35rem; }
+ 
+        /* progress bar spans the full strip */
+        #if-flight .if-prog {
+          grid-column: 1 / -1;
+          height: 3px;
+          background: #1b2128;
+          position: relative;
+        }
+        #if-flight .if-prog i {
+          position: absolute;
+          inset: 0 auto 0 0;
+          background: var(--amber);
+          width: 0;
+          transition: width 1.2s linear;
+        }
+ 
+        /* ---------- map ---------- */
+        #if-flight .if-map {
+          margin-top: 1rem;
+          height: 320px;
+          border: 1px solid var(--strip-line);
+          border-radius: 3px;
+          background: #0d1114;
+          overflow: hidden;
+        }
+        #if-flight .if-map svg { width: 100%; height: 100%; display: block; }
+        @media (max-width: 640px) { #if-flight .if-map { height: 240px; } }
+ 
+        /* ---------- waypoint chain ---------- */
+        #if-flight .if-wpts {
+          margin-top: 0.9rem;
+          display: flex;
+          gap: 0;
+          overflow-x: auto;
+          padding-bottom: 0.5rem;
+          scrollbar-width: thin;
+          -webkit-overflow-scrolling: touch;
+        }
+        #if-flight .if-wpt {
+          font-family: "Space Mono", ui-monospace, monospace;
+          font-size: 0.68rem;
+          letter-spacing: 0.08em;
+          color: var(--strip-dim);
+          white-space: nowrap;
+          padding: 0.3rem 0.7rem;
+          position: relative;
+          flex: none;
+        }
+        #if-flight .if-wpt::after {
+          content: "";
+          position: absolute;
+          right: 0;
+          top: 50%;
+          width: 1px;
+          height: 10px;
+          background: var(--strip-line);
+          transform: translateY(-50%);
+        }
+        #if-flight .if-wpt:last-child::after { display: none; }
+        #if-flight .if-wpt.apt { color: var(--strip-ink); }
+        #if-flight .if-wpt.passed { color: #4c5560; }
+ 
+        #if-flight .if-note {
+          margin-top: 0.75rem;
+          font-size: 0.75rem;
+          color: var(--strip-dim);
+          font-family: "Barlow", system-ui, sans-serif;
+        }
         /* ── PROMPT LAB ── */
         .lab-strategy-grid {
             display: grid;
@@ -3858,9 +4021,55 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     </div>
                     <p class="journey-note" id="if-note">Live from the Infinite Flight Live API v2.</p>
                 </div>
+          </div><!-- /.journey-cols -->
 
+          <div id="if-flight" data-state="idle" aria-live="polite" style="padding-top:2rem;">
+              <div class="if-head">
+                  <h2>Current Flight</h2>
+                  <span class="if-status"><span class="if-dot"></span><span id="if-status-text">Checking…</span></span>
+              </div>
+
+              <div class="if-strip" id="if-strip">
+                  <div class="if-cell wide">
+                      <span class="if-k">Route</span>
+                      <div class="if-v route" id="if-route">—</div>
+                  </div>
+                  <div class="if-cell">
+                      <span class="if-k">Callsign</span>
+                      <div class="if-v" id="if-callsign">—</div>
+                  </div>
+                  <div class="if-cell">
+                      <span class="if-k">Aircraft</span>
+                      <div class="if-v" id="if-aircraft">—</div>
+                  </div>
+
+                  <div class="if-cell">
+                     <span class="if-k">Elapsed</span>
+                     <div class="if-v" id="if-duration">—</div>
+                  </div>
+                  <div class="if-cell">
+                     <span class="if-k">Altitude</span>
+                     <div class="if-v" id="if-alt">—</div>
+                 </div>
+                 <div class="if-cell">
+                    <span class="if-k">Ground speed</span>
+                    <div class="if-v" id="if-gs">—</div>
+                </div>
+                <div class="if-cell">
+                    <span class="if-k">Remaining</span>
+                    <div class="if-v" id="if-remaining">—</div>
+                </div>
+
+                    <div class="if-prog"><i id="if-prog-fill"></i></div>
+                </div>
+
+                <div class="if-map" id="if-map"></div>
+                <div class="if-wpts" id="if-wpts"></div>
+                <div class="if-note" id="if-track-note"></div>
             </div>
-        </div>
+
+        </div><!-- /.journey-wrap -->      
+            
 
         <h2 style="margin-top:2.5rem;">✈️ Live Flight Tracker</h2>
         <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
@@ -9967,6 +10176,270 @@ window.cpUpdateSignal = function (tab) {
             entries.forEach(e => { if (e.isIntersecting) cpLoad(); });
         }, { threshold: 0.1 }).observe(cpSection);
     }
+})();
+
+(function () {
+  "use strict";
+ 
+  var ENDPOINT = "/api/infinite-flight";
+  var POLL_LIVE = 20000;   // airborne
+  var POLL_IDLE = 120000;  // parked
+  var timer = null, tick = null, state = null, leafletMap = null, leafletLayers = [];
+ 
+  var $ = function (id) { return document.getElementById(id); };
+  var root = $("if-flight");
+ 
+  /* ------------------------------------------------ formatting */
+ 
+  function hhmm(sec) {
+    if (sec == null) return "—";
+    var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
+    return h + "h " + String(m).padStart(2, "0") + "m";
+  }
+  function num(v, suffix) {
+    if (v == null || isNaN(v)) return "—";
+    return Math.round(v).toLocaleString() + (suffix || "");
+  }
+ 
+  /* ------------------------------------------------ SVG map */
+ 
+  function svgMap(el, data) {
+    var plan = (data.waypoints || []).filter(function (w) { return w.lat != null; });
+    var flown = (data.track || []).filter(function (p) { return p && p[0] != null; });
+    var pos = data.position;
+ 
+    var pts = plan.map(function (w) { return [w.lat, w.lon]; }).concat(flown);
+    if (pos && pos.lat != null) pts.push([pos.lat, pos.lon]);
+    if (!pts.length) { el.innerHTML = ""; return; }
+ 
+    var W = 800, H = 360, PAD = 34;
+    var lats = pts.map(function (p) { return p[0]; });
+    var lons = pts.map(function (p) { return p[1]; });
+    var minLat = Math.min.apply(null, lats), maxLat = Math.max.apply(null, lats);
+    var minLon = Math.min.apply(null, lons), maxLon = Math.max.apply(null, lons);
+ 
+    // Keep the aspect roughly true so a short hop doesn't stretch to the frame.
+    var latSpan = Math.max(maxLat - minLat, 0.35);
+    var lonSpan = Math.max(maxLon - minLon, 0.35);
+    var cosLat = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
+    var target = (W - 2 * PAD) / (H - 2 * PAD);
+    var current = (lonSpan * cosLat) / latSpan;
+    if (current < target) lonSpan = (target * latSpan) / cosLat;
+    else latSpan = (lonSpan * cosLat) / target;
+ 
+    var cLat = (minLat + maxLat) / 2, cLon = (minLon + maxLon) / 2;
+    function X(lon) { return PAD + ((lon - (cLon - lonSpan / 2)) / lonSpan) * (W - 2 * PAD); }
+    function Y(lat) { return H - PAD - ((lat - (cLat - latSpan / 2)) / latSpan) * (H - 2 * PAD); }
+ 
+    function poly(points) {
+      return points.map(function (p) { return X(p[1]).toFixed(1) + "," + Y(p[0]).toFixed(1); }).join(" ");
+    }
+ 
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Flight route map">';
+    // grid
+    for (var g = 1; g < 6; g++) {
+      s += '<line x1="' + (W / 6) * g + '" y1="0" x2="' + (W / 6) * g + '" y2="' + H + '" stroke="#1a2027" stroke-width="1"/>';
+      s += '<line x1="0" y1="' + (H / 4) * g + '" x2="' + W + '" y2="' + (H / 4) * g + '" stroke="#1a2027" stroke-width="1"/>';
+    }
+    // planned route
+    if (plan.length > 1) {
+      s += '<polyline points="' + poly(plan.map(function (w) { return [w.lat, w.lon]; })) +
+           '" fill="none" stroke="#5a6672" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.75"/>';
+    }
+    // flown track
+    if (flown.length > 1) {
+      s += '<polyline points="' + poly(flown) + '" fill="none" stroke="#ffb020" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    }
+    // waypoint dots
+    plan.forEach(function (w) {
+      var isApt = /^[A-Z]{4}$/.test(w.name || "");
+      s += '<circle cx="' + X(w.lon).toFixed(1) + '" cy="' + Y(w.lat).toFixed(1) + '" r="' +
+           (isApt ? 4.5 : 2.5) + '" fill="' + (isApt ? "#e6ebf0" : "#5a6672") + '"/>';
+      if (isApt) {
+        s += '<text x="' + (X(w.lon) + 8).toFixed(1) + '" y="' + (Y(w.lat) - 8).toFixed(1) +
+             '" fill="#e6ebf0" font-family="Space Mono, monospace" font-size="13" letter-spacing="1">' + w.name + '</text>';
+      }
+    });
+    // aircraft
+    if (pos && pos.lat != null) {
+      var px = X(pos.lon).toFixed(1), py = Y(pos.lat).toFixed(1);
+      var hdg = pos.trackDeg != null ? pos.trackDeg : (pos.headingDeg || 0);
+      s += '<g transform="translate(' + px + ',' + py + ') rotate(' + hdg + ')">' +
+           '<path d="M0,-11 L7,8 L0,4 L-7,8 Z" fill="#38d17a"/></g>';
+    }
+    s += "</svg>";
+    el.innerHTML = s;
+  }
+ 
+  /* ------------------------------------------------ Leaflet map */
+ 
+  function leafletRender(el, data) {
+    var plan = (data.waypoints || []).filter(function (w) { return w.lat != null; });
+    var flown = (data.track || []).filter(function (p) { return p && p[0] != null; });
+    var pos = data.position;
+ 
+    if (!leafletMap) {
+      el.innerHTML = "";
+      leafletMap = L.map(el, { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 12, attribution: "&copy; OpenStreetMap, &copy; CARTO"
+      }).addTo(leafletMap);
+      L.control.attribution({ prefix: false }).addTo(leafletMap);
+    }
+    leafletLayers.forEach(function (l) { leafletMap.removeLayer(l); });
+    leafletLayers = [];
+ 
+    var bounds = [];
+    if (plan.length > 1) {
+      var pl = plan.map(function (w) { return [w.lat, w.lon]; });
+      leafletLayers.push(L.polyline(pl, { color: "#5a6672", weight: 2, dashArray: "6 6", opacity: 0.8 }).addTo(leafletMap));
+      bounds = bounds.concat(pl);
+    }
+    if (flown.length > 1) {
+      leafletLayers.push(L.polyline(flown, { color: "#ffb020", weight: 3 }).addTo(leafletMap));
+      bounds = bounds.concat(flown);
+    }
+    plan.forEach(function (w) {
+      var isApt = /^[A-Z]{4}$/.test(w.name || "");
+      leafletLayers.push(
+        L.circleMarker([w.lat, w.lon], {
+          radius: isApt ? 5 : 3,
+          color: isApt ? "#e6ebf0" : "#5a6672",
+          fillColor: isApt ? "#e6ebf0" : "#5a6672",
+          fillOpacity: 1, weight: 1
+        }).bindTooltip(w.name || "", { permanent: isApt, direction: "top", className: "if-tip" }).addTo(leafletMap)
+      );
+    });
+    if (pos && pos.lat != null) {
+      var hdg = pos.trackDeg != null ? pos.trackDeg : (pos.headingDeg || 0);
+      var icon = L.divIcon({
+        className: "",
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+        html: '<svg width="22" height="22" viewBox="-11 -11 22 22" style="transform:rotate(' + hdg + 'deg)">' +
+              '<path d="M0,-9 L6,7 L0,3.5 L-6,7 Z" fill="#38d17a"/></svg>'
+      });
+      leafletLayers.push(L.marker([pos.lat, pos.lon], { icon: icon }).addTo(leafletMap));
+      bounds.push([pos.lat, pos.lon]);
+    }
+    if (bounds.length) leafletMap.fitBounds(bounds, { padding: [30, 30] });
+    setTimeout(function () { leafletMap.invalidateSize(); }, 0);
+  }
+ 
+  function renderMap(data) {
+    var el = $("if-map");
+    var useLeaflet = typeof window.L !== "undefined" && window.innerWidth >= 768;
+    if (useLeaflet) { try { leafletRender(el, data); return; } catch (e) { /* fall through */ } }
+    if (leafletMap) { leafletMap.remove(); leafletMap = null; leafletLayers = []; }
+    svgMap(el, data);
+  }
+ 
+  /* ------------------------------------------------ render */
+ 
+  function renderWaypoints(data) {
+    var box = $("if-wpts");
+    var wpts = data.waypoints || [];
+    if (!wpts.length) { box.innerHTML = ""; return; }
+    box.innerHTML = wpts.map(function (w) {
+      var apt = /^[A-Z]{4}$/.test(w.name || "");
+      return '<span class="if-wpt' + (apt ? " apt" : "") + '">' + (w.name || "•") + "</span>";
+    }).join("");
+  }
+ 
+  function render(data) {
+    state = data;
+ 
+    if (data.status === "live") {
+      root.dataset.state = "live";
+      $("if-status-text").textContent = "In flight · " + (data.server || "Live");
+    } else if (data.status === "last" && data.mode === "offline") {
+      root.dataset.state = "offline";
+      $("if-status-text").textContent = "Last flight · solo";
+    } else if (data.status === "last") {
+      root.dataset.state = "last";
+      $("if-status-text").textContent = "Last flight · " + (data.server || "");
+    } else {
+      root.dataset.state = "idle";
+      $("if-status-text").textContent = "On the ground";
+      $("if-track-note").textContent = "Nothing logged yet. The panel wakes up on the next flight.";
+      return;
+    }
+ 
+    var o = (data.origin && data.origin.icao) || "????";
+    var d = (data.destination && data.destination.icao) || "????";
+    $("if-route").innerHTML = o + '<span class="arrow">→</span>' + d;
+    $("if-callsign").textContent = data.callsign || "—";
+    $("if-aircraft").textContent = data.aircraft || "—";
+ 
+    var p = data.position || {};
+    $("if-alt").textContent = num(p.altitudeFt, " ft");
+    $("if-gs").textContent = num(p.groundSpeedKts, " kt");
+    $("if-remaining").textContent =
+      data.distanceNm && data.distanceNm.remaining != null
+        ? num(data.distanceNm.remaining, " nm")
+        : data.distanceNm && data.distanceNm.total
+        ? num(data.distanceNm.total, " nm total")
+        : "—";
+ 
+    $("if-duration").textContent = hhmm(data.durationSec);
+    $("if-prog-fill").style.width = (data.progressPct != null ? data.progressPct : (data.status === "last" ? 100 : 0)) + "%";
+ 
+     $("if-track-note").textContent = data.note || (data.mode === "offline"
+      ? "Flown offline in solo / Autopilot+ — route logged by hand, no live position."
+      : "");
+ 
+    renderWaypoints(data);
+    renderMap(data);
+ 
+    // Tick the elapsed clock locally between polls.
+    clearInterval(tick);
+    if (data.status === "live" && data.startedAt) {
+      var t0 = new Date(data.startedAt).getTime();
+      tick = setInterval(function () {
+        $("if-duration").textContent = hhmm(Math.floor((Date.now() - t0) / 1000));
+      }, 1000);
+    }
+  }
+ 
+  /* ------------------------------------------------ poll */
+ 
+  function poll() {
+    fetch(ENDPOINT, { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.error) throw new Error(data.error);
+        render(data);
+        schedule(data.status === "live" ? POLL_LIVE : POLL_IDLE);
+      })
+      .catch(function () {
+        $("if-status-text").textContent = "Tracker unavailable";
+        schedule(POLL_IDLE);
+      });
+  }
+ 
+  function schedule(ms) {
+    clearTimeout(timer);
+    if (document.hidden) return;          // don't poll a background tab
+    timer = setTimeout(poll, ms);
+  }
+ 
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { clearTimeout(timer); clearInterval(tick); }
+    else poll();
+  });
+ 
+  // Only start once the section is actually on screen.
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      if (entries.some(function (e) { return e.isIntersecting; })) {
+        io.disconnect();
+        poll();
+      }
+    }, { rootMargin: "200px 0px" });   // no threshold — tall sections never hit a % gate on mobile
+    io.observe(root);
+  } else {
+    poll();
+  }
 })();
 
 // ═══════════ STATION ROSTER — extends the ClimatePulse section ═══════════

@@ -16,6 +16,8 @@
 //   UPSTASH_REDIS_REST_TOKEN (already set on this project)
 
 const API = "https://api.infiniteflight.com/public/v2";
+// Accepts either env var name — INFINITE_FLIGHT_API_KEY is what's set on Vercel.
+const IF_KEY = process.env.INFINITE_FLIGHT_API_KEY || process.env.IF_API_KEY;
 
 const KEY_LIVE = "if:live";        // hot cache of the current live payload  (20s)
 const KEY_LAST = "if:last";        // most recent completed flight            (60d)
@@ -60,7 +62,7 @@ async function rSet(key, value, ttlSeconds) {
 
 async function ifGet(path) {
   const r = await fetch(`${API}${path}`, {
-    headers: { Authorization: `Bearer ${process.env.IF_API_KEY}` },
+     headers: { Authorization: `Bearer ${IF_KEY}` },
   });
   if (!r.ok) throw new Error(`IF ${path} -> ${r.status}`);
   const j = await r.json();
@@ -329,8 +331,8 @@ export default async function handler(req, res) {
 
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed." });
 
-  if (!process.env.IF_API_KEY || !process.env.IF_USERNAME) {
-    return res.status(500).json({ error: "IF_API_KEY and IF_USERNAME are not configured." });
+  if (!IF_KEY || !process.env.IF_USERNAME) {
+    return res.status(500).json({ error: "INFINITE_FLIGHT_API_KEY and IF_USERNAME are not configured." });
   }
 
   // Serve the hot cache first — this endpoint can be polled hard from the browser

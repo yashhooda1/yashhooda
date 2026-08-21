@@ -8829,9 +8829,12 @@ loadWeather();
         });
  
     function render(d) {
-        $('metar-meta').textContent =
-            'Snapshot ' + when(d.generated_at) +
-            ' · observations spanning ' + when(d.window.from) + ' to ' + when(d.window.to);
+        const ageMin = (Date.now() - new Date(d.generated_at)) / 60000;
+        const fresh = ageMin < 150;
+        $('metar-meta').innerHTML =
+            '<span style="color:' + (fresh ? '#1a9850' : '#c0392b') + '">●</span> ' +
+            (fresh ? 'Live — updated ' : 'Last updated ') + when(d.generated_at) +
+            ' · ' + d.stats.stations.toLocaleString() + ' stations reporting';
  
         $('metar-stats').innerHTML = [
             [fmt(d.stats.stations), 'stations reporting'],

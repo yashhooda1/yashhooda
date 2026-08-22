@@ -781,6 +781,52 @@ ENGINEERING:
 7. PySpark Coding Assistant — End-to-end fine-tuning pipeline for a PySpark coding assistant, built on a free Colab T4. Public code corpora turned out to be unusable — filtering 122k rows yielded 58 examples, mostly Spark 1.x RDD-era API — so the training set is synthetic, distilled from 15 hand-written production seeds and expanded to 191 validated examples. Every example passes AST parse, required-symbol, and deprecated-API checks before entering the corpus. Trained in 11 minutes at 6.3 GB peak VRAM: validation loss 0.757, perplexity 1.69, mean token accuracy 0.833. On held-out prompts it scored 1 of 3 — it learned idiomatic form but not operator semantics, confusing left_anti with left_semi. Published with that result documented rather than omitted, because the binding constraint is corpus size, not architecture. Adapter and dataset are both on HuggingFace Hub.Mistral-7B QLoRA fine-tune for production PySpark (honest results, failure cases published). huggingface.co/hoodarunner/pyspark-coding-assistant-lora
 8. Offline ReAct Agent — a from-scratch ReAct agent against a local Ollama model, zero cloud dependency. A fully offline ReAct agent running on a local small language model — no API key, no network calls, no framework. The reasoning loop is hand-written rather than pulled from LangChain, so every step of thought → action → observation is inspectable. Six sandboxed tools, a stdlib-only SSE server, and a test suite that runs green without a model loaded, which means CI validates the agent's control flow independently of model output. ollama.com/hoodarunner/offline-agent
 (Earlier work: Virtual TA chatbot, IBM AI capstone, various LangChain/GPT assistants.)
+9. 🌪️ METAR Stream — Real-Time Aviation Weather
+Streaming
+Apache Kafka
+Spark Structured Streaming
+Delta Lake
+Medallion Architecture
+Python (Pandas · NumPy · PySpark)
+Live API
+Data Quality & Reconciliation
+Kill Switches & Graceful Degradation
+Docker
+Redpanda
+NOAA Aviation Weather API
+Continuous ingestion of surface weather observations from ~1,100 North American airport stations — Kafka into a Spark Structured Streaming job writing a Bronze→Silver→Gold Delta medallion, with a low-visibility and high-gust alert stream. Watermarking, event-time deduplication, per-sink checkpointing and offset-throttled backpressure. Measured over 25.6 hours: 240,997 raw messages ingested, 10,018 observations retained after dedupe, zero duplicate keys.
+
+The interesting part is what broke. The upstream API silently truncates every query at 400 results — the only clue was that the number was too round. Partitioning silver by station_id produced 2,364 Parquet files for 38 MB of data; repartitioning by date cut it to 6. Two Spark jobs sharing a checkpoint directory corrupted the offset log, and recovery meant rebuilding downstream layers from the replayable bronze source. A 181-second broker outage was survived with zero duplicate keys.
+
+Two hypotheses were measured and discarded. High p95 ingest lag looked like watermark drops, but direct measurement showed 2 records lost out of 4,179 — 0.0%; ingest lag and event-time lateness are different quantities, and the config was left alone. And the coverage wasn't US-only: grouping station IDs by ICAO prefix showed 996 US, 90 Canadian, 18 Mexican. The bounding boxes were drawn against API result limits, not borders.
+
+Live Dashboard: https://www.yashhooda.ai/#metar
+Github: https://github.com/yashhooda1/metar-stream
+
+10. ⚡ PaceForge — Offline AI Running Coach
+Offline AI
+Python (Pandas · NumPy · PySpark)
+Ollama
+MCP Servers
+Local LLM Inference
+Agentic / ReAct Loops
+Hybrid RAG · BM25 + Dense
+Pydantic
+SQLite
+Garmin Connect
+Strava API
+CI Test Suites (pytest)
+Property-Based Testing (Hypothesis)
+mypy --strict
+GitHub Actions
+A running coach that answers “am I overtraining?” from my real Garmin and Strava history — training load, injury risk, race predictions, and an adaptive 5K plan — with no API keys and no cloud inference. Everything runs on a local model; the health data never leaves the machine.
+
+The decision that makes it trustworthy: the LLM is the interface, not the reasoning engine. VDOT, Banister TRIMP, exponentially-weighted acute:chronic workload ratio, and periodisation are deterministic, unit-tested functions — the model only picks tools, reads structured output, and explains it. Every recommendation traces to a named threshold instead of a black box, the same history always yields the same findings, and a 7B model on a laptop is enough. The analysis command runs with no model at all.
+
+Two MCP servers — Garmin (7 tools, including structured-workout writes) and Strava (6 read and analysis tools) — so any MCP host can drive it, not just this agent. 289 tests, mypy --strict, and CI across Linux/macOS/Windows including a smoke job that proves the offline claim by running the whole pipeline with no model, no credentials, and no network.
+
+Github: https://github.com/yashhooda1/paceforge
+Ollama Model: https://ollama.com/hoodarunner/paceforge-coach
  
 ═══════════════════════════════════════
 WEATHER & CLIMATE (a genuine interest — and a data engineering domain)

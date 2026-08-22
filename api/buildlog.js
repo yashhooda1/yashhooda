@@ -18,6 +18,17 @@ const ALLOWED_ORIGINS = new Set([
 // ── STATIC SHIPPED MILESTONES (always shown, most recent first) ──────────────
 const SHIPPED_MILESTONES = [
   {
+    date:    '2026-08-22',
+    title:   'PaceForge — Offline AI Running Coach with Garmin + Strava MCP',
+    body:    'Shipped a running coach that runs entirely on a local model — no API keys, no cloud inference, training data never leaves the machine. The design decision: the LLM is the interface, not the reasoning engine. VDOT, Banister TRIMP, EWMA acute:chronic workload ratio, and 5K periodisation are deterministic unit-tested functions; the model only selects tools and explains results, so every recommendation traces to a named threshold rather than a black box. Two MCP servers (Garmin: 7 tools including structured-workout writes; Strava: 6 read/analysis), hybrid dense+BM25 RAG over a running-science corpus, 289 tests, mypy --strict, CI across Linux/macOS/Windows with a smoke job that proves the offline claim by running the full pipeline with no model, no credentials, and no network.',
+    tags:    ['mcp', 'local-llm', 'ollama', 'offline-ai', 'agent', 'garmin', 'strava', 'testing'],
+    type:    'shipped',
+    links:   [
+      { label: 'GitHub', url: 'https://github.com/yashhooda1/paceforge' },
+      { label: 'Ollama Model', url: 'https://ollama.com/hoodarunner/paceforge-coach' },
+    ],
+  },
+  {
     date:    '2026-06-27',
     title:   'Prompt Lab + LLM-as-Judge Eval Layer',
     body:    'Added systematic prompt engineering (zero-shot, few-shot, CoT, XML, role-based, extended thinking) with side-by-side comparison UI. Deployed LLM-as-judge scoring every chat response on helpfulness/accuracy/safety using claude-haiku.',

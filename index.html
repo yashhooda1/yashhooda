@@ -4038,6 +4038,48 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
 
+            <div class="project-card">
+                <div class="project-title">⚡ PaceForge — Offline AI Running Coach</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Offline AI</span>
+                    <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
+                    <span class="skill-tag ai">Ollama</span>
+                    <span class="skill-tag ai">MCP Servers</span>
+                    <span class="skill-tag ai">Local LLM Inference</span>
+                    <span class="skill-tag ai">Agentic / ReAct Loops</span>
+                    <span class="skill-tag ai">Hybrid RAG · BM25 + Dense</span>
+                    <span class="skill-tag ai">Pydantic</span>
+                    <span class="skill-tag de">SQLite</span>
+                    <span class="tech-pill">Garmin Connect</span>
+                    <span class="tech-pill">Strava API</span>
+                    <span class="skill-tag">CI Test Suites (pytest)</span>
+                    <span class="skill-tag">Property-Based Testing (Hypothesis)</span>
+                    <span class="skill-tag">mypy --strict</span>
+                    <span class="skill-tag cl">GitHub Actions</span>
+                <div class="project-desc">
+                    A running coach that answers &ldquo;am I overtraining?&rdquo; from my real Garmin and Strava
+                    history — training load, injury risk, race predictions, and an adaptive 5K plan — with no API
+                    keys and no cloud inference. Everything runs on a local model; the health data never leaves
+                    the machine.
+                    <br><br>
+                    The decision that makes it trustworthy: <strong>the LLM is the interface, not the reasoning
+                    engine.</strong> VDOT, Banister TRIMP, exponentially-weighted acute:chronic workload ratio,
+                    and periodisation are deterministic, unit-tested functions — the model only picks tools, reads
+                    structured output, and explains it. Every recommendation traces to a named threshold instead
+                    of a black box, the same history always yields the same findings, and a 7B model on a laptop
+                    is enough. The analysis command runs with no model at all.
+                    <br><br>
+                    Two MCP servers — Garmin (7 tools, including structured-workout writes) and Strava (6 read
+                    and analysis tools) — so any MCP host can drive it, not just this agent. 289 tests,
+                    <code>mypy --strict</code>, and CI across Linux/macOS/Windows including a smoke job that proves
+                    the offline claim by running the whole pipeline with no model, no credentials, and no network.
+                </div>
+                <div class="project-links">
+                    <a href="https://github.com/yashhooda1/paceforge" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                    <a href="https://ollama.com/hoodarunner/paceforge-coach" target="_blank" rel="noopener" class="project-btn">🦙 Ollama Model</a>
+                </div>
+            </div>
+
         </div>
     </section>
 

@@ -3322,6 +3322,181 @@
           color: var(--strip-dim);
           font-family: "Barlow", system-ui, sans-serif;
         }
+        .hpc {
+          /* instrument palette — the heat ramp is data, not decoration */
+          --hpc-ink: #0F1A18;
+          --hpc-ink-2: #46574F;
+          --hpc-paper: #F3F5F1;
+          --hpc-panel: #FFFFFF;
+          --hpc-line: #CBD4CC;
+          --hpc-line-2: #E4E9E3;
+          --hpc-z0: #1F7A6B;
+          --hpc-z1: #6E9430;
+          --hpc-z2: #C2900F;
+          --hpc-z3: #C05A1C;
+          --hpc-z4: #A02A2A;
+          --hpc-z5: #6C2159;
+          --hpc-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+          --hpc-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+ 
+          background: var(--hpc-paper);
+          color: var(--hpc-ink);
+          font-family: var(--hpc-sans);
+          line-height: 1.5;
+          padding: clamp(18px, 4vw, 40px);
+          border: 1px solid var(--hpc-line);
+          border-radius: 4px;
+          max-width: 860px;
+          margin: 0 auto;
+          container-type: inline-size;
+          -webkit-text-size-adjust: 100%;
+        }
+        @media (prefers-color-scheme: dark) {
+          .hpc {
+            --hpc-ink: #E8EDE8;
+            --hpc-ink-2: #9AA9A1;
+            --hpc-paper: #0D1413;
+            --hpc-panel: #141C1A;
+            --hpc-line: #2A3733;
+            --hpc-line-2: #1D2725;
+            --hpc-z0: #35A392;
+            --hpc-z1: #8FBB43;
+            --hpc-z2: #E0AC2A;
+            --hpc-z3: #E27438;
+            --hpc-z4: #D14747;
+            --hpc-z5: #A6469A;
+          }
+        }
+        .hpc *, .hpc *::before, .hpc *::after { box-sizing: border-box; }
+        .hpc :focus-visible { outline: 2px solid var(--hpc-z0); outline-offset: 2px; border-radius: 2px; }
+ 
+        /* ---- header ---- */
+        .hpc-eyebrow {
+          font-family: var(--hpc-mono);
+          font-size: 11px;
+          letter-spacing: .16em;
+          text-transform: uppercase;
+          color: var(--hpc-ink-2);
+          margin: 0 0 10px;
+        }
+        .hpc-title {
+          font-family: var(--hpc-mono);
+          font-size: clamp(24px, 6vw, 34px);
+          font-weight: 600;
+          letter-spacing: -.02em;
+          margin: 0 0 8px;
+          line-height: 1.1;
+        }
+        .hpc-lede { margin: 0 0 22px; color: var(--hpc-ink-2); font-size: 15px; max-width: 56ch; }
+ 
+        /* ---- the readout: signature element ---- */
+        .hpc-readout {
+          background: var(--hpc-panel);
+          border: 1px solid var(--hpc-line);
+          border-radius: 3px;
+          padding: 16px 16px 12px;
+          margin-bottom: 22px;
+        }
+        .hpc-strip {
+          font-family: var(--hpc-mono);
+          font-size: 12px;
+          letter-spacing: .04em;
+          color: var(--hpc-ink-2);
+          word-break: break-word;
+          margin: 0 0 14px;
+        }
+        .hpc-strip b { color: var(--hpc-ink); font-weight: 600; }
+        .hpc-gauge { position: relative; height: 34px; }
+        .hpc-bands { display: flex; height: 10px; border-radius: 2px; overflow: hidden; }
+        .hpc-bands span { flex: 1 1 0; }
+        .hpc-ticks {
+          display: flex; justify-content: space-between;
+          font-family: var(--hpc-mono); font-size: 10px; color: var(--hpc-ink-2);
+          margin-top: 4px; letter-spacing: .05em;
+        }
+        .hpc-needle {
+          position: absolute; top: -5px; width: 2px; height: 20px;
+          background: var(--hpc-ink); left: 0;
+          transition: left .35s cubic-bezier(.2,.7,.3,1);
+        }
+        .hpc-needle::after {
+          content: attr(data-sum);
+          position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+          font-family: var(--hpc-mono); font-size: 11px; font-weight: 600;
+          background: var(--hpc-panel); padding: 0 3px; color: var(--hpc-ink);
+        }
+        @media (prefers-reduced-motion: reduce) { .hpc-needle { transition: none; } }
+ 
+        /* ---- fields ---- */
+        .hpc-grid { display: grid; gap: 18px; grid-template-columns: 1fr; margin-bottom: 20px; }
+        @container (min-width: 620px) { .hpc-grid { grid-template-columns: 1fr 1fr; gap: 18px 28px; } }
+        .hpc-block { border-top: 1px solid var(--hpc-line-2); padding-top: 14px; }
+        .hpc-legend {
+          font-family: var(--hpc-mono); font-size: 11px; letter-spacing: .14em;
+          text-transform: uppercase; color: var(--hpc-ink-2); margin: 0 0 12px;
+        }
+        .hpc-field { margin-bottom: 12px; }
+        .hpc-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+        .hpc-hint { display: block; font-size: 12px; color: var(--hpc-ink-2); font-weight: 400; margin-top: 3px; }
+        .hpc input[type="number"], .hpc select {
+          font-family: var(--hpc-mono); font-size: 16px;
+          width: 100%; padding: 9px 10px;
+          border: 1px solid var(--hpc-line); border-radius: 3px;
+          background: var(--hpc-panel); color: var(--hpc-ink);
+        }
+        .hpc-pace { display: flex; align-items: center; gap: 8px; }
+        .hpc-pace input { width: 5.5em; text-align: center; }
+        .hpc-pace span { font-family: var(--hpc-mono); color: var(--hpc-ink-2); }
+ 
+        /* segmented toggles */
+        .hpc-seg { display: flex; border: 1px solid var(--hpc-line); border-radius: 3px; overflow: hidden; }
+        .hpc-seg input { position: absolute; opacity: 0; pointer-events: none; }
+        .hpc-seg label {
+          flex: 1; text-align: center; padding: 8px 6px; font-size: 13px; cursor: pointer;
+          background: var(--hpc-panel); border-right: 1px solid var(--hpc-line);
+          user-select: none;
+        }
+        .hpc-seg label:last-of-type { border-right: 0; }
+        .hpc-seg input:checked + label { background: var(--hpc-ink); color: var(--hpc-paper); }
+        .hpc-seg input:focus-visible + label { outline: 2px solid var(--hpc-z0); outline-offset: -2px; }
+ 
+        .hpc-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .hpc-btn {
+          font-family: var(--hpc-sans); font-size: 14px; font-weight: 500;
+          padding: 10px 16px; border-radius: 3px; cursor: pointer;
+          border: 1px solid var(--hpc-ink); background: var(--hpc-ink); color: var(--hpc-paper);
+        }
+        .hpc-btn.hpc-ghost { background: transparent; color: var(--hpc-ink); }
+        .hpc-btn[disabled] { opacity: .55; cursor: progress; }
+        .hpc-status { font-size: 12px; color: var(--hpc-ink-2); font-family: var(--hpc-mono); }
+ 
+        /* ---- results ---- */
+        .hpc-results { margin-top: 22px; border-top: 1px solid var(--hpc-line); padding-top: 18px; }
+        .hpc-headline {
+          font-family: var(--hpc-mono); font-size: clamp(32px, 9vw, 46px);
+          font-weight: 600; letter-spacing: -.03em; line-height: 1; margin: 0;
+        }
+        .hpc-headline small { font-size: .4em; font-weight: 400; letter-spacing: 0; color: var(--hpc-ink-2); }
+        .hpc-sub { margin: 8px 0 18px; font-size: 15px; color: var(--hpc-ink-2); }
+        .hpc-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--hpc-line-2); border: 1px solid var(--hpc-line-2); }
+        .hpc-metric { background: var(--hpc-panel); padding: 12px 10px; }
+        .hpc-metric dt { font-family: var(--hpc-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--hpc-ink-2); margin-bottom: 4px; }
+        .hpc-metric dd { margin: 0; font-family: var(--hpc-mono); font-size: 17px; font-weight: 600; }
+        .hpc-verdict {
+          margin: 16px 0 0; padding: 12px 14px; border-left: 3px solid var(--hpc-z0);
+          background: var(--hpc-panel); font-size: 14px;
+        }
+        .hpc-verdict strong { display: block; font-family: var(--hpc-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
+ 
+        .hpc-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+        .hpc-table caption { text-align: left; font-family: var(--hpc-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--hpc-ink-2); padding-bottom: 8px; }
+        .hpc-table th, .hpc-table td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--hpc-line-2); }
+        .hpc-table th { font-weight: 500; color: var(--hpc-ink-2); font-size: 12px; }
+        .hpc-table td { font-family: var(--hpc-mono); }
+        .hpc-table td:first-child { font-family: var(--hpc-sans); }
+        .hpc-foot { margin-top: 18px; font-size: 12px; color: var(--hpc-ink-2); }
+        .hpc-foot a { color: inherit; }
+        .hpc [hidden] { display: none !important; }
         /* ── PROMPT LAB ── */
         .lab-strategy-grid {
             display: grid;
@@ -4822,6 +4997,129 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <div id="analytics-content">
             <div class="analytics-loading">Analyzing your training data...</div>
         </div>
+    </section>
+
+    <!-- Running Heat pace Calculator -->
+    <section class="hpc" id="heat-pace">
+      <p class="hpc-eyebrow">Tool · Running × Weather</p>
+      <h1 class="hpc-title">Heat-Adjusted Pace</h1>
+      <p class="hpc-lede">Air temperature and dew point decide how much of your sweat can actually evaporate. Add them together and you get the number that predicts how much slower the same effort will feel today.</p>
+ 
+      <div class="hpc-readout">
+        <p class="hpc-strip" id="hpc-strip">CONDITIONS <b>—</b> · SUM <b>—</b> · ZONE <b>—</b></p>
+        <div class="hpc-gauge">
+          <div class="hpc-bands" aria-hidden="true">
+            <span style="background:var(--hpc-z0)"></span>
+            <span style="background:var(--hpc-z1)"></span>
+            <span style="background:var(--hpc-z2)"></span>
+            <span style="background:var(--hpc-z3)"></span>
+            <span style="background:var(--hpc-z4)"></span>
+            <span style="background:var(--hpc-z5)"></span>
+          </div>
+          <div class="hpc-needle" id="hpc-needle" data-sum="" hidden></div>
+          <div class="hpc-ticks" aria-hidden="true"><span>100</span><span>120</span><span>140</span><span>160</span><span>180</span></div>
+        </div>
+      </div>
+ 
+      <div class="hpc-actions">
+        <button type="button" class="hpc-btn hpc-ghost" id="hpc-metar">Pull live METAR</button>
+        <select id="hpc-station" aria-label="Weather station">
+          <option value="KHOU">KHOU · Houston Hobby</option>
+          <option value="KIAH">KIAH · Houston Intercontinental</option>
+          <option value="KSGR">KSGR · Sugar Land</option>
+          <option value="KDFW">KDFW · Dallas–Fort Worth</option>
+          <option value="KAUS">KAUS · Austin</option>
+          <option value="KJFK">KJFK · New York</option>
+        </select>
+      </div>
+      <p class="hpc-status" id="hpc-status">Or enter conditions by hand.</p>
+ 
+      <div class="hpc-grid">
+        <div class="hpc-block">
+          <p class="hpc-legend">Conditions</p>
+          <div class="hpc-field">
+            <span class="hpc-label" id="hpc-units-label">Units</span>
+            <div class="hpc-seg" role="group" aria-labelledby="hpc-units-label">
+              <input type="radio" name="hpc-units" id="hpc-u-f" value="F" checked><label for="hpc-u-f">°F</label>
+              <input type="radio" name="hpc-units" id="hpc-u-c" value="C"><label for="hpc-u-c">°C</label>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="hpc-temp">Air temperature
+              <span class="hpc-hint">Use the forecast for your start time, not the daily high.</span>
+            </label>
+            <input type="number" id="hpc-temp" inputmode="decimal" step="1" value="85">
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="hpc-dew">Dew point
+              <span class="hpc-hint">Under “details” in any weather app. Higher = your sweat stops working.</span>
+            </label>
+            <input type="number" id="hpc-dew" inputmode="decimal" step="1" value="74">
+          </div>
+        </div>
+ 
+        <div class="hpc-block">
+          <p class="hpc-legend">Your run</p>
+          <div class="hpc-field">
+            <span class="hpc-label" id="hpc-paceunit-label">Pace unit</span>
+            <div class="hpc-seg" role="group" aria-labelledby="hpc-paceunit-label">
+              <input type="radio" name="hpc-paceunit" id="hpc-p-mi" value="mi" checked><label for="hpc-p-mi">per mile</label>
+              <input type="radio" name="hpc-paceunit" id="hpc-p-km" value="km"><label for="hpc-p-km">per km</label>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <span class="hpc-label" id="hpc-goal-label">Goal pace in cool conditions</span>
+            <div class="hpc-pace" role="group" aria-labelledby="hpc-goal-label">
+              <input type="number" id="hpc-min" inputmode="numeric" min="2" max="20" step="1" value="6" aria-label="Minutes">
+              <span>:</span>
+              <input type="number" id="hpc-sec" inputmode="numeric" min="0" max="59" step="1" value="50" aria-label="Seconds">
+              <span id="hpc-paceunit-text">/mi</span>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="hpc-dist">Distance</label>
+            <select id="hpc-dist">
+              <option value="5k">5K</option>
+              <option value="10k">10K</option>
+              <option value="half" selected>Half marathon</option>
+              <option value="full">Marathon</option>
+              <option value="10mi">10 miles</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="hpc-field" id="hpc-custom-wrap" hidden>
+            <label class="hpc-label" for="hpc-custom">Custom distance</label>
+            <input type="number" id="hpc-custom" inputmode="decimal" step="0.1" min="0.1" value="8">
+          </div>
+          <div class="hpc-field">
+            <span class="hpc-label" id="hpc-effort-label">Effort</span>
+            <div class="hpc-seg" role="group" aria-labelledby="hpc-effort-label">
+              <input type="radio" name="hpc-effort" id="hpc-e-easy" value="easy"><label for="hpc-e-easy">Easy</label>
+              <input type="radio" name="hpc-effort" id="hpc-e-work" value="workout" checked><label for="hpc-e-work">Workout</label>
+              <input type="radio" name="hpc-effort" id="hpc-e-race" value="race"><label for="hpc-e-race">Race</label>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="hpc-results" id="hpc-results" aria-live="polite">
+        <p class="hpc-headline" id="hpc-headline">—</p>
+        <p class="hpc-sub" id="hpc-sub"></p>
+        <dl class="hpc-metrics">
+          <div class="hpc-metric"><dt>Pace cost</dt><dd id="hpc-m1">—</dd></div>
+          <div class="hpc-metric"><dt>Slowdown</dt><dd id="hpc-m2">—</dd></div>
+          <div class="hpc-metric"><dt>Finish impact</dt><dd id="hpc-m3">—</dd></div>
+        </dl>
+        <p class="hpc-verdict" id="hpc-verdict"><strong>Zone</strong><span id="hpc-verdict-text"></span></p>
+ 
+        <table class="hpc-table">
+          <caption>If the forecast shifts</caption>
+          <thead><tr><th scope="col">Scenario</th><th scope="col">Temp / dew</th><th scope="col">Pace</th><th scope="col">Finish</th></tr></thead>
+          <tbody id="hpc-scenarios"></tbody>
+        </table>
+      </div>
+ 
+      <p class="hpc-foot">Model: the temperature + dew point sum, interpolated across the standard heat-pace bands, then scaled by effort — easy running responds least because effort, not pace, is the target. Heat tolerance is individual and improves with acclimation; treat this as a starting point, not a prescription. Live conditions from NOAA/Aviation Weather METAR.</p>
     </section>
 
     <!-- STRAVA LIVE FEED -->
@@ -12394,6 +12692,211 @@ document.getElementById('chat-input')?.addEventListener('input', e => { _lastUse
             });
         }, 800);
     }).observe(container, { childList: true, subtree: false });
+})();
+
+(function () {
+  "use strict";
+  var root = document.getElementById("heat-pace");
+  if (!root) return;
+  var $ = function (id) { return document.getElementById(id); };
+ 
+  /* --- math:start --- */
+  // Temp+dew (°F) → % pace penalty at full (workout) effort.
+  // Anchors follow the standard dew point pace bands; interpolated for continuity.
+  var ANCHORS = [
+    [100, 0], [110, 0.5], [120, 1.0], [130, 2.0], [140, 3.0],
+    [150, 4.5], [160, 6.0], [170, 8.0], [180, 10.0], [190, 13.0]
+  ];
+  var EFFORT = { easy: 0.75, workout: 1.0, race: 1.1 };
+  var ZONES = [
+    { max: 110, name: "Negligible", css: 0, note: "Effectively cool-weather conditions. Run the pace you planned." },
+    { max: 130, name: "Minor",      css: 1, note: "A few seconds per mile. Hard efforts feel slightly heavier late; easy days are unaffected." },
+    { max: 150, name: "Moderate",   css: 2, note: "Real cost. Set workout targets from the adjusted pace and drink to thirst on anything over an hour." },
+    { max: 165, name: "Heavy",      css: 3, note: "Start conservatively — heat accumulates, so the second half costs more than the first. Consider shortening the hard portion." },
+    { max: 180, name: "Severe",     css: 4, note: "Run by effort, not pace. Move the session earlier, take fluids on a loop course, and drop the workout if effort drifts up at a steady pace." },
+    { max: 999, name: "Dangerous",  css: 5, note: "Above the range where pace adjustment is the answer. Move it indoors, swap for cross-training, or wait for the dew point to drop." }
+  ];
+ 
+  function toF(v, unit) { return unit === "C" ? v * 9 / 5 + 32 : v; }
+ 
+  function penaltyFor(sumF) {
+    if (sumF <= ANCHORS[0][0]) return 0;
+    for (var i = 1; i < ANCHORS.length; i++) {
+      if (sumF <= ANCHORS[i][0]) {
+        var a = ANCHORS[i - 1], b = ANCHORS[i];
+        return a[1] + (b[1] - a[1]) * (sumF - a[0]) / (b[0] - a[0]);
+      }
+    }
+    var last = ANCHORS[ANCHORS.length - 1];
+    return last[1] + (sumF - last[0]) * 0.3;
+  }
+ 
+  function zoneFor(sumF) {
+    for (var i = 0; i < ZONES.length; i++) if (sumF < ZONES[i].max) return ZONES[i];
+    return ZONES[ZONES.length - 1];
+  }
+ 
+  // Returns { sum, pct, basePace, adjPace, addedPerUnit, addedTotal, zone }
+  function compute(o) {
+    var sum = toF(o.temp, o.unit) + toF(o.dew, o.unit);
+    var pct = penaltyFor(sum) * (EFFORT[o.effort] || 1);
+    var adj = o.paceSec * (1 + pct / 100);
+    return {
+      sum: sum,
+      pct: pct,
+      basePace: o.paceSec,
+      adjPace: adj,
+      addedPerUnit: adj - o.paceSec,
+      addedTotal: (adj - o.paceSec) * o.distance,
+      zone: zoneFor(sum)
+    };
+  }
+ 
+  function fmtPace(sec) {
+    sec = Math.round(sec);
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+ 
+  function fmtClock(sec) {
+    sec = Math.round(sec);
+    var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    var mm = (m < 10 && h ? "0" : "") + m;
+    return (h ? h + ":" : "") + mm + ":" + (s < 10 ? "0" : "") + s;
+  }
+ 
+  function fmtDelta(sec) {
+    sec = Math.round(sec);
+    if (sec < 60) return "+" + sec + "s";
+    return "+" + fmtClock(sec);
+  }
+  /* --- math:end --- */
+ 
+  var DISTANCES = { "5k": { mi: 3.10686, km: 5 }, "10k": { mi: 6.21371, km: 10 },
+    "half": { mi: 13.1094, km: 21.0975 }, "full": { mi: 26.2188, km: 42.195 },
+    "10mi": { mi: 10, km: 16.0934 } };
+ 
+  function unit() { return document.querySelector('input[name="hpc-units"]:checked').value; }
+  function paceUnit() { return document.querySelector('input[name="hpc-paceunit"]:checked').value; }
+  function effort() { return document.querySelector('input[name="hpc-effort"]:checked').value; }
+  function num(el, fallback) { var v = parseFloat(el.value); return isNaN(v) ? fallback : v; }
+ 
+  function distanceValue() {
+    var key = $("hpc-dist").value, pu = paceUnit();
+    if (key === "custom") return Math.max(0.1, num($("hpc-custom"), 1));
+    return DISTANCES[key][pu];
+  }
+ 
+  function render() {
+    var pu = paceUnit();
+    var paceSec = Math.max(60, num($("hpc-min"), 8) * 60 + num($("hpc-sec"), 0));
+    var r = compute({
+      temp: num($("hpc-temp"), 70), dew: num($("hpc-dew"), 60), unit: unit(),
+      paceSec: paceSec, distance: distanceValue(), effort: effort()
+    });
+ 
+    var u = unit();
+    $("hpc-strip").innerHTML = "CONDITIONS <b>" + Math.round(num($("hpc-temp"), 70)) + "°/" +
+      Math.round(num($("hpc-dew"), 60)) + "° " + u + "</b> · SUM <b>" + Math.round(r.sum) +
+      "°F</b> · ZONE <b>" + r.zone.name.toUpperCase() + "</b> · PENALTY <b>" + r.pct.toFixed(1) + "%</b>";
+ 
+    var needle = $("hpc-needle");
+    var pos = Math.min(100, Math.max(0, (r.sum - 100) / 90 * 100));
+    needle.hidden = false;
+    needle.style.left = pos + "%";
+    needle.setAttribute("data-sum", "");
+ 
+    $("hpc-headline").innerHTML = fmtPace(r.adjPace) + " <small>/" + pu + "</small>";
+    $("hpc-sub").textContent = "Today this is the same effort as " + fmtPace(r.basePace) + "/" + pu +
+      " in cool air — hold it and you're running your goal effort, not a slower workout.";
+    $("hpc-m1").textContent = fmtDelta(r.addedPerUnit) + "/" + pu;
+    $("hpc-m2").textContent = r.pct.toFixed(1) + "%";
+    $("hpc-m3").textContent = fmtDelta(r.addedTotal);
+    $("hpc-verdict").style.borderLeftColor = "var(--hpc-z" + r.zone.css + ")";
+    $("hpc-verdict").querySelector("strong").textContent = r.zone.name + " heat";
+    $("hpc-verdict-text").textContent = r.zone.note;
+ 
+    renderScenarios(paceSec, pu);
+  }
+ 
+  function renderScenarios(paceSec, pu) {
+    var t = num($("hpc-temp"), 70), d = num($("hpc-dew"), 60), u = unit();
+    var step = u === "C" ? 3 : 5;
+    var rows = [
+      ["Dawn start", -step * 1.6, -step * 0.4],
+      ["Cooler than forecast", -step, 0],
+      ["As forecast", 0, 0],
+      ["Muggier than forecast", 0, step],
+      ["Hot afternoon", step * 1.6, step * 0.4]
+    ];
+    var html = rows.map(function (row) {
+      var tt = t + row[1], dd = Math.min(d + row[2], tt);
+      var r = compute({ temp: tt, dew: dd, unit: u, paceSec: paceSec, distance: distanceValue(), effort: effort() });
+      var strong = row[0] === "As forecast";
+      var cells = "<td>" + (strong ? "<b>" + row[0] + "</b>" : row[0]) + "</td>" +
+        "<td>" + Math.round(tt) + "° / " + Math.round(dd) + "°</td>" +
+        "<td>" + fmtPace(r.adjPace) + "/" + pu + "</td>" +
+        "<td>" + fmtDelta(r.addedTotal) + "</td>";
+      return "<tr>" + cells + "</tr>";
+    }).join("");
+    $("hpc-scenarios").innerHTML = html;
+  }
+ 
+  /* ---- live METAR ---- */
+  function pullMetar() {
+    var btn = $("hpc-metar"), status = $("hpc-status");
+    var station = $("hpc-station").value;
+    btn.disabled = true;
+    status.textContent = "Requesting " + station + "…";
+    fetch("/api/heat-conditions?station=" + encodeURIComponent(station))
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (typeof data.tempC !== "number" || typeof data.dewpC !== "number") {
+          throw new Error("no temperature in report");
+        }
+        var u = unit();
+        $("hpc-temp").value = Math.round(u === "C" ? data.tempC : data.tempF);
+        $("hpc-dew").value = Math.round(u === "C" ? data.dewpC : data.dewpF);
+        status.textContent = data.station + " " + (data.observedAgoMin != null
+          ? "observed " + data.observedAgoMin + " min ago" : "latest report") + " — loaded.";
+        render();
+      })
+      .catch(function (err) {
+        status.textContent = "Couldn't reach the weather feed (" + err.message + "). Enter conditions by hand.";
+      })
+      .then(function () { btn.disabled = false; });
+  }
+ 
+  /* ---- wiring ---- */
+  var prevUnit = "F";
+  root.addEventListener("change", function (e) {
+    if (e.target.name === "hpc-units") {
+      var next = e.target.value;
+      if (next !== prevUnit) {
+        ["hpc-temp", "hpc-dew"].forEach(function (id) {
+          var el = $(id), v = parseFloat(el.value);
+          if (!isNaN(v)) el.value = Math.round(next === "C" ? (v - 32) * 5 / 9 : v * 9 / 5 + 32);
+        });
+        prevUnit = next;
+      }
+    }
+    if (e.target.name === "hpc-paceunit") {
+      $("hpc-paceunit-text").textContent = "/" + e.target.value;
+    }
+    if (e.target.id === "hpc-dist") {
+      $("hpc-custom-wrap").hidden = e.target.value !== "custom";
+    }
+    render();
+  });
+  root.addEventListener("input", function (e) {
+    if (e.target.tagName === "INPUT") render();
+  });
+  $("hpc-metar").addEventListener("click", pullMetar);
+ 
+  render();
 })();
  
 // ── GAP 4: BUILD LOG ────────────────────────────────────────────────────────

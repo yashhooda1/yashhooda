@@ -3497,6 +3497,42 @@
         .hpc-foot { margin-top: 18px; font-size: 12px; color: var(--hpc-ink-2); }
         .hpc-foot a { color: inherit; }
         .hpc [hidden] { display: none !important; }
+        
+        /* ── PACE CALC + HEAT PREDICTOR additions ── */
+        /* conversion readout: pace expressed six ways */
+        .hpc-converts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--hpc-line-2); border: 1px solid var(--hpc-line-2); margin-top: 16px; }
+        @container (min-width: 560px) { .hpc-converts { grid-template-columns: repeat(3, 1fr); } }
+        .hpc-convert { background: var(--hpc-panel); padding: 10px; }
+        .hpc-convert dt { font-family: var(--hpc-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--hpc-ink-2); margin-bottom: 3px; }
+        .hpc-convert dd { margin: 0; font-family: var(--hpc-mono); font-size: 15px; font-weight: 600; }
+
+        /* two-up race time table */
+        .hpc-splits { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; table-layout: fixed; }
+        .hpc-splits caption { text-align: left; font-family: var(--hpc-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--hpc-ink-2); padding-bottom: 8px; }
+        .hpc-splits td { padding: 7px 4px; border-bottom: 1px solid var(--hpc-line-2); font-family: var(--hpc-mono); font-size: 13px; }
+        .hpc-splits td.hpc-ev { font-family: var(--hpc-sans); color: var(--hpc-ink-2); }
+        .hpc-splits td.hpc-tm { text-align: right; font-weight: 600; padding-right: 12px; }
+
+        /* the heat matrix — signature of the predictor */
+        .hpc-matrix-wrap { overflow-x: auto; margin-top: 18px; -webkit-overflow-scrolling: touch; }
+        .hpc-matrix { border-collapse: collapse; font-family: var(--hpc-mono); font-size: 12px; min-width: 100%; }
+        .hpc-matrix caption { text-align: left; font-family: var(--hpc-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--hpc-ink-2); padding-bottom: 8px; }
+        .hpc-matrix th { font-weight: 500; color: var(--hpc-ink-2); font-size: 11px; padding: 6px 8px; white-space: nowrap; }
+        .hpc-matrix thead th { border-bottom: 1px solid var(--hpc-line); }
+        .hpc-matrix tbody th { text-align: right; background: var(--hpc-paper); position: sticky; left: 0; border-right: 1px solid var(--hpc-line); }
+        .hpc-matrix td { padding: 7px 8px; text-align: center; white-space: nowrap; border-bottom: 1px solid var(--hpc-line-2); }
+        .hpc-matrix td.hpc-here { outline: 2px solid var(--hpc-ink); outline-offset: -2px; font-weight: 700; }
+        .hpc-matrix td.hpc-na { color: var(--hpc-ink-2); opacity: .35; }
+        .hpc-scroll-hint { font-family: var(--hpc-mono); font-size: 11px; color: var(--hpc-ink-2); margin: 6px 0 0; }
+        @container (min-width: 620px) { .hpc-scroll-hint { display: none; } }
+
+        .hpc-inline { display: flex; gap: 8px; align-items: center; }
+        .hpc-inline input { flex: 1 1 auto; min-width: 0; }
+        .hpc-inline select { flex: 0 0 auto; width: auto; }
+        .hpc-timefields { display: flex; align-items: center; gap: 6px; }
+        .hpc-timefields input { width: 4.2em; text-align: center; }
+        .hpc-timefields span { font-family: var(--hpc-mono); color: var(--hpc-ink-2); }
+        .hpc-note { font-size: 13px; color: var(--hpc-ink-2); margin: 14px 0 0; }
         /* ── PROMPT LAB ── */
         .lab-strategy-grid {
             display: grid;
@@ -3855,6 +3891,8 @@
                 <div class="nav-drop-menu">
                     <a href="#running">Running</a>
                     <a href="#heat-pace">Running Heat Adjustment Calculator</a>
+                    <a href="#pace-calc">Pace Calculator</a>
+                    <a href="#heat-equivalent">Race Time by Temperature</a>
                     <a href="#strava-feed">Live Strava feed</a>
                     <a href="#hikes">Hikes</a>
                     <a href="#thisweek">This Week ⚡</a>
@@ -5120,7 +5158,222 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </table>
       </div>
  
-      <p class="hpc-foot">Model: the temperature + dew point sum, interpolated across the standard heat-pace bands, then scaled by effort — easy running responds least because effort, not pace, is the target. Heat tolerance is individual and improves with acclimation; treat this as a starting point, not a prescription. Live conditions from NOAA/Aviation Weather METAR.</p>
+       <p class="hpc-foot">Model: the temperature + dew point sum, interpolated across the standard heat-pace bands, then scaled by effort — easy running responds least because effort, not pace, is the target — and by how long you’ll be out there, since heat compounds with time on your feet. Heat tolerance is individual and improves with acclimation; treat this as a starting point, not a prescription. Live conditions from NOAA/Aviation Weather METAR.</p>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- PANEL 1 — PACE CALCULATOR                                  -->
+    <!-- ========================================================= -->
+    <section class="hpc" id="pace-calc">
+      <p class="hpc-eyebrow">Tool · Pace</p>
+      <h1 class="hpc-title">Pace Calculator</h1>
+      <p class="hpc-lede">Give it any two of pace, time, and distance and it solves the third — then shows what that pace is worth at every race distance.</p>
+
+      <div class="hpc-field">
+        <span class="hpc-label" id="pc-mode-label">Solve for</span>
+        <div class="hpc-seg" role="group" aria-labelledby="pc-mode-label">
+          <input type="radio" name="pc-mode" id="pc-m-pace" value="pace" checked><label for="pc-m-pace">Pace</label>
+          <input type="radio" name="pc-mode" id="pc-m-time" value="time"><label for="pc-m-time">Time</label>
+          <input type="radio" name="pc-mode" id="pc-m-dist" value="distance"><label for="pc-m-dist">Distance</label>
+        </div>
+      </div>
+
+      <div class="hpc-grid">
+        <div class="hpc-block" id="pc-time-block">
+          <p class="hpc-legend">Time</p>
+          <div class="hpc-field">
+            <span class="hpc-label" id="pc-time-label">Finish time</span>
+            <div class="hpc-timefields" role="group" aria-labelledby="pc-time-label">
+              <input type="number" id="pc-h" inputmode="numeric" min="0" max="99" step="1" value="0" aria-label="Hours"><span>h</span>
+              <input type="number" id="pc-m" inputmode="numeric" min="0" max="59" step="1" value="18" aria-label="Minutes"><span>m</span>
+              <input type="number" id="pc-s" inputmode="numeric" min="0" max="59" step="1" value="15" aria-label="Seconds"><span>s</span>
+            </div>
+          </div>
+
+          <p class="hpc-legend" style="margin-top:18px">Distance</p>
+          <div class="hpc-field">
+            <label class="hpc-label" for="pc-event">Pick an event</label>
+            <select id="pc-event">
+              <option value="">Custom distance…</option>
+              <option value="400">400 m</option>
+              <option value="800">800 m</option>
+              <option value="1000">1K</option>
+              <option value="1609.344">1 mile</option>
+              <option value="3000">3K</option>
+              <option value="5000" selected>5K</option>
+              <option value="10000">10K</option>
+              <option value="16093.44">10 miles</option>
+              <option value="21097.5">Half marathon</option>
+              <option value="42195">Marathon</option>
+              <option value="50000">50K</option>
+            </select>
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="pc-dist">Distance</label>
+            <div class="hpc-inline">
+              <input type="number" id="pc-dist" inputmode="decimal" step="0.01" min="0.01" value="5">
+              <select id="pc-dunit" aria-label="Distance unit">
+                <option value="mi">miles</option>
+                <option value="km" selected>km</option>
+                <option value="m">meters</option>
+                <option value="yd">yards</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="hpc-block">
+          <p class="hpc-legend">Pace</p>
+          <div class="hpc-field">
+            <span class="hpc-label" id="pc-pace-label">Pace</span>
+            <div class="hpc-pace" role="group" aria-labelledby="pc-pace-label">
+              <input type="number" id="pc-pmin" inputmode="numeric" min="0" max="59" step="1" value="5" aria-label="Pace minutes">
+              <span>:</span>
+              <input type="number" id="pc-psec" inputmode="numeric" min="0" max="59" step="1" value="52" aria-label="Pace seconds">
+              <select id="pc-punit" aria-label="Pace unit" style="width:auto">
+                <option value="mi">/mi</option>
+                <option value="km">/km</option>
+              </select>
+            </div>
+            <span class="hpc-hint" id="pc-pace-hint">Calculated from your time and distance.</span>
+          </div>
+          <div class="hpc-actions" style="margin-top:16px">
+            <button type="button" class="hpc-btn hpc-ghost" id="pc-send" hidden>Send to heat-adjusted pace ↓</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hpc-results" aria-live="polite">
+        <p class="hpc-headline" id="pc-headline">—</p>
+        <p class="hpc-sub" id="pc-sub"></p>
+
+        <dl class="hpc-converts">
+          <div class="hpc-convert"><dt>per mile</dt><dd id="pc-c1">—</dd></div>
+          <div class="hpc-convert"><dt>per km</dt><dd id="pc-c2">—</dd></div>
+          <div class="hpc-convert"><dt>mph</dt><dd id="pc-c3">—</dd></div>
+          <div class="hpc-convert"><dt>km/h</dt><dd id="pc-c4">—</dd></div>
+          <div class="hpc-convert"><dt>m/min</dt><dd id="pc-c5">—</dd></div>
+          <div class="hpc-convert"><dt>m/s</dt><dd id="pc-c6">—</dd></div>
+        </dl>
+
+        <table class="hpc-splits">
+          <caption>Race times at this pace</caption>
+          <tbody id="pc-races"></tbody>
+        </table>
+      </div>
+
+      <p class="hpc-foot">Straight arithmetic — no fatigue curve. Holding 5K pace for a marathon is a math result, not a prediction. For that, use the heat predictor below or a Riegel-style equivalence.</p>
+    </section>
+
+    <div style="height:28px"></div>
+
+    <!-- ========================================================= -->
+    <!-- PANEL 2 — HEAT RACE PREDICTOR                              -->
+    <!-- ========================================================= -->
+    <section class="hpc" id="heat-equivalent">
+      <p class="hpc-eyebrow">Tool · Running × Weather</p>
+      <h1 class="hpc-title">Same Race, Different Air</h1>
+      <p class="hpc-lede">Enter a result and the conditions you ran it in. This strips the heat penalty out to find the cool-air performance underneath, then re-applies it for any other temperature and dew point.</p>
+
+      <div class="hpc-grid">
+        <div class="hpc-block">
+          <p class="hpc-legend">What you ran</p>
+          <div class="hpc-field">
+            <label class="hpc-label" for="he-event">Distance</label>
+            <select id="he-event">
+              <option value="1609.344">1 mile</option>
+              <option value="3000">3K</option>
+              <option value="5000" selected>5K</option>
+              <option value="10000">10K</option>
+              <option value="16093.44">10 miles</option>
+              <option value="21097.5">Half marathon</option>
+              <option value="42195">Marathon</option>
+            </select>
+          </div>
+          <div class="hpc-field">
+            <span class="hpc-label" id="he-time-label">Finish time</span>
+            <div class="hpc-timefields" role="group" aria-labelledby="he-time-label">
+              <input type="number" id="he-h" inputmode="numeric" min="0" max="99" step="1" value="0" aria-label="Hours"><span>h</span>
+              <input type="number" id="he-m" inputmode="numeric" min="0" max="59" step="1" value="18" aria-label="Minutes"><span>m</span>
+              <input type="number" id="he-s" inputmode="numeric" min="0" max="59" step="1" value="15" aria-label="Seconds"><span>s</span>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <span class="hpc-label" id="he-units-label">Units</span>
+            <div class="hpc-seg" role="group" aria-labelledby="he-units-label">
+              <input type="radio" name="he-units" id="he-u-f" value="F" checked><label for="he-u-f">°F</label>
+              <input type="radio" name="he-units" id="he-u-c" value="C"><label for="he-u-c">°C</label>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="he-temp">Air temperature that day</label>
+            <input type="number" id="he-temp" inputmode="decimal" step="1" value="85">
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="he-dew">Dew point that day</label>
+            <input type="number" id="he-dew" inputmode="decimal" step="1" value="74">
+          </div>
+          <div class="hpc-actions">
+            <button type="button" class="hpc-btn hpc-ghost" id="he-metar">Pull live METAR</button>
+            <select id="he-station" aria-label="Weather station" style="width:auto">
+              <option value="KHOU">KHOU · Hobby</option>
+              <option value="KIAH">KIAH · Bush</option>
+              <option value="KSGR">KSGR · Sugar Land</option>
+              <option value="KDFW">KDFW · DFW</option>
+              <option value="KAUS">KAUS · Austin</option>
+            </select>
+          </div>
+          <p class="hpc-status" id="he-status">Use the conditions at the start, not the average.</p>
+        </div>
+
+        <div class="hpc-block">
+          <p class="hpc-legend">Conditions to predict</p>
+          <div class="hpc-field">
+            <label class="hpc-label" for="he-preset">Quick pick</label>
+            <select id="he-preset">
+              <option value="">Custom…</option>
+              <option value="50,40" selected>Cool race morning · 50° / 40°</option>
+              <option value="40,30">Cold and dry · 40° / 30°</option>
+              <option value="60,50">Mild · 60° / 50°</option>
+              <option value="55,52">Houston Marathon average · 55° / 52°</option>
+              <option value="70,64">Warm morning · 70° / 64°</option>
+              <option value="80,72">Summer dawn · 80° / 72°</option>
+            </select>
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="he-temp2">Air temperature</label>
+            <input type="number" id="he-temp2" inputmode="decimal" step="1" value="50">
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="he-dew2">Dew point</label>
+            <input type="number" id="he-dew2" inputmode="decimal" step="1" value="40">
+          </div>
+        </div>
+      </div>
+
+      <div class="hpc-results" aria-live="polite">
+        <p class="hpc-headline" id="he-headline">—</p>
+        <p class="hpc-sub" id="he-sub"></p>
+        <dl class="hpc-metrics">
+          <div class="hpc-metric"><dt>Time swing</dt><dd id="he-m1">—</dd></div>
+          <div class="hpc-metric"><dt>Pace swing</dt><dd id="he-m2">—</dd></div>
+          <div class="hpc-metric"><dt>Heat you ran through</dt><dd id="he-m3">—</dd></div>
+        </dl>
+        <p class="hpc-verdict" id="he-verdict"><strong>Zone</strong><span id="he-verdict-text"></span></p>
+
+        <div class="hpc-matrix-wrap">
+          <table class="hpc-matrix">
+            <caption id="he-matrix-caption">Predicted finish</caption>
+            <thead>
+              <tr><th scope="col">Temp \ dew</th><th scope="col">40°</th><th scope="col">50°</th><th scope="col">60°</th><th scope="col">65°</th><th scope="col">70°</th><th scope="col">75°</th></tr>
+            </thead>
+            <tbody id="he-matrix"></tbody>
+          </table>
+        </div>
+        <p class="hpc-scroll-hint">Swipe the table sideways →</p>
+      </div>
+
+      <p class="hpc-foot">Same temperature + dew point model as the pace tool, with one addition: a duration factor, because heat compounds with time on your feet. A 5K loses less to a hot day than a marathon does. Individual heat tolerance and acclimation move these numbers, so treat a prediction as a range, not a promise.</p>
     </section>
 
     <!-- STRAVA LIVE FEED -->
@@ -12738,10 +12991,22 @@ document.getElementById('chat-input')?.addEventListener('input', e => { _lastUse
   }
  
   // Returns { sum, pct, basePace, adjPace, addedPerUnit, addedTotal, zone }
+  // Heat compounds with time on your feet: a 5K bleeds less to a hot day than
+  // a marathon does. Normalized to 1.0 at a 60-minute effort.
+  function durationFactor(seconds) {
+    var minutes = Math.max(3, seconds / 60);
+    var f = 1 + 0.08 * (Math.log(minutes / 60) / Math.LN2);
+    return Math.min(1.2, Math.max(0.8, f));
+  }
+
   function compute(o) {
     var sum = toF(o.temp, o.unit) + toF(o.dew, o.unit);
-    var pct = penaltyFor(sum) * (EFFORT[o.effort] || 1);
-    var adj = o.paceSec * (1 + pct / 100);
+    var raw = penaltyFor(sum) * (EFFORT[o.effort] || 1);
+    var adj = o.paceSec, pct = raw;
+    for (var i = 0; i < 3; i++) {
+      pct = raw * durationFactor(adj * o.distance);
+      adj = o.paceSec * (1 + pct / 100);
+    }
     return {
       sum: sum,
       pct: pct,
@@ -12898,6 +13163,303 @@ document.getElementById('chat-input')?.addEventListener('input', e => { _lastUse
   $("hpc-metar").addEventListener("click", pullMetar);
  
   render();
+})();
+
+
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var MI = 1609.344, YD = 0.9144;
+
+  /* --- math:start --- */
+  var ANCHORS = [[100,0],[110,0.5],[120,1.0],[130,2.0],[140,3.0],[150,4.5],[160,6.0],[170,8.0],[180,10.0],[190,13.0]];
+  var ZONES = [
+    { max: 110, name: "Negligible", css: 0, note: "Cool-air conditions. Whatever you ran here is what you're worth." },
+    { max: 130, name: "Minor", css: 1, note: "A handful of seconds. Worth noting in a race report, not worth an asterisk." },
+    { max: 150, name: "Moderate", css: 2, note: "A real tax. Compare this result to other warm days, not to spring PRs." },
+    { max: 165, name: "Heavy", css: 3, note: "Significant heat. The cool-air equivalent is the honest read on your fitness." },
+    { max: 180, name: "Severe", css: 4, note: "Brutal conditions. Time here says more about the weather than about your training." },
+    { max: 999, name: "Dangerous", css: 5, note: "Beyond where pace conversion means much. Racing in this is a heat-management exercise." }
+  ];
+
+  function toF(v, unit) { return unit === "C" ? v * 9 / 5 + 32 : v; }
+
+  function penaltyFor(sumF) {
+    if (sumF <= ANCHORS[0][0]) return 0;
+    for (var i = 1; i < ANCHORS.length; i++) {
+      if (sumF <= ANCHORS[i][0]) {
+        var a = ANCHORS[i - 1], b = ANCHORS[i];
+        return a[1] + (b[1] - a[1]) * (sumF - a[0]) / (b[0] - a[0]);
+      }
+    }
+    var last = ANCHORS[ANCHORS.length - 1];
+    return last[1] + (sumF - last[0]) * 0.3;
+  }
+
+  function zoneFor(sumF) {
+    for (var i = 0; i < ZONES.length; i++) if (sumF < ZONES[i].max) return ZONES[i];
+    return ZONES[ZONES.length - 1];
+  }
+
+  // Heat costs more the longer you're out in it. 1.0 at a 60-minute effort.
+  function durationFactor(seconds) {
+    var minutes = Math.max(3, seconds / 60);
+    var f = 1 + 0.08 * (Math.log(minutes / 60) / Math.LN2);
+    return Math.min(1.2, Math.max(0.8, f));
+  }
+
+  var RACE_EFFORT = 1.1;
+
+  function racePenalty(sumF, seconds) {
+    return penaltyFor(sumF) * RACE_EFFORT * durationFactor(seconds);
+  }
+
+  // Strip the heat penalty out of an observed time → cool-air equivalent.
+  function baselineTime(observedSec, sumF) {
+    var t = observedSec;
+    for (var i = 0; i < 3; i++) t = observedSec / (1 + racePenalty(sumF, t) / 100);
+    return t;
+  }
+
+  // Re-apply a penalty for target conditions.
+  function predictTime(baseSec, sumF) {
+    var t = baseSec;
+    for (var i = 0; i < 3; i++) t = baseSec * (1 + racePenalty(sumF, t) / 100);
+    return t;
+  }
+
+  function fmtClock(sec) {
+    sec = Math.round(sec);
+    var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    var mm = (m < 10 && h ? "0" : "") + m;
+    return (h ? h + ":" : "") + mm + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function fmtPace(sec) {
+    sec = Math.round(sec);
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function fmtSigned(sec) {
+    var r = Math.round(sec);
+    if (r === 0) return "even";
+    var sign = r < 0 ? "−" : "+";
+    return sign + fmtClock(Math.abs(r));
+  }
+  /* --- math:end --- */
+
+  function num(el, fallback) { var v = parseFloat(el.value); return isNaN(v) ? fallback : v; }
+
+  /* ================= PANEL 1: PACE CALCULATOR ================= */
+  var pc = $("pace-calc");
+  if (pc) {
+    var UNIT_M = { mi: MI, km: 1000, m: 1, yd: YD };
+    var RACES = [
+      ["400 m", 400], ["800 m", 800], ["1K", 1000], ["1 mile", MI],
+      ["3K", 3000], ["2 miles", 2 * MI], ["5K", 5000], ["5 miles", 5 * MI],
+      ["10K", 10000], ["10 miles", 10 * MI], ["Half marathon", 21097.5], ["Marathon", 42195]
+    ];
+
+    var pcMode = function () { return document.querySelector('input[name="pc-mode"]:checked').value; };
+    var pcTimeSec = function () { return num($("pc-h"), 0) * 3600 + num($("pc-m"), 0) * 60 + num($("pc-s"), 0); };
+    var pcMeters = function () { return Math.max(1, num($("pc-dist"), 1) * UNIT_M[$("pc-dunit").value]); };
+    var pcPaceSec = function () { return num($("pc-pmin"), 0) * 60 + num($("pc-psec"), 0); };
+
+    function pcSetDistance(meters) {
+      var u = $("pc-dunit").value;
+      var v = meters / UNIT_M[u];
+      $("pc-dist").value = Math.round(v * 1000) / 1000;
+    }
+
+    function pcRender() {
+      var mode = pcMode();
+      var punit = $("pc-punit").value;
+      var punitM = punit === "mi" ? MI : 1000;
+      var secPerM, totalSec, meters;
+
+      if (mode === "pace") {
+        meters = pcMeters();
+        totalSec = Math.max(1, pcTimeSec());
+        secPerM = totalSec / meters;
+        var p = secPerM * punitM;
+        $("pc-pmin").value = Math.floor(p / 60);
+        $("pc-psec").value = Math.round(p % 60);
+      } else if (mode === "time") {
+        meters = pcMeters();
+        secPerM = Math.max(0.01, pcPaceSec()) / punitM;
+        totalSec = secPerM * meters;
+        var h = Math.floor(totalSec / 3600);
+        $("pc-h").value = h;
+        $("pc-m").value = Math.floor((totalSec % 3600) / 60);
+        $("pc-s").value = Math.round(totalSec % 60);
+      } else {
+        totalSec = Math.max(1, pcTimeSec());
+        secPerM = Math.max(0.01, pcPaceSec()) / punitM;
+        meters = totalSec / secPerM;
+        pcSetDistance(meters);
+        $("pc-event").value = "";
+      }
+
+      var perMi = secPerM * MI, perKm = secPerM * 1000;
+      $("pc-headline").innerHTML = fmtPace(perMi) + ' <small>/mi</small>';
+      $("pc-sub").textContent = fmtClock(totalSec) + " for " +
+        (Math.round(meters / 10) / 100) + " km (" + (Math.round(meters / MI * 100) / 100) + " mi).";
+
+      $("pc-c1").textContent = fmtPace(perMi);
+      $("pc-c2").textContent = fmtPace(perKm);
+      $("pc-c3").textContent = (3600 / perMi).toFixed(2);
+      $("pc-c4").textContent = (3600 / perKm).toFixed(2);
+      $("pc-c5").textContent = (60 / secPerM).toFixed(1);
+      $("pc-c6").textContent = (1 / secPerM).toFixed(2);
+
+      var half = Math.ceil(RACES.length / 2), rows = "";
+      for (var i = 0; i < half; i++) {
+        var a = RACES[i], b = RACES[i + half];
+        rows += "<tr><td class='hpc-ev'>" + a[0] + "</td><td class='hpc-tm'>" + fmtClock(secPerM * a[1]) + "</td>" +
+          (b ? "<td class='hpc-ev'>" + b[0] + "</td><td class='hpc-tm'>" + fmtClock(secPerM * b[1]) + "</td>" : "<td></td><td></td>") + "</tr>";
+      }
+      $("pc-races").innerHTML = rows;
+      $("pc-pace-hint").textContent = mode === "pace"
+        ? "Calculated from your time and distance."
+        : "Enter the pace you want to hold.";
+    }
+
+    pc.addEventListener("input", function (e) {
+      if (e.target.tagName === "INPUT") pcRender();
+    });
+    pc.addEventListener("change", function (e) {
+      if (e.target.id === "pc-event" && e.target.value) {
+        pcSetDistance(parseFloat(e.target.value));
+      }
+      if (e.target.id === "pc-dunit") {
+        var ev = $("pc-event").value;
+        if (ev) pcSetDistance(parseFloat(ev));
+      }
+      if (e.target.id === "pc-dist") $("pc-event").value = "";
+      pcRender();
+    });
+
+    // hand off to the heat tool if it's on the same page
+    var heat = document.getElementById("heat-pace");
+    if (heat) {
+      var send = $("pc-send");
+      send.hidden = false;
+      send.addEventListener("click", function () {
+        var punit = $("pc-punit").value;
+        var target = document.getElementById(punit === "mi" ? "hpc-p-mi" : "hpc-p-km");
+        if (target) { target.checked = true; target.dispatchEvent(new Event("change", { bubbles: true })); }
+        var mn = document.getElementById("hpc-min"), sc = document.getElementById("hpc-sec");
+        if (mn && sc) {
+          mn.value = $("pc-pmin").value;
+          sc.value = $("pc-psec").value;
+          sc.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        heat.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
+    pcRender();
+  }
+
+  /* ================= PANEL 2: HEAT RACE PREDICTOR ================= */
+  var he = $("heat-equivalent");
+  if (he) {
+    var DEWS = [40, 50, 60, 65, 70, 75];
+    var TEMPS = [45, 55, 65, 75, 85, 95];
+
+    var heUnit = function () { return document.querySelector('input[name="he-units"]:checked').value; };
+    var heTimeSec = function () { return Math.max(1, num($("he-h"), 0) * 3600 + num($("he-m"), 0) * 60 + num($("he-s"), 0)); };
+    var heMeters = function () { return parseFloat($("he-event").value); };
+
+    function heRender() {
+      var u = heUnit();
+      var sumA = toF(num($("he-temp"), 70), u) + toF(num($("he-dew"), 60), u);
+      var sumB = toF(num($("he-temp2"), 50), u) + toF(num($("he-dew2"), 40), u);
+      var observed = heTimeSec();
+      var meters = heMeters();
+
+      var base = baselineTime(observed, sumA);
+      var target = predictTime(base, sumB);
+      var zone = zoneFor(sumA);
+
+      var eventName = $("he-event").selectedOptions[0].textContent;
+      $("he-headline").textContent = fmtClock(target);
+      $("he-sub").textContent = "That's your " + eventName + " at " + Math.round(num($("he-temp2"), 50)) + "° / " +
+        Math.round(num($("he-dew2"), 40)) + "° dew — the same fitness as the " + fmtClock(observed) +
+        " you ran at " + Math.round(num($("he-temp"), 70)) + "° / " + Math.round(num($("he-dew"), 60)) + "° dew.";
+
+      var swing = target - observed;
+      $("he-m1").textContent = fmtSigned(swing);
+      $("he-m2").textContent = fmtSigned((target - observed) / (meters / MI)) + "/mi";
+      $("he-m3").textContent = (racePenalty(sumA, observed)).toFixed(1) + "%";
+      $("he-verdict").style.borderLeftColor = "var(--hpc-z" + zone.css + ")";
+      $("he-verdict").querySelector("strong").textContent = zone.name + " heat on race day";
+      $("he-verdict-text").textContent = zone.note + " In cool air (50° / 40° dew) the same effort is worth about " +
+        fmtClock(predictTime(base, 90)) + ".";
+
+      $("he-matrix-caption").textContent = "Predicted " + eventName + " · rows = air temp, columns = dew point (°F)";
+
+      var tempsShown = u === "C" ? TEMPS.map(function (t) { return t; }) : TEMPS;
+      var html = tempsShown.map(function (t) {
+        var cells = DEWS.map(function (d) {
+          if (d > t) return "<td class='hpc-na'>—</td>";
+          var s = t + d;
+          var val = predictTime(base, s);
+          var z = zoneFor(s);
+          var here = Math.abs(s - sumA) <= 5 ? " hpc-here" : "";
+          var bg = "color-mix(in srgb, var(--hpc-z" + z.css + ") 20%, transparent)";
+          return "<td class='" + here.trim() + "' style='background:" + bg + "'>" + fmtClock(val) + "</td>";
+        }).join("");
+        return "<tr><th scope='row'>" + t + "°</th>" + cells + "</tr>";
+      }).join("");
+      $("he-matrix").innerHTML = html;
+    }
+
+    he.addEventListener("input", function (e) { if (e.target.tagName === "INPUT") heRender(); });
+
+    var hePrevUnit = "F";
+    he.addEventListener("change", function (e) {
+      if (e.target.name === "he-units") {
+        var next = e.target.value;
+        if (next !== hePrevUnit) {
+          ["he-temp", "he-dew", "he-temp2", "he-dew2"].forEach(function (id) {
+            var el = $(id), v = parseFloat(el.value);
+            if (!isNaN(v)) el.value = Math.round(next === "C" ? (v - 32) * 5 / 9 : v * 9 / 5 + 32);
+          });
+          hePrevUnit = next;
+        }
+      }
+      if (e.target.id === "he-preset" && e.target.value) {
+        var parts = e.target.value.split(",");
+        var f2u = function (f) { return heUnit() === "C" ? Math.round((f - 32) * 5 / 9) : f; };
+        $("he-temp2").value = f2u(parseFloat(parts[0]));
+        $("he-dew2").value = f2u(parseFloat(parts[1]));
+      }
+      if (e.target.id === "he-temp2" || e.target.id === "he-dew2") $("he-preset").value = "";
+      heRender();
+    });
+
+    $("he-metar").addEventListener("click", function () {
+      var btn = $("he-metar"), status = $("he-status"), station = $("he-station").value;
+      btn.disabled = true;
+      status.textContent = "Requesting " + station + "…";
+      fetch("/api/heat-conditions?station=" + encodeURIComponent(station))
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+        .then(function (d) {
+          if (typeof d.tempC !== "number") throw new Error("no temperature in report");
+          var c = heUnit() === "C";
+          $("he-temp").value = Math.round(c ? d.tempC : d.tempF);
+          $("he-dew").value = Math.round(c ? d.dewpC : d.dewpF);
+          status.textContent = d.station + " loaded" + (d.observedAgoMin != null ? " · observed " + d.observedAgoMin + " min ago" : "") + ".";
+          heRender();
+        })
+        .catch(function (err) { status.textContent = "Weather feed unreachable (" + err.message + "). Enter conditions by hand."; })
+        .then(function () { btn.disabled = false; });
+    });
+
+    heRender();
+  }
 })();
  
 // ── GAP 4: BUILD LOG ────────────────────────────────────────────────────────

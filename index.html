@@ -11715,6 +11715,7 @@ window.cpUpdateSignal = function (tab) {
                      .setView([32, -92], 4);
         L.tileLayer(window.CARTO_DARK,
             { maxZoom: 10 }).addTo(map);
+        L.control.attribution({ prefix: false }).addTo(map);
  
         SL.data.cities.forEach(c => {
             const color = TIER_COLOR[c.tier] || OCEAN;
@@ -11932,6 +11933,7 @@ window.cpUpdateSignal = function (tab) {
         }
         const map = L.map('dc-map', { scrollWheelZoom: false, attributionControl: false }).setView([38.5, -95], 4);
         L.tileLayer(window.CARTO_DARK, { maxZoom: 10 }).addTo(map);
+        L.control.attribution({ prefix: false }).addTo(map);
         const maxMw = Math.max(...DC.data.markets.map(m => m.mw));
         DC.data.markets.forEach(m => {
             const color = m.mw > 3000 ? '#ef4444' : m.mw > 1200 ? '#fb923c' : m.mw > 700 ? '#facc15' : '#38bdf8';

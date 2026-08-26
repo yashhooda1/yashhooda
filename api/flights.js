@@ -93,6 +93,15 @@ export default async function handler(req, res) {
     }
   }
 
+  async function pool(items, n, fn) {
+  const out = [];
+  for (let i = 0; i < items.length; i += n) {
+    out.push(...await Promise.allSettled(items.slice(i, i + n).map(fn)));
+    await new Promise(r => setTimeout(r, 250));
+  }
+  return out;
+}
+
   // Global sampling points (lat, lon, radius in nm). adsb.lol has worldwide
   // community coverage, strongest over Europe and North America.
   const regions = [
@@ -114,14 +123,12 @@ export default async function handler(req, res) {
   ];
 
   try {
-    const results = await Promise.allSettled(
-      regions.map(({ lat, lon, dist }) =>
-        fetch(`https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${dist}`, {
-          headers: { 'User-Agent': UA, 'Accept': 'application/json' },
-          signal: AbortSignal.timeout(8000),
-        }).then(r => (r.ok ? r.json().then(d => d.ac || []) : []))
-         .catch(() => [])
-      )
+    const results = await pool(regions, 4, ({ lat, lon, dist }) =>
+      fetch(`https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${dist}`, {
+        headers: { 'User-Agent': UA, 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(8000),
+      }).then(r => (r.ok ? r.json().then(d => d.ac || []) : []))
+       .catch(() => [])
     );
 
     const seen = new Set();

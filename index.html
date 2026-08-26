@@ -3269,10 +3269,57 @@
           width: 0;
           transition: width 1.2s linear;
         }
+        /* ETA caption row */
+        #if-flight .if-etarow {
+          grid-column: 1 / -1;
+          display: flex; align-items: baseline; gap: 0.6rem;
+          padding: 0.5rem 0.8rem;
+          border-top: 1px solid var(--strip-line);
+          font-family: "Space Mono", ui-monospace, monospace;
+        }
+        #if-flight .if-eta-k { font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--strip-dim); }
+        #if-flight .if-eta-v { font-size: 0.9rem; color: var(--live); }
+        #if-flight .if-eta-cd { margin-left: auto; font-size: 0.8rem; color: var(--strip-dim); letter-spacing: 0.06em; }
+
+        /* interactive map: plane ring, remaining-route flow, popup, zoom control */
+        #if-flight .if-plane { position: relative; width: 30px; height: 30px; }
+        #if-flight .if-ring {
+          position: absolute; left: 50%; top: 50%; width: 30px; height: 30px;
+          margin: -15px 0 0 -15px; border-radius: 50%;
+          border: 1.5px solid var(--live); opacity: 0.6;
+          animation: if-ring 2.4s ease-out infinite;
+        }
+        @keyframes if-ring { 0% { transform: scale(.35); opacity: .7; } 100% { transform: scale(1); opacity: 0; } }
+        #if-flight .route-remaining { animation: if-flow 1s linear infinite; }
+        @keyframes if-flow { to { stroke-dashoffset: -18; } }
+        @media (prefers-reduced-motion: reduce) {
+          #if-flight .if-ring, #if-flight .route-remaining { animation: none !important; }
+        }
+        #if-flight .if-map .leaflet-popup-content-wrapper {
+          background: var(--strip-bg); color: var(--strip-ink);
+          border: 1px solid var(--live); border-radius: 4px;
+        }
+        #if-flight .if-map .leaflet-popup-tip { background: var(--strip-bg); border: 1px solid var(--live); }
+        #if-flight .if-pop { font-family: "Space Mono", ui-monospace, monospace; }
+        #if-flight .if-pop h4 { margin: 0 0 0.4rem; color: var(--live); font-size: 0.82rem; letter-spacing: 0.08em; }
+        #if-flight .if-pop table { border-collapse: collapse; font-size: 0.72rem; }
+        #if-flight .if-pop td { padding: 1px 0; }
+        #if-flight .if-pop td:first-child { color: var(--strip-dim); padding-right: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; }
+        #if-flight .if-map .if-tip {
+          background: var(--strip-bg); color: var(--strip-ink);
+          border: 1px solid var(--strip-line); font-family: "Space Mono", ui-monospace, monospace;
+          font-size: 0.62rem; letter-spacing: 0.06em; padding: 2px 6px;
+        }
+        #if-flight .if-map .if-tip::before { border-top-color: var(--strip-line); }
+        #if-flight .if-map .leaflet-control-zoom a {
+          background: var(--strip-bg); color: var(--strip-ink); border-color: var(--strip-line);
+        }
+        #if-flight .if-map .leaflet-control-zoom a:hover { background: #1b2128; }
  
         /* ---------- map ---------- */
         #if-flight .if-map {
           margin-top: 1rem;
+          position: relative;
           height: 320px;
           border: 1px solid var(--strip-line);
           border-radius: 3px;
@@ -3280,6 +3327,14 @@
           overflow: hidden;
         }
         #if-flight .if-map svg { width: 100%; height: 100%; display: block; }
+        #if-flight .if-svg-ring { transform-box: fill-box; transform-origin: center; animation: if-ring 2.4s ease-out infinite; }
+        #if-flight .if-svg-pop {
+          position: absolute; left: 8px; bottom: 8px; z-index: 5; display: none;
+          background: var(--strip-bg); border: 1px solid var(--live); border-radius: 4px;
+          padding: 0.5rem 0.7rem; max-width: 62%; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+        #if-flight .if-svg-pop.show { display: block; }
+        @media (prefers-reduced-motion: reduce) { #if-flight .if-svg-ring { animation: none !important; } }
         @media (max-width: 640px) { #if-flight .if-map { height: 240px; } }
  
         /* ---------- waypoint chain ---------- */
@@ -4427,7 +4482,11 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <span class="if-k">Remaining</span>
                     <div class="if-v" id="if-remaining">—</div>
                 </div>
-
+                    <div class="if-etarow">
+                        <span class="if-eta-k">ETA</span>
+                        <span class="if-eta-v" id="if-eta">—</span>
+                        <span class="if-eta-cd" id="if-countdown"></span>
+                    </div>
                     <div class="if-prog"><i id="if-prog-fill"></i></div>
                 </div>
 
@@ -10966,6 +11025,8 @@ window.cpUpdateSignal = function (tab) {
   var ENDPOINT = "/api/infinite-flight";
   var POLL_LIVE = 20000;   // airborne
   var POLL_IDLE = 120000;  // parked
+  var timer = null, tick = null, etaTick = null, state = null, leafletMap = null, leafletLayers = [];
+  var planeMarker = null, fitted = false, flightKey = null;
   var timer = null, tick = null, state = null, leafletMap = null, leafletLayers = [];
  
   var $ = function (id) { return document.getElementById(id); };
@@ -10982,6 +11043,34 @@ window.cpUpdateSignal = function (tab) {
     if (v == null || isNaN(v)) return "—";
     return Math.round(v).toLocaleString() + (suffix || "");
   }
+ 
+  var RAD = Math.PI / 180, R_NM = 3440.065;
+  function slerp(a, b, f) {
+    var p1 = a.lat * RAD, l1 = a.lon * RAD, p2 = b.lat * RAD, l2 = b.lon * RAD;
+    var d = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin((p2 - p1) / 2), 2) +
+            Math.cos(p1) * Math.cos(p2) * Math.pow(Math.sin((l2 - l1) / 2), 2)));
+    if (!d) return { lat: a.lat, lon: a.lon };
+    var A = Math.sin((1 - f) * d) / Math.sin(d), B = Math.sin(f * d) / Math.sin(d);
+    var x = A * Math.cos(p1) * Math.cos(l1) + B * Math.cos(p2) * Math.cos(l2);
+    var y = A * Math.cos(p1) * Math.sin(l1) + B * Math.cos(p2) * Math.sin(l2);
+    var z = A * Math.sin(p1) + B * Math.sin(p2);
+    return { lat: Math.atan2(z, Math.hypot(x, y)) / RAD, lon: Math.atan2(y, x) / RAD };
+  }
+  function geodesic(nodes, per) {
+    per = per || 20; var out = [];
+    for (var i = 0; i < nodes.length - 1; i++) {
+      for (var g = 0; g < per; g++) { var q = slerp(nodes[i], nodes[i + 1], g / per); out.push([q.lat, q.lon]); }
+    }
+    var last = nodes[nodes.length - 1]; out.push([last.lat, last.lon]); return out;
+  }
+  function nmDist(a, b) {
+    if (!a || !b) return 0;
+    var dLat = (b.lat - a.lat) * RAD, dLon = (b.lon - a.lon) * RAD;
+    var h = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(a.lat * RAD) * Math.cos(b.lat * RAD) * Math.pow(Math.sin(dLon / 2), 2);
+    return 2 * R_NM * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+  function clk(ms) { var t = new Date(ms); return String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0"); }
+  function mmss(sec) { sec = Math.max(0, Math.round(sec)); return String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0"); }
  
   /* ------------------------------------------------ SVG map */
  
@@ -11032,6 +11121,16 @@ window.cpUpdateSignal = function (tab) {
     if (flown.length > 1) {
       s += '<polyline points="' + poly(flown) + '" fill="none" stroke="#ffb020" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
     }
+    // remaining leg — position through fixes ahead to destination
+    if (pos && pos.lat != null && data.destination && data.destination.lat != null) {
+      var dst = data.destination, hereP = { lat: pos.lat, lon: pos.lon };
+      var dRem = nmDist(hereP, dst);
+      var aheadP = plan.filter(function (w) { return nmDist({ lat: w.lat, lon: w.lon }, dst) < dRem - 1; });
+      var remPts = [[hereP.lat, hereP.lon]].concat(aheadP.map(function (w) { return [w.lat, w.lon]; }));
+      var lp = remPts[remPts.length - 1];
+      if (nmDist({ lat: lp[0], lon: lp[1] }, dst) > 1) remPts.push([dst.lat, dst.lon]);
+      s += '<polyline points="' + poly(remPts) + '" fill="none" stroke="#38d17a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    }
     // waypoint dots
     plan.forEach(function (w) {
       var isApt = /^[A-Z]{4}$/.test(w.name || "");
@@ -11042,77 +11141,150 @@ window.cpUpdateSignal = function (tab) {
              '" fill="#e6ebf0" font-family="Space Mono, monospace" font-size="13" letter-spacing="1">' + w.name + '</text>';
       }
     });
-    // aircraft
+    // aircraft — pulsing range ring + tappable plane (parity with Leaflet popup/ring)
     if (pos && pos.lat != null) {
       var px = X(pos.lon).toFixed(1), py = Y(pos.lat).toFixed(1);
       var hdg = pos.trackDeg != null ? pos.trackDeg : (pos.headingDeg || 0);
-      s += '<g transform="translate(' + px + ',' + py + ') rotate(' + hdg + ')">' +
-           '<path d="M0,-11 L7,8 L0,4 L-7,8 Z" fill="#38d17a"/></g>';
+      s += '<circle class="if-svg-ring" cx="' + px + '" cy="' + py + '" r="16" fill="none" stroke="#38d17a" stroke-width="1.5" opacity="0.6"/>';
+      s += '<g id="if-svg-plane" style="cursor:pointer" transform="translate(' + px + ',' + py + ') rotate(' + hdg + ')">' +
+           '<path d="M0,-11 L7,8 L0,4 L-7,8 Z" fill="#38d17a"/>' +
+           '<circle r="16" fill="transparent"/></g>';  // larger invisible tap target
     }
     s += "</svg>";
     el.innerHTML = s;
+    
+    // Tap the aircraft to toggle a detail card. innerHTML above wipes the old
+    // card and plane each render, so listeners never accumulate.
+    if (pos && pos.lat != null) {
+      var card = document.createElement("div");
+      card.className = "if-svg-pop";
+      card.innerHTML = planePopup(data);
+      el.appendChild(card);
+      var planeG = el.querySelector("#if-svg-plane");
+      if (planeG) {
+        planeG.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          card.classList.toggle("show");
+        });
+      }
+    }
   }
  
   /* ------------------------------------------------ Leaflet map */
+  
+  function planeDivIcon(hdg) {
+    return L.divIcon({
+      className: "", iconSize: [30, 30], iconAnchor: [15, 15],
+      html: '<div class="if-plane"><span class="if-ring"></span>' +
+            '<svg width="30" height="30" viewBox="-15 -15 30 30" style="transform:rotate(' + hdg + 'deg)">' +
+            '<path d="M0,-12 L8,9 L0,4.5 L-8,9 Z" fill="#38d17a"/></svg></div>'
+    });
+  }
+  function popRow(k, v) { return '<tr><td>' + k + '</td><td>' + v + '</td></tr>'; }
+  function planePopup(data) {
+    var p = data.position || {}, o = data.origin || {}, d = data.destination || {};
+    var vs = p.verticalSpeedFpm;
+    var vsTxt = vs == null ? "—" : (vs > 100 ? "↑ " + Math.round(vs) + " fpm"
+              : vs < -100 ? "↓ " + Math.abs(Math.round(vs)) + " fpm" : "level");
+    return '<div class="if-pop"><h4>' + (data.callsign || "Flight") + '</h4><table>' +
+      popRow("Aircraft", data.aircraft || "—") +
+      popRow("Route", (o.icao || "?") + " → " + (d.icao || "?")) +
+      popRow("Altitude", num(p.altitudeFt, " ft")) +
+      popRow("Ground spd", num(p.groundSpeedKts, " kt")) +
+      popRow("Vert spd", vsTxt) +
+      popRow("Track", p.trackDeg != null ? Math.round(p.trackDeg) + "°" : "—") +
+      popRow("Remaining", data.distanceNm && data.distanceNm.remaining != null ? num(data.distanceNm.remaining, " nm") : "—") +
+      '</table></div>';
+  }
+  function tweenMarker(marker, to, hdg, ms) {
+    ms = ms || 1200;
+    var from = marker.getLatLng(), t0 = performance.now();
+    (function step(now) {
+      now = now || performance.now();
+      var k = Math.min(1, (now - t0) / ms);
+      var e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      marker.setLatLng([from.lat + (to[0] - from.lat) * e, from.lng + (to[1] - from.lng) * e]);
+      if (k < 1) requestAnimationFrame(step);
+      else marker.setIcon(planeDivIcon(hdg));
+    })();
+  }
  
   function leafletRender(el, data) {
     var plan = (data.waypoints || []).filter(function (w) { return w.lat != null; });
     var flown = (data.track || []).filter(function (p) { return p && p[0] != null; });
     var pos = data.position;
+    
+    var key = data.flightId || ((data.origin && data.origin.icao) + "-" + (data.destination && data.destination.icao));
+    if (key !== flightKey) { flightKey = key; fitted = false; }
  
     if (!leafletMap) {
       el.innerHTML = "";
-      leafletMap = L.map(el, { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
-      L.tileLayer(window.CARTO_DARK, {
-        maxZoom: 12, attribution: "&copy; OpenStreetMap, &copy; CARTO"
-      }).addTo(leafletMap);
+      leafletMap = L.map(el, { zoomControl: true, attributionControl: false, scrollWheelZoom: false });
+      L.tileLayer(window.CARTO_DARK, { maxZoom: 12, attribution: "&copy; OpenStreetMap, &copy; CARTO" }).addTo(leafletMap);
       L.control.attribution({ prefix: false }).addTo(leafletMap);
+      planeMarker = null; fitted = false;
     }
     leafletLayers.forEach(function (l) { leafletMap.removeLayer(l); });
     leafletLayers = [];
  
     var bounds = [];
+    // 1. planned route — geodesic, faint dashed
     if (plan.length > 1) {
-      var pl = plan.map(function (w) { return [w.lat, w.lon]; });
-      leafletLayers.push(L.polyline(pl, { color: "#5a6672", weight: 2, dashArray: "6 6", opacity: 0.8 }).addTo(leafletMap));
-      bounds = bounds.concat(pl);
+      leafletLayers.push(L.polyline(geodesic(plan), { color: "#5a6672", weight: 1.5, dashArray: "5 7", opacity: 0.7 }).addTo(leafletMap));
+      bounds = bounds.concat(plan.map(function (w) { return [w.lat, w.lon]; }));
     }
+    // 2. flown track — amber
     if (flown.length > 1) {
-      leafletLayers.push(L.polyline(flown, { color: "#ffb020", weight: 3 }).addTo(leafletMap));
+      leafletLayers.push(L.polyline(flown, { color: "#ffb020", weight: 2.5, opacity: 0.9 }).addTo(leafletMap));
       bounds = bounds.concat(flown);
     }
+    // 3. remaining — bright green geodesic w/ animated flow (position -> fixes ahead -> dest)
+    var dest = data.destination;
+    if (data.status === "live" && pos && pos.lat != null && dest && dest.lat != null) {
+      var here = { lat: pos.lat, lon: pos.lon };
+      var dToDest = nmDist(here, dest);
+      var ahead = plan.filter(function (w) { return nmDist(w, dest) < dToDest - 1; });
+      var remNodes = [here].concat(ahead);
+      if (nmDist(remNodes[remNodes.length - 1], dest) > 1) remNodes.push({ lat: dest.lat, lon: dest.lon });
+      leafletLayers.push(L.polyline(geodesic(remNodes), { color: "#38d17a", weight: 3, opacity: 0.95, className: "route-remaining", dashArray: "10 8" }).addTo(leafletMap));
+    }
+    // waypoint dots + tooltips
     plan.forEach(function (w) {
       var isApt = /^[A-Z]{4}$/.test(w.name || "");
       leafletLayers.push(
         L.circleMarker([w.lat, w.lon], {
-          radius: isApt ? 5 : 3,
-          color: isApt ? "#e6ebf0" : "#5a6672",
-          fillColor: isApt ? "#e6ebf0" : "#5a6672",
-          fillOpacity: 1, weight: 1
+           radius: isApt ? 5 : 3, color: isApt ? "#e6ebf0" : "#5a6672",
+
+           fillColor: isApt ? "#e6ebf0" : "#5a6672", fillOpacity: 1, weight: 1
         }).bindTooltip(w.name || "", { permanent: isApt, direction: "top", className: "if-tip" }).addTo(leafletMap)
       );
     });
+     // aircraft — persistent marker, tweened between polls, click for detail
     if (pos && pos.lat != null) {
       var hdg = pos.trackDeg != null ? pos.trackDeg : (pos.headingDeg || 0);
-      var icon = L.divIcon({
-        className: "",
-        iconSize: [22, 22],
-        iconAnchor: [11, 11],
-        html: '<svg width="22" height="22" viewBox="-11 -11 22 22" style="transform:rotate(' + hdg + 'deg)">' +
-              '<path d="M0,-9 L6,7 L0,3.5 L-6,7 Z" fill="#38d17a"/></svg>'
-      });
-      leafletLayers.push(L.marker([pos.lat, pos.lon], { icon: icon }).addTo(leafletMap));
+      if (planeMarker && leafletMap.hasLayer(planeMarker)) {
+        tweenMarker(planeMarker, [pos.lat, pos.lon], hdg);
+        planeMarker.setPopupContent(planePopup(data));
+      } else {
+        planeMarker = L.marker([pos.lat, pos.lon], { icon: planeDivIcon(hdg), zIndexOffset: 1000 })
+          .bindPopup(planePopup(data), { className: "if-pop-wrap", closeButton: false })
+          .addTo(leafletMap);
+      }
       bounds.push([pos.lat, pos.lon]);
+      } else if (planeMarker) {
+      leafletMap.removeLayer(planeMarker); planeMarker = null;
     }
-    if (bounds.length) leafletMap.fitBounds(bounds, { padding: [30, 30] });
-    setTimeout(function () { leafletMap.invalidateSize(); }, 0);
+
+    // Fit once per flight so polling does not yank a user who has panned/zoomed.
+    if (bounds.length && !fitted) { leafletMap.fitBounds(bounds, { padding: [30, 30] }); fitted = true; }
+    setTimeout(function () { if (leafletMap) leafletMap.invalidateSize(); }, 0);
   }
  
   function renderMap(data) {
     var el = $("if-map");
     var useLeaflet = typeof window.L !== "undefined" && window.innerWidth >= 768;
     if (useLeaflet) { try { leafletRender(el, data); return; } catch (e) { /* fall through */ } }
-    if (leafletMap) { leafletMap.remove(); leafletMap = null; leafletLayers = []; }
+    if (leafletMap) { leafletMap.remove(); leafletMap = null; leafletLayers = []; planeMarker = null; fitted = false; }
     svgMap(el, data);
   }
  
@@ -11144,6 +11316,8 @@ window.cpUpdateSignal = function (tab) {
       root.dataset.state = "idle";
       $("if-status-text").textContent = "On the ground";
       $("if-track-note").textContent = "Nothing logged yet. The panel wakes up on the next flight.";
+      clearInterval(etaTick);
+      $("if-eta").textContent = "—"; $("if-countdown").textContent = "";
       return;
     }
  
@@ -11165,6 +11339,22 @@ window.cpUpdateSignal = function (tab) {
  
     $("if-duration").textContent = hhmm(data.durationSec);
     $("if-prog-fill").style.width = (data.progressPct != null ? data.progressPct : (data.status === "last" ? 100 : 0)) + "%";
+
+    
+    // ETA — arrival clock + live countdown, from server-computed etaSec
+    clearInterval(etaTick);
+    if (data.status === "live" && data.etaSec != null) {
+      var arriveAt = Date.now() + data.etaSec * 1000;
+      var drawEta = function () {
+        var left = (arriveAt - Date.now()) / 1000;
+        $("if-eta").textContent = left <= 0 ? "arriving" : clk(arriveAt) + " local";
+        $("if-countdown").textContent = left <= 0 ? "T-00:00" : "T-" + mmss(left);
+      };
+      drawEta(); etaTick = setInterval(drawEta, 1000);
+    } else {
+      $("if-eta").textContent = data.status === "last" ? "arrived" : "—";
+      $("if-countdown").textContent = "";
+    }
  
      $("if-track-note").textContent = data.note || (data.mode === "offline"
       ? "Flown offline in solo / Autopilot+ — route logged by hand, no live position."
@@ -11206,7 +11396,7 @@ window.cpUpdateSignal = function (tab) {
   }
  
   document.addEventListener("visibilitychange", function () {
-    if (document.hidden) { clearTimeout(timer); clearInterval(tick); }
+    if (document.hidden) { clearTimeout(timer); clearInterval(tick); clearInterval(etaTick); }
     else poll();
   });
  

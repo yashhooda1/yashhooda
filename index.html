@@ -8907,6 +8907,7 @@ setTool('dns');
                 L.tileLayer(window.CARTO_DARK, {
                     maxZoom: 18
                 }).addTo(flightMap);
+            }
 
             // Clear old markers + route line
             flightMarkers.forEach(m => m && flightMap.removeLayer(m));

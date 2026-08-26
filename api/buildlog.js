@@ -50,6 +50,16 @@ const SHIPPED_MILESTONES = [
     ],
   },
   {
+    date:    '2026-07-12',
+    title:   'SLM Offline Agent — Local ReAct Loop, No API Key',
+    body:    'A fully offline ReAct agent running on a local small language model: no API key, no network calls, no framework. The reasoning loop is hand-written rather than inherited from LangChain, so every thought → action → observation step is inspectable instead of buried in an abstraction — which is exactly what you need when the model is small enough to reason badly. Six sandboxed tools, a stdlib-only SSE server, and content guardrails on the output path. The test suite runs green with no model loaded, so CI validates the agent control flow independently of whatever the model happens to say that day.',
+    tags:    ['agent', 'react', 'local-llm', 'ollama', 'offline-ai', 'python', 'testing', 'guardrails'],
+    type:    'shipped',
+    links:   [
+      { label: 'Ollama Model', url: 'https://ollama.com/hoodarunner/offline-agent' },
+    ],
+  },
+  {
     date:    '2026-06-27',
     title:   'Prompt Lab + LLM-as-Judge Eval Layer',
     body:    'Added systematic prompt engineering (zero-shot, few-shot, CoT, XML, role-based, extended thinking) with side-by-side comparison UI. Deployed LLM-as-judge scoring every chat response on helpfulness/accuracy/safety using claude-haiku.',

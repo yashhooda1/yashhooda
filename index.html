@@ -11147,7 +11147,7 @@ window.cpUpdateSignal = function (tab) {
       var hdg = pos.trackDeg != null ? pos.trackDeg : (pos.headingDeg || 0);
       s += '<circle class="if-svg-ring" cx="' + px + '" cy="' + py + '" r="16" fill="none" stroke="#38d17a" stroke-width="1.5" opacity="0.6"/>';
       s += '<g id="if-svg-plane" style="cursor:pointer" transform="translate(' + px + ',' + py + ') rotate(' + hdg + ')">' +
-           '<path d="M0,-11 L7,8 L0,4 L-7,8 Z" fill="#38d17a"/>' +
+           '<path d="M0,-10 C-0.8,-10 -1.5,-9.2 -1.5,-7.5 L-1.5,-2.5 L-9,3 L-9,5 L-1.5,2 L-1.5,7 L-4,8.5 L-4,10 L0,9 L4,10 L4,8.5 L1.5,7 L1.5,2 L9,5 L9,3 L1.5,-2.5 L1.5,-7.5 C1.5,-9.2 0.8,-10 0,-10 Z" fill="#38d17a"/>' +
            '<circle r="16" fill="transparent"/></g>';  // larger invisible tap target
     }
     s += "</svg>";
@@ -11177,7 +11177,7 @@ window.cpUpdateSignal = function (tab) {
       className: "", iconSize: [30, 30], iconAnchor: [15, 15],
       html: '<div class="if-plane"><span class="if-ring"></span>' +
             '<svg width="30" height="30" viewBox="-15 -15 30 30" style="transform:rotate(' + hdg + 'deg)">' +
-            '<path d="M0,-12 L8,9 L0,4.5 L-8,9 Z" fill="#38d17a"/></svg></div>'
+            '<path d="M0,-10 C-0.8,-10 -1.5,-9.2 -1.5,-7.5 L-1.5,-2.5 L-9,3 L-9,5 L-1.5,2 L-1.5,7 L-4,8.5 L-4,10 L0,9 L4,10 L4,8.5 L1.5,7 L1.5,2 L9,5 L9,3 L1.5,-2.5 L1.5,-7.5 C1.5,-9.2 0.8,-10 0,-10 Z" fill="#38d17a"/></svg></div>'
     });
   }
   function popRow(k, v) { return '<tr><td>' + k + '</td><td>' + v + '</td></tr>'; }

@@ -17,6 +17,27 @@ const ALLOWED_ORIGINS = new Set([
 
 // ── STATIC SHIPPED MILESTONES (always shown, most recent first) ──────────────
 const SHIPPED_MILESTONES = [
+   {
+    date:    '2026-08-25',
+    title:   'Pace Calculator + Race Time by Temperature',
+    body:    'Two more running tools on the site. The pace calculator solves for whichever of pace, time, or distance you leave out, and reports the result six ways plus race times from 400m to the marathon. The interesting one is the inverse: give it a result and the conditions you ran it in, and it strips the heat penalty back out to recover the cool-air performance underneath, then re-applies it anywhere else — an 18:15 5K at 85°F with a 74°F dew point is a 17:18 in cool air. Output is a temp × dew matrix of predicted finishes, color-coded by severity zone, with your actual conditions outlined. Added a duration factor to the shared model (0.86× at 18 minutes, 1.0× at 60, 1.13× at three hours) because heat compounds with time on your feet — a marathon bleeds far more to a hot day than a 5K does — and backported it to the heat-adjusted pace tool so both read from one model. Round-trip is exact: feed the original conditions back in and the original time comes out.',
+    tags:    ['running', 'weather', 'modeling', 'vanilla-js', 'tools'],
+    type:    'shipped',
+    links:   [
+      { label: 'Pace Calculator', url: 'https://www.yashhooda.ai/#pace-calc' },
+      { label: 'Race Time by Temperature', url: 'https://www.yashhooda.ai/#heat-equivalent' },
+    ],
+  },
+  {
+    date:    '2026-08-23',
+    title:   'Heat-Adjusted Pace — Live METAR Conditions',
+    body:    'Shipped a heat-adjusted pace tool that answers the Houston summer question: what should today actually cost me? Temperature plus dew point interpolated across the standard heat-pace bands, scaled by effort, with a severity gauge and a table of how the answer moves if the forecast shifts. The part I cared about was the input: instead of asking the runner to look up the dew point, a serverless endpoint pulls the live observation from the same NOAA METAR feed behind METAR Stream and fills both fields — Upstash-cached at a 5-minute TTL, degrading to manual entry if the feed is unreachable. Zero dependencies, no build step, scoped CSS, one drop-in section.',
+    tags:    ['running', 'weather', 'metar', 'noaa', 'serverless', 'vercel'],
+    type:    'shipped',
+    links:   [
+      { label: 'Live on yashhooda.ai', url: 'https://www.yashhooda.ai/#heat-pace' },
+    ],
+  },
   {
     date:    '2026-08-22',
     title:   'PaceForge — Offline AI Running Coach with Garmin + Strava MCP',
@@ -45,17 +66,6 @@ const SHIPPED_MILESTONES = [
     links:   [],
   },
   {
-    date:    '2026-06-20',
-    title:   'HoodaRunners Race Planner Agent — GCP Production',
-    body:    'Deployed autonomous marathon training agent to Google Cloud Agent Runtime using Google ADK + Gemini 2.5 Flash. Fires 6 tools autonomously: Riegel predictor, pace zones, altitude adjuster (5,400 ft Boulder), race strategy builder, heat model, weekly plan generator.',
-    tags:    ['agent', 'gcp', 'gemini', 'marathon', 'production'],
-    type:    'shipped',
-    links:   [
-      { label: 'GitHub', url: 'https://github.com/yashhooda1/HoodaRunners-Race-Planner-Agent' },
-      { label: 'Live Agent', url: 'https://hooda-race-planner.vercel.app/' },
-    ],
-  },
-  {
     date:    '2026-06-15',
     title:   'Auth System — JWT + Email Verification + Stripe',
     body:    'Built full auth stack: JWT HS256 signed sessions, bcrypt password hashing, Resend email verification, password reset flow, 20 msg/month free tier enforcement, Stripe checkout for Pro ($5/month) and Supporter ($12/3 months) plans.',
@@ -70,14 +80,6 @@ const SHIPPED_MILESTONES = [
     tags:    ['multi-model', 'routing', 'llm-registry', 'ai-engineering'],
     type:    'shipped',
     links:   [],
-  },
-  {
-    date:    '2026-06-05',
-    title:   'NBC Dashboard — 25 Franchise Locations Live',
-    body:    'Shipped executive MIS dashboard for 25 Nothing Bundt Cakes locations (TX, NJ, CO). Toast POS → Microsoft Fabric Lakehouse (Bronze/Silver/Gold) via PySpark. Daily refresh via GitHub Actions. 8-tab Excel export with SheetJS. YoY comparison charts.',
-    tags:    ['data-engineering', 'microsoft-fabric', 'pyspark', 'franchise', 'production'],
-    type:    'shipped',
-    links:   [{ label: 'Live Dashboard', url: 'https://nbc-dashboard.vercel.app/' }],
   },
   {
     date:    '2026-05-20',

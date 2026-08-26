@@ -5732,6 +5732,9 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
 <script>
 
+window.CARTO_DARK =
+  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=cb1_25dt_1_d1adc60b28c801f577ac5da1';
+
 // ── SEARCH TRIGGER DETECTION ──
 const SEARCH_TRIGGERS = [
     // recency
@@ -8902,10 +8905,9 @@ setTool('dns');
                     zoomControl: true,
                     attributionControl: false,
                 });
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                L.tileLayer(window.CARTO_DARK, {
                     maxZoom: 18
                 }).addTo(flightMap);
-            }
 
             // Clear old markers + route line
             flightMarkers.forEach(m => m && flightMap.removeLayer(m));
@@ -10144,7 +10146,7 @@ async function loadStrava() {
                         touchZoom: false, tap: false,
                         attributionControl: false
                     });
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+                    L.tileLayer(window.CARTO_DARK, { maxZoom: 19 }).addTo(map);
                     const line = L.polyline(coords, { color: '#fc4c02', weight: 3, opacity: 0.9 }).addTo(map);
 
                     // Fit after layout has settled, not on a fixed timeout.
@@ -11061,7 +11063,7 @@ window.cpUpdateSignal = function (tab) {
     if (!leafletMap) {
       el.innerHTML = "";
       leafletMap = L.map(el, { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      L.tileLayer(window.CARTO_DARK, {
         maxZoom: 12, attribution: "&copy; OpenStreetMap, &copy; CARTO"
       }).addTo(leafletMap);
       L.control.attribution({ prefix: false }).addTo(leafletMap);
@@ -11711,8 +11713,8 @@ window.cpUpdateSignal = function (tab) {
         }
         const map = L.map('sl-map', { scrollWheelZoom: false, attributionControl: false })
                      .setView([32, -92], 4);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                    { maxZoom: 10 }).addTo(map);
+        L.tileLayer(window.CARTO_DARK,
+            { maxZoom: 10 }).addTo(map);
  
         SL.data.cities.forEach(c => {
             const color = TIER_COLOR[c.tier] || OCEAN;
@@ -11929,7 +11931,7 @@ window.cpUpdateSignal = function (tab) {
             return;
         }
         const map = L.map('dc-map', { scrollWheelZoom: false, attributionControl: false }).setView([38.5, -95], 4);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 10 }).addTo(map);
+        L.tileLayer(window.CARTO_DARK, { maxZoom: 10 }).addTo(map);
         const maxMw = Math.max(...DC.data.markets.map(m => m.mw));
         DC.data.markets.forEach(m => {
             const color = m.mw > 3000 ? '#ef4444' : m.mw > 1200 ? '#fb923c' : m.mw > 700 ? '#facc15' : '#38bdf8';

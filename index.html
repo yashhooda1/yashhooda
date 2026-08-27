@@ -4183,6 +4183,74 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <a href="https://github.com/yashhooda1/metar-stream" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
                 </div>
             </div>
+            
+            <div class="project-card">
+                <div class="project-title">🏃 Running Coach SFT — What a Fine-Tune Didn't Learn</div>
+                <div class="project-tech">
+                    <span class="tech-pill">AI / LLM Engineering</span>
+                    <span class="skill-tag ai">LoRA / PEFT</span>
+                    <span class="skill-tag ai">TRL SFTTrainer</span>
+                    <span class="skill-tag ai">Qwen2.5-3B-Instruct</span>
+                    <span class="skill-tag ai">Synthetic Data Generation</span>
+                    <span class="skill-tag ai">Eval Harness Design</span>
+                    <span class="skill-tag ai">Instruction Tuning</span>
+                    <span class="skill-tag ai">Hugging Face Hub</span>
+                    <span class="skill-tag de">Pandas &amp; NumPy</span>
+                    <span class="skill-tag de">OLS with Fixed Effects</span>
+                    <span class="skill-tag de">Heterogeneous Text Parsing</span>
+                    <span class="skill-tag cl">HF Jobs (A10G)</span>
+                    <span class="tech-pill">Daniels/Gilbert VDOT</span>
+                    <span class="tech-pill">Strava Bulk Export</span>
+                </div>
+                <div class="project-desc">
+                    A 1,527-example instruction-tuning corpus for distance-running coaching,
+                    where every pace, split and race equivalent is computed from a
+                    Daniels/Gilbert VDOT implementation rather than written into a template.
+                    That design decision is the whole project: a corpus with hand-typed paces
+                    teaches a model to interpolate them, and an interpolated training pace is
+                    wrong by enough to put someone at threshold when the plan said easy.
+                    <br><br>
+                    Because the numbers are generated, the corpus scores <strong>0.0%
+                    off-zone</strong> against its own arithmetic — a verified floor to measure
+                    drift against. Qwen2.5-3B-Instruct scored 47.3% before training.
+                    <br><br>
+                    <strong>The fine-tune learned the format almost perfectly and the
+                    arithmetic barely at all.</strong> Pace density went from 349 emitted paces
+                    to 1,242 against a ground truth of 1,066 — on one task it matched the
+                    reference exactly, 60 for 60. But off-zone rate only moved to 39.3%, and
+                    three of five tasks got <em>worse</em>. Two in five prescribed paces are
+                    still more than 8&nbsp;s/mi from any real training zone for that athlete.
+                    The model became more confident without becoming much more correct. Final
+                    training loss was 0.07 at 96.7% token accuracy, so "undertrained" doesn't
+                    explain it — validation loss looked excellent the entire way, and would
+                    have read as success without an eval measuring the arithmetic directly.
+                    <br><br>
+                    Six years of my own Strava history (1,648 runs, 2017–2023) replaced the
+                    generator's invented constants with measured ones. The heat rule didn't
+                    survive: regressing pace on dew point while controlling for heart rate,
+                    distance and year-level fitness (n=462) gives <strong>0.235&nbsp;s/mi per
+                    °F</strong> — about 5&nbsp;s/mi across a full seasonal swing, roughly a
+                    quarter of the 15–20&nbsp;s/mi coaching rule of thumb. The year fixed
+                    effects are load-bearing; without them the fitness trend across six
+                    seasons swamps the weather signal and the coefficient comes out near zero
+                    with the wrong sign.
+                    <br><br>
+                    One row of the results table is my metric being wrong, not the model.
+                    Race-prediction outputs are race <em>times</em>, not per-mile paces; the
+                    tuned model correctly stopped emitting paces there (63&nbsp;→&nbsp;3) and
+                    the eval scored that as a regression. It's documented rather than quietly
+                    dropped.
+                    <br><br>
+                    The negative result is the useful one. It's the empirical case for exposing
+                    the calculation as a tool instead of compressing it into weights — and the
+                    same VDOT module that generated the corpus serves as that tool.
+                </div>
+                <div class="project-links">
+                    <a href="https://github.com/yashhooda1/running-coach-dataset" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                    <a href="https://huggingface.co/datasets/hoodarunner/running-coach-sft" target="_blank" rel="noopener" class="project-btn">🤗 Dataset</a>
+                    <a href="https://huggingface.co/hoodarunner/running-coach-qwen3b-lora" target="_blank" rel="noopener" class="project-btn">🧠 Model</a>
+                </div>
+            </div>
 
             <div class="project-card">
                 <div class="project-title">🔌 SLM Offline Agent — Local ReAct, No API Key</div>

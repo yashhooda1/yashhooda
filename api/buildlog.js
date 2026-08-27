@@ -18,6 +18,18 @@ const ALLOWED_ORIGINS = new Set([
 // ── STATIC SHIPPED MILESTONES (always shown, most recent first) ──────────────
 const SHIPPED_MILESTONES = [
    {
+    date:    '2026-08-27',
+    title:   'Running Coach SFT — Fine-Tuned a 3B and Measured What It Didn\'t Learn',
+    body:    'Published a 1,527-example running-coaching corpus where every pace is computed from a Daniels/Gilbert VDOT implementation rather than typed into a template, then fine-tuned Qwen2.5-3B on it and built an eval that scores whether prescribed paces actually follow from the athlete\'s fitness. Because the numbers are generated, the corpus itself scores 0.0% off-zone — a verified floor. The base model was 47.3%. The fine-tune learned the format almost perfectly (pace density 349 → 1,242 against a ground truth of 1,066; on one task it matched the reference exactly, 60 for 60) and the arithmetic barely at all: 39.3% off-zone, with three of five tasks getting worse. Training loss hit 0.07 at 96.7% token accuracy, so it isn\'t undertrained — validation loss looked excellent the whole way and would have read as success without an eval measuring the numbers directly. Six years of my own Strava history replaced the generator\'s invented constants; the heat rule didn\'t survive, coming out at 0.235 s/mi per °F at matched heart rate against the 15–20 s/mi rule of thumb, with year fixed effects doing the load-bearing work. One row of the results table is my metric being wrong rather than the model, and it\'s documented as such. The negative result is the point: it\'s the measured case for PaceForge\'s design decision that the LLM is the interface, not the reasoning engine.',
+    tags:    ['fine-tuning', 'lora', 'peft', 'evals', 'synthetic-data', 'huggingface', 'running', 'negative-results'],
+    type:    'shipped',
+    links:   [
+      { label: 'GitHub',  url: 'https://github.com/yashhooda1/running-coach-dataset' },
+      { label: 'Dataset', url: 'https://huggingface.co/datasets/hoodarunner/running-coach-sft' },
+      { label: 'Model',   url: 'https://huggingface.co/hoodarunner/running-coach-qwen3b-lora' },
+    ],
+   },
+   {
     date:    '2026-08-25',
     title:   'Pace Calculator + Race Time by Temperature',
     body:    'Two more running tools on the site. The pace calculator solves for whichever of pace, time, or distance you leave out, and reports the result six ways plus race times from 400m to the marathon. The interesting one is the inverse: give it a result and the conditions you ran it in, and it strips the heat penalty back out to recover the cool-air performance underneath, then re-applies it anywhere else — an 18:15 5K at 85°F with a 74°F dew point is a 17:18 in cool air. Output is a temp × dew matrix of predicted finishes, color-coded by severity zone, with your actual conditions outlined. Added a duration factor to the shared model (0.86× at 18 minutes, 1.0× at 60, 1.13× at three hours) because heat compounds with time on your feet — a marathon bleeds far more to a hot day than a 5K does — and backported it to the heat-adjusted pace tool so both read from one model. Round-trip is exact: feed the original conditions back in and the original time comes out.',

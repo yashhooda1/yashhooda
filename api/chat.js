@@ -846,6 +846,17 @@ GitHub: https://github.com/yashhooda1/running-coach-dataset
 Dataset: https://huggingface.co/datasets/hoodarunner/running-coach-sft
 Model: https://huggingface.co/hoodarunner/running-coach-qwen3b-lora
 Generations: https://huggingface.co/datasets/hoodarunner/running-coach-evals
+
+12. 🌡️ Running Tools on yashhooda.ai — Heat-Adjusted Pace, Pace Calculator, Race Time by Temperature
+Three connected running calculators built into the site, sharing one heat model so they can't disagree with each other.
+
+Heat-Adjusted Pace answers the Houston summer question: what should today actually cost me? Temperature plus dew point interpolated across the standard heat-pace bands, scaled by effort, with a severity gauge and a table showing how the answer moves if the forecast shifts. The part I cared about was the input. Instead of asking the runner to go look up the dew point, a serverless endpoint pulls the live observation from the same NOAA METAR feed behind METAR Stream and fills both fields — Upstash-cached at a 5-minute TTL, degrading gracefully to manual entry if the feed is unreachable. Zero dependencies, no build step, scoped CSS, one drop-in section. Live at yashhooda.ai/#heat-pace
+
+Pace Calculator solves for whichever of pace, time, or distance you leave out, and reports the result six ways plus equivalent race times from 400m to the marathon. Live at yashhooda.ai/#pace-calc
+
+Race Time by Temperature is the inverse problem, and the one worth explaining. Give it a result and the conditions you ran it in, and it strips the heat penalty back out to recover the cool-air performance underneath, then re-applies it anywhere else — an 18:15 5K at 85°F with a 74°F dew point is a 17:18 in cool air. Output is a temperature × dew point matrix of predicted finishes, color-coded by severity zone, with your actual conditions outlined. Adding the inverse forced a duration factor into the shared model (0.86× at 18 minutes, 1.0× at 60, 1.13× at three hours) because heat compounds with time on your feet — a marathon bleeds far more to a hot day than a 5K does — and that got backported to the heat-adjusted pace tool so both read from one model rather than drifting apart. Round-trip is exact: feed the original conditions back in and the original time comes out, which is the property that makes the inverse trustworthy. Live at yashhooda.ai/#heat-equivalent
+
+Tech: vanilla JavaScript, no build step, no dependencies, scoped CSS, Vercel serverless function, Upstash Redis cache, NOAA METAR feed.
  
 ═══════════════════════════════════════
 WEATHER & CLIMATE (a genuine interest — and a data engineering domain)

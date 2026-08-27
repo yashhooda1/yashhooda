@@ -827,6 +827,25 @@ Two MCP servers — Garmin (7 tools, including structured-workout writes) and St
 
 Github: https://github.com/yashhooda1/paceforge
 Ollama Model: https://ollama.com/hoodarunner/paceforge-coach
+
+11. 🏃 Running Coach SFT — What a Fine-Tune Didn't Learn
+A 1,527-example instruction-tuning corpus for distance-running coaching, published on HuggingFace Hub, where every pace, split and race equivalent is computed from a Daniels/Gilbert VDOT implementation rather than written into a template. That design decision is the whole project: a corpus with hand-typed paces teaches a model to interpolate them, and an interpolated training pace is wrong by enough to put someone at threshold when the plan said easy.
+
+Because the numbers are generated rather than typed, the corpus scores 0.0% off-zone against its own arithmetic — a verified floor to measure drift against. "Off-zone" means a pace more than 8 s/mi from any legitimate training zone for that athlete, roughly the width separating one zone from the next. Qwen2.5-3B-Instruct scored 47.3% before training.
+
+The fine-tune learned the format almost perfectly and the arithmetic barely at all. Pace density went from 349 emitted paces to 1,242 against a ground truth of 1,066 — on one task it matched the reference exactly, 60 for 60, where the base model had emitted 5. But off-zone rate only moved to 39.3%, and three of five tasks got worse. Two in five prescribed paces are still wrong. The model became more confident without becoming much more correct. Final training loss was 0.07 at 96.7% token accuracy, so "undertrained" doesn't explain it — validation loss looked excellent the entire way and would have read as success without an eval measuring the arithmetic directly.
+
+Six years of my own Strava history (1,648 runs, 2017–2023) replaced the generator's invented constants with measured ones: week-over-week mileage ramp, cutback frequency, long-run share, session mix. The heat rule didn't survive contact with the data. Regressing pace on dew point while controlling for heart rate, distance and year-level fitness (n=462) gives 0.235 s/mi per °F — about 5 s/mi across a full seasonal swing, roughly a quarter of the 15–20 s/mi coaching rule of thumb. The year fixed effects are load-bearing; without them the fitness trend across six seasons swamps the weather signal and the coefficient comes out near zero with the wrong sign. Caveat stated in the dataset card: one athlete, and one who runs before sunrise year-round, so the summer samples are already at the coolest hour.
+
+One row of the results table is my metric being wrong rather than the model. Race-prediction outputs are race times, not per-mile paces; the tuned model correctly stopped emitting paces there (63 → 3) and the eval scored that as a regression. Documented rather than quietly dropped.
+
+The negative result is the useful one, and it's the empirical backing for PaceForge's central design decision — that the LLM should be the interface and not the reasoning engine. This project tried the other way on purpose and measured what it costs. The same VDOT module that generated the corpus serves as the tool in the architecture that works.
+
+Tech: Python, PyTorch, TRL SFTTrainer, PEFT/LoRA (r=32), Qwen2.5-3B-Instruct, 4-bit NF4, HuggingFace Hub + HF Jobs (A10G), pandas, NumPy, OLS with year fixed effects, Strava bulk export parsing.
+GitHub: https://github.com/yashhooda1/running-coach-dataset
+Dataset: https://huggingface.co/datasets/hoodarunner/running-coach-sft
+Model: https://huggingface.co/hoodarunner/running-coach-qwen3b-lora
+Generations: https://huggingface.co/datasets/hoodarunner/running-coach-evals
  
 ═══════════════════════════════════════
 WEATHER & CLIMATE (a genuine interest — and a data engineering domain)

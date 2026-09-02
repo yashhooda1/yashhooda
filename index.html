@@ -3159,6 +3159,45 @@
             #metar .medallion { flex-direction: column; }
             #metar .med-arrow { transform: rotate(90deg); }
         }
+        #metar .dbt-lineage {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1.25rem 0 1rem;
+        }
+        #metar .dbt-node {
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.78rem;
+            line-height: 1.35;
+        }
+        #metar .dbt-node em {
+            display: block;
+            font-style: normal;
+            opacity: 0.6;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        #metar .dbt-node b { font-weight: 600; }
+        #metar .dbt-src   { border-left: 3px solid #8892a4; }
+        #metar .dbt-stg   { border-left: 3px solid #2b6cb0; }
+        #metar .dbt-mart  { border-left: 3px solid #1a9850; }
+        #metar .dbt-audit { border-left: 3px solid #c0783a; }
+        #metar .dbt-arrow { opacity: 0.4; }
+        #metar .dbt-note {
+            font-size: 0.78rem;
+            opacity: 0.7;
+            line-height: 1.5;
+            margin-top: 1rem;
+        }
+        #metar .dbt-note a { color: inherit; }
+        @media (max-width: 640px) {
+            #metar .dbt-arrow { display: none; }
+            #metar .dbt-node  { width: 100%; }
+        }
         /* ---------- Infinite Flight panel ---------- */
         #if-flight {
           --strip-bg: #12161b;
@@ -4642,6 +4681,25 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <div class="pipe-grid" id="pipe-grid"></div>
             <div class="medallion" id="pipe-medallion"></div>
             <div class="pipe-stale" id="pipe-stale"></div>
+        </div>
+        <div class="pipe-panel" id="dbt-panel" hidden>
+            <div class="pipe-head">
+                <h3 style="text-transform:none;letter-spacing:0;opacity:1;font-size:1rem">
+                    dbt models over Silver
+                </h3>
+                <div class="pipe-when" id="dbt-when"></div>
+            </div>
+ 
+            <p style="font-size:0.8rem;opacity:0.7;margin:0 0 1.25rem">
+                The streaming job writes Silver; dbt owns everything after it — the
+                transformations, the tests, and the lineage. It runs alongside the Spark
+                Gold job rather than replacing it, which means the two can be diffed
+                against each other. That diff is the last number below.
+            </p>
+ 
+            <div class="pipe-grid" id="dbt-grid"></div>
+            <div class="dbt-lineage" id="dbt-lineage"></div>
+            <div class="dbt-note" id="dbt-note"></div>
         </div>
     </section>
 
@@ -11480,6 +11538,65 @@ window.cpUpdateSignal = function (tab) {
   } else {
     poll();
   }
+})();
+
+(function () {
+    const SRC = 'https://raw.githubusercontent.com/yashhooda1/metar-stream/data/docs/metar_dbt.json';
+    const $ = (id) => document.getElementById(id);
+    const fmt = (n) => Number(n).toLocaleString();
+    const when = (iso) => new Date(iso).toLocaleString(undefined,
+        { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+ 
+    fetch(SRC)
+        .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(render)
+        .catch(() => { /* panel stays hidden until dbt has published */ });
+ 
+    function render(d) {
+        const m = d.models || {}, t = d.tests || {}, p = d.parity || {}, c = d.ceiling_parser || {};
+        $('dbt-panel').hidden = false;
+        $('dbt-when').textContent = 'last build ' + when(d.generated_at);
+ 
+        $('dbt-grid').innerHTML = [
+            [fmt(m.observations || 0), 'observations modeled'],
+            [(t.passed || 0) + '/' + (t.total || 0), 'data tests passing'],
+            [(p.pct ?? 0) + '%', 'parity with Spark Gold'],
+            [fmt(m.transitions || 0), 'flight category changes']
+        ].map(([v, l]) =>
+            '<div class="pipe-metric"><b>' + v + '</b><span>' + l + '</span></div>'
+        ).join('');
+ 
+        // Lineage, not a list of model names: what each stage contributes.
+        $('dbt-lineage').innerHTML = [
+            ['dbt-src',   'source',       'silver.observations', 'written by the stream'],
+            ['dbt-stg',   'staging',      'stg + int',           'typed, ceiling parsed from raw METAR'],
+            ['dbt-mart',  'marts',        'fct / dim / agg',     'observations, stations, hourly, transitions'],
+            ['dbt-audit', 'audit',        'parity + agreement',  'checks itself against Spark and NOAA']
+        ].map(([cls, kind, name, desc], i) =>
+            (i ? '<span class="dbt-arrow">&rarr;</span>' : '') +
+            '<div class="dbt-node ' + cls + '"><em>' + kind + '</em><b>' + name +
+            '</b><br><span style="opacity:0.65">' + desc + '</span></div>'
+        ).join('');
+ 
+        // The honest framing: say what the numbers do and don't cover.
+        const nt = c.non_trivial || 0, nta = c.non_trivial_agree || 0;
+        const disagree = nt - nta;
+        const missed = (p.hours_mismatched || 0);
+ 
+        $('dbt-note').innerHTML =
+            'Silver publishes NOAA\'s flight category but carries no cloud data, so dbt ' +
+            'parses the ceiling out of the raw METAR text and derives the category ' +
+            'independently. Across ' + fmt(nt) + ' observations where that derivation ' +
+            'could actually go wrong, it disagrees with NOAA ' +
+            (disagree === 0 ? 'never' : disagree === 1 ? 'once' : fmt(disagree) + ' times') +
+            '. It also fills in ' + fmt(c.derived_only || 0) + ' observations NOAA left uncategorized. ' +
+            '<br><br>' +
+            'The parity check found ' + fmt(missed) + ' station-hours where the batch and ' +
+            'streaming paths disagree. Most are observations present in Bronze but missing ' +
+            'from Silver — a watermark interaction during restart, ' +
+            '<a href="https://github.com/yashhooda1/metar-stream/issues" target="_blank" rel="noopener">tracked as an issue</a>. ' +
+            'Finding it is the point: the streaming pipeline could not see its own gap.';
+    }
 })();
 
 // ═══════════ STATION ROSTER — extends the ClimatePulse section ═══════════

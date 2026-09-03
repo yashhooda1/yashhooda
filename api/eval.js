@@ -7,6 +7,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import { Redis } from '@upstash/redis';
+import { gate } from '../lib/gateway.js';
 
 export const maxDuration = 20;
 
@@ -98,11 +99,8 @@ async function storeEval(redis, sessionId, evalData) {
 
 // ── MAIN HANDLER ─────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  const origin = req.headers.origin || '';
-  if (ALLOWED_ORIGINS.has(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(204).end();
+  const g = await gate(req, res, { endpoint: 'eval', methods: ['GET', 'POST'], auth: 'user' });
+  if (!g.ok) return;
 
   const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     ? new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN })

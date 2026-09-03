@@ -258,8 +258,8 @@ export default async function handler(req, res) {
 
   // Security: verify cron secret or admin key
   const authHeader = req.headers['authorization'];
-  const cronSecret = process.env.CRON_SECRET || 'hooda-cron-2026';
-  if (authHeader !== `Bearer ${cronSecret}` && req.query.secret !== cronSecret) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || (authHeader !== `Bearer ${cronSecret}` && req.query.secret !== cronSecret)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

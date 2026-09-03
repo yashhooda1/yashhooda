@@ -20,7 +20,7 @@ function extractToken(data) {
 }
 
 export default async function handler(req, res) {
-  const g = await gate(req, res, { endpoint: 'grok-voice-token', methods: ['POST'], auth: 'user' });
+  const g = await gate(req, res, { endpoint: 'grok-voice-token', methods: ['POST'], auth: 'user', plan: 'premium' });
   if (!g.ok) return;
 
   const apiKey = process.env.XAI_API_KEY;

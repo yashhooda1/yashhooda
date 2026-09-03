@@ -3,6 +3,7 @@
 // The real XAI_API_KEY stays server-side; the browser only ever receives a
 // ~5-minute client secret it passes in the WebSocket subprotocol.
 //
+import { gate } from '../lib/gateway.js';
 // Docs: https://docs.x.ai/developers/model-capabilities/audio/ephemeral-tokens
 const XAI_CLIENT_SECRETS_URL = 'https://api.x.ai/v1/realtime/client_secrets';
 
@@ -19,11 +20,8 @@ function extractToken(data) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-  if (req.method !== 'POST')   { res.status(405).json({ error: 'Method not allowed' }); return; }
+  const g = await gate(req, res, { endpoint: 'grok-voice-token', methods: ['POST'], auth: 'user' });
+  if (!g.ok) return;
 
   const apiKey = process.env.XAI_API_KEY;
   if (!apiKey) { res.status(500).json({ error: 'Voice is not configured (missing XAI_API_KEY).' }); return; }

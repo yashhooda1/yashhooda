@@ -2,17 +2,14 @@
 // Streams TTS audio bytes to the browser as they arrive from OpenAI.
 // Using response.body pipe instead of arrayBuffer() cuts time-to-first-byte
 // dramatically — the browser starts playing before OpenAI finishes encoding.
+import { gate } from '../lib/gateway.js';
 export const config = { runtime: 'nodejs' };
 
 const ALLOWED_TTS_MODELS = ['gpt-4o-mini-tts', 'tts-1', 'tts-1-hd'];
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const g = await gate(req, res, { endpoint: 'tts', methods: ['POST'], auth: 'user' });
+  if (!g.ok) return;
 
   const { text, voice, model, format } = req.body || {};
   if (!text || typeof text !== 'string') {

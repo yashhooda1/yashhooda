@@ -79,7 +79,7 @@ function safeName(s) {
 }
 
 export default async function handler(req, res) {
-    const g = await gate(req, res, { endpoint: 'export-chat', methods: ['POST'], auth: 'user' });
+    const g = await gate(req, res, { endpoint: 'export-chat', methods: ['POST'], auth: 'user', plan: 'premium' });
     if (!g.ok) return;
 
     const { sessionId, chatId, messages, adminPassword } = req.body || {};

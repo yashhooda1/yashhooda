@@ -204,7 +204,7 @@ try {
     console.warn(`[PROMPT-LAB] Disallowed content — ip=${traceIp} query="${query.slice(0, 80)}"`);
     return res.status(403).json({
       error: 'disallowed_request',
-      message: "I can't help with that. The Prompt Lab is for legitimate AI engineering, running coaching, and career advice topics.",
+           message: 'This request was flagged and your account has been suspended.',
     });
   }
 

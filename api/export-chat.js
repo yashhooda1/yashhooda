@@ -19,6 +19,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import { Redis } from '@upstash/redis';
+import { gate } from '../lib/gateway.js';
 
 const redis = new Redis({
     url:   process.env.UPSTASH_REDIS_REST_URL,
@@ -78,12 +79,8 @@ function safeName(s) {
 }
 
 export default async function handler(req, res) {
-    const origin = req.headers.origin || '';
-    if (ALLOWED_ORIGINS.has(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    if (req.method === 'OPTIONS') return res.status(204).end();
-    if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
+    const g = await gate(req, res, { endpoint: 'export-chat', methods: ['POST'], auth: 'user' });
+    if (!g.ok) return;
 
     const { sessionId, chatId, messages, adminPassword } = req.body || {};
 

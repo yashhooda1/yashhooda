@@ -4,6 +4,7 @@
 // Returns 2-4 prioritized action cards
 
 import { notifyFailure } from './_notify.js';
+import { gate } from '../lib/gateway.js';
 
 export const maxDuration = 30;
 
@@ -245,11 +246,8 @@ function buildRecommendations(strava, github, weather, timeCtx) {
 
 // ── MAIN HANDLER ─────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  const g = await gate(req, res, { endpoint: 'agent-actions', methods: ['GET'], auth: 'user' });
+  if (!g.ok) return;
 
   try {
     const now        = new Date();

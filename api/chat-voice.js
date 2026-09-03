@@ -41,6 +41,9 @@ export default async function handler(req, res) {
   const userEmail  = authUser?.email || null;
   const isAdminReq = (adminPassword && adminPassword === process.env.ADMIN_PASSWORD)
     || (authUser && authUser.plan === 'admin');
+  if (!isAdminReq && authUser?.plan !== 'premium') {
+    return res.status(403).json({ error: 'premium_required', message: 'Voice chat is available on the Pro plan.' });
+  }
  
   // ── EXTRACT LAST USER TEXT FOR SCREENING ──────────────────────────────────
   const lastUser = [...messages].reverse().find(m => m.role === 'user');

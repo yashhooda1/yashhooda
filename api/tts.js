@@ -8,7 +8,7 @@ export const config = { runtime: 'nodejs' };
 const ALLOWED_TTS_MODELS = ['gpt-4o-mini-tts', 'tts-1', 'tts-1-hd'];
 
 export default async function handler(req, res) {
-  const g = await gate(req, res, { endpoint: 'tts', methods: ['POST'], auth: 'user' });
+  const g = await gate(req, res, { endpoint: 'tts', methods: ['POST'], auth: 'user', plan: 'premium' });
   if (!g.ok) return;
 
   const { text, voice, model, format } = req.body || {};

@@ -6751,16 +6751,17 @@ const SESSION_ID = localStorage.getItem('hooda_session_id') || (() => {
     };
 })();
 
-// ── UI GATING: hide paid panels when logged out ──────────────────────────────
-const GATED_TAB_HANDLERS = [
-    'switchPromptsTab', 'switchModelsTab', 'vmSwitchTab', 'switchHistoryTab',
-    'switchAnalyticsTab', 'switchAgentTab', 'switchLabTab', 'exportCurrentChat', 'saveCurrentChat'
-];
+// ── UI GATING ────────────────────────────────────────────────────────────────
+// login-only tabs + premium-only tabs. Server is the real wall.
+const LOGIN_TAB_HANDLERS   = ['switchPromptsTab', 'switchModelsTab', 'switchHistoryTab', 'switchAnalyticsTab', 'saveCurrentChat'];
+const PREMIUM_TAB_HANDLERS = ['switchLabTab', 'switchAgentTab', 'vmSwitchTab', 'exportCurrentChat'];
 function applyAuthGating() {
-    const loggedIn = !!(AUTH_TOKEN || ADMIN_PASSWORD_SESSION);
+    const loggedIn  = !!(AUTH_TOKEN || ADMIN_PASSWORD_SESSION);
+    const isPremium = !!ADMIN_PASSWORD_SESSION || AUTH_USER?.plan === 'premium' || AUTH_USER?.plan === 'admin';
     document.querySelectorAll('.chat-tab').forEach(tab => {
         const oc = tab.getAttribute('onclick') || '';
-        if (GATED_TAB_HANDLERS.some(fn => oc.includes(fn))) tab.style.display = loggedIn ? '' : 'none';
+        if (PREMIUM_TAB_HANDLERS.some(fn => oc.includes(fn)))    tab.style.display = isPremium ? '' : 'none';
+        else if (LOGIN_TAB_HANDLERS.some(fn => oc.includes(fn))) tab.style.display = loggedIn  ? '' : 'none';
     });
 }
 document.addEventListener('DOMContentLoaded', applyAuthGating);

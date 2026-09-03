@@ -6752,7 +6752,10 @@ const SESSION_ID = localStorage.getItem('hooda_session_id') || (() => {
 })();
 
 // ── UI GATING: hide paid panels when logged out ──────────────────────────────
-const GATED_TAB_HANDLERS = ['switchAnalyticsTab', 'switchAgentTab', 'switchLabTab', 'exportCurrentChat', 'saveCurrentChat'];
+const GATED_TAB_HANDLERS = [
+    'switchPromptsTab', 'switchModelsTab', 'vmSwitchTab', 'switchHistoryTab',
+    'switchAnalyticsTab', 'switchAgentTab', 'switchLabTab', 'exportCurrentChat', 'saveCurrentChat'
+];
 function applyAuthGating() {
     const loggedIn = !!(AUTH_TOKEN || ADMIN_PASSWORD_SESSION);
     document.querySelectorAll('.chat-tab').forEach(tab => {

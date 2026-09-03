@@ -165,6 +165,9 @@ try {
     if (authUser.verified === false) {
       return res.status(403).json({ error: 'email_unverified', message: 'Please verify your email to use the Prompt Lab.' });
     }
+    if (authUser.plan !== 'premium') {
+      return res.status(403).json({ error: 'premium_required', message: 'The Prompt Lab is available on the Pro plan.' });
+    }
   }
   
   const ks = await checkKillSwitch('prompt-lab', isAdminReq);

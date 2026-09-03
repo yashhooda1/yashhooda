@@ -1,3 +1,4 @@
+import { gate } from '../lib/gateway.js';
 export const maxDuration = 60;
 
 const ABUSEIPDB_KEY = process.env.ABUSEIPDB_API_KEY;
@@ -229,8 +230,8 @@ async function aiFallback(type, target) {
 
 // ── Main Handler ──────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  const g = await gate(req, res, { endpoint: 'darkweb', methods: ['POST'], auth: 'user' });
+  if (!g.ok) return;
   }
 
   const { tool, target } = req.body;

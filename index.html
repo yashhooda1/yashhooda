@@ -9371,92 +9371,138 @@ async function fetchJSON(url, { timeoutMs = 8000 } = {}) {
     }
 }
  
+// Nominatim is a courtesy service (403/429/HTML on bad days). Never fatal.
 async function reverseGeocode(lat, lon) {
-    // Nominatim is a courtesy service: it rate-limits (1 req/s) and returns
-    // 403/429 or an HTML error page when unhappy. Never let it break weather.
     try {
         const geo = await fetchJSON(
             `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&zoom=10` +
-            `&email=yash.hooda6@gmail.com`,   // ← put a real contact email here per Nominatim policy
+            `&email=yash.hooda6@gmail.com`,   // ← real contact email per Nominatim policy
             { timeoutMs: 4000 }
         );
         const a = geo.address || {};
         const city = a.city || a.town || a.village || a.municipality || a.county || null;
         const country = a.country_code ? a.country_code.toUpperCase() : '';
-        const label = [city, a.state, country].filter(Boolean).join(', ');
-        return label || null;
+        return [city, a.state, country].filter(Boolean).join(', ') || null;
     } catch (e) {
         console.warn('[weather] reverse geocode failed (non-fatal):', e);
         return null;
     }
 }
  
+// Renders the "Current" card for a set of coords. Used by both the
+// geolocation success path and the IP fallback path.
+// labelOverride: pass a label if you already have one (IP fallback);
+// otherwise we reverse-geocode.
+async function renderCurrentWeather(lat, lon, labelOverride = null) {
+    const container = document.getElementById('weather-container');
+    if (!container) return;
+ 
+    cachedWeatherCoords = { lat, lon };
+    container.innerHTML = '<div class="weather-loading">Fetching weather data...</div>';
+ 
+    const [label, weatherData] = await Promise.all([
+        labelOverride ? Promise.resolve(labelOverride) : reverseGeocode(lat, lon),
+        fetchJSON(
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+            `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,precipitation` +
+            `&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto`
+        ),
+    ]);
+ 
+    cachedLocationLabel = label || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+ 
+    const c = weatherData.current;
+    if (!c) throw new Error('Open-Meteo response missing "current"');
+ 
+    let code = c.weather_code;
+    if ((code === 95 || code === 96 || code === 99) && c.precipitation === 0) code = 3;
+    const { label: desc, icon } = WMO_CODES[code] || { label: 'Unknown', icon: '🌡️' };
+    const windDir = (deg) => ['N','NE','E','SE','S','SW','W','NW'][Math.round(deg / 45) % 8];
+ 
+    container.innerHTML = `
+        <div class="weather-widget">
+            <div class="weather-icon">${icon}</div>
+            <div class="weather-main">
+                <div class="weather-temp">${Math.round(c.temperature_2m)}°F</div>
+                <div class="weather-desc">${desc}</div>
+                <div class="weather-location">📍 ${cachedLocationLabel}</div>
+            </div>
+            <div class="weather-details">
+                <div class="weather-detail">Feels like <strong>${Math.round(c.apparent_temperature)}°F</strong></div>
+                <div class="weather-detail">Humidity <strong>${c.relative_humidity_2m}%</strong></div>
+                <div class="weather-detail">Wind <strong>${Math.round(c.wind_speed_10m)} mph ${windDir(c.wind_direction_10m)}</strong></div>
+                <div class="weather-detail">Precip <strong>${c.precipitation} in</strong></div>
+            </div>
+        </div>`;
+ 
+    loadTropicalAlert();   // now has cachedWeatherCoords in both paths
+}
+ 
+// IP-based fallback when the browser can't/won't give a position.
+// ipapi.co: free, no key, ~1,000 req/day. City-level accuracy only.
+async function locateByIP() {
+    const ip = await fetchJSON('https://ipapi.co/json/', { timeoutMs: 5000 });
+    if (typeof ip.latitude !== 'number' || typeof ip.longitude !== 'number') {
+        throw new Error('IP lookup returned no coordinates');
+    }
+    return {
+        lat: ip.latitude,
+        lon: ip.longitude,
+        label: [ip.city, ip.region, ip.country_code].filter(Boolean).join(', ') + ' (approx.)',
+    };
+}
+ 
+function showWeatherError(msg) {
+    const container = document.getElementById('weather-container');
+    if (!container) return;
+    container.innerHTML =
+        `<div class="weather-denied">${msg} ` +
+        `<button class="weather-retry" onclick="loadWeather()">Retry</button></div>`;
+}
+ 
 async function loadWeather() {
     const container = document.getElementById('weather-container');
     if (!container) return;
  
+    // No geolocation API at all → straight to IP fallback.
     if (!navigator.geolocation) {
-        container.innerHTML = '<div class="weather-denied">⚠️ Geolocation is not supported by your browser.</div>';
+        try {
+            const { lat, lon, label } = await locateByIP();
+            await renderCurrentWeather(lat, lon, label);
+        } catch (e) {
+            console.error('[weather] no geolocation + IP fallback failed:', e);
+            showWeatherError('⚠️ Could not determine your location.');
+        }
         return;
     }
  
     container.innerHTML = '<div class="weather-loading">Requesting your location...</div>';
  
     navigator.geolocation.getCurrentPosition(
+        // ── success: precise coords from the browser ──
         async (pos) => {
             const { latitude: lat, longitude: lon } = pos.coords;
-            cachedWeatherCoords = { lat, lon };
-            container.innerHTML = '<div class="weather-loading">Fetching weather data...</div>';
- 
             try {
-                // Run both in parallel; geocode failure only affects the label.
-                const [label, weatherData] = await Promise.all([
-                    reverseGeocode(lat, lon),
-                    fetchJSON(
-                        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-                        `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,precipitation` +
-                        `&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto`
-                    ),
-                ]);
- 
-                cachedLocationLabel = label || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
- 
-                const c = weatherData.current;
-                if (!c) throw new Error('Open-Meteo response missing "current"');
- 
-                let code = c.weather_code;
-                if ((code === 95 || code === 96 || code === 99) && c.precipitation === 0) code = 3;
-                const { label: desc, icon } = WMO_CODES[code] || { label: 'Unknown', icon: '🌡️' };
-                const windDir = (deg) => ['N','NE','E','SE','S','SW','W','NW'][Math.round(deg / 45) % 8];
- 
-                container.innerHTML = `
-                    <div class="weather-widget">
-                        <div class="weather-icon">${icon}</div>
-                        <div class="weather-main">
-                            <div class="weather-temp">${Math.round(c.temperature_2m)}°F</div>
-                            <div class="weather-desc">${desc}</div>
-                            <div class="weather-location">📍 ${cachedLocationLabel}</div>
-                        </div>
-                        <div class="weather-details">
-                            <div class="weather-detail">Feels like <strong>${Math.round(c.apparent_temperature)}°F</strong></div>
-                            <div class="weather-detail">Humidity <strong>${c.relative_humidity_2m}%</strong></div>
-                            <div class="weather-detail">Wind <strong>${Math.round(c.wind_speed_10m)} mph ${windDir(c.wind_direction_10m)}</strong></div>
-                            <div class="weather-detail">Precip <strong>${c.precipitation} in</strong></div>
-                        </div>
-                    </div>`;
-                loadTropicalAlert();
+                await renderCurrentWeather(lat, lon);
             } catch (err) {
                 console.error('[weather] failed:', err);
-                container.innerHTML =
-                    `<div class="weather-denied">⚠️ Could not load weather data (${err.message}). ` +
-                    `<button class="weather-retry" onclick="loadWeather()">Retry</button></div>`;
+                showWeatherError(`⚠️ Could not load weather data (${err.message}).`);
             }
         },
-        (err) => {
-            const msg = err.code === 1
-                ? '📍 Location access denied. Enable location permissions to see your weather.'
-                : '⚠️ Could not get your location.';
-            container.innerHTML = `<div class="weather-denied">${msg} <button class="weather-retry" onclick="loadWeather()">Retry</button></div>`;
+        // ── error: denied (1), unavailable (2), timeout (3) → IP fallback ──
+        async (err) => {
+            console.warn('[weather] geolocation failed, code', err.code, '— trying IP fallback');
+            container.innerHTML = '<div class="weather-loading">Estimating your location...</div>';
+            try {
+                const { lat, lon, label } = await locateByIP();
+                await renderCurrentWeather(lat, lon, label);
+            } catch (e) {
+                console.error('[weather] IP fallback failed:', e);
+                const msg = err.code === 1
+                    ? '📍 Location access denied. Enable location permissions to see your weather.'
+                    : '⚠️ Could not get your location.';
+                showWeatherError(msg);
+            }
         },
         { timeout: 10000, maximumAge: 300000 }
     );

@@ -6683,6 +6683,7 @@ async function submitAdminLogin() {
         const data = await res.json();
         if (data.ok) {
             ADMIN_PASSWORD_SESSION = password;
+            applyAuthGating();
             document.getElementById('admin-login-modal').remove();
             // ── ADD THIS — treat admin as authenticated user ──
             AUTH_USER = { 
@@ -6732,6 +6733,34 @@ const SESSION_ID = localStorage.getItem('hooda_session_id') || (() => {
     localStorage.setItem('hooda_session_id', id);
     return id;
 })();
+    
+// ── AUTH FETCH SHIM: attach JWT to every /api/ call ──────────────────────────
+(function () {
+    const _fetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+        try {
+            const url = typeof input === 'string' ? input : (input && input.url) || '';
+            if (url.startsWith('/api/') && AUTH_TOKEN && AUTH_TOKEN !== 'admin-session') {
+                init = Object.assign({}, init || {});
+                const h = new Headers(init.headers || (typeof input !== 'string' ? input.headers : undefined) || {});
+                if (!h.has('Authorization')) h.set('Authorization', `Bearer ${AUTH_TOKEN}`);
+                init.headers = h;
+            }
+        } catch (_) {}
+        return _fetch(input, init);
+    };
+})();
+
+// ── UI GATING: hide paid panels when logged out ──────────────────────────────
+const GATED_TAB_HANDLERS = ['switchAnalyticsTab', 'switchAgentTab', 'switchLabTab', 'exportCurrentChat', 'saveCurrentChat'];
+function applyAuthGating() {
+    const loggedIn = !!(AUTH_TOKEN || ADMIN_PASSWORD_SESSION);
+    document.querySelectorAll('.chat-tab').forEach(tab => {
+        const oc = tab.getAttribute('onclick') || '';
+        if (GATED_TAB_HANDLERS.some(fn => oc.includes(fn))) tab.style.display = loggedIn ? '' : 'none';
+    });
+}
+document.addEventListener('DOMContentLoaded', applyAuthGating);
  
 // ── LOAD TOKEN FROM LOCALSTORAGE ON PAGE LOAD ─────────────────────────────────
 (async function initAuth() {
@@ -6785,6 +6814,7 @@ const SESSION_ID = localStorage.getItem('hooda_session_id') || (() => {
 // ── CALLED AFTER SUCCESSFUL LOGIN/SIGNUP ──────────────────────────────────────
 function onAuthSuccess(user, usage) {
     AUTH_USER  = user;
+    applyAuthGating();
     // Update chat header
     const sub = document.querySelector('.chat-header-info span');
     if (sub) sub.textContent = `${user.name} · ${user.plan === 'admin' ? '👑 Admin' : user.plan === 'premium' ? '⚡ Pro' : `${usage?.remaining ?? 20} msgs left`}`;
@@ -7061,6 +7091,7 @@ async function submitReset(token) {
 // ── LOGOUT ────────────────────────────────────────────────────────────────────
 function logout() {
     AUTH_TOKEN = null;
+    applyAuthGating();
     AUTH_USER  = null;
     localStorage.removeItem('hooda_auth_token');
     showAuthModal('login');

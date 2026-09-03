@@ -3,23 +3,24 @@
 // Used by the frontend Agent tab to display what the agent learned
 
 import { Redis } from '@upstash/redis';
+import { gate }  from '../lib/gateway.js';
 
 export const maxDuration = 90;
 
 const AGENT_LOG_KEY = 'hooda_agent:activity_log';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(204).end();
+  const g = await gate(req, res, { endpoint: 'agent-log', methods: ['GET', 'POST'], auth: 'user' });
+  if (!g.ok) return;
 
   // POST: manually trigger background learning
   if (req.method === 'POST') {
     const { action } = req.body || {};
     if (action === 'trigger_learn') {
+      if (!g.isAdmin) return res.status(403).json({ error: 'admin_required' });
+      const secret = process.env.CRON_SECRET;
+      if (!secret) return res.status(500).json({ error: 'CRON_SECRET not configured' });
       try {
-        const secret = process.env.CRON_SECRET || 'hooda-cron-2026';
         // Create a mock req/res to call agent-learn handler directly
         const mockReq = {
           method:  'GET',

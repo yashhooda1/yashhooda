@@ -246,7 +246,7 @@ function buildRecommendations(strava, github, weather, timeCtx) {
 
 // ── MAIN HANDLER ─────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  const g = await gate(req, res, { endpoint: 'agent-actions', methods: ['GET'], auth: 'user' });
+  const g = await gate(req, res, { endpoint: 'agent-actions', methods: ['GET'], auth: 'user', plan: 'premium' });
   if (!g.ok) return;
 
   try {

@@ -3,15 +3,13 @@
 // Also handles: upload image + describe → generate similar via vision
 
 import { notifyFailure } from './_notify.js';
+import { gate } from '../lib/gateway.js';
 
 export const maxDuration = 60;
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const g = await gate(req, res, { endpoint: 'imagine', methods: ['POST'], auth: 'user' });
+  if (!g.ok) return;
 
   const { prompt, imageBase64, imageMime, sessionId } = req.body;
   if (!prompt && !imageBase64)

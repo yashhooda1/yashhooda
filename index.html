@@ -4710,7 +4710,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
             <button class="network-tool-btn active" id="weather-tab-current" onclick="switchWeatherTab('current')">🌡️ Current</button>
             <button class="network-tool-btn" id="weather-tab-forecast" onclick="switchWeatherTab('forecast')">📅 Forecast</button>
-            <button class="weather-tab" onclick="switchWeatherTab('hourly')">🕐 Hourly</button>
+            <button class="network-tool-btn" id="weather-tab-hourly" onclick="switchWeatherTab('hourly')">🕐 Hourly</button>
         </div>
         <div id="weather-container">
             <div class="weather-loading">Requesting your location...</div>
@@ -9351,6 +9351,7 @@ let cachedLocationLabel = null;
 function switchWeatherTab(tab) {
     document.getElementById('weather-tab-current').classList.toggle('active', tab === 'current');
     document.getElementById('weather-tab-forecast').classList.toggle('active', tab === 'forecast');
+    document.getElementById('weather-tab-hourly').classList.toggle('active', tab === 'hourly');
     document.getElementById('weather-container').style.display = tab === 'current' ? '' : 'none';
     document.getElementById('forecast-container').style.display = tab === 'forecast' ? '' : 'none';
     document.getElementById('hourly-container').style.display = tab === 'hourly' ? '' : 'none';
@@ -9358,52 +9359,82 @@ function switchWeatherTab(tab) {
     if (tab === 'forecast' && cachedWeatherCoords) loadForecast(cachedWeatherCoords.lat, cachedWeatherCoords.lon, cachedLocationLabel);
 }
 
+async function fetchJSON(url, { timeoutMs = 8000 } = {}) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
+        return await res.json();
+    } finally {
+        clearTimeout(t);
+    }
+}
+ 
+async function reverseGeocode(lat, lon) {
+    // Nominatim is a courtesy service: it rate-limits (1 req/s) and returns
+    // 403/429 or an HTML error page when unhappy. Never let it break weather.
+    try {
+        const geo = await fetchJSON(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&zoom=10` +
+            `&email=yash.hooda6@gmail.com`,   // ← put a real contact email here per Nominatim policy
+            { timeoutMs: 4000 }
+        );
+        const a = geo.address || {};
+        const city = a.city || a.town || a.village || a.municipality || a.county || null;
+        const country = a.country_code ? a.country_code.toUpperCase() : '';
+        const label = [city, a.state, country].filter(Boolean).join(', ');
+        return label || null;
+    } catch (e) {
+        console.warn('[weather] reverse geocode failed (non-fatal):', e);
+        return null;
+    }
+}
+ 
 async function loadWeather() {
     const container = document.getElementById('weather-container');
     if (!container) return;
-
+ 
     if (!navigator.geolocation) {
         container.innerHTML = '<div class="weather-denied">⚠️ Geolocation is not supported by your browser.</div>';
         return;
     }
-
+ 
     container.innerHTML = '<div class="weather-loading">Requesting your location...</div>';
-
+ 
     navigator.geolocation.getCurrentPosition(
         async (pos) => {
             const { latitude: lat, longitude: lon } = pos.coords;
             cachedWeatherCoords = { lat, lon };
             container.innerHTML = '<div class="weather-loading">Fetching weather data...</div>';
+ 
             try {
-                const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
-                const geoData = await geoRes.json();
-                const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county || 'Your Location';
-                const state = geoData.address?.state || '';
-                const country = geoData.address?.country_code?.toUpperCase() || '';
-                cachedLocationLabel = [city, state, country].filter(Boolean).join(', ');
-
-                const weatherRes = await fetch(
-                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-                    `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,precipitation` +
-                    `&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto`
-                );
-                const weatherData = await weatherRes.json();
+                // Run both in parallel; geocode failure only affects the label.
+                const [label, weatherData] = await Promise.all([
+                    reverseGeocode(lat, lon),
+                    fetchJSON(
+                        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+                        `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,precipitation` +
+                        `&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto`
+                    ),
+                ]);
+ 
+                cachedLocationLabel = label || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+ 
                 const c = weatherData.current;
+                if (!c) throw new Error('Open-Meteo response missing "current"');
+ 
                 let code = c.weather_code;
-                const currentPrecip = c.precipitation;
-                // Downgrade thunderstorm if no active precipitation
-                if ((code === 95 || code === 96 || code === 99) && currentPrecip === 0) {
-                    code = 3; // overcast
-                }
-                const { label, icon } = WMO_CODES[code] || { label: 'Unknown', icon: '🌡️' };
-                const windDir = (deg) => { const dirs = ['N','NE','E','SE','S','SW','W','NW']; return dirs[Math.round(deg/45)%8]; };
-
+                if ((code === 95 || code === 96 || code === 99) && c.precipitation === 0) code = 3;
+                const { label: desc, icon } = WMO_CODES[code] || { label: 'Unknown', icon: '🌡️' };
+                const windDir = (deg) => ['N','NE','E','SE','S','SW','W','NW'][Math.round(deg / 45) % 8];
+ 
                 container.innerHTML = `
                     <div class="weather-widget">
                         <div class="weather-icon">${icon}</div>
                         <div class="weather-main">
                             <div class="weather-temp">${Math.round(c.temperature_2m)}°F</div>
-                            <div class="weather-desc">${label}</div>
+                            <div class="weather-desc">${desc}</div>
                             <div class="weather-location">📍 ${cachedLocationLabel}</div>
                         </div>
                         <div class="weather-details">
@@ -9412,18 +9443,20 @@ async function loadWeather() {
                             <div class="weather-detail">Wind <strong>${Math.round(c.wind_speed_10m)} mph ${windDir(c.wind_direction_10m)}</strong></div>
                             <div class="weather-detail">Precip <strong>${c.precipitation} in</strong></div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 loadTropicalAlert();
-            } catch(err) {
-                container.innerHTML = '<div class="weather-denied">⚠️ Could not load weather data. <button class="weather-retry" onclick="loadWeather()">Retry</button></div>';
+            } catch (err) {
+                console.error('[weather] failed:', err);
+                container.innerHTML =
+                    `<div class="weather-denied">⚠️ Could not load weather data (${err.message}). ` +
+                    `<button class="weather-retry" onclick="loadWeather()">Retry</button></div>`;
             }
         },
         (err) => {
             const msg = err.code === 1
                 ? '📍 Location access denied. Enable location permissions to see your weather.'
                 : '⚠️ Could not get your location.';
-            document.getElementById('weather-container').innerHTML = `<div class="weather-denied">${msg} <button class="weather-retry" onclick="loadWeather()">Retry</button></div>`;
+            container.innerHTML = `<div class="weather-denied">${msg} <button class="weather-retry" onclick="loadWeather()">Retry</button></div>`;
         },
         { timeout: 10000, maximumAge: 300000 }
     );

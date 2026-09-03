@@ -99,7 +99,7 @@ async function storeEval(redis, sessionId, evalData) {
 
 // ── MAIN HANDLER ─────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  const g = await gate(req, res, { endpoint: 'eval', methods: ['GET', 'POST'], auth: 'user' });
+  const g = await gate(req, res, { endpoint: 'eval', methods: ['GET', 'POST'], auth: 'user', plan: 'premium' });
   if (!g.ok) return;
 
   const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)

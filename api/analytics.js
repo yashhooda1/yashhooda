@@ -1,10 +1,37 @@
+import { Redis } from '@upstash/redis';
+
 export const maxDuration = 60;
+
+// ── 30-MIN RESPONSE CACHE ─────────────────────────────────────────────────────
+// One Strava pull + one Claude call per 30 min for the whole site, regardless
+// of how many visitors (or bots) load the homepage.
+const CACHE_KEY = 'analytics:homepage:v1';
+const CACHE_TTL = 1800; // seconds
+
+const cacheRedis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+  ? new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN })
+  : null;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'GET')     return res.status(405).json({ error: 'Method not allowed' });
+
+  // Cache hit → return immediately, zero API spend
+  if (cacheRedis) {
+    try {
+      const cached = await cacheRedis.get(CACHE_KEY);
+      if (cached) {
+        res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+        res.setHeader('X-Cache', 'HIT');
+        return res.status(200).json(typeof cached === 'string' ? JSON.parse(cached) : cached);
+      }
+    } catch (e) {
+      console.error('[ANALYTICS] cache read failed:', e.message);
+    }
+  }
 
   const clientId     = process.env.STRAVA_CLIENT_ID;
   const clientSecret = process.env.STRAVA_CLIENT_SECRET;
@@ -302,17 +329,25 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
       console.error('Claude insights fetch failed:', e.message);
     }
 
-    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
-    return res.status(200).json({
-      weeklyTrend,
-      fitness: { ctl: ctlRounded, atl: atlRounded, form },
-      paceZones,
-      predictions,
-      insights,
-    });
+        const payload = {
+          weeklyTrend,
+          fitness: { ctl: ctlRounded, atl: atlRounded, form },
+          paceZones,
+          predictions,
+          insights,
+        };
 
-  } catch (err) {
-    console.error('Analytics error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-}
+        if (cacheRedis) {
+          try { await cacheRedis.set(CACHE_KEY, JSON.stringify(payload), { ex: CACHE_TTL }); }
+          catch (e) { console.error('[ANALYTICS] cache write failed:', e.message); }
+        }
+
+        res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+        res.setHeader('X-Cache', 'MISS');
+        return res.status(200).json(payload);
+
+   } catch (err) {
+     console.error('Analytics error:', err);
+     return res.status(500).json({ error: 'Internal server error' });
+   }
+ }

@@ -10711,7 +10711,21 @@ const HOODAAGENTS_KILL_SWITCH = true;
 
         if (CP.data.generated_at) {
             const el = document.getElementById('cp-last-updated');
-            if (el) el.textContent = 'Data: ' + CP.data.generated_at.slice(0, 10);
+            if (el) {
+                // Freshest non-stale station, not the pipeline run date —
+                // "run today" and "data through today" are different claims.
+                const codes  = CP.data.station_codes || [];
+                const latest = codes
+                    .map(c => CP.data[c])
+                    .filter(b => b && b.last_data_date && !b.stale)
+                    .map(b => b.last_data_date)
+                    .sort()
+                    .pop();
+                el.textContent = latest
+                    ? 'Data through ' + latest + ' · run ' + CP.data.generated_at.slice(0, 10)
+                    : 'Run ' + CP.data.generated_at.slice(0, 10);
+                el.title = 'Per-station freshness is in the roster below';
+            }
         }
     }
 

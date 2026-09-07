@@ -1,6 +1,13 @@
 // api/climate.js — ES Module (package.json has "type":"module")
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
+
+// Literal path resolved at module scope so Vercel's tracer actually bundles the
+// JSON. join(process.cwd(), ...) is a runtime string and traces to nothing.
+const GOLD_PATH = fileURLToPath(
+  new URL('../public_data_climate_gold.json', import.meta.url)
+);
 
 // SEED = last known good 2-station data (2026 included)
 // When pipeline runs with 6 cities, the fresh file replaces this entirely
@@ -12,14 +19,33 @@ export default function handler(req, res) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   if (req.method !== 'GET') { res.status(405).json({ error: 'Method not allowed' }); return; }
 
-  let payload = SEED;
-  try {
-    const p = join(process.cwd(), 'public_data_climate_gold.json');
-    const fresh = JSON.parse(readFileSync(p, 'utf-8'));
-    // Accept if it has at least IAH and EWR (extra cities are a bonus)
-    if (fresh && fresh.IAH && fresh.EWR) payload = fresh;
-  } catch (_) {}
+  let payload  = SEED;
+  let source   = 'seed';
+  const errors = [];
 
-  res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=600');
+  for (const p of [GOLD_PATH, join(process.cwd(), 'public_data_climate_gold.json')]) {
+    try {
+      const fresh = JSON.parse(readFileSync(p, 'utf-8'));
+      // Accept if it has at least IAH and EWR (extra cities are a bonus)
+      if (fresh && fresh.IAH && fresh.EWR) { payload = fresh; source = 'gold'; break; }
+      errors.push(`${p}: parsed but missing IAH/EWR`);
+    } catch (e) {
+      errors.push(`${p}: ${e.message}`);
+    }
+  }
+
+  if (source === 'seed') {
+    // Falling back to SEED serves two stations of months-old history under a
+    // live-dashboard header. That must be loud, not invisible.
+    console.error('[climate] gold unreadable, serving SEED —', errors.join(' | '));
+  }
+
+  if (source === 'seed') payload = { ...payload, seed_fallback: true };
+  res.setHeader('X-Climate-Source',    source);
+  res.setHeader('X-Climate-Generated', payload.generated_at || 'unknown');
+  // Short TTL on the fallback, so a fixed deploy isn't masked by a cached SEED.
+  res.setHeader('Cache-Control', source === 'gold'
+    ? 'public, s-maxage=300, stale-while-revalidate=600'
+    : 'public, s-maxage=30, must-revalidate');
   return res.status(200).json(payload);
 }

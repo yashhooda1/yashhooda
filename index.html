@@ -10700,6 +10700,9 @@ const HOODAAGENTS_KILL_SWITCH = true;
 
         // Dynamic year count
         const lastYear = hou.yearly[hou.yearly.length - 1].year;
+        // The current year is excluded from `yearly` until complete, so lastYear
+        // alone makes a live dashboard read as a full year stale.
+        const ytdYear  = (hou.ytd && hou.ytd.partial) ? hou.ytd.year : null;
         const numYears = lastYear - 1970 + 1;
         set('cp-years',    numYears);
         set('cp-stations', Object.keys(CP.CITIES).length);
@@ -10707,7 +10710,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
         // Update subtitle
         const sub = document.getElementById('cp-subtitle');
         if (sub) sub.textContent =
-            `${numYears} years (1970–${lastYear}) of NOAA daily station data · ${Object.keys(CP.CITIES).length} cities · Bronze → Silver → Gold pipeline`;
+            `${numYears} years (1970–${lastYear}${ytdYear ? ' + ' + ytdYear + ' YTD' : ''}) of NOAA daily station data · ${Object.keys(CP.CITIES).length} cities · Bronze → Silver → Gold pipeline`;
 
         if (CP.data.generated_at) {
             const el = document.getElementById('cp-last-updated');

@@ -3931,7 +3931,7 @@
     <div class="header-badges">
         <span class="badge">UTD Computer Science Alumni</span>
         <span class="badge" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#93c5fd;">⚡ Databricks Certified Data Engineer</span>
-        <span class="badge">Runner · <span id="weekly-miles-badge">--</span> mi/wk</span>
+        <span class="badge">Runner · <span id="weekly-miles-badge">--</span> mi/wk<span id="weekly-miles-badge-last" style="opacity:0.7;"></span></span>
     </div>
     <div class="header-cta">
             <a href="#projects" class="btn-primary">🚀 View Projects</a>
@@ -4055,6 +4055,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <div class="stat-item">
             <span class="stat-num" id="weekly-miles">--</span>
             <div class="stat-label">Miles / Week</div>
+            <div class="stat-label" id="weekly-miles-last" style="opacity:0.65;font-size:0.72rem;margin-top:0.15rem;"></div>
         </div>
         <div class="stat-item">
             <span class="stat-num" data-target="57">0</span>
@@ -5206,7 +5207,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <li>5k Personal Record: 18:15 (2025 Women's Quarter Marathon - Houston Running Co)
                 <a href="https://results.raceroster.com/v2/en-US/results/gmd6pbsxdkfxvzrk/detail/t4zy2fb9zsxzejfg" target="_blank">View Results</a>
             </li>
-            <li>Current Weekly Mileage: <span id="weekly-miles-running">--</span> miles this week (live from Strava)</li>
+            <li>Current Weekly Mileage: <span id="weekly-miles-running">--</span> miles this week<span id="weekly-miles-last-li"></span> (live from Strava)</li>
             <li>Currently Training For: 2027 Chevron Houston Marathon</li>
             <li>Last Race + Time: 2026 NYCRuns Brooklyn Experience Half Marathon - 1:27:41
                 <a href="https://nycruns.com/race-results?race=nycruns-brooklyn-experience-half-marathon-2026&result=2961804" target="_blank">View Results</a>
@@ -10359,11 +10360,43 @@ async function loadStrava() {
     try {
         const res = await fetch('/api/strava');
         const data = await res.json();
-        // ── Update weekly miles stat live from Strava ──
-        if (typeof data.weekly_miles === 'number') {
-            const el = document.getElementById('weekly-miles');
-            if (el) el.textContent = data.weekly_miles;
+        // ── Weekly miles: current week + last week (Mon 00:00 → Sun 23:59:59.999 CT) ──
+        function ctOffsetMs(d) {
+            try {
+                const tzn = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', timeZoneName: 'longOffset' })
+                    .formatToParts(d).find(p => p.type === 'timeZoneName').value;
+                const m = /GMT([+-])(\d{2}):(\d{2})/.exec(tzn);
+                if (!m) return -6 * 3600000;
+                return (m[1] === '-' ? -1 : 1) * ((+m[2]) * 3600000 + (+m[3]) * 60000);
+            } catch (e) { return -6 * 3600000; }
         }
+        function ctWeekStartMs(d) {
+            d = d || new Date();
+            const off = ctOffsetMs(d);
+            const shifted = new Date(d.getTime() + off);
+            const dow = (shifted.getUTCDay() + 6) % 7; // 0 = Monday
+            const midnight = Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), shifted.getUTCDate()) - dow * 864e5;
+            return midnight - off;
+        }
+
+        const wkStart = ctWeekStartMs();
+        const prevStart = wkStart - 604800000;
+
+        let lastWeek = (typeof data.last_week_miles === 'number') ? data.last_week_miles : null;
+        if (lastWeek === null && Array.isArray(data.activities) && data.activities.length) {
+            const runs = data.activities
+                .filter(a => String(a.sport_type || a.type || '').includes('Run'))
+                .map(a => ({ t: new Date(a.date).getTime(), mi: parseFloat(a.distance_mi) || 0 }))
+                .filter(a => !isNaN(a.t));
+            const oldest = runs.length ? Math.min.apply(null, runs.map(r => r.t)) : Infinity;
+            // only trust the fallback if the feed actually reaches back past last Monday
+            if (oldest <= prevStart) {
+                const sum = runs.filter(r => r.t >= prevStart && r.t < wkStart)
+                                .reduce((s, r) => s + r.mi, 0);
+                lastWeek = Math.round(sum * 10) / 10;
+            }
+        }
+
         if (typeof data.weekly_miles === 'number') {
             const el = document.getElementById('weekly-miles');
             if (el) el.textContent = data.weekly_miles;
@@ -10371,6 +10404,14 @@ async function loadStrava() {
             if (badge) badge.textContent = data.weekly_miles;
             const running = document.getElementById('weekly-miles-running');
             if (running) running.textContent = data.weekly_miles;
+        }
+        if (lastWeek !== null) {
+            const b = document.getElementById('weekly-miles-badge-last');
+            if (b) b.textContent = ' · last wk ' + lastWeek;
+            const s = document.getElementById('weekly-miles-last');
+            if (s) s.textContent = 'last week: ' + lastWeek + ' mi';
+            const li = document.getElementById('weekly-miles-last-li');
+            if (li) li.textContent = ' (last week: ' + lastWeek + ' miles)';
         }
         const fmtLocation = (a) => a.location_label || '';
         if (!res.ok || !data.activities) {

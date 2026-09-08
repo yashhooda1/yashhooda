@@ -129,7 +129,7 @@ export default async function handler(req, res) {
 
     // 2. Fetch latest 8 activities
     const actRes = await fetch(
-      'https://www.strava.com/api/v3/athlete/activities?per_page=30&page=1',
+       'https://www.strava.com/api/v3/athlete/activities?per_page=50&page=1',
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     const activities = await actRes.json();
@@ -227,30 +227,60 @@ export default async function handler(req, res) {
       photo_count:   a.total_photo_count || 0,
     }));
 
-    // Cache for 5 minutes
-    // ── WEEKLY MILEAGE (Monday 00:00 → Sunday 23:59 current week) ──
-    const now = new Date();
-    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon ... 6=Sat
-    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - daysFromMonday);
-    monday.setHours(0, 0, 0, 0);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
+    // ── WEEKLY MILEAGE (Mon 00:00 → Sun 23:59:59.999, America/Chicago) ──
+    // Both sides are held in "wall clock as UTC" form: start_date_local is local
+    // wall time with a bogus Z, so we build `nowWall` the same way. Comparing
+    // those directly is what stops the week rolling over at 7pm Sunday.
+    const chi = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Chicago',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date()).reduce((o, p) => (o[p.type] = p.value, o), {});
 
-    const weeklyMeters = activities
-      .filter(a => {
-        const d = new Date(a.start_date_local);
-        return d >= monday && d <= sunday && a.type === 'Run';
-      })
-      .reduce((sum, a) => sum + (a.distance || 0), 0);
+    const nowWall = new Date(
+      `${chi.year}-${chi.month}-${chi.day}T${chi.hour}:${chi.minute}:${chi.second}Z`
+    );
 
-    const weekly_miles = parseFloat((weeklyMeters / 1609.34).toFixed(1));
+    const dow = nowWall.getUTCDay();                    // 0=Sun … 6=Sat
+    const daysFromMonday = dow === 0 ? 6 : dow - 1;
+    const monday = new Date(nowWall);
+    monday.setUTCDate(nowWall.getUTCDate() - daysFromMonday);
+    monday.setUTCHours(0, 0, 0, 0);
+
+    const prevMonday = new Date(monday);
+    prevMonday.setUTCDate(monday.getUTCDate() - 7);
+
+    const wallDate = (s) => new Date(/[Zz]$/.test(s) ? s : `${s}Z`);
+
+    const runMilesBetween = (from, toExclusive) => {
+      const meters = activities
+        .filter(a => {
+          if (a.type !== 'Run') return false;
+          const d = wallDate(a.start_date_local);
+          return d >= from && d < toExclusive;
+        })
+        .reduce((sum, a) => sum + (a.distance || 0), 0);
+      return parseFloat((meters / 1609.34).toFixed(1));
+    };
+
+    const weekly_miles    = runMilesBetween(monday, new Date(monday.getTime() + 7 * 864e5));
+    const lastWeekMiles   = runMilesBetween(prevMonday, monday);
+
+    // If the fetch window doesn't reach back past last Monday, the last-week
+    // number is an undercount — flag it so the client hides it rather than lies.
+    const oldest = activities.length
+      ? wallDate(activities[activities.length - 1].start_date_local)
+      : null;
+    const last_week_miles = (oldest && oldest < prevMonday) ? lastWeekMiles : null;
 
     // Cache for 5 minutes
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
-    return res.status(200).json({ activities: shaped, weekly_miles });
+    return res.status(200).json({
+      activities: shaped,
+      weekly_miles,
+      last_week_miles,
+      week_start: monday.toISOString().slice(0, 10),
+    });
   } catch (err) {
     console.error('Strava handler error:', err);
     return res.status(500).json({ error: 'Internal server error' });

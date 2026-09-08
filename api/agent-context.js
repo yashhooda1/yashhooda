@@ -18,8 +18,20 @@ export default function handler(req, res) {
     const p = join(process.cwd(), 'agent_context_gold.json');
     const fresh = JSON.parse(readFileSync(p, 'utf-8'));
     if (fresh && fresh.running && fresh.coding) payload = fresh;
-  } catch (_) {}
+    } catch (err) {
+    console.warn('[agent-context] gold JSON unavailable, serving SEED:', err.message);
+  }
+
+  // Flag stale snapshots so the UI and the agent can hedge instead of
+  // presenting months-old numbers as current.
+  const ageDays = payload.generated_at
+    ? (Date.now() - new Date(payload.generated_at).getTime()) / 86400000
+    : null;
+  const out = {
+    ...payload,
+    is_seed: payload === SEED,
+    stale: ageDays == null || ageDays > 10,
+  };
 
   res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-  return res.status(200).json(payload);
-}
+  return res.status(200).json(out);

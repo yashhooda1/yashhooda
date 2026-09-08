@@ -37,7 +37,7 @@ async function getStravaSummary() {
     const daysSince  = lastRun ? Math.floor((now - lastRun) / 86400000) : 99;
 
     // Weekly mileage (Mon–Sun)
-    const weekStart  = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay()); weekStart.setHours(0,0,0,0);
+    const weekStart  = new Date(); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7)); weekStart.setHours(0,0,0,0);
     const weeklyMi   = runs
       .filter(r => new Date(r.start_date) >= weekStart)
       .reduce((s, r) => s + r.distance / 1609.34, 0);
@@ -69,7 +69,7 @@ async function getGitHubSummary() {
     const lastRepo   = pushEvents[0]?.repo?.name?.replace('yashhooda1/', '') || null;
 
     // Count commits this week
-    const weekStart   = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay()); weekStart.setHours(0,0,0,0);
+    const weekStart   = new Date(); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7)); weekStart.setHours(0,0,0,0);
     const weekCommits = pushEvents
       .filter(e => new Date(e.created_at) >= weekStart)
       .reduce((s, e) => s + (e.payload?.commits?.length || 0), 0);

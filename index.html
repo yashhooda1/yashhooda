@@ -5582,7 +5582,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="tw-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                What Yash has actually been running and building over the last 7 days — auto-refreshed weekly, and fed to the site's AI agent
+                Yash's most recent completed training week — refreshed every Monday, and fed to the site's AI agent
             </p>
             <span class="cp-refresh-badge" id="tw-updated">updated —</span>
         </div>
@@ -12622,7 +12622,7 @@ window.cpUpdateSignal = function (tab) {
         set('tw-long', r.longest_run_miles ?? '—');
         set('tw-commits', c.week_commits ?? '—');
         set('tw-repos', (c.active_repos || []).length || '—');
-        set('tw-countdown', r.days_to_chevron_houston_marathon ?? '—');
+        set('tw-countdown', r.days_to_chevron_houston_marathon ?? r.days_to_houston ?? '—');
         if (TW.data.generated_at) {
             const d = new Date(TW.data.generated_at);
             set('tw-updated', 'updated ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));

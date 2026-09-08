@@ -1460,6 +1460,20 @@
         .weather-denied { font-size: 0.82rem; color: var(--text-muted); padding: 1rem; display: flex; align-items: center; gap: 0.5rem; }
         .weather-retry { font-family: 'Space Mono', monospace; font-size: 0.72rem; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: var(--green); padding: 0.25rem 0.65rem; border-radius: 5px; cursor: pointer; transition: all 0.2s; margin-left: auto; }
         .weather-retry:hover { background: rgba(76,175,80,0.2); }
+        /* ── WEATHER RADAR ── */
+        .radar-shell { background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1rem; }
+        .radar-map { height: 420px; border-radius: 8px; overflow: hidden; }
+        .radar-map.leaflet-container { background: #0e1216; }
+        .radar-map .leaflet-control-zoom a { background: #11161c; color: var(--green); border-color: rgba(255,255,255,0.08); }
+        .radar-map .leaflet-control-attribution { background: rgba(10,14,18,0.7); color: var(--text-muted); font-size: 0.62rem; }
+        .radar-bar { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.75rem; }
+        .radar-play { font-family: 'Space Mono', monospace; font-size: 0.72rem; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: var(--green); padding: 0.35rem 0.8rem; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
+        .radar-play:hover { background: rgba(76,175,80,0.2); }
+        .radar-time { font-family: 'Space Mono', monospace; font-size: 0.74rem; color: var(--green); letter-spacing: 0.04em; min-width: 6.5rem; }
+        .radar-scrub { flex: 1; min-width: 140px; accent-color: #4caf50; cursor: pointer; }
+        .radar-foot { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.6rem; }
+        .radar-foot a { color: var(--text-muted); }
+        @media (max-width: 700px) { .radar-map { height: 300px; } }
         /* ── HOURLY FORECAST ── */
         .hourly-header { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--green); margin: 0.75rem 0 0.6rem; letter-spacing: 0.03em; }
         .hourly-strip { display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 0.5rem; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
@@ -4712,12 +4726,14 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <button class="network-tool-btn active" id="weather-tab-current" onclick="switchWeatherTab('current')">🌡️ Current</button>
             <button class="network-tool-btn" id="weather-tab-forecast" onclick="switchWeatherTab('forecast')">📅 Forecast</button>
             <button class="network-tool-btn" id="weather-tab-hourly" onclick="switchWeatherTab('hourly')">🕐 Hourly</button>
+            <button class="network-tool-btn" id="weather-tab-radar" onclick="switchWeatherTab('radar')">📡 Radar</button>
         </div>
         <div id="weather-container">
             <div class="weather-loading">Requesting your location...</div>
         </div>
         <div id="forecast-container" style="display:none;"></div>
         <div id="hourly-container" style="display:none"></div>
+        <div id="radar-container" style="display:none"></div>
     </section>
 
 
@@ -9385,16 +9401,20 @@ let cachedWeatherCoords = null;
 let cachedLocationLabel = null;
 
 function switchWeatherTab(tab) {
-    document.getElementById('weather-tab-current').classList.toggle('active', tab === 'current');
-    document.getElementById('weather-tab-forecast').classList.toggle('active', tab === 'forecast');
-    document.getElementById('weather-tab-hourly').classList.toggle('active', tab === 'hourly');
+    ['current', 'forecast', 'hourly', 'radar'].forEach(t => {
+        const btn = document.getElementById(`weather-tab-${t}`);
+        if (btn) btn.classList.toggle('active', tab === t);
+    });
     document.getElementById('weather-container').style.display = tab === 'current' ? '' : 'none';
     document.getElementById('forecast-container').style.display = tab === 'forecast' ? '' : 'none';
     document.getElementById('hourly-container').style.display = tab === 'hourly' ? '' : 'none';
+    document.getElementById('radar-container').style.display = tab === 'radar' ? '' : 'none';
+    if (tab !== 'radar') stopRadar();   // don't animate tiles behind a hidden tab
     if (tab === 'hourly' && cachedWeatherCoords) loadHourly(cachedWeatherCoords.lat, cachedWeatherCoords.lon, cachedLocationLabel);
     if (tab === 'forecast' && cachedWeatherCoords) loadForecast(cachedWeatherCoords.lat, cachedWeatherCoords.lon, cachedLocationLabel);
+    if (tab === 'radar') loadRadar();
 }
-
+    
 async function fetchJSON(url, { timeoutMs = 8000 } = {}) {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -9542,6 +9562,120 @@ async function loadWeather() {
         },
         { timeout: 10000, maximumAge: 300000 }
     );
+}
+
+// ── WEATHER RADAR (RainViewer) ──
+// Free public tiles, no API key. Past 2h of composite reflectivity, 10-min steps.
+// Frame `path` values are opaque hashes — never rebuild them from timestamps.
+const RADAR_API     = 'https://api.rainviewer.com/public/weather-maps.json';
+const RADAR_COLOR   = 4;      // 4 = Rainbow SELEX-SI. Try 2 (Universal Blue) or 8 (Dark Sky).
+const RADAR_OPACITY = 0.62;
+
+let radarMap = null, radarFrames = [], radarLayers = {}, radarIdx = 0;
+let radarTimer = null, radarCache = null, radarCacheAt = 0;
+
+async function fetchRadarFrames() {
+    // JSON regenerates every ~10 min; cache so scrubbing never refetches.
+    if (radarCache && Date.now() - radarCacheAt < 5 * 60 * 1000) return radarCache;
+    const data = await fetchJSON(RADAR_API, { timeoutMs: 6000 });
+    const past = (data.radar && data.radar.past) || [];
+    if (!past.length) throw new Error('no radar frames returned');
+    radarCache = { host: data.host, frames: past };
+    radarCacheAt = Date.now();
+    return radarCache;
+}
+
+function showRadarFrame(i) {
+    if (!radarFrames.length) return;
+    radarIdx = (i + radarFrames.length) % radarFrames.length;
+    const frame = radarFrames[radarIdx];
+
+    if (!radarLayers[frame.path]) {
+        radarLayers[frame.path] = L.tileLayer(
+            `${radarCache.host}${frame.path}/256/{z}/{x}/{y}/${RADAR_COLOR}/1_1.png`,
+            { tileSize: 256, opacity: 0, zIndex: 400, maxZoom: 12 }
+        ).addTo(radarMap);
+    }
+    Object.keys(radarLayers).forEach(p => radarLayers[p].setOpacity(p === frame.path ? RADAR_OPACITY : 0));
+
+    const stamp = new Date(frame.time * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const time = document.getElementById('radar-time');
+    if (time) time.textContent = radarIdx === radarFrames.length - 1 ? `${stamp} · now` : stamp;
+    const scrub = document.getElementById('radar-scrub');
+    if (scrub) scrub.value = String(radarIdx);
+}
+
+function stopRadar() {
+    if (radarTimer) { clearInterval(radarTimer); radarTimer = null; }
+    const btn = document.getElementById('radar-play');
+    if (btn) btn.textContent = '▶ Play';
+}
+
+function playRadar() {
+    if (radarTimer) return;
+    radarTimer = setInterval(() => showRadarFrame(radarIdx + 1), 550);
+    const btn = document.getElementById('radar-play');
+    if (btn) btn.textContent = '⏸ Pause';
+}
+
+function toggleRadarPlay() { radarTimer ? stopRadar() : playRadar(); }
+function scrubRadar(v) { stopRadar(); showRadarFrame(Number(v)); }
+
+async function loadRadar() {
+    const shell = document.getElementById('radar-container');
+    if (!shell) return;
+
+    if (!cachedWeatherCoords) {
+        shell.innerHTML = '<div class="weather-denied">Radar needs your location first. ' +
+            '<button class="weather-retry" onclick="loadWeather()">Locate me</button></div>';
+        return;
+    }
+
+    // Already built — just re-measure. Leaflet mis-sizes maps created while hidden.
+    if (radarMap) { requestAnimationFrame(() => radarMap.invalidateSize()); return; }
+
+    shell.innerHTML =
+        '<div class="radar-shell">' +
+        '  <div class="radar-map" id="radar-map"></div>' +
+        '  <div class="radar-bar">' +
+        '    <button class="radar-play" id="radar-play" onclick="toggleRadarPlay()">▶ Play</button>' +
+        '    <span class="radar-time" id="radar-time">—</span>' +
+        '    <input class="radar-scrub" id="radar-scrub" type="range" min="0" max="0" value="0" ' +
+        '           aria-label="Radar frame" oninput="scrubRadar(this.value)">' +
+        '  </div>' +
+        '  <div class="radar-foot">Composite reflectivity, past 2 hours · ' +
+        '    <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">Rain Viewer</a></div>' +
+        '</div>';
+
+    const { lat, lon } = cachedWeatherCoords;
+
+    try {
+        radarMap = L.map(document.getElementById('radar-map'), {
+            center: [lat, lon], zoom: 7, zoomControl: true,
+            scrollWheelZoom: false, attributionControl: false
+        });
+        L.tileLayer(window.CARTO_DARK, { maxZoom: 12, attribution: '&copy; OpenStreetMap, &copy; CARTO' }).addTo(radarMap);
+        L.control.attribution({ prefix: false }).addTo(radarMap);
+        L.circleMarker([lat, lon], {
+            radius: 5, color: '#4caf50', fillColor: '#4caf50', fillOpacity: 0.9, weight: 2
+        }).addTo(radarMap).bindTooltip(cachedLocationLabel || 'You', { direction: 'top' });
+
+        const { frames } = await fetchRadarFrames();
+        radarFrames = frames;
+        radarLayers = {};
+
+        const scrub = document.getElementById('radar-scrub');
+        if (scrub) scrub.max = String(radarFrames.length - 1);
+
+        showRadarFrame(radarFrames.length - 1);   // newest frame first
+        requestAnimationFrame(() => radarMap.invalidateSize());
+    } catch (e) {
+        console.warn('[radar] unavailable (non-fatal):', e);
+        stopRadar();
+        if (radarMap) { radarMap.remove(); radarMap = null; }
+        shell.innerHTML = '<div class="weather-denied">📡 Radar data is unavailable right now. ' +
+            '<button class="weather-retry" onclick="loadRadar()">Retry</button></div>';
+    }
 }
 
 async function loadForecast(lat, lon, locationLabel) {

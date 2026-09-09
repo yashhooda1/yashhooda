@@ -82,7 +82,7 @@ async function getGitHubSummary() {
 async function getHoustonWeather() {
   try {
     const res  = await fetch(
-      'https://api.open-meteo.com/v1/forecast?latitude=29.7604&longitude=-95.3698&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph'
+      'https://api.open-meteo.com/v1/forecast?latitude=29.7604&longitude=-95.3698&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph'
     );
     const data = await res.json();
     const c    = data?.current;
@@ -90,11 +90,24 @@ async function getHoustonWeather() {
     const tempF    = Math.round(c.temperature_2m);
     const humidity = c.relative_humidity_2m;
     const wind     = Math.round(c.wind_speed_10m);
+    const gusts    = Math.round(c.wind_gusts_10m ?? c.wind_speed_10m);
     // Heat index risk for running
     const heatRisk = tempF >= 95 || (tempF >= 85 && humidity >= 70) ? 'extreme'
                    : tempF >= 88 || (tempF >= 80 && humidity >= 70) ? 'high'
                    : tempF >= 78 ? 'moderate' : 'low';
-    return { tempF, humidity, wind, heatRisk };
+    // NWS wind chill — only valid at <= 50F with wind above 3mph
+    const feelsLike = (tempF <= 50 && wind > 3)
+      ? Math.round(35.74 + 0.6215 * tempF - 35.75 * Math.pow(wind, 0.16) + 0.4275 * tempF * Math.pow(wind, 0.16))
+      : tempF;
+    // Cold risk keyed to wind chill, calibrated for a heat-acclimated Houston runner
+    const coldRisk = feelsLike <= 25 ? 'extreme'
+                   : feelsLike <= 35 ? 'high'
+                   : feelsLike <= 45 ? 'moderate' : 'low';
+    // Wind risk is independent of temp — matters for pacing on any run
+    const windRisk = gusts >= 30 || wind >= 25 ? 'extreme'
+                   : gusts >= 22 || wind >= 18 ? 'high'
+                   : wind >= 12 ? 'moderate' : 'low';
+    return { tempF, humidity, wind, gusts, feelsLike, heatRisk, coldRisk, windRisk };
   } catch { return null; }
 }
 
@@ -170,7 +183,7 @@ function buildRecommendations(strava, github, weather, timeCtx) {
         action:   'Adjust run time or go to treadmill',
         color:    '#ef4444',
       });
-    } else if (weather.heatRisk === 'high') {
+      } else if (weather.heatRisk === 'high') {
       recs.push({
         priority: 'medium',
         category: 'weather',
@@ -180,9 +193,53 @@ function buildRecommendations(strava, github, weather, timeCtx) {
         action:   'Adjust run pace for conditions',
         color:    '#f97316',
       });
+    } else if (weather.coldRisk === 'extreme') {
+      recs.push({
+        priority: 'high',
+        category: 'weather',
+        emoji:    '🥶',
+        title:    `Hard freeze — ${weather.tempF}°F, feels like ${weather.feelsLike}°F`,
+        body:     `Cover the extremities first: hat, gloves, and something over your face. Warm up indoors so you start already loose. Watch the bayou trail bridges and any overpass shade for black ice, and shorten your stride where you can't see the surface.`,
+        action:   'Layer up or move it indoors',
+        color:    '#38bdf8',
+      });
+    } else if (weather.coldRisk === 'high') {
+      recs.push({
+        priority: 'medium',
+        category: 'weather',
+        emoji:    '🧊',
+        title:    `Cold run — ${weather.tempF}°F, feels like ${weather.feelsLike}°F`,
+        body:     `Dress for about 15-20°F warmer than the reading — you should be slightly cold in the first half mile. Gloves and a hat matter more than another torso layer. Give yourself an extra mile of warmup before any fast segments.`,
+        action:   'Add a warmup mile before intervals',
+        color:    '#60a5fa',
+      });
+    } else if (weather.coldRisk === 'moderate') {
+      recs.push({
+        priority: 'low',
+        category: 'weather',
+        emoji:    '🍂',
+        title:    `Good running weather — ${weather.tempF}°F`,
+        body:     `This is close to ideal for a Houston runner. Long sleeve and shorts, no more. If you've been sitting on a tempo or a time trial, this is the day for it.`,
+        action:   'Consider a quality session today',
+        color:    '#4ade80',
+      });
     }
   }
-
+  // ── WIND RECOMMENDATIONS ──
+  if (weather && weather.windRisk !== 'low' && weather.heatRisk !== 'extreme') {
+    const extreme = weather.windRisk === 'extreme';
+    recs.push({
+      priority: extreme ? 'medium' : 'low',
+      category: 'weather',
+      emoji:    '💨',
+      title:    `${extreme ? 'Strong' : 'Breezy'} wind — ${weather.wind} mph, gusting ${weather.gusts}`,
+      body:     extreme
+        ? `Run the first half into the headwind so you finish with it at your back. Expect 20-40 sec/mi slower going out and don't try to make it up — run by effort, not by watch. Skip exposed stretches like the Waugh bridge and levee tops where crosswind gusts hit hardest.`
+        : `Plan an out-and-back into the wind first. Costs you roughly 10-20 sec/mi on the outbound half, and you get most of it back coming home.`,
+      action:   'Run into the wind first',
+      color:    extreme ? '#a78bfa' : '#c4b5fd',
+    });
+  }
   // ── GITHUB / CAREER RECOMMENDATIONS ──
   if (github) {
     if (github.daysSince >= 3) {

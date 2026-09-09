@@ -2715,7 +2715,6 @@
             margin-bottom: 0.6rem;
             min-height: 1.2rem;
         }
-        <style>
         /* ── CARBON & WARMING ── */
         .co2-grid {
             display: grid;
@@ -3762,11 +3761,16 @@
         .eval-bar-val { color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.68rem; width: 28px; text-align: right; }
         
     </style>
+    <link rel="stylesheet" href="/css/flight-deck.css">
     <!-- Leaflet for route maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@mapbox/polyline@1.2.1/src/polyline.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Skip to content</a>
     <!-- Snow Lightbox -->
     <div class="snow-lightbox" id="snow-lightbox" onclick="closeSnowLightbox()">
         <button class="snow-lightbox-close" onclick="closeSnowLightbox()">✕</button>
@@ -3780,8 +3784,7 @@
             <button class="snow-nav-btn" onclick="snowNav(1)">Next →</button>
         </div>
     </div>
-</head>
-<body>
+
 
 <div id="reading-progress"></div>
 <canvas id="particles"></canvas>
@@ -3938,42 +3941,14 @@
 
 <button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
-<!-- HEADER -->
-<header>
-    <h1>Yash Hooda</h1>
-    <p>AI Engineer &amp; Software/Data Engineer | Aviation Enthusiast | Production LLM &amp; Data Systems | Runner</p>
-    <div class="header-badges">
-        <span class="badge">UTD Computer Science Alumni</span>
-        <span class="badge" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#93c5fd;">⚡ Databricks Certified Data Engineer</span>
-        <span class="badge">Runner · <span id="weekly-miles-badge">--</span> mi/wk<span id="weekly-miles-badge-last" style="opacity:0.7;"></span></span>
-    </div>
-    <div class="header-cta">
-            <a href="#projects" class="btn-primary">🚀 View Projects</a>
-            <a href="https://github.com/yashhooda1" target="_blank" class="btn-secondary">⭐ GitHub</a>
-            <a class="view-counter" href="#" id="view-counter" aria-label="Site view count">
-                <span class="vc-eye">👁</span>
-                <span class="vc-label">views</span>
-                <span class="vc-num" id="vc-num">—</span>
-            </a>
-            <span class="kill-switch" id="kill-switch" role="status" aria-live="polite">
-                <span class="ks-dot"></span>
-                <span class="ks-label">kill switch</span>
-                <span class="ks-state" id="ks-state">ON</span>
-            </span>
-        </div>
-        <p class="kill-switch-note" id="kill-switch-note">
-            ⚠️ Due to high operating costs, HoodaAgents is currently available by request only.
-        </p>
-</header>
-
 <!-- NAV -->
-<nav>
+<nav aria-label="Main navigation">
     <div class="nav-inner">
         <a href="#" class="nav-logo">YH_</a>
-        <button class="nav-hamburger" onclick="this.nextElementSibling.classList.toggle('open')" aria-label="Menu">
+        <button class="nav-hamburger" onclick="this.setAttribute('aria-expanded', this.nextElementSibling.classList.toggle('open'))" aria-label="Menu" aria-controls="site-navigation" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>
-        <div class="nav-links">
+        <div class="nav-links" id="site-navigation">
             <a href="#about">About</a>
             <a href="#projects">Projects</a>
 
@@ -4017,6 +3992,55 @@
     </div>
 </nav>
 
+<!-- HEADER -->
+<header class="deck-hero">
+  <div class="deck-intro">
+    <div class="deck-eyebrow">Engineering · Aviation · Endurance</div>
+    <h1>Yash Hooda</h1>
+    <p>AI Engineer &amp; Software/Data Engineer | Aviation Enthusiast | Production LLM &amp; Data Systems | Runner</p>
+    <div class="header-badges">
+        <span class="badge">UTD Computer Science Alumni</span>
+        <span class="badge" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#93c5fd;">⚡ Databricks Certified Data Engineer</span>
+        <span class="badge">Runner · <span id="weekly-miles-badge">--</span> mi/wk<span id="weekly-miles-badge-last" style="opacity:0.7;"></span></span>
+    </div>
+    <div class="header-cta">
+            <a href="#projects" class="btn-primary">🚀 View Projects</a>
+            <a href="https://github.com/yashhooda1" target="_blank" class="btn-secondary">⭐ GitHub</a>
+            <a class="view-counter" href="#" id="view-counter" aria-label="Site view count">
+                <span class="vc-eye">👁</span>
+                <span class="vc-label">views</span>
+                <span class="vc-num" id="vc-num">—</span>
+            </a>
+            <span class="kill-switch" id="kill-switch" role="status" aria-live="polite">
+                <span class="ks-dot"></span>
+                <span class="ks-label">kill switch</span>
+                <span class="ks-state" id="ks-state">ON</span>
+            </span>
+        </div>
+        <p class="kill-switch-note" id="kill-switch-note">
+            ⚠️ Due to high operating costs, HoodaAgents is currently available by request only.
+        </p>
+  </div>
+  <aside class="deck-index" aria-label="Explore Yash's work and interests">
+    <div class="deck-index-label">Explore the portfolio</div>
+    <a class="deck-destination" href="#projects">
+      <span>01</span><span><strong>AI &amp; data systems</strong><small>HoodaAgents · METAR Stream · ClimatePulse</small></span><span aria-hidden="true">↗</span>
+    </a>
+    <a class="deck-destination" href="#journey">
+      <span>02</span><span><strong>From code to cockpit</strong><small>Flight training · Live airspace · Weather</small></span><span aria-hidden="true">↗</span>
+    </a>
+    <a class="deck-destination" href="#running">
+      <span>03</span><span><strong>The miles behind the work</strong><small>Training · Race times · Running tools</small></span><span aria-hidden="true">↗</span>
+    </a>
+    <a class="deck-photo" href="#hikes">
+      <img src="images/1000015799.jpg" width="1152" height="2048" alt="Mountains and clouds above Lake Monarch in Colorado">
+      <span>Outside the terminal / Granby, Colorado ↗</span>
+    </a>
+  </aside>
+</header>
+
+
+
 <script>
 /* ── NAV DROPDOWN CONTROLLER ── */
 function toggleNavDrop(e, btn) {
@@ -4050,7 +4074,16 @@ document.addEventListener('click', function (e) {
 
 /* Esc closes */
 document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeAllNavDrops();
+    if (e.key === 'Escape') {
+        closeAllNavDrops();
+        var links = document.querySelector('.nav-links');
+        if (links && links.classList.contains('open')) {
+            links.classList.remove('open');
+            var menu = document.querySelector('.nav-hamburger');
+            menu.setAttribute('aria-expanded', 'false');
+            menu.focus();
+        }
+    }
 });
 
 /* Clicking any nav link closes dropdowns + the mobile hamburger menu */
@@ -4059,11 +4092,12 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         closeAllNavDrops();
         var links = document.querySelector('.nav-links');
         if (links) links.classList.remove('open');
+        document.querySelector('.nav-hamburger').setAttribute('aria-expanded', 'false');
     });
 });
 </script>
 
-<div class="container">
+<main class="container" id="main-content" tabindex="-1">
 
     <!-- STATS BAR -->
     <div class="stats-bar" style="margin-top: 2rem;">
@@ -4086,6 +4120,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <p>Most of my side projects live where messy public data meets automation. <strong>ClimatePulse</strong> is a 57-year NOAA pipeline across 13 global stations with a Bronze&rarr;Silver&rarr;Gold architecture, refreshed daily by GitHub Actions — incremental per-station caching cut each run from 741 API calls to 13. The <strong>live flight tracker</strong> on this page is real-time geospatial ingestion. <strong>mcp-garmin</strong> came from reverse-engineering Garmin's undocumented workout schema into a typed spec an LLM can drive.</p>
         <p>Outside the terminal I'm a competitive marathoner chasing a sub-3:00 finish, and I'm working toward my private pilot certificate — part-time at a Part 61 field, funded as I go. The METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), the live flight tracker, and the Infinite Flight tooling on this page all started as questions I had about flying. Weather systems, astronomy, and sport pull at me for the same reason. I value time with family and friends, and I'm happiest reading about — or building — whatever comes next. More on the aviation side →</p>
 
+        <div class="skill-cloud">
         <div class="skill-group-label">⚙️ Data Engineering</div>
         <span class="skill-tag de">SQL (T-SQL · Spark SQL)</span>
         <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
@@ -4448,6 +4483,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <span class="skill-tag">Property-Based Testing (Hypothesis)</span>
                     <span class="skill-tag">mypy --strict</span>
                     <span class="skill-tag cl">GitHub Actions</span>
+                </div>
                 <div class="project-desc">
                     A running coach that answers &ldquo;am I overtraining?&rdquo; from my real Garmin and Strava
                     history — training load, injury risk, race predictions, and an adaptive 5K plan — with no API
@@ -6074,9 +6110,10 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <div class="contact-value">View my YouTube Channel</div>
                 </div>
             </a>
+        </div>
     </section>
 
-</div>
+</main>
 
 <footer>
     <p>&copy; 2026 Yash Hooda. All rights reserved.</p>

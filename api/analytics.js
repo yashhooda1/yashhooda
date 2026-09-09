@@ -152,7 +152,7 @@ export default async function handler(req, res) {
       try {
         const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}` +
           `&start_date=${dateStr}&end_date=${dateStr}` +
-          `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature` +
+          `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,apparent_temperature` +
           `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
         const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
         if (!r.ok) return null;
@@ -161,32 +161,71 @@ export default async function handler(req, res) {
         const humidity  = d.hourly?.relative_humidity_2m || [];
         const feelsLike = d.hourly?.apparent_temperature || [];
         const wind      = d.hourly?.wind_speed_10m       || [];
+        const gustArr   = d.hourly?.wind_gusts_10m       || [];
         const sliceArr  = (arr) => arr.slice(10, 14).filter(v => v !== null);
         const avg       = (arr) => arr.length ? arr.reduce((a,b) => a+b,0)/arr.length : null;
         const tempF    = avg(sliceArr(temps));
         const humidPct = avg(sliceArr(humidity));
         const feelsF   = avg(sliceArr(feelsLike));
         const windMph  = avg(sliceArr(wind));
+        const gustMph  = avg(sliceArr(gustArr));
         if (tempF === null) return null;
         const tempC = (tempF - 32) * 5/9;
+        const w     = windMph || 0;
+        const g     = gustMph || w;
+
+        // ── HEAT (El Helou 2012, Ely 2007) — unchanged ──
         let perfImpact = 0;
-        if      (tempC <= 10) perfImpact = 0;
-        else if (tempC <= 15) perfImpact = 0;
+        if      (tempC <= 15) perfImpact = 0;
         else if (tempC <= 20) perfImpact = -1.5;
         else if (tempC <= 25) perfImpact = -4;
         else if (tempC <= 30) perfImpact = -10;
         else if (tempC <= 35) perfImpact = -17;
         else                  perfImpact = -25;
         if (humidPct >= 70 && tempC > 20) perfImpact -= (humidPct - 70) * 0.1;
+
+        // ── WIND CHILL (NWS formula — only valid at <=50F with wind >3mph) ──
+        const windChillF = (tempF <= 50 && w > 3)
+          ? Math.round(35.74 + 0.6215 * tempF - 35.75 * Math.pow(w, 0.16) + 0.4275 * tempF * Math.pow(w, 0.16))
+          : Math.round(tempF);
+
+        // ── COLD PENALTY ──
+        // Small and driven by footing, clothing weight, and airway irritation,
+        // NOT thermoregulation. 32-50F is the performance optimum: zero penalty.
+        let coldImpact = 0;
+        if      (windChillF >= 32) coldImpact = 0;
+        else if (windChillF >= 20) coldImpact = -0.5;
+        else if (windChillF >= 10) coldImpact = -1.5;
+        else if (windChillF >= 0)  coldImpact = -3;
+        else                       coldImpact = -5;
+
+        // ── WIND PENALTY (Pugh 1971, Davies 1980) ──
+        // Drag scales with the square of wind speed. Anchored at 10mph headwind
+        // = ~11 sec/mi. We don't know run direction, so assume a loop/out-and-back:
+        // half the miles into it, and a tailwind only returns ~45% of what the
+        // headwind took. Net = ~27.5% of the full headwind cost.
+        const headwindSecPerMi = 0.11 * w * w;
+        const windSecPerMi     = parseFloat((0.275 * headwindSecPerMi).toFixed(1));
+        // Express as % against a nominal 7:30/mi so it composes with the temp scores
+        const windImpact = -parseFloat(((windSecPerMi / 450) * 100).toFixed(1));
+
+        perfImpact = perfImpact + coldImpact + windImpact;
+
         const heatRisk = tempC > 35 ? 'extreme' : tempC > 30 ? 'very high' : tempC > 25 ? 'high' : tempC > 20 ? 'moderate' : 'low';
+        const coldRisk = windChillF <= 0 ? 'extreme' : windChillF <= 15 ? 'high' : windChillF <= 32 ? 'moderate' : 'low';
+        const windRisk = (g >= 30 || w >= 25) ? 'extreme' : (g >= 22 || w >= 18) ? 'high' : w >= 12 ? 'moderate' : 'low';
+
         return {
           tempF:     Math.round(tempF),
-          feelsF:    feelsF   ? Math.round(feelsF)   : null,
-          humidity:  humidPct ? Math.round(humidPct) : null,
-          windMph:   windMph  ? Math.round(windMph)  : null,
+          feelsF:    feelsF   != null ? Math.round(feelsF)   : null,
+          humidity:  humidPct != null ? Math.round(humidPct) : null,
+          windMph:   windMph  != null ? Math.round(windMph)  : null,
+          gustMph:   gustMph  != null ? Math.round(gustMph)  : null,
+          windChillF,
           tempC:     Math.round(tempC),
           perfImpact: parseFloat(perfImpact.toFixed(1)),
-          heatRisk,
+          windSecPerMi,
+          heatRisk, coldRisk, windRisk,
         };
       } catch(e) {
         return null;
@@ -226,7 +265,9 @@ export default async function handler(req, res) {
             : null,
           weather:  wx ? {
             tempF: wx.tempF, feelsF: wx.feelsF, humidity: wx.humidity,
-            windMph: wx.windMph, perfImpact: wx.perfImpact, heatRisk: wx.heatRisk,
+            windMph: wx.windMph, gustMph: wx.gustMph, windChillF: wx.windChillF,
+            perfImpact: wx.perfImpact, windSecPerMi: wx.windSecPerMi,
+            heatRisk: wx.heatRisk, coldRisk: wx.coldRisk, windRisk: wx.windRisk,
           } : null,
         };
       } catch (e) {
@@ -238,6 +279,11 @@ export default async function handler(req, res) {
     // Build weather context summary for Claude
     const runsWithWeather = recentRunsSummary.filter(r => r.weather);
     const hotRuns = runsWithWeather.filter(r => r.weather.tempF >= 85);
+    const coldRuns  = runsWithWeather.filter(r => r.weather.windChillF <= 32);
+    const windyRuns = runsWithWeather.filter(r => r.weather.windRisk === 'high' || r.weather.windRisk === 'extreme');
+    const avgWind = runsWithWeather.length
+      ? Math.round(runsWithWeather.reduce((s,r) => s + (r.weather.windMph||0), 0) / runsWithWeather.length)
+      : null;
     const avgTempF = runsWithWeather.length
       ? Math.round(runsWithWeather.reduce((s,r) => s + r.weather.tempF, 0) / runsWithWeather.length)
       : null;
@@ -255,17 +301,28 @@ WEATHER CONDITIONS ACROSS RECENT RUNS (actual data per activity location):
 - Average humidity: ${avgHumidity}%
 - Average performance impact from conditions: ${avgPerfImpact}%
 - Runs in heat (≥85°F): ${hotRuns.length} of ${runsWithWeather.length}
+- Runs in cold (wind chill ≤32°F): ${coldRuns.length} of ${runsWithWeather.length}
+- Runs in significant wind (≥18mph or gusting ≥22): ${windyRuns.length} of ${runsWithWeather.length}
+- Average wind: ${avgWind}mph
 - Per-run weather breakdown:
 ${runsWithWeather.slice(0,8).map(r =>
-  `  ${r.date} | ${r.miles}mi @ ${r.pace || '?'} | ${r.weather.tempF}°F feels ${r.weather.feelsF}°F | ${r.weather.humidity}% humidity | impact: ${r.weather.perfImpact}% | risk: ${r.weather.heatRisk}`
+   `  ${r.date} | ${r.miles}mi @ ${r.pace || '?'} | ${r.weather.tempF}°F chill ${r.weather.windChillF}°F | ${r.weather.humidity}% humidity | wind ${r.weather.windMph}mph gust ${r.weather.gustMph} (${r.weather.windSecPerMi}s/mi) | impact: ${r.weather.perfImpact}% | heat: ${r.weather.heatRisk} cold: ${r.weather.coldRisk} wind: ${r.weather.windRisk}`
 ).join('\n')}
 
-TEMPERATURE SCIENCE (El Helou 2012, Ely 2007):
+TEMPERATURE SCIENCE (El Helou 2012, Ely 2007; Pugh 1971, Davies 1980):
 - Optimal marathon training: 45-54°F (7-12°C)
-- Performance drops -1.5% at 68°F, -4% at 77°F, -10% at 86°F, -17% at 95°F, -25% at 104°F
+- Heat: -1.5% at 68°F, -4% at 77°F, -10% at 86°F, -17% at 95°F, -25% at 104°F
 - Humidity ≥70% prevents sweat evaporation — compounds heat stress significantly
-- Houston summers: 90-100°F with 70-85% humidity June-Sept requires 60-90 sec/mile slower on easy runs
-- Boulder altitude (~5,400 ft): additional ~3-5% performance reduction vs sea level` : '';
+- Cold: 32-50°F is the performance optimum, NOT a penalty. Below freezing the cost is
+  small (-0.5% to -3%) and comes from footing, clothing weight, and airway irritation
+  rather than thermoregulation. Do not tell him cold weather is slowing him down when
+  the wind chill is above freezing — it is not.
+- Wind: drag scales with the SQUARE of wind speed. A 10mph headwind costs ~11 sec/mi;
+  a tailwind returns only ~45% of that, so out-and-back routes always lose net time.
+  windSecPerMi in the data is the already-netted loop estimate.
+- Houston summers: 90-100°F with 70-85% humidity June-Sept requires 60-90 sec/mile slower
+- Houston Marathon (Jan 17) risk is a north wind behind a cold front, not temperature
+- Boulder altitude (~5,400 ft): additional ~3-5% performance reduction vs sea level
 
     // 9. ── AI INSIGHTS via Claude ──
     // AFTER — Gemini Flash, free, works now
@@ -286,7 +343,7 @@ TEMPERATURE SCIENCE CONTEXT:
 
 Write 3 short sharp coaching insights (2-3 sentences each) about:
 1. Current fitness trend and readiness — reference actual CTL/ATL/form numbers
-2. Weather and heat impact on training — be specific about the actual conditions from recent runs and what pace adjustments are needed
+2. Weather impact on training — be specific about the actual conditions from recent runs. Identify whether heat, cold, or wind is the dominant factor and what pace adjustments follow. Do not default to heat if the data shows otherwise.
 3. One specific actionable recommendation for marathon prep considering both fitness data and current conditions
 
 Be specific, data-driven, and honest. If conditions are brutal, say so clearly. No bullet points — flowing paragraphs separated by newlines.`;

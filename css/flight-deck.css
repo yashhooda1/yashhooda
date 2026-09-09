@@ -1,4 +1,4 @@
-/* Midnight Flight Deck. Loaded after the original styles to preserve the app. */
+/* Engineering & Endurance. Loaded after the original styles to preserve the app. */
 :root {
   color-scheme: dark;
   --bg: #080c11;
@@ -49,7 +49,7 @@ nav a, .nav-drop-trigger { font-size: .875rem; letter-spacing: 0; padding-inline
 
 /* Oversized editorial masthead with a compact index into existing work. */
 header.deck-hero {
-  max-width: 1320px; margin: 0 auto; padding: 76px 36px 56px;
+  max-width: 1320px; margin: 0 auto; padding: 56px 36px 48px;
   text-align: left; background: transparent; overflow: visible;
   display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
   gap: 56px; align-items: center;
@@ -64,11 +64,11 @@ header.deck-hero::before { content: none; }
 .deck-eyebrow::before { content: ''; width: 28px; height: 1px; background: currentColor; }
 header.deck-hero h1 {
   font-family: 'DM Sans', sans-serif; font-weight: 600;
-  font-size: clamp(3.5rem, 7.8vw, 7rem); line-height: 1.02; letter-spacing: -.065em;
+  font-size: clamp(2.75rem, 5vw, 4.5rem); line-height: 1.02; letter-spacing: -.065em;
   color: #f2f6fa; background: none; -webkit-text-fill-color: currentColor;
-  animation: none; max-width: 8ch; text-wrap: balance;
+  animation: none; max-width: none; text-wrap: balance;
 }
-header.deck-hero .deck-intro > p:first-of-type {
+header.deck-hero .deck-summary {
   margin-top: 26px; max-width: 49ch; font-size: 1.1rem;
   color: var(--text-muted); letter-spacing: 0; line-height: 1.8; animation: none;
 }
@@ -97,7 +97,7 @@ header.deck-hero .kill-switch-note { font-size: .8125rem; line-height: 1.7; lett
 .deck-photo img { width: 100%; height: 160px; display: block; object-fit: cover; object-position: 50% 48%; }
 .deck-photo span { position: absolute; inset: auto 0 0; background: linear-gradient(transparent, rgb(0 0 0 / 90%)); padding: 32px 22px 16px; font-size: .8125rem; color: #fff; }
 
-/* Shared canvas: all original sections stay visible and in their original order. */
+/* Shared canvas: every original section is retained; engineering and running lead. */
 .container { max-width: 1320px; padding: 0 36px 64px; }
 main.container > section {
   --section-accent: var(--green);
@@ -180,7 +180,7 @@ footer p { font-size: .875rem; color: var(--text-muted); }
 #back-to-top { border-radius: 10px; }
 
 /* Collapse navigation before its destinations can collide at tablet widths. */
-@media (max-width: 1100px) {
+@media (max-width: 1240px) {
   .nav-inner { padding-inline: 24px; min-height: 68px; }
   .nav-hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 14px; background: none; border: none; }
   .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
@@ -198,8 +198,8 @@ footer p { font-size: .875rem; color: var(--text-muted); }
 }
 @media (max-width: 760px) {
   header.deck-hero { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 40px; }
-  header.deck-hero h1 { max-width: none; font-size: clamp(3.25rem, 12vw, 5.5rem); }
-  header.deck-hero .deck-intro > p:first-of-type { font-size: 1rem; }
+  header.deck-hero h1 { max-width: none; font-size: clamp(2.5rem, 10vw, 4rem); }
+  header.deck-hero .deck-summary { font-size: 1rem; }
   .deck-eyebrow { margin-bottom: 20px; letter-spacing: .09em; }
   .deck-destination { padding: 16px 20px; }
   .deck-photo img { height: 150px; }
@@ -223,4 +223,29 @@ footer p { font-size: .875rem; color: var(--text-muted); }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   #particles, .cursor, .cursor-ring { visibility: hidden; }
+}
+
+/* Professional identity leads, with running as the second primary discipline. */
+header.deck-hero .deck-role {
+  margin-top: 24px; font-size: clamp(1.75rem, 3.3vw, 2.75rem); line-height: 1.2;
+  font-weight: 500; letter-spacing: -.04em; color: var(--green-light); animation: none;
+}
+header.deck-hero .deck-role span { color: var(--text); }
+header.deck-hero .deck-summary { margin-top: 18px; }
+header.deck-hero .deck-background {
+  font-size: .8125rem; line-height: 1.8; letter-spacing: 0; color: var(--text-muted);
+  margin-top: 20px; animation: none;
+}
+.deck-stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.deck-stack span {
+  font: .8125rem/1.6 'Space Mono', monospace; color: var(--deck-blue);
+  padding: 6px 10px; border: 1px solid #354b61; border-radius: 6px; background: #101d2a;
+}
+.deck-secondary-link {
+  display: flex; justify-content: space-between; gap: 12px; padding: 16px 22px;
+  font-size: .875rem; color: var(--text-muted); text-decoration: none; border-bottom: 1px solid var(--border);
+}
+.deck-secondary-link:hover { background: var(--bg-elevated); color: var(--text); }
+main.container > :is(#about, #projects, #certifications, #tars) {
+  --section-accent: var(--green); border-top-color: #4a7466;
 }

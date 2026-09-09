@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yash Hooda - AI and Software/Data Engineer + Aviation Enthusiast </title>
+    <title>Yash Hooda — AI &amp; Data Engineer | Software, LLM Systems &amp; Running</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -3949,9 +3949,27 @@
             <span></span><span></span><span></span>
         </button>
         <div class="nav-links" id="site-navigation">
-            <a href="#about">About</a>
             <a href="#projects">Projects</a>
+            <a href="#about">Skills &amp; Background</a>
 
+            <div class="nav-dropdown">
+                <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Running <span class="caret">▾</span></button>
+                <div class="nav-drop-menu">
+                    <a href="#running">Running</a>
+                    <a href="#heat-pace">Running Heat Adjustment Calculator</a>
+                    <a href="#wind-cold">Wind &amp; Cold Adjustment</a>
+                    <a href="#pace-calc">Pace Calculator</a>
+                    <a href="#heat-equivalent">Race Time by Temperature</a>
+                    <a href="#strava-feed">Live Strava feed</a>
+                    <a href="#hikes">Hikes</a>
+                    <a href="#thisweek">Last Week ⚡</a>
+                </div>
+            </div>
+
+            <a href="#certifications">Credentials</a>
+            <a href="#tars">TARS</a>
+            <a href="#buildlog">Build Log 📋</a>
+            <a href="#contact">Contact</a>
             <div class="nav-dropdown">
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Explorations <span class="caret">▾</span></button>
                 <div class="nav-drop-menu">
@@ -3969,24 +3987,6 @@
                 </div>
             </div>
 
-            <div class="nav-dropdown">
-                <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Running <span class="caret">▾</span></button>
-                <div class="nav-drop-menu">
-                    <a href="#running">Running</a>
-                    <a href="#heat-pace">Running Heat Adjustment Calculator</a>
-                    <a href="#wind-cold">Wind &amp; Cold Adjustment</a>
-                    <a href="#pace-calc">Pace Calculator</a>
-                    <a href="#heat-equivalent">Race Time by Temperature</a>
-                    <a href="#strava-feed">Live Strava feed</a>
-                    <a href="#hikes">Hikes</a>
-                    <a href="#thisweek">Last Week ⚡</a>
-                </div>
-            </div>
-
-            <a href="#certifications">Certs</a>
-            <a href="#tars">TARS</a>
-            <a href="#buildlog">Build Log 📋</a>
-            <a href="#contact">Contact</a>
             <a href="#" id="nav-ai-chat" class="nav-chat-btn" onclick="event.preventDefault(); toggleChat()">💬 AI Chat</a>
         </div>
     </div>
@@ -3995,9 +3995,14 @@
 <!-- HEADER -->
 <header class="deck-hero">
   <div class="deck-intro">
-    <div class="deck-eyebrow">Engineering · Aviation · Endurance</div>
+    <div class="deck-eyebrow">AI Engineering · Data Systems · Running</div>
     <h1>Yash Hooda</h1>
-    <p>AI Engineer &amp; Software/Data Engineer | Aviation Enthusiast | Production LLM &amp; Data Systems | Runner</p>
+    <p class="deck-role">AI &amp; Data Engineer.<br><span>Software builder. Runner.</span></p>
+    <p class="deck-summary">I build production LLM applications, reliable data pipelines, and tools driven by real training data.</p>
+    <div class="deck-stack" aria-label="Core engineering skills">
+      <span>Python / SQL</span><span>Databricks / PySpark</span><span>RAG / Agents / MCP</span>
+    </div>
+    <p class="deck-background">AI Engineer &amp; Software/Data Engineer | Aviation Enthusiast | Production LLM &amp; Data Systems | Runner</p>
     <div class="header-badges">
         <span class="badge">UTD Computer Science Alumni</span>
         <span class="badge" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#93c5fd;">⚡ Databricks Certified Data Engineer</span>
@@ -4005,6 +4010,7 @@
     </div>
     <div class="header-cta">
             <a href="#projects" class="btn-primary">🚀 View Projects</a>
+            <a href="#running" class="btn-secondary">🏃 Running &amp; Analytics</a>
             <a href="https://github.com/yashhooda1" target="_blank" class="btn-secondary">⭐ GitHub</a>
             <a class="view-counter" href="#" id="view-counter" aria-label="Site view count">
                 <span class="vc-eye">👁</span>
@@ -4021,17 +4027,18 @@
             ⚠️ Due to high operating costs, HoodaAgents is currently available by request only.
         </p>
   </div>
-  <aside class="deck-index" aria-label="Explore Yash's work and interests">
-    <div class="deck-index-label">Explore the portfolio</div>
+  <aside class="deck-index" aria-label="Explore Yash's engineering work and running">
+    <div class="deck-index-label">Engineering in practice</div>
     <a class="deck-destination" href="#projects">
-      <span>01</span><span><strong>AI &amp; data systems</strong><small>HoodaAgents · METAR Stream · ClimatePulse</small></span><span aria-hidden="true">↗</span>
+      <span>01</span><span><strong>Production AI systems</strong><small>HoodaAgents · Hybrid RAG · Agentic workflows</small></span><span aria-hidden="true">↗</span>
     </a>
-    <a class="deck-destination" href="#journey">
-      <span>02</span><span><strong>From code to cockpit</strong><small>Flight training · Live airspace · Weather</small></span><span aria-hidden="true">↗</span>
+    <a class="deck-destination" href="#climate">
+      <span>02</span><span><strong>Data engineering, end to end</strong><small>ClimatePulse · Databricks · Streaming pipelines</small></span><span aria-hidden="true">↗</span>
     </a>
-    <a class="deck-destination" href="#running">
-      <span>03</span><span><strong>The miles behind the work</strong><small>Training · Race times · Running tools</small></span><span aria-hidden="true">↗</span>
+    <a class="deck-destination" href="#running-analytics">
+      <span>03</span><span><strong>Running, measured</strong><small>Strava Intelligence · Training load · Race predictions</small></span><span aria-hidden="true">↗</span>
     </a>
+    <a class="deck-secondary-link" href="#journey">Also exploring: aviation &amp; flight training <span aria-hidden="true">↗</span></a>
     <a class="deck-photo" href="#hikes">
       <img src="images/1000015799.jpg" width="1152" height="2048" alt="Mountains and clouds above Lake Monarch in Colorado">
       <span>Outside the terminal / Granby, Colorado ↗</span>
@@ -4511,700 +4518,51 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </div>
     </section>
 
-    <!-- AVIATION -->
-    <section id="aviation">
 
-        <h2 id="journey">🛫 My Aviation Journey</h2>
-        <p>My progress in flight training, the logbook behind it, and the aviation projects it inspires.</p>
+    <!-- CERTIFICATIONS -->
+    <section id="certifications">
+        <h2>🏆 Certifications</h2>
+        <p>Professional certifications that reflect my skills in data engineering, AI, and data science.</p>
 
-        <div class="journey-wrap">
-
-            <p class="journey-goal">
-                Aviation is one of my biggest interests outside of engineering. I'm pursuing flight training
-                part-time at a Part&nbsp;61 field while continuing to build my career in AI and data engineering.
-                Flying also inspires many of the projects on this site — including the METAR streaming pipeline,
-                the live flight tracker, and my Infinite Flight projects. For me, aviation and engineering are
-                two interests that naturally come together through software, real-time data, weather, and flight.
-            </p>
-
-            <div class="journey-label">Ratings path</div>
-            <div class="journey-path">
-                <span class="pilot-step active">Student</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">PPL</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">Instrument</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">Commercial</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">Multi-Engine</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">CFI</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">ATP</span>
+        <div class="cert-grid">
+            <div class="cert-card">
+                <h3>Databricks Certified Data Engineer Associate</h3>
+                <p>Validates my knowledge of data engineering concepts, ETL pipelines, Delta Lake, and building scalable data solutions on Databricks.</p>
+                <a href="https://credentials.databricks.com/003cc055-4848-4791-b1e9-9eea340f96fa#acc.JpnRGgik" target="_blank">View Credential →</a>
             </div>
-
-            <div class="journey-cols">
-
-                <div>
-                    <div class="journey-label">Logbook — real aircraft</div>
-                    <!-- ✏️ EDIT THESE FOUR VALUES with your actual logged times -->
-                    <div class="aviation-stats-row" style="margin:0;">
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val">7.0</span>
-                            <div class="aviation-stat-label">Total Hours</div>
-                        </div>
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val">7.0</span>
-                            <div class="aviation-stat-label">Dual Received</div>
-                        </div>
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val">4</span>
-                            <div class="aviation-stat-label">Landings</div>
-                        </div>
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val" style="font-size:0.95rem;">C172</span>
-                            <div class="aviation-stat-label">Type Flown</div>
-                        </div>
-                    </div>
-                    <p class="journey-note">Every hour here was paid for out of pocket. It starts small on purpose.</p>
-                </div>
-
-                <div>
-                    <div class="journey-label">
-                        Infinite Flight &mdash; simulator
-                        <span id="if-badge" style="margin-left:0.5rem;"></span>
-                    </div>
-                    <div class="aviation-stats-row" style="margin:0;" id="if-stats">
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val" id="if-grade">--</span>
-                            <div class="aviation-stat-label">Grade</div>
-                        </div>
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val" id="if-hours" style="font-size:1rem;">--</span>
-                            <div class="aviation-stat-label">Flight Time</div>
-                        </div>
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val" id="if-flights">--</span>
-                            <div class="aviation-stat-label">Flights</div>
-                        </div>
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val" id="if-landings">--</span>
-                            <div class="aviation-stat-label">Landings</div>
-                        </div>
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val" id="if-xp" style="font-size:1rem;">--</span>
-                            <div class="aviation-stat-label">XP</div>
-                        </div>
-                        <div class="aviation-stat">
-                            <span class="aviation-stat-val" id="if-atc">--</span>
-                            <div class="aviation-stat-label">ATC Ops</div>
-                        </div>
-                    </div>
-                    <p class="journey-note" id="if-note">Live from the Infinite Flight Live API v2.</p>
-                </div>
-          </div><!-- /.journey-cols -->
-
-          <div id="if-flight" data-state="idle" aria-live="polite" style="padding-top:2rem;">
-              <div class="if-head">
-                  <h2>Current Flight</h2>
-                  <span class="if-status"><span class="if-dot"></span><span id="if-status-text">Checking…</span></span>
-              </div>
-
-              <div class="if-strip" id="if-strip">
-                  <div class="if-cell wide">
-                      <span class="if-k">Route</span>
-                      <div class="if-v route" id="if-route">—</div>
-                  </div>
-                  <div class="if-cell">
-                      <span class="if-k">Callsign</span>
-                      <div class="if-v" id="if-callsign">—</div>
-                  </div>
-                  <div class="if-cell">
-                      <span class="if-k">Aircraft</span>
-                      <div class="if-v" id="if-aircraft">—</div>
-                  </div>
-
-                  <div class="if-cell">
-                     <span class="if-k">Elapsed</span>
-                     <div class="if-v" id="if-duration">—</div>
-                  </div>
-                  <div class="if-cell">
-                     <span class="if-k">Altitude</span>
-                     <div class="if-v" id="if-alt">—</div>
-                 </div>
-                 <div class="if-cell">
-                    <span class="if-k">Ground speed</span>
-                    <div class="if-v" id="if-gs">—</div>
-                </div>
-                <div class="if-cell">
-                    <span class="if-k">Remaining</span>
-                    <div class="if-v" id="if-remaining">—</div>
-                </div>
-                    <div class="if-etarow">
-                        <span class="if-eta-k">ETA</span>
-                        <span class="if-eta-v" id="if-eta">—</span>
-                        <span class="if-eta-cd" id="if-countdown"></span>
-                    </div>
-                    <div class="if-prog"><i id="if-prog-fill"></i></div>
-                </div>
-
-                <div class="if-map" id="if-map"></div>
-                <div class="if-wpts" id="if-wpts"></div>
-                <div class="if-note" id="if-track-note"></div>
+            <div class="cert-card">
+                <h3>Microsoft Certified: Power Platform Fundamentals</h3>
+                <p>Covers Microsoft Power Platform environment, business value of Power Platform, Capabilities of Power Apps, Power Automate, and Power Pages.</p>
+                <a href="https://learn.microsoft.com/api/credentials/share/en-us/YashHooda-0521/F45AC312179B5D?sharingId=DC8B74CB8591C9DD" target="_blank">View Credential →</a>
             </div>
-
-        </div><!-- /.journey-wrap -->      
-            
-
-        <h2 style="margin-top:2.5rem;">✈️ Live Flight Tracker</h2>
-        <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
-
-        <div class="aviation-bar">
-            <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
-                <span class="aviation-live-badge">LIVE FLIGHTS</span>
-                <div class="aviation-stats-row" style="margin:0;">
-                    <div class="aviation-stat">
-                        <span class="aviation-stat-val" id="flight-count">--</span>
-                        <div class="aviation-stat-label">Flights Shown</div>
-                    </div>
-                    <div class="aviation-stat">
-                        <span class="aviation-stat-val" id="flight-total">--</span>
-                        <div class="aviation-stat-label">Total Flights</div>
-                    </div>
-                    <div class="aviation-stat">
-                        <span class="aviation-stat-val" id="flight-updated">--</span>
-                        <div class="aviation-stat-label">Last Updated</div>
-                    </div>
-                </div>
+            <div class="cert-card">
+                <h3>IBM AI Engineering Professional Certificate</h3>
+                <p>Covers machine learning, deep learning, neural networks, and practical AI model development.</p>
+                <a href="https://www.coursera.org/account/accomplishments/specialization/CKPB221THAWV" target="_blank">View Credential →</a>
             </div>
-            <button class="aviation-refresh" onclick="loadFlights()">↻ Refresh</button>
-        </div>
-
-        <div id="flight-map"></div>
-        <div id="flight-cards-container">
-            <div class="aviation-loading">Loading live flights...</div>
+            <div class="cert-card">
+                <h3>Vanderbilt University AI Prompt Engineering Certificate</h3>
+                <p>Covers Prompt Engineering, ChatGPT, trustworthy Generative AI, and ChatGPT Advanced Data Analysis.</p>
+                <a href="https://www.coursera.org/account/accomplishments/specialization/ENRYEOQPTN93" target="_blank">View Credential →</a>
+            </div>
+            <div class="cert-card">
+                <h3>IBM Data Science Professional Certificate</h3>
+                <p>Demonstrates skills in Python, SQL, data analysis, visualization, machine learning, and applied data science workflows.</p>
+                <a href="https://www.coursera.org/account/accomplishments/specialization/JRIZFWEMPM6Y" target="_blank">View Credential →</a>
+            </div>
         </div>
     </section>
 
-    <section id="metar">
-        <h2>🌪️ METAR Stream — Live US Airspace</h2>
-        <p>
-            A snapshot from my real-time streaming pipeline: Kafka → Spark Structured
-            Streaming → Delta Lake, ingesting surface observations from every reporting
-            US airport weather station. Flight categories below are the FAA standard —
-            the same four a pilot checks before departing.
-        </p>
- 
-        <div class="metar-wrap">
-            <div class="metar-meta" id="metar-meta">Loading pipeline snapshot…</div>
- 
-            <div class="metar-stats" id="metar-stats"></div>
- 
-            <h3>Current flight conditions</h3>
-            <div class="cat-bar" id="metar-catbar"></div>
-            <div class="cat-legend">
-                <span><i style="background:#1a9850"></i>VFR — clear</span>
-                <span><i style="background:#2b6cb0"></i>MVFR — marginal</span>
-                <span><i style="background:#c0392b"></i>IFR — instruments required</span>
-                <span><i style="background:#8e44ad"></i>LIFR — low instrument</span>
-            </div>
- 
-            <h3>Strongest wind gusts observed</h3>
-            <div id="metar-gusts"></div>
- 
-            <h3 style="margin-top:2rem">Active alerts</h3>
-            <div id="metar-alerts"></div>
+    <!-- TARS -->
+    <section id="tars">
+        <h2>💬 Meet TARS – My AI Assistant</h2>
+        <p>I built a custom AI assistant called <strong>TARS</strong> using OpenAI's GPT-4. TARS is designed to solve real-world problems through natural conversations. Try it out below!</p>
+        <div class="tars-cta">
+            <a href="https://chatgpt.com/g/g-67ab8c95b11c81918787b6dc80159559-tars" target="_blank" class="tars-btn">
+                💡 Chat with TARS Now
+            </a>
+            <span class="tars-pulse">Live &amp; Available 24/7</span>
         </div>
-        <div class="pipe-panel" id="pipe-panel" hidden>
-            <div class="pipe-head">
-                <h3 style="text-transform:none;letter-spacing:0;opacity:1;font-size:1rem">
-                    Streaming pipeline metrics
-                </h3>
-                <div class="pipe-when" id="pipe-when"></div>
-            </div>
- 
-            <p style="font-size:0.8rem;opacity:0.7;margin:0 0 1.25rem">
-                These come from the Kafka → Spark Structured Streaming → Delta Lake
-                pipeline, which runs on demand rather than continuously. The live
-                conditions above refresh hourly from a separate batch job.
-            </p>
- 
-            <div class="pipe-grid" id="pipe-grid"></div>
-            <div class="medallion" id="pipe-medallion"></div>
-            <div class="pipe-stale" id="pipe-stale"></div>
-        </div>
-        <div class="pipe-panel" id="dbt-panel" hidden>
-            <div class="pipe-head">
-                <h3 style="text-transform:none;letter-spacing:0;opacity:1;font-size:1rem">
-                    dbt models over Silver
-                </h3>
-                <div class="pipe-when" id="dbt-when"></div>
-            </div>
- 
-            <p style="font-size:0.8rem;opacity:0.7;margin:0 0 1.25rem">
-                The streaming job writes Silver; dbt owns everything after it — the
-                transformations, the tests, and the lineage. It runs alongside the Spark
-                Gold job rather than replacing it, which means the two can be diffed
-                against each other. That diff is the last number below.
-            </p>
- 
-            <div class="pipe-grid" id="dbt-grid"></div>
-            <div class="dbt-lineage" id="dbt-lineage"></div>
-            <div class="dbt-note" id="dbt-note"></div>
-        </div>
-    </section>
-
-    <!-- WEATHER -->
-    <section id="weather">
-        <h2>🌤️ Your Current Weather</h2>
-        <p>Live weather for wherever you're accessing this site from.</p>
-        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
-            <button class="network-tool-btn active" id="weather-tab-current" onclick="switchWeatherTab('current')">🌡️ Current</button>
-            <button class="network-tool-btn" id="weather-tab-forecast" onclick="switchWeatherTab('forecast')">📅 Forecast</button>
-            <button class="network-tool-btn" id="weather-tab-hourly" onclick="switchWeatherTab('hourly')">🕐 Hourly</button>
-            <button class="network-tool-btn" id="weather-tab-radar" onclick="switchWeatherTab('radar')">📡 Radar</button>
-        </div>
-        <div id="weather-container">
-            <div class="weather-loading">Requesting your location...</div>
-        </div>
-        <div id="forecast-container" style="display:none;"></div>
-        <div id="hourly-container" style="display:none"></div>
-        <div id="radar-container" style="display:none"></div>
-    </section>
-
-
-    <section id="climate">
-        <h2>🌡️ ClimatePulse — Live Dashboard</h2>
- 
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
-            <p id="cp-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                57 years (1970–2026) of NOAA daily station data · 13 cities · Bronze → Silver → Gold pipeline
-            </p>
-            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-                <span class="cp-refresh-badge" id="cp-last-updated">Updated daily</span>
-                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
-            </div>
-        </div>
- 
-        <!-- KPI strip -->
-        <div class="cp-kpi-row">
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="cp-hou-annual">—</span>
-                <span class="cp-kpi-label">Houston °F / decade</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val blue" id="cp-ewr-annual">—</span>
-                <span class="cp-kpi-label">Newark °F / decade</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="cp-hou-winter">—</span>
-                <span class="cp-kpi-label">HOU winter nights / dec</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val" id="cp-80f">—</span>
-                <span class="cp-kpi-label">Extra 80°F days / decade</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val" id="cp-years">57</span>
-                <span class="cp-kpi-label">Years of data</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val" id="cp-stations">6</span>
-                <span class="cp-kpi-label">NOAA stations</span>
-            </div>
-        </div>
- 
-        <!-- City toggles -->
-        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:0.5rem;">
-            COMPARE CITIES
-        </div>
-        <div class="cp-city-toggles" id="cp-city-toggles">
-            <!-- Built dynamically by cpBuildToggles() -->
-        </div>
- 
-        <!-- Tab nav -->
-        <div class="cp-tabs">
-            <button class="cp-tab active" onclick="cpTab(this,'trend')">📈 Annual Trend</button>
-            <button class="cp-tab" onclick="cpTab(this,'seasonal')">📅 Seasonal</button>
-            <button class="cp-tab" onclick="cpTab(this,'heat')">🔥 Heat Days</button>
-            <button class="cp-tab" onclick="cpTab(this,'winter')">❄️ Winter Lows</button>
-        </div>
- 
-        <!-- Annual Trend -->
-        <div class="cp-panel active" id="cp-panel-trend">
-            <div id="cp-legend-dynamic" class="cp-legend"></div>
-            <div class="cp-chart-wrap"><canvas id="cp-trend-chart"></canvas></div>
-            <p class="cp-insight" id="cp-signal-trend">Loading signal...</p>
-        </div>
- 
-        <!-- Seasonal -->
-        <div class="cp-panel" id="cp-panel-seasonal">
-            <div class="cp-controls">
-                <label for="cp-metric-sel">Metric</label>
-                <select id="cp-metric-sel" onchange="cpDrawSeasonal()">
-                    <option value="avg_tmean">Mean temp</option>
-                    <option value="avg_tmax">Max temp</option>
-                    <option value="avg_tmin">Min temp</option>
-                </select>
-            </div>
-            <div id="cp-legend-dynamic" class="cp-legend"></div>
-            <div class="cp-chart-wrap"><canvas id="cp-seasonal-chart"></canvas></div>
-            <p class="cp-insight" id="cp-signal-seasonal">Loading signal...</p>
-        </div>
- 
-        <!-- Heat Days -->
-        <div class="cp-panel" id="cp-panel-heat">
-            <div id="cp-legend-dynamic" class="cp-legend"></div>
-            <div class="cp-chart-wrap"><canvas id="cp-heat-chart"></canvas></div>
-            <p class="cp-insight" id="cp-signal-heat">Loading signal...</p>
-        </div>
- 
-        <!-- Winter Lows -->
-        <div class="cp-panel" id="cp-panel-winter">
-            <div id="cp-legend-dynamic" class="cp-legend"></div>
-            <div class="cp-chart-wrap"><canvas id="cp-winter-chart"></canvas></div>
-            <p class="cp-insight" id="cp-signal-winter">Loading signal...</p>
-        </div>
-
-        <div id="cp-roster-block" style="margin-top:2rem;display:none;">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.75rem;">
-                <h3 style="margin:0;font-size:0.95rem;">📡 Active weather stations</h3>
-                <span id="cp-roster-summary" class="cp-refresh-badge">—</span>
-            </div>
-            <div class="cp-table-wrap">
-                <table class="cp-table">
-                    <thead>
-                        <tr>
-                            <th>Station</th>
-                            <th>GHCN ID</th>
-                            <th class="num">Complete yrs</th>
-                            <th class="num">Coverage</th>
-                            <th class="num">°F / decade</th>
-                            <th class="num">Last data</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cp-roster-body"></tbody>
-                </table>
-            </div>
-            <div class="cp-signal" id="cp-roster-signal"></div>
-        </div>
-    </section>
-
-    <section id="carbon" style="display:none;">
-        <h2>🏭 Carbon &amp; Warming</h2>
- 
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
-            <p id="co2-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 13 station series
-            </p>
-            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-                <span class="cp-refresh-badge" id="co2-updated">Updated monthly</span>
-                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
-            </div>
-        </div>
- 
-        <div class="co2-grid" id="co2-cards"></div>
- 
-        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:0.5rem;">
-            LOCAL WARMING PER 1000 GtCO₂ EMITTED
-        </div>
-        <div class="cp-table-wrap">
-            <table class="cp-table">
-                <thead>
-                    <tr>
-                        <th>City</th>
-                        <th class="num">°F / 1000 GtCO₂</th>
-                        <th class="num">r²</th>
-                        <th class="num">Δ vs time-trend</th>
-                    </tr>
-                </thead>
-                <tbody id="co2-city-body"></tbody>
-            </table>
-        </div>
- 
-        <div class="cp-signal" id="co2-signal"></div>
- 
-        <details class="cp-caveats">
-            <summary>How to read these numbers</summary>
-            <ul id="co2-caveats"></ul>
-        </details>
-    </section>
-
-
-    <!-- ═══════════════ HURRICANE ANALYTICS (paste after </section> of #climate) ═══════════════ -->
-    <section id="hurricanes">
-        <h2>🌀 Hurricane Analytics — Warmer Water, Stronger Storms</h2>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
-            <p id="hz-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Atlantic hurricane activity vs. the sea-surface temperature storms intensify over · HURDAT2 · NOAA TNA · GISTEMP
-            </p>
-            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-                <span class="cp-refresh-badge" id="hz-last-updated">Updated daily</span>
-                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
-            </div>
-        </div>
-
-        <!-- Correlation KPI strip -->
-        <div class="cp-kpi-row">
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="hz-r-ace">—</span>
-                <span class="cp-kpi-label">Season energy (ACE) ↔ SST</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="hz-r-major">—</span>
-                <span class="cp-kpi-label">Major hurricanes ↔ SST</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="hz-r-ri">—</span>
-                <span class="cp-kpi-label">Rapid-intensifying ↔ SST</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val blue" id="hz-r-global">—</span>
-                <span class="cp-kpi-label">ACE ↔ global temp</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val" id="hz-n">—</span>
-                <span class="cp-kpi-label">Seasons analyzed</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val" id="hz-latest">—</span>
-                <span class="cp-kpi-label">Latest season</span>
-            </div>
-        </div>
-
-        <!-- Tab nav -->
-        <div class="cp-tabs">
-            <button class="cp-tab active" onclick="hzTab(this,'timeline')">📈 Activity &amp; SST</button>
-            <button class="cp-tab" onclick="hzTab(this,'scatter')">🎯 Correlation</button>
-            <button class="cp-tab" onclick="hzTab(this,'ri')">🌀 Rapid Intensification</button>
-        </div>
-
-        <!-- Activity & SST timeline -->
-        <div class="cp-panel active" id="hz-panel-timeline">
-            <div class="cp-legend">
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>ACE (season energy)</span>
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Aug–Oct Atlantic SST anomaly</span>
-            </div>
-            <div class="cp-chart-wrap"><canvas id="hz-timeline-chart"></canvas></div>
-            <p class="cp-insight" id="hz-signal-timeline">Loading signal...</p>
-        </div>
-
-        <!-- Correlation scatter -->
-        <div class="cp-panel" id="hz-panel-scatter">
-            <div class="cp-legend">
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>one Atlantic season</span>
-                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#ef4444"></span>least-squares fit</span>
-            </div>
-            <div class="cp-chart-wrap"><canvas id="hz-scatter-chart"></canvas></div>
-            <p class="cp-insight" id="hz-signal-scatter">Loading signal...</p>
-        </div>
-
-        <!-- Rapid intensification -->
-        <div class="cp-panel" id="hz-panel-ri">
-            <div class="cp-legend">
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#ef4444"></span>storms rapidly intensifying (+30 kt / 24h)</span>
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Aug–Oct SST anomaly</span>
-            </div>
-            <div class="cp-chart-wrap"><canvas id="hz-ri-chart"></canvas></div>
-            <p class="cp-insight" id="hz-signal-ri">Loading signal...</p>
-        </div>
-
-        <!-- Honesty note: association, not attribution -->
-        <p id="hz-caveat" style="margin-top:1rem;border-left:2px solid #38bdf8;background:rgba(56,189,248,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
-            <strong style="color:var(--text);">Reading this honestly:</strong> these coefficients show <em>association</em>, not attribution.
-            Year-to-year Atlantic activity is strongly steered by ENSO and the Atlantic Multidecadal Oscillation.
-            A positive correlation is consistent with the physics — warmer water carries more energy — but isolating the
-            human-caused share requires counterfactual potential-intensity modeling, not a scatter plot.
-        </p>
-    </section>
-
-    <!-- ═══════════════ RISING SEAS (paste after </section> of #hurricanes) ═══════════════ -->
-    <section id="sealevel">
-        <h2>🌊 Rising Seas — Coastal Risk &amp; the Ice That Holds the Water</h2>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
-            <p id="sl-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Satellite sea-level rise, U.S. coastal risk hot-spots, and how far seas would climb if the ice sheets melted
-            </p>
-            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-                <span class="cp-refresh-badge" id="sl-source-badge">NASA · NOAA · USGS</span>
-                <a href="https://sealevel.nasa.gov" target="_blank" class="project-btn">🌐 NASA Sea Level</a>
-            </div>
-        </div>
-
-        <!-- KPI strip -->
-        <div class="cp-kpi-row">
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="sl-rate">—</span>
-                <span class="cp-kpi-label">Global rise rate (mm/yr)</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="sl-total">—</span>
-                <span class="cp-kpi-label">Risen since 1993 (mm)</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="sl-fastest">—</span>
-                <span class="cp-kpi-label">Fastest U.S. city (mm/yr)</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val blue" id="sl-greenland">—</span>
-                <span class="cp-kpi-label">If Greenland melts (m)</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val blue" id="sl-antarctica">—</span>
-                <span class="cp-kpi-label">If Antarctica melts (m)</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val" id="sl-allice">—</span>
-                <span class="cp-kpi-label">If all ice melts (m)</span>
-            </div>
-        </div>
-
-        <!-- Tab nav -->
-        <div class="cp-tabs">
-            <button class="cp-tab active" onclick="slTab(this,'gmsl')">🌊 Rising Seas</button>
-            <button class="cp-tab" onclick="slTab(this,'map')">🗺️ U.S. Risk Map</button>
-            <button class="cp-tab" onclick="slTab(this,'ice')">🧊 Ice-Melt Scenarios</button>
-            <button class="cp-tab" onclick="slTab(this,'forecast')">🔮 2100 Outlook</button>
-        </div>
-
-        <!-- Rising seas (GMSL) -->
-        <div class="cp-panel active" id="sl-panel-gmsl">
-            <div class="cp-legend">
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Global mean sea level (satellite altimetry)</span>
-            </div>
-            <div class="cp-chart-wrap"><canvas id="sl-gmsl-chart"></canvas></div>
-            <p class="cp-insight" id="sl-signal-gmsl">Loading signal...</p>
-        </div>
-
-        <!-- US risk map -->
-        <div class="cp-panel" id="sl-panel-map">
-            <div class="cp-legend">
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#ef4444"></span>Extreme</span>
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>Very High</span>
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#facc15"></span>High</span>
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Moderate–High</span>
-                <span class="cp-leg-item" style="color:var(--text-muted)">· circle size = local rise rate</span>
-            </div>
-            <div id="sl-map" style="width:100%;height:420px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);"></div>
-            <p class="cp-insight" id="sl-signal-map">Loading signal...</p>
-        </div>
-
-        <!-- Ice-melt scenarios -->
-        <div class="cp-panel" id="sl-panel-ice">
-            <div class="cp-legend">
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Sea-level equivalent if fully melted (meters)</span>
-            </div>
-            <div class="cp-chart-wrap"><canvas id="sl-ice-chart"></canvas></div>
-            <p class="cp-insight" id="sl-signal-ice">Loading signal...</p>
-        </div>
-
-        <!-- 2100 forecast -->
-        <div class="cp-panel" id="sl-panel-forecast">
-            <div class="cp-legend" id="sl-forecast-legend"></div>
-            <div class="cp-chart-wrap"><canvas id="sl-forecast-chart"></canvas></div>
-            <p class="cp-insight" id="sl-signal-forecast">Loading signal...</p>
-        </div>
-
-        <!-- Honesty / timescale note -->
-        <p id="sl-caveat" style="margin-top:1rem;border-left:2px solid #38bdf8;background:rgba(56,189,248,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
-            <strong style="color:var(--text);">Reading this honestly:</strong> the ice-melt bars show each reservoir's <em>ultimate ceiling</em> — how far seas would climb over <em>centuries to millennia</em> if it fully melted — not a 2100 forecast. This century's projected rise is roughly 0.3–1 m (up to ~2 m for the U.S. coast on high-emission, rapid-ice-loss pathways). Local rates differ from the global average mainly because of land subsidence, which is why the Gulf Coast tops the map.
-        </p>
-    </section>
-
-    <!-- ═══════════════ DATA CENTERS (paste after </section> of #sealevel) ═══════════════ -->
-    <section id="datacenters">
-        <h2>🖥️ Data Centers — The AI Boom &amp; Its Footprint</h2>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
-            <p id="dc-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                How fast data-center power demand is growing, where the U.S. clusters are, and what it costs in water and energy
-            </p>
-            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-                <span class="cp-refresh-badge" id="dc-source-badge">IEA · LBNL · CBRE</span>
-                <a href="https://www.iea.org/reports/energy-and-ai" target="_blank" class="project-btn">🌐 IEA Energy &amp; AI</a>
-            </div>
-        </div>
-
-        <!-- KPI strip -->
-        <div class="cp-kpi-row">
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="dc-now">—</span>
-                <span class="cp-kpi-label">2024 demand (TWh)</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="dc-2030">—</span>
-                <span class="cp-kpi-label">2030 projection (TWh)</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="dc-share">—</span>
-                <span class="cp-kpi-label">Share of world power '30</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val blue" id="dc-us">—</span>
-                <span class="cp-kpi-label">U.S. share of demand</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val blue" id="dc-top">—</span>
-                <span class="cp-kpi-label">Biggest hub (MW)</span>
-            </div>
-            <div class="cp-kpi-cell">
-                <span class="cp-kpi-val" id="dc-water">—</span>
-                <span class="cp-kpi-label">Google water '23 (B gal)</span>
-            </div>
-        </div>
-
-        <!-- Tab nav -->
-        <div class="cp-tabs">
-            <button class="cp-tab active" onclick="dcTab(this,'demand')">📈 Growth &amp; AI Demand</button>
-            <button class="cp-tab" onclick="dcTab(this,'map')">🗺️ U.S. Hotspots</button>
-            <button class="cp-tab" onclick="dcTab(this,'water')">💧 Water Footprint</button>
-            <button class="cp-tab" onclick="dcTab(this,'energy')">⚡ Energy &amp; Efficiency</button>
-        </div>
-
-        <!-- Growth & AI demand -->
-        <div class="cp-panel active" id="dc-panel-demand">
-            <div class="cp-legend">
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#a78bfa"></span>Observed (IEA)</span>
-                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#a78bfa"></span>Projected to 2035</span>
-            </div>
-            <div class="cp-chart-wrap"><canvas id="dc-demand-chart"></canvas></div>
-            <p class="cp-insight" id="dc-signal-demand">Loading signal...</p>
-        </div>
-
-        <!-- US hotspots map -->
-        <div class="cp-panel" id="dc-panel-map">
-            <div class="cp-legend">
-                <span class="cp-leg-item" style="color:var(--text-muted)">Circle size = market power capacity (MW). Tap a hub for details.</span>
-            </div>
-            <div id="dc-map" style="width:100%;height:420px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);"></div>
-            <p class="cp-insight" id="dc-signal-map">Loading signal...</p>
-        </div>
-
-        <!-- Water footprint -->
-        <div class="cp-panel" id="dc-panel-water">
-            <div class="cp-legend">
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Freshwater to produce one unit (litres, log scale)</span>
-            </div>
-            <div class="cp-chart-wrap"><canvas id="dc-water-chart"></canvas></div>
-            <p class="cp-insight" id="dc-signal-water">Loading signal...</p>
-        </div>
-
-        <!-- Energy & efficiency -->
-        <div class="cp-panel" id="dc-panel-energy">
-            <div class="cp-legend">
-                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>Energy per query (Wh, log scale) — ranges where contested</span>
-            </div>
-            <div class="cp-chart-wrap"><canvas id="dc-energy-chart"></canvas></div>
-            <p class="cp-insight" id="dc-signal-energy">Loading signal...</p>
-        </div>
-
-        <!-- Honest framing note -->
-        <p id="dc-caveat" style="margin-top:1rem;border-left:2px solid #a78bfa;background:rgba(167,139,250,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
-            <strong style="color:var(--text);">Reading this honestly:</strong> per-query water and energy numbers are genuinely contested and span orders of magnitude, so they're shown as ranges. At the individual level an AI prompt is tiny next to everyday items — a single burger is ~1,650 L of water. What actually strains systems is the <em>aggregate</em> and its <em>geographic concentration</em>: a handful of clusters (Northern Virginia alone ≈ a quarter of the state's electricity) pull enormous, localized loads on grids and watersheds — and efficiency gains keep being outrun by sheer growth.
-        </p>
     </section>
 
     <!-- RUNNING -->
@@ -5311,7 +4669,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </select>
       </div>
       <p class="hpc-status" id="hpc-status">Or enter conditions by hand.</p>
- 
+
       <div class="hpc-grid">
         <div class="hpc-block">
           <p class="hpc-legend">Conditions</p>
@@ -5335,7 +4693,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <input type="number" id="hpc-dew" inputmode="decimal" step="1" value="74">
           </div>
         </div>
- 
+
         <div class="hpc-block">
           <p class="hpc-legend">Your run</p>
           <div class="hpc-field">
@@ -5437,7 +4795,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </select>
       </div>
       <p class="hpc-status" id="wc-status">Or enter conditions by hand.</p>
- 
+
       <div class="hpc-grid">
         <div class="hpc-block">
           <p class="hpc-legend">Conditions</p>
@@ -5822,52 +5180,701 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             Running from <strong style="color:var(--text);">Strava</strong>, commits from <strong style="color:var(--text);">GitHub</strong>, distilled by a weekly GitHub Actions pipeline. The same summary is injected into this site's AI chat so it always knows what Yash is currently working on.
         </p>
     </section>
-        
 
-    <!-- CERTIFICATIONS -->
-    <section id="certifications">
-        <h2>🏆 Certifications</h2>
-        <p>Professional certifications that reflect my skills in data engineering, AI, and data science.</p>
+    <!-- AVIATION -->
+    <section id="aviation">
 
-        <div class="cert-grid">
-            <div class="cert-card">
-                <h3>Databricks Certified Data Engineer Associate</h3>
-                <p>Validates my knowledge of data engineering concepts, ETL pipelines, Delta Lake, and building scalable data solutions on Databricks.</p>
-                <a href="https://credentials.databricks.com/003cc055-4848-4791-b1e9-9eea340f96fa#acc.JpnRGgik" target="_blank">View Credential →</a>
+        <h2 id="journey">🛫 My Aviation Journey</h2>
+        <p>My progress in flight training, the logbook behind it, and the aviation projects it inspires.</p>
+
+        <div class="journey-wrap">
+
+            <p class="journey-goal">
+                Aviation is one of my biggest interests outside of engineering. I'm pursuing flight training
+                part-time at a Part&nbsp;61 field while continuing to build my career in AI and data engineering.
+                Flying also inspires many of the projects on this site — including the METAR streaming pipeline,
+                the live flight tracker, and my Infinite Flight projects. For me, aviation and engineering are
+                two interests that naturally come together through software, real-time data, weather, and flight.
+            </p>
+
+            <div class="journey-label">Ratings path</div>
+            <div class="journey-path">
+                <span class="pilot-step active">Student</span>
+                <span class="journey-arrow">→</span>
+                <span class="pilot-step">PPL</span>
+                <span class="journey-arrow">→</span>
+                <span class="pilot-step">Instrument</span>
+                <span class="journey-arrow">→</span>
+                <span class="pilot-step">Commercial</span>
+                <span class="journey-arrow">→</span>
+                <span class="pilot-step">Multi-Engine</span>
+                <span class="journey-arrow">→</span>
+                <span class="pilot-step">CFI</span>
+                <span class="journey-arrow">→</span>
+                <span class="pilot-step">ATP</span>
             </div>
-            <div class="cert-card">
-                <h3>Microsoft Certified: Power Platform Fundamentals</h3>
-                <p>Covers Microsoft Power Platform environment, business value of Power Platform, Capabilities of Power Apps, Power Automate, and Power Pages.</p>
-                <a href="https://learn.microsoft.com/api/credentials/share/en-us/YashHooda-0521/F45AC312179B5D?sharingId=DC8B74CB8591C9DD" target="_blank">View Credential →</a>
+
+            <div class="journey-cols">
+
+                <div>
+                    <div class="journey-label">Logbook — real aircraft</div>
+                    <!-- ✏️ EDIT THESE FOUR VALUES with your actual logged times -->
+                    <div class="aviation-stats-row" style="margin:0;">
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val">7.0</span>
+                            <div class="aviation-stat-label">Total Hours</div>
+                        </div>
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val">7.0</span>
+                            <div class="aviation-stat-label">Dual Received</div>
+                        </div>
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val">4</span>
+                            <div class="aviation-stat-label">Landings</div>
+                        </div>
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val" style="font-size:0.95rem;">C172</span>
+                            <div class="aviation-stat-label">Type Flown</div>
+                        </div>
+                    </div>
+                    <p class="journey-note">Every hour here was paid for out of pocket. It starts small on purpose.</p>
+                </div>
+
+                <div>
+                    <div class="journey-label">
+                        Infinite Flight &mdash; simulator
+                        <span id="if-badge" style="margin-left:0.5rem;"></span>
+                    </div>
+                    <div class="aviation-stats-row" style="margin:0;" id="if-stats">
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val" id="if-grade">--</span>
+                            <div class="aviation-stat-label">Grade</div>
+                        </div>
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val" id="if-hours" style="font-size:1rem;">--</span>
+                            <div class="aviation-stat-label">Flight Time</div>
+                        </div>
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val" id="if-flights">--</span>
+                            <div class="aviation-stat-label">Flights</div>
+                        </div>
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val" id="if-landings">--</span>
+                            <div class="aviation-stat-label">Landings</div>
+                        </div>
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val" id="if-xp" style="font-size:1rem;">--</span>
+                            <div class="aviation-stat-label">XP</div>
+                        </div>
+                        <div class="aviation-stat">
+                            <span class="aviation-stat-val" id="if-atc">--</span>
+                            <div class="aviation-stat-label">ATC Ops</div>
+                        </div>
+                    </div>
+                    <p class="journey-note" id="if-note">Live from the Infinite Flight Live API v2.</p>
+                </div>
+          </div><!-- /.journey-cols -->
+
+          <div id="if-flight" data-state="idle" aria-live="polite" style="padding-top:2rem;">
+              <div class="if-head">
+                  <h2>Current Flight</h2>
+                  <span class="if-status"><span class="if-dot"></span><span id="if-status-text">Checking…</span></span>
+              </div>
+
+              <div class="if-strip" id="if-strip">
+                  <div class="if-cell wide">
+                      <span class="if-k">Route</span>
+                      <div class="if-v route" id="if-route">—</div>
+                  </div>
+                  <div class="if-cell">
+                      <span class="if-k">Callsign</span>
+                      <div class="if-v" id="if-callsign">—</div>
+                  </div>
+                  <div class="if-cell">
+                      <span class="if-k">Aircraft</span>
+                      <div class="if-v" id="if-aircraft">—</div>
+                  </div>
+
+                  <div class="if-cell">
+                     <span class="if-k">Elapsed</span>
+                     <div class="if-v" id="if-duration">—</div>
+                  </div>
+                  <div class="if-cell">
+                     <span class="if-k">Altitude</span>
+                     <div class="if-v" id="if-alt">—</div>
+                 </div>
+                 <div class="if-cell">
+                    <span class="if-k">Ground speed</span>
+                    <div class="if-v" id="if-gs">—</div>
+                </div>
+                <div class="if-cell">
+                    <span class="if-k">Remaining</span>
+                    <div class="if-v" id="if-remaining">—</div>
+                </div>
+                    <div class="if-etarow">
+                        <span class="if-eta-k">ETA</span>
+                        <span class="if-eta-v" id="if-eta">—</span>
+                        <span class="if-eta-cd" id="if-countdown"></span>
+                    </div>
+                    <div class="if-prog"><i id="if-prog-fill"></i></div>
+                </div>
+
+                <div class="if-map" id="if-map"></div>
+                <div class="if-wpts" id="if-wpts"></div>
+                <div class="if-note" id="if-track-note"></div>
             </div>
-            <div class="cert-card">
-                <h3>IBM AI Engineering Professional Certificate</h3>
-                <p>Covers machine learning, deep learning, neural networks, and practical AI model development.</p>
-                <a href="https://www.coursera.org/account/accomplishments/specialization/CKPB221THAWV" target="_blank">View Credential →</a>
+
+        </div><!-- /.journey-wrap -->
+
+
+        <h2 style="margin-top:2.5rem;">✈️ Live Flight Tracker</h2>
+        <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
+
+        <div class="aviation-bar">
+            <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                <span class="aviation-live-badge">LIVE FLIGHTS</span>
+                <div class="aviation-stats-row" style="margin:0;">
+                    <div class="aviation-stat">
+                        <span class="aviation-stat-val" id="flight-count">--</span>
+                        <div class="aviation-stat-label">Flights Shown</div>
+                    </div>
+                    <div class="aviation-stat">
+                        <span class="aviation-stat-val" id="flight-total">--</span>
+                        <div class="aviation-stat-label">Total Flights</div>
+                    </div>
+                    <div class="aviation-stat">
+                        <span class="aviation-stat-val" id="flight-updated">--</span>
+                        <div class="aviation-stat-label">Last Updated</div>
+                    </div>
+                </div>
             </div>
-            <div class="cert-card">
-                <h3>Vanderbilt University AI Prompt Engineering Certificate</h3>
-                <p>Covers Prompt Engineering, ChatGPT, trustworthy Generative AI, and ChatGPT Advanced Data Analysis.</p>
-                <a href="https://www.coursera.org/account/accomplishments/specialization/ENRYEOQPTN93" target="_blank">View Credential →</a>
-            </div>
-            <div class="cert-card">
-                <h3>IBM Data Science Professional Certificate</h3>
-                <p>Demonstrates skills in Python, SQL, data analysis, visualization, machine learning, and applied data science workflows.</p>
-                <a href="https://www.coursera.org/account/accomplishments/specialization/JRIZFWEMPM6Y" target="_blank">View Credential →</a>
-            </div>
+            <button class="aviation-refresh" onclick="loadFlights()">↻ Refresh</button>
+        </div>
+
+        <div id="flight-map"></div>
+        <div id="flight-cards-container">
+            <div class="aviation-loading">Loading live flights...</div>
         </div>
     </section>
 
-    <!-- TARS -->
-    <section id="tars">
-        <h2>💬 Meet TARS – My AI Assistant</h2>
-        <p>I built a custom AI assistant called <strong>TARS</strong> using OpenAI's GPT-4. TARS is designed to solve real-world problems through natural conversations. Try it out below!</p>
-        <div class="tars-cta">
-            <a href="https://chatgpt.com/g/g-67ab8c95b11c81918787b6dc80159559-tars" target="_blank" class="tars-btn">
-                💡 Chat with TARS Now
-            </a>
-            <span class="tars-pulse">Live &amp; Available 24/7</span>
+    <section id="metar">
+        <h2>🌪️ METAR Stream — Live US Airspace</h2>
+        <p>
+            A snapshot from my real-time streaming pipeline: Kafka → Spark Structured
+            Streaming → Delta Lake, ingesting surface observations from every reporting
+            US airport weather station. Flight categories below are the FAA standard —
+            the same four a pilot checks before departing.
+        </p>
+ 
+        <div class="metar-wrap">
+            <div class="metar-meta" id="metar-meta">Loading pipeline snapshot…</div>
+ 
+            <div class="metar-stats" id="metar-stats"></div>
+ 
+            <h3>Current flight conditions</h3>
+            <div class="cat-bar" id="metar-catbar"></div>
+            <div class="cat-legend">
+                <span><i style="background:#1a9850"></i>VFR — clear</span>
+                <span><i style="background:#2b6cb0"></i>MVFR — marginal</span>
+                <span><i style="background:#c0392b"></i>IFR — instruments required</span>
+                <span><i style="background:#8e44ad"></i>LIFR — low instrument</span>
+            </div>
+ 
+            <h3>Strongest wind gusts observed</h3>
+            <div id="metar-gusts"></div>
+
+            <h3 style="margin-top:2rem">Active alerts</h3>
+            <div id="metar-alerts"></div>
         </div>
+        <div class="pipe-panel" id="pipe-panel" hidden>
+            <div class="pipe-head">
+                <h3 style="text-transform:none;letter-spacing:0;opacity:1;font-size:1rem">
+                    Streaming pipeline metrics
+                </h3>
+                <div class="pipe-when" id="pipe-when"></div>
+            </div>
+ 
+            <p style="font-size:0.8rem;opacity:0.7;margin:0 0 1.25rem">
+                These come from the Kafka → Spark Structured Streaming → Delta Lake
+                pipeline, which runs on demand rather than continuously. The live
+                conditions above refresh hourly from a separate batch job.
+            </p>
+ 
+            <div class="pipe-grid" id="pipe-grid"></div>
+            <div class="medallion" id="pipe-medallion"></div>
+            <div class="pipe-stale" id="pipe-stale"></div>
+        </div>
+        <div class="pipe-panel" id="dbt-panel" hidden>
+            <div class="pipe-head">
+                <h3 style="text-transform:none;letter-spacing:0;opacity:1;font-size:1rem">
+                    dbt models over Silver
+                </h3>
+                <div class="pipe-when" id="dbt-when"></div>
+            </div>
+ 
+            <p style="font-size:0.8rem;opacity:0.7;margin:0 0 1.25rem">
+                The streaming job writes Silver; dbt owns everything after it — the
+                transformations, the tests, and the lineage. It runs alongside the Spark
+                Gold job rather than replacing it, which means the two can be diffed
+                against each other. That diff is the last number below.
+            </p>
+
+            <div class="pipe-grid" id="dbt-grid"></div>
+            <div class="dbt-lineage" id="dbt-lineage"></div>
+            <div class="dbt-note" id="dbt-note"></div>
+        </div>
+    </section>
+
+    <!-- WEATHER -->
+    <section id="weather">
+        <h2>🌤️ Your Current Weather</h2>
+        <p>Live weather for wherever you're accessing this site from.</p>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+            <button class="network-tool-btn active" id="weather-tab-current" onclick="switchWeatherTab('current')">🌡️ Current</button>
+            <button class="network-tool-btn" id="weather-tab-forecast" onclick="switchWeatherTab('forecast')">📅 Forecast</button>
+            <button class="network-tool-btn" id="weather-tab-hourly" onclick="switchWeatherTab('hourly')">🕐 Hourly</button>
+            <button class="network-tool-btn" id="weather-tab-radar" onclick="switchWeatherTab('radar')">📡 Radar</button>
+        </div>
+        <div id="weather-container">
+            <div class="weather-loading">Requesting your location...</div>
+        </div>
+        <div id="forecast-container" style="display:none;"></div>
+        <div id="hourly-container" style="display:none"></div>
+        <div id="radar-container" style="display:none"></div>
+    </section>
+
+
+    <section id="climate">
+        <h2>🌡️ ClimatePulse — Live Dashboard</h2>
+ 
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="cp-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                57 years (1970–2026) of NOAA daily station data · 13 cities · Bronze → Silver → Gold pipeline
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="cp-last-updated">Updated daily</span>
+                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+            </div>
+        </div>
+ 
+        <!-- KPI strip -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="cp-hou-annual">—</span>
+                <span class="cp-kpi-label">Houston °F / decade</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="cp-ewr-annual">—</span>
+                <span class="cp-kpi-label">Newark °F / decade</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="cp-hou-winter">—</span>
+                <span class="cp-kpi-label">HOU winter nights / dec</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="cp-80f">—</span>
+                <span class="cp-kpi-label">Extra 80°F days / decade</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="cp-years">57</span>
+                <span class="cp-kpi-label">Years of data</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="cp-stations">6</span>
+                <span class="cp-kpi-label">NOAA stations</span>
+            </div>
+        </div>
+ 
+        <!-- City toggles -->
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:0.5rem;">
+            COMPARE CITIES
+        </div>
+        <div class="cp-city-toggles" id="cp-city-toggles">
+            <!-- Built dynamically by cpBuildToggles() -->
+        </div>
+ 
+        <!-- Tab nav -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="cpTab(this,'trend')">📈 Annual Trend</button>
+            <button class="cp-tab" onclick="cpTab(this,'seasonal')">📅 Seasonal</button>
+            <button class="cp-tab" onclick="cpTab(this,'heat')">🔥 Heat Days</button>
+            <button class="cp-tab" onclick="cpTab(this,'winter')">❄️ Winter Lows</button>
+        </div>
+ 
+        <!-- Annual Trend -->
+        <div class="cp-panel active" id="cp-panel-trend">
+            <div id="cp-legend-dynamic" class="cp-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="cp-trend-chart"></canvas></div>
+            <p class="cp-insight" id="cp-signal-trend">Loading signal...</p>
+        </div>
+
+        <!-- Seasonal -->
+        <div class="cp-panel" id="cp-panel-seasonal">
+            <div class="cp-controls">
+                <label for="cp-metric-sel">Metric</label>
+                <select id="cp-metric-sel" onchange="cpDrawSeasonal()">
+                    <option value="avg_tmean">Mean temp</option>
+                    <option value="avg_tmax">Max temp</option>
+                    <option value="avg_tmin">Min temp</option>
+                </select>
+            </div>
+            <div id="cp-legend-dynamic" class="cp-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="cp-seasonal-chart"></canvas></div>
+            <p class="cp-insight" id="cp-signal-seasonal">Loading signal...</p>
+        </div>
+
+        <!-- Heat Days -->
+        <div class="cp-panel" id="cp-panel-heat">
+            <div id="cp-legend-dynamic" class="cp-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="cp-heat-chart"></canvas></div>
+            <p class="cp-insight" id="cp-signal-heat">Loading signal...</p>
+        </div>
+
+        <!-- Winter Lows -->
+        <div class="cp-panel" id="cp-panel-winter">
+            <div id="cp-legend-dynamic" class="cp-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="cp-winter-chart"></canvas></div>
+            <p class="cp-insight" id="cp-signal-winter">Loading signal...</p>
+        </div>
+
+        <div id="cp-roster-block" style="margin-top:2rem;display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.75rem;">
+                <h3 style="margin:0;font-size:0.95rem;">📡 Active weather stations</h3>
+                <span id="cp-roster-summary" class="cp-refresh-badge">—</span>
+            </div>
+            <div class="cp-table-wrap">
+                <table class="cp-table">
+                    <thead>
+                        <tr>
+                            <th>Station</th>
+                            <th>GHCN ID</th>
+                            <th class="num">Complete yrs</th>
+                            <th class="num">Coverage</th>
+                            <th class="num">°F / decade</th>
+                            <th class="num">Last data</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cp-roster-body"></tbody>
+                </table>
+            </div>
+            <div class="cp-signal" id="cp-roster-signal"></div>
+        </div>
+    </section>
+
+    <section id="carbon" style="display:none;">
+        <h2>🏭 Carbon &amp; Warming</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="co2-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 13 station series
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="co2-updated">Updated monthly</span>
+                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+            </div>
+        </div>
+
+        <div class="co2-grid" id="co2-cards"></div>
+
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:0.5rem;">
+            LOCAL WARMING PER 1000 GtCO₂ EMITTED
+        </div>
+        <div class="cp-table-wrap">
+            <table class="cp-table">
+                <thead>
+                    <tr>
+                        <th>City</th>
+                        <th class="num">°F / 1000 GtCO₂</th>
+                        <th class="num">r²</th>
+                        <th class="num">Δ vs time-trend</th>
+                    </tr>
+                </thead>
+                <tbody id="co2-city-body"></tbody>
+            </table>
+        </div>
+
+        <div class="cp-signal" id="co2-signal"></div>
+
+        <details class="cp-caveats">
+            <summary>How to read these numbers</summary>
+            <ul id="co2-caveats"></ul>
+        </details>
+    </section>
+
+
+    <!-- ═══════════════ HURRICANE ANALYTICS (paste after </section> of #climate) ═══════════════ -->
+    <section id="hurricanes">
+        <h2>🌀 Hurricane Analytics — Warmer Water, Stronger Storms</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="hz-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                Atlantic hurricane activity vs. the sea-surface temperature storms intensify over · HURDAT2 · NOAA TNA · GISTEMP
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="hz-last-updated">Updated daily</span>
+                <a href="https://github.com/yashhooda1/climatepulse" target="_blank" class="project-btn">📂 GitHub</a>
+            </div>
+        </div>
+
+        <!-- Correlation KPI strip -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="hz-r-ace">—</span>
+                <span class="cp-kpi-label">Season energy (ACE) ↔ SST</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="hz-r-major">—</span>
+                <span class="cp-kpi-label">Major hurricanes ↔ SST</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="hz-r-ri">—</span>
+                <span class="cp-kpi-label">Rapid-intensifying ↔ SST</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="hz-r-global">—</span>
+                <span class="cp-kpi-label">ACE ↔ global temp</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="hz-n">—</span>
+                <span class="cp-kpi-label">Seasons analyzed</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="hz-latest">—</span>
+                <span class="cp-kpi-label">Latest season</span>
+            </div>
+        </div>
+
+        <!-- Tab nav -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="hzTab(this,'timeline')">📈 Activity &amp; SST</button>
+            <button class="cp-tab" onclick="hzTab(this,'scatter')">🎯 Correlation</button>
+            <button class="cp-tab" onclick="hzTab(this,'ri')">🌀 Rapid Intensification</button>
+        </div>
+
+        <!-- Activity & SST timeline -->
+        <div class="cp-panel active" id="hz-panel-timeline">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>ACE (season energy)</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Aug–Oct Atlantic SST anomaly</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="hz-timeline-chart"></canvas></div>
+            <p class="cp-insight" id="hz-signal-timeline">Loading signal...</p>
+        </div>
+
+        <!-- Correlation scatter -->
+        <div class="cp-panel" id="hz-panel-scatter">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>one Atlantic season</span>
+                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#ef4444"></span>least-squares fit</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="hz-scatter-chart"></canvas></div>
+            <p class="cp-insight" id="hz-signal-scatter">Loading signal...</p>
+        </div>
+
+        <!-- Rapid intensification -->
+        <div class="cp-panel" id="hz-panel-ri">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#ef4444"></span>storms rapidly intensifying (+30 kt / 24h)</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Aug–Oct SST anomaly</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="hz-ri-chart"></canvas></div>
+            <p class="cp-insight" id="hz-signal-ri">Loading signal...</p>
+        </div>
+
+        <!-- Honesty note: association, not attribution -->
+        <p id="hz-caveat" style="margin-top:1rem;border-left:2px solid #38bdf8;background:rgba(56,189,248,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+            <strong style="color:var(--text);">Reading this honestly:</strong> these coefficients show <em>association</em>, not attribution.
+            Year-to-year Atlantic activity is strongly steered by ENSO and the Atlantic Multidecadal Oscillation.
+            A positive correlation is consistent with the physics — warmer water carries more energy — but isolating the
+            human-caused share requires counterfactual potential-intensity modeling, not a scatter plot.
+        </p>
+    </section>
+
+    <!-- ═══════════════ RISING SEAS (paste after </section> of #hurricanes) ═══════════════ -->
+    <section id="sealevel">
+        <h2>🌊 Rising Seas — Coastal Risk &amp; the Ice That Holds the Water</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="sl-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                Satellite sea-level rise, U.S. coastal risk hot-spots, and how far seas would climb if the ice sheets melted
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="sl-source-badge">NASA · NOAA · USGS</span>
+                <a href="https://sealevel.nasa.gov" target="_blank" class="project-btn">🌐 NASA Sea Level</a>
+            </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="sl-rate">—</span>
+                <span class="cp-kpi-label">Global rise rate (mm/yr)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="sl-total">—</span>
+                <span class="cp-kpi-label">Risen since 1993 (mm)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="sl-fastest">—</span>
+                <span class="cp-kpi-label">Fastest U.S. city (mm/yr)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="sl-greenland">—</span>
+                <span class="cp-kpi-label">If Greenland melts (m)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="sl-antarctica">—</span>
+                <span class="cp-kpi-label">If Antarctica melts (m)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="sl-allice">—</span>
+                <span class="cp-kpi-label">If all ice melts (m)</span>
+            </div>
+        </div>
+
+        <!-- Tab nav -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="slTab(this,'gmsl')">🌊 Rising Seas</button>
+            <button class="cp-tab" onclick="slTab(this,'map')">🗺️ U.S. Risk Map</button>
+            <button class="cp-tab" onclick="slTab(this,'ice')">🧊 Ice-Melt Scenarios</button>
+            <button class="cp-tab" onclick="slTab(this,'forecast')">🔮 2100 Outlook</button>
+        </div>
+
+        <!-- Rising seas (GMSL) -->
+        <div class="cp-panel active" id="sl-panel-gmsl">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Global mean sea level (satellite altimetry)</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="sl-gmsl-chart"></canvas></div>
+            <p class="cp-insight" id="sl-signal-gmsl">Loading signal...</p>
+        </div>
+
+        <!-- US risk map -->
+        <div class="cp-panel" id="sl-panel-map">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#ef4444"></span>Extreme</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>Very High</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#facc15"></span>High</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Moderate–High</span>
+                <span class="cp-leg-item" style="color:var(--text-muted)">· circle size = local rise rate</span>
+            </div>
+            <div id="sl-map" style="width:100%;height:420px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);"></div>
+            <p class="cp-insight" id="sl-signal-map">Loading signal...</p>
+        </div>
+
+        <!-- Ice-melt scenarios -->
+        <div class="cp-panel" id="sl-panel-ice">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#60a5fa"></span>Sea-level equivalent if fully melted (meters)</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="sl-ice-chart"></canvas></div>
+            <p class="cp-insight" id="sl-signal-ice">Loading signal...</p>
+        </div>
+
+        <!-- 2100 forecast -->
+        <div class="cp-panel" id="sl-panel-forecast">
+            <div class="cp-legend" id="sl-forecast-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="sl-forecast-chart"></canvas></div>
+            <p class="cp-insight" id="sl-signal-forecast">Loading signal...</p>
+        </div>
+
+        <!-- Honesty / timescale note -->
+        <p id="sl-caveat" style="margin-top:1rem;border-left:2px solid #38bdf8;background:rgba(56,189,248,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+            <strong style="color:var(--text);">Reading this honestly:</strong> the ice-melt bars show each reservoir's <em>ultimate ceiling</em> — how far seas would climb over <em>centuries to millennia</em> if it fully melted — not a 2100 forecast. This century's projected rise is roughly 0.3–1 m (up to ~2 m for the U.S. coast on high-emission, rapid-ice-loss pathways). Local rates differ from the global average mainly because of land subsidence, which is why the Gulf Coast tops the map.
+        </p>
+    </section>
+
+    <!-- ═══════════════ DATA CENTERS (paste after </section> of #sealevel) ═══════════════ -->
+    <section id="datacenters">
+        <h2>🖥️ Data Centers — The AI Boom &amp; Its Footprint</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p id="dc-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                How fast data-center power demand is growing, where the U.S. clusters are, and what it costs in water and energy
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="dc-source-badge">IEA · LBNL · CBRE</span>
+                <a href="https://www.iea.org/reports/energy-and-ai" target="_blank" class="project-btn">🌐 IEA Energy &amp; AI</a>
+            </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="cp-kpi-row">
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="dc-now">—</span>
+                <span class="cp-kpi-label">2024 demand (TWh)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="dc-2030">—</span>
+                <span class="cp-kpi-label">2030 projection (TWh)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val hot" id="dc-share">—</span>
+                <span class="cp-kpi-label">Share of world power '30</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="dc-us">—</span>
+                <span class="cp-kpi-label">U.S. share of demand</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="dc-top">—</span>
+                <span class="cp-kpi-label">Biggest hub (MW)</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val" id="dc-water">—</span>
+                <span class="cp-kpi-label">Google water '23 (B gal)</span>
+            </div>
+        </div>
+
+        <!-- Tab nav -->
+        <div class="cp-tabs">
+            <button class="cp-tab active" onclick="dcTab(this,'demand')">📈 Growth &amp; AI Demand</button>
+            <button class="cp-tab" onclick="dcTab(this,'map')">🗺️ U.S. Hotspots</button>
+            <button class="cp-tab" onclick="dcTab(this,'water')">💧 Water Footprint</button>
+            <button class="cp-tab" onclick="dcTab(this,'energy')">⚡ Energy &amp; Efficiency</button>
+        </div>
+
+        <!-- Growth & AI demand -->
+        <div class="cp-panel active" id="dc-panel-demand">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#a78bfa"></span>Observed (IEA)</span>
+                <span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:#a78bfa"></span>Projected to 2035</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="dc-demand-chart"></canvas></div>
+            <p class="cp-insight" id="dc-signal-demand">Loading signal...</p>
+        </div>
+
+        <!-- US hotspots map -->
+        <div class="cp-panel" id="dc-panel-map">
+            <div class="cp-legend">
+                <span class="cp-leg-item" style="color:var(--text-muted)">Circle size = market power capacity (MW). Tap a hub for details.</span>
+            </div>
+            <div id="dc-map" style="width:100%;height:420px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);"></div>
+            <p class="cp-insight" id="dc-signal-map">Loading signal...</p>
+        </div>
+
+        <!-- Water footprint -->
+        <div class="cp-panel" id="dc-panel-water">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#38bdf8"></span>Freshwater to produce one unit (litres, log scale)</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="dc-water-chart"></canvas></div>
+            <p class="cp-insight" id="dc-signal-water">Loading signal...</p>
+        </div>
+
+        <!-- Energy & efficiency -->
+        <div class="cp-panel" id="dc-panel-energy">
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>Energy per query (Wh, log scale) — ranges where contested</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="dc-energy-chart"></canvas></div>
+            <p class="cp-insight" id="dc-signal-energy">Loading signal...</p>
+        </div>
+
+        <!-- Honest framing note -->
+        <p id="dc-caveat" style="margin-top:1rem;border-left:2px solid #a78bfa;background:rgba(167,139,250,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+            <strong style="color:var(--text);">Reading this honestly:</strong> per-query water and energy numbers are genuinely contested and span orders of magnitude, so they're shown as ranges. At the individual level an AI prompt is tiny next to everyday items — a single burger is ~1,650 L of water. What actually strains systems is the <em>aggregate</em> and its <em>geographic concentration</em>: a handful of clusters (Northern Virginia alone ≈ a quarter of the state's electricity) pull enormous, localized loads on grids and watersheds — and efficiency gains keep being outrun by sheer growth.
+        </p>
     </section>
 
 

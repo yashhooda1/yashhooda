@@ -323,6 +323,7 @@ TEMPERATURE SCIENCE (El Helou 2012, Ely 2007; Pugh 1971, Davies 1980):
 - Houston summers: 90-100°F with 70-85% humidity June-Sept requires 60-90 sec/mile slower
 - Houston Marathon (Jan 17) risk is a north wind behind a cold front, not temperature
 - Boulder altitude (~5,400 ft): additional ~3-5% performance reduction vs sea level
+` : '';
 
     // 9. ── AI INSIGHTS via Claude ──
     // AFTER — Gemini Flash, free, works now

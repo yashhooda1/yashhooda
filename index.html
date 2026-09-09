@@ -3999,6 +3999,7 @@
                 <div class="nav-drop-menu">
                     <a href="#running">Running</a>
                     <a href="#heat-pace">Running Heat Adjustment Calculator</a>
+                    <a href="#wind-cold">Wind &amp; Cold Adjustment</a>
                     <a href="#pace-calc">Pace Calculator</a>
                     <a href="#heat-equivalent">Race Time by Temperature</a>
                     <a href="#strava-feed">Live Strava feed</a>
@@ -5361,6 +5362,155 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
       </div>
  
        <p class="hpc-foot">Model: the temperature + dew point sum, interpolated across the standard heat-pace bands, then scaled by effort — easy running responds least because effort, not pace, is the target — and by how long you’ll be out there, since heat compounds with time on your feet. Heat tolerance is individual and improves with acclimation; treat this as a starting point, not a prescription. Live conditions from NOAA/Aviation Weather METAR.</p>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- WIND & COLD ADJUSTMENT                                     -->
+    <!-- ========================================================= -->
+    <section class="hpc" id="wind-cold">
+      <p class="hpc-eyebrow">Tool · Running × Weather</p>
+      <h1 class="hpc-title">Wind &amp; Cold Adjustment</h1>
+      <p class="hpc-lede">Cold air barely slows you down — 32° to 50°F is where you race your best. Wind is the part that costs real time, and it costs it as the square of the wind speed. This works out both: what the wind takes, and what the chill means for how you dress.</p>
+ 
+      <div class="hpc-readout">
+        <p class="hpc-strip" id="wc-strip">CONDITIONS <b>—</b> · CHILL <b>—</b> · ZONE <b>—</b></p>
+        <div class="hpc-gauge">
+          <div class="hpc-bands" aria-hidden="true">
+            <span style="background:var(--hpc-z0)"></span>
+            <span style="background:var(--hpc-z1)"></span>
+            <span style="background:var(--hpc-z2)"></span>
+            <span style="background:var(--hpc-z3)"></span>
+            <span style="background:var(--hpc-z4)"></span>
+            <span style="background:var(--hpc-z5)"></span>
+          </div>
+          <div class="hpc-needle" id="wc-needle" data-sum="" hidden></div>
+          <div class="hpc-ticks" aria-hidden="true"><span>50</span><span>35</span><span>20</span><span>5</span><span>&minus;10</span></div>
+        </div>
+      </div>
+ 
+      <div class="hpc-actions">
+        <button type="button" class="hpc-btn hpc-ghost" id="wc-metar">Pull live METAR</button>
+        <select id="wc-station" aria-label="Weather station">
+          <option value="KHOU">KHOU · Houston Hobby</option>
+          <option value="KIAH">KIAH · Houston Intercontinental</option>
+          <option value="KSGR">KSGR · Sugar Land</option>
+          <option value="KDFW">KDFW · Dallas–Fort Worth</option>
+          <option value="KAUS">KAUS · Austin</option>
+          <option value="KBJC">KBJC · Boulder / Rocky Mountain</option>
+          <option value="KJFK">KJFK · New York</option>
+        </select>
+      </div>
+      <p class="hpc-status" id="wc-status">Or enter conditions by hand.</p>
+ 
+      <div class="hpc-grid">
+        <div class="hpc-block">
+          <p class="hpc-legend">Conditions</p>
+          <div class="hpc-field">
+            <span class="hpc-label" id="wc-units-label">Units</span>
+            <div class="hpc-seg" role="group" aria-labelledby="wc-units-label">
+              <input type="radio" name="wc-units" id="wc-u-f" value="F" checked><label for="wc-u-f">°F</label>
+              <input type="radio" name="wc-units" id="wc-u-c" value="C"><label for="wc-u-c">°C</label>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="wc-temp">Air temperature
+              <span class="hpc-hint">Use the forecast for your start time. Wind chill is only defined at or below 50°F.</span>
+            </label>
+            <input type="number" id="wc-temp" inputmode="decimal" step="1" value="38">
+          </div>
+          <div class="hpc-field">
+            <span class="hpc-label" id="wc-windunit-label">Wind speed unit</span>
+            <div class="hpc-seg" role="group" aria-labelledby="wc-windunit-label">
+              <input type="radio" name="wc-windunit" id="wc-w-mph" value="mph" checked><label for="wc-w-mph">mph</label>
+              <input type="radio" name="wc-windunit" id="wc-w-kmh" value="kmh"><label for="wc-w-kmh">km/h</label>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="wc-wind">Sustained wind
+              <span class="hpc-hint">The steady number, not the gust. Gusts cost you rhythm; sustained wind costs you time.</span>
+            </label>
+            <input type="number" id="wc-wind" inputmode="decimal" step="1" min="0" value="15">
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="wc-gust">Gusts
+              <span class="hpc-hint">Optional. Used for the exposure warning, not the pace math.</span>
+            </label>
+            <input type="number" id="wc-gust" inputmode="decimal" step="1" min="0" value="24">
+          </div>
+        </div>
+ 
+        <div class="hpc-block">
+          <p class="hpc-legend">Your run</p>
+          <div class="hpc-field">
+            <span class="hpc-label" id="wc-paceunit-label">Pace unit</span>
+            <div class="hpc-seg" role="group" aria-labelledby="wc-paceunit-label">
+              <input type="radio" name="wc-paceunit" id="wc-p-mi" value="mi" checked><label for="wc-p-mi">per mile</label>
+              <input type="radio" name="wc-paceunit" id="wc-p-km" value="km"><label for="wc-p-km">per km</label>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <span class="hpc-label" id="wc-goal-label">Goal pace in calm air</span>
+            <div class="hpc-pace" role="group" aria-labelledby="wc-goal-label">
+              <input type="number" id="wc-min" inputmode="numeric" min="2" max="20" step="1" value="6" aria-label="Minutes">
+              <span>:</span>
+              <input type="number" id="wc-sec" inputmode="numeric" min="0" max="59" step="1" value="50" aria-label="Seconds">
+              <span id="wc-paceunit-text">/mi</span>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="wc-dist">Distance</label>
+            <select id="wc-dist">
+              <option value="5k">5K</option>
+              <option value="10k">10K</option>
+              <option value="half">Half marathon</option>
+              <option value="full" selected>Marathon</option>
+              <option value="10mi">10 miles</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="hpc-field" id="wc-custom-wrap" hidden>
+            <label class="hpc-label" for="wc-custom">Custom distance</label>
+            <input type="number" id="wc-custom" inputmode="decimal" step="0.1" min="0.1" value="8">
+          </div>
+          <div class="hpc-field">
+            <span class="hpc-label" id="wc-dir-label">Wind on your route
+              <span class="hpc-hint">Where it hits you on the outbound leg.</span>
+            </span>
+            <div class="hpc-seg" role="group" aria-labelledby="wc-dir-label">
+              <input type="radio" name="wc-dir" id="wc-d-head" value="head" checked><label for="wc-d-head">Head</label>
+              <input type="radio" name="wc-dir" id="wc-d-cross" value="cross"><label for="wc-d-cross">Cross</label>
+              <input type="radio" name="wc-dir" id="wc-d-tail" value="tail"><label for="wc-d-tail">Tail</label>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <span class="hpc-label" id="wc-route-label">Route shape</span>
+            <div class="hpc-seg" role="group" aria-labelledby="wc-route-label">
+              <input type="radio" name="wc-route" id="wc-r-one" value="oneway"><label for="wc-r-one">One way</label>
+              <input type="radio" name="wc-route" id="wc-r-back" value="outback" checked><label for="wc-r-back">Out and back</label>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="hpc-results" id="wc-results" aria-live="polite">
+        <p class="hpc-headline" id="wc-headline">—</p>
+        <p class="hpc-sub" id="wc-sub"></p>
+        <dl class="hpc-metrics">
+          <div class="hpc-metric"><dt>Wind cost</dt><dd id="wc-m1">—</dd></div>
+          <div class="hpc-metric"><dt>Cold cost</dt><dd id="wc-m2">—</dd></div>
+          <div class="hpc-metric"><dt>Finish impact</dt><dd id="wc-m3">—</dd></div>
+        </dl>
+        <p class="hpc-verdict" id="wc-verdict"><strong>Zone</strong><span id="wc-verdict-text"></span></p>
+        <p class="hpc-verdict" id="wc-dress"><strong>What to wear</strong><span id="wc-dress-text"></span></p>
+ 
+        <table class="hpc-table">
+          <caption>If the wind is different than forecast</caption>
+          <thead><tr><th scope="col">Scenario</th><th scope="col">Temp / chill</th><th scope="col">Pace</th><th scope="col">Finish</th></tr></thead>
+          <tbody id="wc-scenarios"></tbody>
+        </table>
+      </div>
+ 
+      <p class="hpc-foot">Model: drag rises with the square of the air speed flowing over you, so the extra cost per mile scales with 2·v·w + w², where v is your running speed and w the wind. Calibrated so a 10&nbsp;mph headwind costs about 11&nbsp;s/mi at 7:00 pace, matching Pugh's 1971 wind-tunnel work and Davies 1980. Two consequences fall straight out of the physics rather than being bolted on: a tailwind returns only a fraction of what the headwind took, so an out-and-back always loses net time; and a crosswind costs the same as that net out-and-back. Cold itself is scored separately and stays near zero above freezing, because 32–50°F is the performance optimum — below that the cost comes from footing, clothing weight and cold airways, not from thermoregulation. Wind chill uses the NWS formula, valid at or below 50°F with wind above 3&nbsp;mph. Live conditions from NOAA/Aviation Weather METAR.</p>
     </section>
 
     <!-- ========================================================= -->
@@ -13849,6 +13999,328 @@ document.getElementById('chat-input')?.addEventListener('input', e => { _lastUse
     if (e.target.tagName === "INPUT") render();
   });
   $("hpc-metar").addEventListener("click", pullMetar);
+ 
+  render();
+})();
+
+(function () {
+  "use strict";
+  var root = document.getElementById("wind-cold");
+  if (!root) return;
+  var $ = function (id) { return document.getElementById(id); };
+ 
+  /* --- math:start --- */
+  // Aerodynamic drag rises with the square of the air speed flowing over the runner.
+  // Extra force vs calm air is proportional to (v+w)^2 - v^2 = 2vw + w^2, and the
+  // extra energy per mile is that force times one mile, so the fractional pace cost
+  // is DRAG_K * (2vw + w^2) with v and w both in mph.
+  //
+  // Calibration: a 10 mph headwind at 7:00/mi (v = 8.571 mph) costs ~11 s/mi, i.e.
+  // 2.619% of 420 s. 2vw + w^2 = 271.4, so DRAG_K = 0.02619 / 271.4.
+  //
+  // Two results fall out of the physics instead of being hand-tuned:
+  //   - a tailwind returns much less than the headwind took (the 2vw term flips sign
+  //     but the w^2 term does not), so out-and-back always nets a loss;
+  //   - a pure crosswind sees relative air speed sqrt(v^2 + w^2), so its extra cost
+  //     is exactly w^2 — the same as the out-and-back net.
+  var DRAG_K = 9.65e-5;
+ 
+  // Cold is NOT a thermoregulatory penalty the way heat is. From 32F to 50F you are
+  // at the performance optimum and the cost is zero. Below freezing the cost comes
+  // from footing, clothing weight and cold airways, and stays small.
+  var COLD = [
+    [32, 0], [20, 0.5], [10, 1.5], [0, 3.0], [-999, 5.0]
+  ];
+ 
+  var ZONES = [
+    { min: 45,    name: "Ideal",     css: 0, note: "This is the fastest air you will ever race in. No temperature penalty at all — any time lost today is the wind, not the cold." },
+    { min: 32,    name: "Crisp",     css: 1, note: "Still optimal for racing. You will be cold on the start line and grateful by mile three; resist the urge to overdress." },
+    { min: 20,    name: "Cold",      css: 2, note: "Warm up indoors so you start loose. Costs a couple of seconds per mile at most — run the workout you planned." },
+    { min: 5,     name: "Hard cold", css: 3, note: "Cover the extremities first: hands, ears, face. Watch bridge decks and shaded overpasses for ice, and shorten your stride where you can't read the surface." },
+    { min: -10,   name: "Severe",    css: 4, note: "Minimise exposed skin and keep the route close to home or looped, so a problem is never more than a mile from shelter. Cold airways make hard efforts feel worse than the pace suggests." },
+    { min: -999,  name: "Dangerous", css: 5, note: "Frostbite is the limiting factor, not pace. Move it to a treadmill or wait it out — there is nothing to be gained from this session outdoors." }
+  ];
+ 
+  // Dress guidance keyed to wind chill, not air temperature — the chill is what your
+  // skin experiences. Rule of thumb baked in: dress for ~15-20F warmer than the
+  // reading, because you generate a lot of heat once you're moving.
+  var DRESS = [
+    { min: 60,  text: "Shorts and a singlet. Nothing else earns its place." },
+    { min: 50,  text: "Shorts and a short sleeve. Carry nothing you'd have to tie around your waist by mile two." },
+    { min: 40,  text: "Shorts and a long sleeve. Maybe thin gloves for the first mile, which you'll want to stash after." },
+    { min: 32,  text: "Long sleeve, shorts or light tights, thin gloves and a headband over the ears. You should be slightly cold walking out the door." },
+    { min: 20,  text: "Tights, long sleeve plus a light wind layer, proper gloves and a hat. Wind layer on the chest only if the wind is in your face on the way out." },
+    { min: 10,  text: "Tights, two upper layers with a wind-blocking shell, insulated gloves, hat and a buff you can pull over your nose. Wind briefs if the wind is head-on." },
+    { min: 0,   text: "Everything above plus mittens over gloves, and cover the face fully. Vaseline on any skin left exposed. Keep the route looped and close to shelter." },
+    { min: -999, text: "Full coverage, zero exposed skin, and honestly: don't. This is treadmill weather." }
+  ];
+ 
+  var DIST = { "5k": { mi: 3.10686, km: 5 }, "10k": { mi: 6.21371, km: 10 },
+    "half": { mi: 13.1094, km: 21.0975 }, "full": { mi: 26.2188, km: 42.195 },
+    "10mi": { mi: 10, km: 16.0934 } };
+ 
+  function toF(v, u) { return u === "C" ? v * 9 / 5 + 32 : v; }
+  function toMph(v, u) { return u === "kmh" ? v * 0.621371 : v; }
+ 
+  // NWS wind chill. Only defined at or below 50F with wind above 3mph; outside that
+  // envelope the formula starts adding degrees, so fall back to air temperature.
+  function chillF(tF, wMph) {
+    if (tF > 50 || wMph <= 3) return tF;
+    var p = Math.pow(wMph, 0.16);
+    return 35.74 + 0.6215 * tF - 35.75 * p + 0.4275 * tF * p;
+  }
+ 
+  function coldPct(chill) {
+    for (var i = 0; i < COLD.length; i++) if (chill >= COLD[i][0]) return COLD[i][1];
+    return 5.0;
+  }
+ 
+  function zoneFor(chill) {
+    for (var i = 0; i < ZONES.length; i++) if (chill >= ZONES[i].min) return ZONES[i];
+    return ZONES[ZONES.length - 1];
+  }
+ 
+  function dressFor(chill) {
+    for (var i = 0; i < DRESS.length; i++) if (chill >= DRESS[i].min) return DRESS[i].text;
+    return DRESS[DRESS.length - 1].text;
+  }
+ 
+  // Fractional pace cost from wind, as a percentage.
+  // vMph = running speed, wMph = sustained wind, dir = head|cross|tail,
+  // route = oneway|outback.
+  function windPct(vMph, wMph, dir, route) {
+    if (wMph <= 0) return 0;
+    var head = 2 * vMph * wMph + wMph * wMph;   // one way, straight into it
+    var tail = wMph * wMph - 2 * vMph * wMph;   // one way, straight behind
+    var cross = wMph * wMph;                    // relative air = sqrt(v^2 + w^2)
+    var raw;
+    if (dir === "cross") raw = cross;
+    else if (route === "outback") raw = (head + tail) / 2;  // reduces to w^2
+    else raw = (dir === "tail") ? tail : head;
+    return DRAG_K * raw * 100;
+  }
+ 
+  // Returns { chill, windPct, coldPct, pct, basePace, adjPace, addedPerUnit,
+  //           addedTotal, windSec, coldSec, zone }
+  function compute(o) {
+    var tF = toF(o.temp, o.unit);
+    var wMph = Math.max(0, toMph(o.wind, o.windUnit));
+    var chill = chillF(tF, wMph);
+    var cPct = coldPct(chill);
+ 
+    // Drag depends on how fast you're actually moving, and you move slower once the
+    // wind is taxing you, so settle it in a few passes like the heat tool does.
+    var adj = o.paceSec, wPct = 0, pct = 0;
+    for (var i = 0; i < 3; i++) {
+      var perMile = o.paceUnit === "km" ? adj * 1.609344 : adj;
+      var vMph = 3600 / perMile;
+      wPct = windPct(vMph, wMph, o.dir, o.route);
+      pct = wPct + cPct;
+      adj = o.paceSec * (1 + pct / 100);
+    }
+ 
+    return {
+      chill: chill,
+      windPct: wPct,
+      coldPct: cPct,
+      pct: pct,
+      basePace: o.paceSec,
+      adjPace: adj,
+      addedPerUnit: adj - o.paceSec,
+      addedTotal: (adj - o.paceSec) * o.distance,
+      windSec: o.paceSec * wPct / 100,
+      coldSec: o.paceSec * cPct / 100,
+      zone: zoneFor(chill)
+    };
+  }
+ 
+  function fmtPace(sec) {
+    sec = Math.round(sec);
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+ 
+  function fmtClock(sec) {
+    sec = Math.round(sec);
+    var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    var mm = (m < 10 && h ? "0" : "") + m;
+    return (h ? h + ":" : "") + mm + ":" + (s < 10 ? "0" : "") + s;
+  }
+ 
+  function fmtDelta(sec) {
+    var r = Math.round(sec);
+    var sign = r < 0 ? "\u2212" : "+";
+    r = Math.abs(r);
+    return r < 60 ? sign + r + "s" : sign + fmtClock(r);
+  }
+  /* --- math:end --- */
+ 
+  function unit() { return document.querySelector('input[name="wc-units"]:checked').value; }
+  function windUnit() { return document.querySelector('input[name="wc-windunit"]:checked').value; }
+  function paceUnit() { return document.querySelector('input[name="wc-paceunit"]:checked').value; }
+  function dir() { return document.querySelector('input[name="wc-dir"]:checked').value; }
+  function route() { return document.querySelector('input[name="wc-route"]:checked').value; }
+  function num(el, fallback) { var v = parseFloat(el.value); return isNaN(v) ? fallback : v; }
+ 
+  function distanceValue() {
+    var key = $("wc-dist").value, pu = paceUnit();
+    if (key === "custom") return Math.max(0.1, num($("wc-custom"), 1));
+    return DIST[key][pu];
+  }
+ 
+  function opts(over) {
+    var o = {
+      temp: num($("wc-temp"), 38), wind: num($("wc-wind"), 0),
+      unit: unit(), windUnit: windUnit(), paceUnit: paceUnit(),
+      paceSec: Math.max(60, num($("wc-min"), 8) * 60 + num($("wc-sec"), 0)),
+      distance: distanceValue(), dir: dir(), route: route()
+    };
+    if (over) for (var k in over) if (Object.prototype.hasOwnProperty.call(over, k)) o[k] = over[k];
+    return o;
+  }
+ 
+  function render() {
+    var pu = paceUnit(), u = unit(), wu = windUnit();
+    var r = compute(opts());
+    var chillDisp = u === "C" ? (r.chill - 32) * 5 / 9 : r.chill;
+    var gust = num($("wc-gust"), 0);
+    var wMph = toMph(num($("wc-wind"), 0), wu);
+    var gMph = toMph(gust, wu);
+ 
+    $("wc-strip").innerHTML = "CONDITIONS <b>" + Math.round(num($("wc-temp"), 38)) + "° " + u +
+      " · " + Math.round(num($("wc-wind"), 0)) + " " + (wu === "kmh" ? "km/h" : "mph") +
+      "</b> · CHILL <b>" + Math.round(chillDisp) + "° " + u +
+      "</b> · ZONE <b>" + r.zone.name.toUpperCase() +
+      "</b> · COST <b>" + r.pct.toFixed(1) + "%</b>";
+ 
+    var needle = $("wc-needle");
+    var pos = Math.min(100, Math.max(0, (50 - r.chill) / 60 * 100));
+    needle.hidden = false;
+    needle.style.left = pos + "%";
+ 
+    $("wc-headline").innerHTML = fmtPace(r.adjPace) + " <small>/" + pu + "</small>";
+ 
+    var shape = (dir() === "cross")
+      ? "A crosswind still costs you — the air over your body is faster than your own speed, even sideways."
+      : (route() === "outback")
+        ? "Out and back: the tailwind home gives back far less than the headwind out took, so the net is always a loss."
+        : (dir() === "tail" ? "One way with it behind you — enjoy it, but don't read a PR into it." : "One way straight into it.");
+    $("wc-sub").textContent = "Holding " + fmtPace(r.adjPace) + "/" + pu + " today is the same effort as " +
+      fmtPace(r.basePace) + "/" + pu + " in calm air. " + shape;
+ 
+    $("wc-m1").textContent = fmtDelta(r.windSec) + "/" + pu;
+    $("wc-m2").textContent = r.coldPct > 0 ? fmtDelta(r.coldSec) + "/" + pu : "none";
+    $("wc-m3").textContent = fmtDelta(r.addedTotal);
+ 
+    $("wc-verdict").style.borderLeftColor = "var(--hpc-z" + r.zone.css + ")";
+    $("wc-verdict").querySelector("strong").textContent = r.zone.name;
+    var note = r.zone.note;
+    if (gMph >= 30 || wMph >= 25) {
+      note += " Gusts at this strength are a footing and steering problem as much as a pace one — avoid exposed stretches like levee tops and open bridges.";
+    }
+    $("wc-verdict-text").textContent = note;
+ 
+    $("wc-dress").style.borderLeftColor = "var(--hpc-z" + r.zone.css + ")";
+    $("wc-dress-text").textContent = dressFor(r.chill);
+ 
+    renderScenarios(pu, u, wu);
+  }
+ 
+  function renderScenarios(pu, u, wu) {
+    var w = num($("wc-wind"), 0);
+    var step = wu === "kmh" ? 8 : 5;
+    var rows = [
+      ["Calm", 0 - w],
+      ["Lighter than forecast", -step],
+      ["As forecast", 0],
+      ["Stronger than forecast", step],
+      ["Front comes through", step * 3]
+    ];
+    var html = rows.map(function (row) {
+      var ww = Math.max(0, w + row[1]);
+      var r = compute(opts({ wind: ww }));
+      var chillDisp = u === "C" ? (r.chill - 32) * 5 / 9 : r.chill;
+      var strong = row[0] === "As forecast";
+      return "<tr><td>" + (strong ? "<b>" + row[0] + "</b>" : row[0]) + "</td>" +
+        "<td>" + Math.round(num($("wc-temp"), 38)) + "° / " + Math.round(chillDisp) + "°</td>" +
+        "<td>" + fmtPace(r.adjPace) + "/" + pu + "</td>" +
+        "<td>" + fmtDelta(r.addedTotal) + "</td></tr>";
+    }).join("");
+    $("wc-scenarios").innerHTML = html;
+  }
+ 
+  /* ---- live METAR ---- */
+  function pullMetar() {
+    var btn = $("wc-metar"), status = $("wc-status");
+    var station = $("wc-station").value;
+    btn.disabled = true;
+    status.textContent = "Requesting " + station + "…";
+    fetch("/api/heat-conditions?station=" + encodeURIComponent(station))
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (typeof data.tempC !== "number") throw new Error("no temperature in report");
+        var u = unit();
+        $("wc-temp").value = Math.round(u === "C" ? data.tempC : data.tempF);
+ 
+        // METAR reports wind in knots. The endpoint may not surface it yet.
+        var kt = (typeof data.windKt === "number") ? data.windKt : null;
+        var gkt = (typeof data.windGustKt === "number") ? data.windGustKt : null;
+        var gotWind = false;
+        if (kt !== null) {
+          var wu = windUnit();
+          $("wc-wind").value = Math.round(kt * (wu === "kmh" ? 1.852 : 1.15078));
+          if (gkt !== null) $("wc-gust").value = Math.round(gkt * (wu === "kmh" ? 1.852 : 1.15078));
+          gotWind = true;
+        }
+ 
+        var when = data.observedAgoMin != null
+          ? "observed " + data.observedAgoMin + " min ago" : "latest report";
+        status.textContent = data.station + " " + when + " — " +
+          (gotWind ? "temperature and wind loaded." : "temperature loaded. Wind isn't in this feed yet; enter it by hand.");
+        render();
+      })
+      .catch(function (err) {
+        status.textContent = "Couldn't reach the weather feed (" + err.message + "). Enter conditions by hand.";
+      })
+      .then(function () { btn.disabled = false; });
+  }
+ 
+  /* ---- wiring ---- */
+  var prevUnit = "F", prevWindUnit = "mph";
+  root.addEventListener("change", function (e) {
+    if (e.target.name === "wc-units") {
+      var next = e.target.value;
+      if (next !== prevUnit) {
+        var el = $("wc-temp"), v = parseFloat(el.value);
+        if (!isNaN(v)) el.value = Math.round(next === "C" ? (v - 32) * 5 / 9 : v * 9 / 5 + 32);
+        prevUnit = next;
+      }
+    }
+    if (e.target.name === "wc-windunit") {
+      var nw = e.target.value;
+      if (nw !== prevWindUnit) {
+        ["wc-wind", "wc-gust"].forEach(function (id) {
+          var el = $(id), v = parseFloat(el.value);
+          if (!isNaN(v)) el.value = Math.round(nw === "kmh" ? v * 1.609344 : v * 0.621371);
+        });
+        prevWindUnit = nw;
+      }
+    }
+    if (e.target.name === "wc-paceunit") {
+      $("wc-paceunit-text").textContent = "/" + e.target.value;
+    }
+    if (e.target.id === "wc-dist") {
+      $("wc-custom-wrap").hidden = e.target.value !== "custom";
+    }
+    render();
+  });
+  root.addEventListener("input", function (e) {
+    if (e.target.tagName === "INPUT") render();
+  });
+  $("wc-metar").addEventListener("click", pullMetar);
  
   render();
 })();

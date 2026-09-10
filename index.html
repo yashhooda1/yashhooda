@@ -2084,6 +2084,11 @@
             overflow: hidden;
         }
         .agent-log-panel.active { display: flex; }
+        .agent-tools-box { padding: 0.75rem 0.75rem 0; border-bottom: 1px solid var(--border, #222); }
+        #agent-tools-out { max-height: 40vh; overflow-y: auto; }
+        .agent-tool-step { margin: 0.3rem 0; font-family: 'Space Mono', monospace; font-size: 0.65rem; }
+        .agent-tool-step summary { cursor: pointer; color: var(--accent, #7dd3fc); }
+        .agent-tool-step pre { white-space: pre-wrap; word-break: break-word; font-size: 0.6rem; max-height: 160px; overflow: auto; padding: 0.4rem; margin: 0.25rem 0 0; background: rgba(0,0,0,0.25); border-radius: 6px; }
         .agent-log-container {
             flex: 1;
             overflow-y: auto;
@@ -3888,6 +3893,17 @@
 
     <!-- Agent Activity Log Panel -->
     <div class="agent-log-panel" id="agent-panel">
+        <div class="agent-tools-box" id="agent-tools-box">
+            <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.4rem;">
+                🏃 Running Agent · MCP tools <span id="agent-tools-count"></span>
+            </div>
+            <textarea class="lab-input" id="agent-tools-query" rows="2" placeholder="Am I overtraining? · What did I run this week? · Predict my marathon from my half PR"></textarea>
+            <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+                <button class="lab-run-btn" id="agent-tools-run" onclick="runAgentTools()">▶ Ask</button>
+                <button class="lab-compare-btn" onclick="document.getElementById('agent-tools-out').innerHTML=''">✕ Clear</button>
+            </div>
+            <div id="agent-tools-out"></div>
+        </div>
         <div class="agent-log-container" id="agent-log-container">
             <div class="agent-log-empty">Loading agent activity...</div>
         </div>
@@ -6586,6 +6602,66 @@ function switchAgentTab(btn) {
     document.getElementById('chat-messages').classList.add('hidden');
     document.getElementById('agent-panel').classList.add('active');
     loadAgentLog();
+    loadAgentToolList();
+}
+
+// ── RUNNING AGENT (tool-calling loop over /api/agent-tools) ──
+let agentToolsHistory = [];
+let agentToolsLoaded  = false;
+
+async function loadAgentToolList() {
+    if (agentToolsLoaded) return;
+    try {
+        const res  = await fetch('/api/agent-tools');
+        const data = await res.json();
+        const el   = document.getElementById('agent-tools-count');
+        if (el && data.tools) {
+            el.textContent = `(${data.tools.length}: ${data.tools.map(t => t.name).join(', ')})`;
+            agentToolsLoaded = true;
+        }
+    } catch (_) {}
+}
+
+async function runAgentTools() {
+    const input = document.getElementById('agent-tools-query');
+    const out   = document.getElementById('agent-tools-out');
+    const btn   = document.getElementById('agent-tools-run');
+    const q     = (input.value || '').trim();
+    if (!q) return;
+
+    btn.disabled = true; btn.textContent = '⏳ Calling tools…';
+    out.insertAdjacentHTML('beforeend', `<div class="agent-log-entry"><div class="agent-log-body"><b>You:</b> ${escH(q)}</div></div>`);
+    input.value = '';
+
+    try {
+        const res  = await fetch('/api/agent-tools', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: q, history: agentToolsHistory.slice(-8) }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            if (data.error === 'login_required') showAuthRequired();
+            throw new Error(data.message || data.error || `HTTP ${res.status}`);
+        }
+        const steps = (data.steps || []).map(s => `
+            <details class="agent-tool-step">
+                <summary>🔧 ${escH(s.tool)}${s.isError ? ' ⚠️' : ''} <span style="color:var(--text-muted)">${escH(JSON.stringify(s.args || {}))}</span></summary>
+                <pre>${escH(s.result)}</pre>
+            </details>`).join('');
+        out.insertAdjacentHTML('beforeend', `
+            <div class="agent-log-entry">
+                ${steps}
+                <div class="agent-log-body">${typeof marked !== 'undefined' ? marked.parse(data.reply || '') : escH(data.reply || '')}</div>
+                <div style="font-size:0.6rem;color:var(--text-muted);margin-top:0.3rem;">${escH(data.model || '')} · ${(data.steps||[]).length} tool call${(data.steps||[]).length===1?'':'s'}</div>
+            </div>`);
+        agentToolsHistory.push({ role: 'user', content: q }, { role: 'assistant', content: data.reply || '' });
+    } catch (err) {
+        out.insertAdjacentHTML('beforeend', `<div class="agent-log-entry"><div class="agent-log-body" style="color:#f87171">⚠️ ${escH(err.message)}</div></div>`);
+    } finally {
+        btn.disabled = false; btn.textContent = '▶ Ask';
+        out.scrollTop = out.scrollHeight;
+    }
 }
 
 async function loadAgentLog() {

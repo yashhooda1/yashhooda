@@ -3213,6 +3213,14 @@
             margin-top: 1rem;
         }
         #metar .dbt-note a { color: inherit; }
+        /* ── METAR terminal screenshots ── */
+        .metar-shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.75rem; margin: 1rem 0 0; }
+        .metar-shots figure { margin: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; background: #0b0d10; cursor: zoom-in; }
+        .metar-shots img { display: block; width: 100%; height: 190px; object-fit: cover; object-position: top left; transition: opacity 0.2s; }
+        .metar-shots figure:hover img { opacity: 0.85; }
+        .metar-shots figcaption { font-family: 'Space Mono', monospace; font-size: 0.62rem; line-height: 1.45; color: var(--text-muted); padding: 0.5rem 0.6rem; border-top: 1px solid rgba(255,255,255,0.06); }
+        .metar-shots figcaption b { color: inherit; opacity: 0.95; }
+        .metar-shots.single { grid-template-columns: minmax(0, 420px); }
         @media (max-width: 640px) {
             #metar .dbt-arrow { display: none; }
             #metar .dbt-node  { width: 100%; }
@@ -4241,7 +4249,13 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     and recovery meant rebuilding downstream layers from the replayable
                     bronze source. A 181-second broker outage was survived with zero
                     duplicate keys.
-                    <br><br>
+                    <div class="metar-shots single">
+                        <figure onclick="openMetarShot('images/metar/metar-broker-restart.png')">
+                            <img src="images/metar/metar-broker-restart.png" loading="lazy" alt="Terminal: silver row count draining after a forced Redpanda broker restart, duplicate keys 0">
+                            <figcaption><b>Forced broker restart.</b> Silver catches up in +1 / +5 / +16 / +27 steps after Redpanda comes back — duplicate keys stayed at 0 throughout.</figcaption>
+                        </figure>
+                    </div>
+                    <br>
                     Two hypotheses were measured and discarded. High p95 ingest lag looked
                     like watermark drops, but direct measurement showed 2 records lost out of
                     4,179 — 0.0%; ingest lag and event-time lateness are different quantities,
@@ -4732,6 +4746,20 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <div class="pipe-grid" id="dbt-grid"></div>
             <div class="dbt-lineage" id="dbt-lineage"></div>
             <div class="dbt-note" id="dbt-note"></div>
+            <div class="metar-shots">
+                <figure onclick="openMetarShot('images/metar/metar-publish-metrics.png')">
+                    <img src="images/metar/metar-publish-metrics.png" loading="lazy" alt="Terminal: metar_dbt.json publish output with model counts, test results, parity and ceiling-parser agreement">
+                    <figcaption><b>Where the numbers above come from.</b> <code>publish.sh</code> writes one JSON after every build — model row counts, 32/33 tests, parity split into count mismatches vs. rows missing in dbt, and the ceiling parser's agreement with NOAA.</figcaption>
+                </figure>
+                <figure onclick="openMetarShot('images/metar/metar-dbt-tests.png')">
+                    <img src="images/metar/metar-dbt-tests.png" loading="lazy" alt="Terminal: dbt run and test output for staging, intermediate and gold models">
+                    <figcaption><b>dbt run + test.</b> staging → intermediate → gold, with custom assertions. The single amber <code>WARN 1</code> is <code>assert_ceiling_parse_not_conflicting</code> — the two NOAA disagreements described above, kept visible rather than silenced.</figcaption>
+                </figure>
+                <figure onclick="openMetarShot('images/metar/metar-start-supervisor.png')">
+                    <img src="images/metar/metar-start-supervisor.png" loading="lazy" alt="Terminal: start.sh supervisor showing container health, process counts and tmux session">
+                    <figcaption><b>Idempotent <code>start.sh</code>.</b> Brings up Redpanda, waits for healthy, and leaves an already-running Spark job and producer alone — the process guard enforces exactly one of each.</figcaption>
+                </figure>
+            </div>
         </div>
     </section>
 
@@ -8891,6 +8919,16 @@ function openSnowLightbox(category, index) {
     document.getElementById('snow-lightbox-img').src = snowLightboxPhotos[snowIndex];
     document.getElementById('snow-counter').textContent = `${snowIndex+1} / ${count}`;
     document.getElementById('snow-location-tag').textContent = locationLabel;
+    document.getElementById('snow-lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function openMetarShot(src) {
+    snowLightboxPhotos = [src];
+    snowIndex = 0;
+    document.getElementById('snow-lightbox-img').src = src;
+    document.getElementById('snow-counter').textContent = '';
+    document.getElementById('snow-location-tag').textContent = '🌪️ METAR Stream';
     document.getElementById('snow-lightbox').classList.add('open');
     document.body.style.overflow = 'hidden';
 }

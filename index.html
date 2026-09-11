@@ -4761,6 +4761,10 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <img src="images/metar/metar-start-supervisor.png" loading="lazy" alt="Terminal: start.sh supervisor showing container health, process counts and tmux session">
                     <figcaption><b>Idempotent <code>start.sh</code>.</b> Brings up Redpanda, waits for healthy, and leaves an already-running Spark job and producer alone — the process guard enforces exactly one of each.</figcaption>
                 </figure>
+                <figure onclick="openMetarShot('images/metar/metar-docker-compose.png')">
+                    <img src="images/metar/metar-docker-compose.png" loading="lazy" alt="Terminal: docker compose bringing up redpanda and redpanda-console, both healthy, containers up 44 hours">
+                    <figcaption><b>Docker under the hood.</b> Redpanda v24.2.7 and its console run as Compose services — health-checked on bring-up, ports 9092 / 8080 / 8081 / 9644 mapped, and 44 hours of uptime on this run before the Spark job and producer attach in tmux.</figcaption>
+                </figure>
             </div>
         </div>
     </section>

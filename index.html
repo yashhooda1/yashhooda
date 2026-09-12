@@ -4504,6 +4504,99 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
 
+            <div class="project-card">
+                <div class="project-title">🗺️ HoodaRoutes — Route Generation Scored Against Your Goal Race</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Full-Stack</span>
+                    <span class="skill-tag de">Node.js Serverless</span>
+                    <span class="skill-tag de">REST API Ingestion</span>
+                    <span class="skill-tag de">Live API</span>
+                    <span class="skill-tag ai">Claude API</span>
+                    <span class="skill-tag ai">Structured LLM Output + Validation</span>
+                    <span class="skill-tag ai">Deterministic Fallbacks</span>
+                    <span class="skill-tag">OAuth 2.0</span>
+                    <span class="skill-tag">Signed Session Cookies (HS256)</span>
+                    <span class="skill-tag">Rate Limiting</span>
+                    <span class="skill-tag">Webhook Subscriptions</span>
+                    <span class="skill-tag">Binary Protocol Encoding</span>
+                    <span class="skill-tag">CI Test Suites (node:test)</span>
+                    <span class="skill-tag cl">Vercel</span>
+                    <span class="skill-tag cl">Railway</span>
+                    <span class="skill-tag cl">Upstash Redis</span>
+                    <span class="skill-tag cl">GitHub Actions</span>
+                    <span class="tech-pill">OpenRouteService</span>
+                    <span class="tech-pill">OpenStreetMap</span>
+                    <span class="tech-pill">Strava API</span>
+                    <span class="tech-pill">Copernicus DEM</span>
+                    <span class="tech-pill">Garmin FIT Protocol</span>
+                    <span class="tech-pill">Connect IQ / Monkey C</span>
+                    <span class="tech-pill">Leaflet</span>
+                </div>
+                <div class="project-desc">
+                    Drop a pin anywhere on earth and get a real running loop — snapped to
+                    OpenStreetMap via round-trip routing, surface classified from OSM tags as
+                    road/trail/track/mixed, sized to your own Strava training history, and
+                    scored for how specific it is to the race you're actually training for.
+                    Three deploy targets in one repo: a Vercel web app with serverless
+                    functions and Strava OAuth, a Railway push service, and a Connect IQ watch
+                    app.
+                    <br><br>
+                    <strong>The scoring was wrong in a way that only showed up in the city I
+                    live in.</strong> The fit score originally hard-coded one rolling mountain
+                    marathon, so it rewarded climbing — exactly backwards for a flat goal race.
+                    Rebuilding it around a per-athlete race profile exposed the real problem
+                    underneath: an 8.5&nbsp;mi loop through downtown Houston measured
+                    <strong>1,157&nbsp;ft of gain, 136&nbsp;ft/mi</strong>, against a true
+                    figure under ~150&nbsp;ft. One sample read below sea level.
+                    <br><br>
+                    OpenRouteService returns SRTM elevation and sums every micro-delta, so
+                    noise becomes phantom climb. Re-sampling against Copernicus DEM cut it to
+                    427&nbsp;ft — better, and still wrong, because Copernicus is a
+                    <em>surface</em> model: it reports building rooftops. Across that route,
+                    <strong>8% of samples read above 90&nbsp;ft against a true ground level of
+                    49&nbsp;ft</strong>, and a city block is a sustained plateau rather than a
+                    spike, so a narrow median filter can't reject it. Widening the filter to a
+                    window measured in <em>metres of route</em> rather than sample count
+                    brought the same loop to 14&nbsp;ft/mi. The trade-off is stated in the
+                    code: real terrain features under ~250&nbsp;m get flattened too, and a test
+                    pins that a 2&nbsp;km, 100&nbsp;m climb still survives intact.
+                    <br><br>
+                    The terrain term was also mine to fix. An absolute-difference Gaussian
+                    scored zero for anything past ~40&nbsp;ft/mi, so a flat-race route with
+                    ordinary DEM error was indistinguishable from a mountain route. Scoring on
+                    the <em>log ratio</em> of measured to target ft/mi makes it scale-free —
+                    3× the target costs the same whether the target is 13 or 130 — and a noise
+                    floor keeps a flat race from dividing by near-zero.
+                    <br><br>
+                    <strong>Sending a route to a watch has no free multi-user path, so I wrote
+                    one.</strong> Garmin's Courses API does exactly what's needed over OAuth,
+                    but only after Developer Program approval, and the unofficial route means
+                    collecting other people's Garmin passwords and MFA codes — a non-starter.
+                    Instead: a FIT course encoder written from the protocol spec
+                    (file_id → course → lap → events → records, semicircle coordinates, both
+                    CRCs), served to the Connect IQ app, which downloads it with
+                    <code>HTTP_RESPONSE_CONTENT_TYPE_FIT</code>. The system files it straight
+                    into the device's course list and the app hands off to native turn-by-turn
+                    navigation. No account linkage, no partner approval. Validated by an
+                    independent parser and by Garmin Connect's own importer accepting the file.
+                    <br><br>
+                    The AI layer is bounded on purpose. Natural language ("hilly 12-mile trail
+                    loop") becomes route parameters and a segment-by-segment coached plan, but
+                    every field is clamped and whitelisted before it reaches the route engine,
+                    and every LLM path falls back to a deterministic heuristic — no key, rate
+                    limit, timeout or malformed JSON can break route generation. The same
+                    principle covers infrastructure: without Redis configured the app degrades
+                    to an in-process store rather than failing, and a broken rate limiter fails
+                    open. One honest caveat left in place — the residual 26&nbsp;ft/mi downtown
+                    may be partly real, since freeway overpasses are exactly the >250&nbsp;m
+                    structure the filter can't reject.
+                </div>
+                <div class="project-links">
+                    <a href="https://routes.yashhooda.ai" target="_blank" rel="noopener" class="project-btn">🌐 Live App</a>
+                    <a href="https://github.com/yashhooda1/hoodaroutes" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
         </div>
     </section>
 

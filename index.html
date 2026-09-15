@@ -1301,17 +1301,11 @@
         .flight-status-pill.enroute { background: rgba(76,175,80,0.15); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
         .flight-status-pill.scheduled { background: rgba(147,197,253,0.1); color: #93c5fd; border: 1px solid rgba(147,197,253,0.2); }
         .flight-status-pill.landed { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
-        /* ── PILOT JOURNEY ── */
-        .pilot-step { font-family:'Space Mono',monospace; font-size:0.72rem; padding:0.4rem 0.75rem; border-radius:6px; background:var(--bg-elevated); border:1px solid rgba(255,255,255,0.08); color:var(--text-muted); transition:all 0.2s; }
-        .pilot-step.active { background:rgba(59,130,246,0.15); border-color:#3b82f6; color:#93c5fd; box-shadow:0 0 0 1px rgba(59,130,246,0.15); }
-        .pilot-step.done { color:var(--green); border-color:rgba(76,175,80,0.3); }
-        /* ── AVIATION JOURNEY (added) ── */
+        /* ── AVIATION Hobby (added) ── */
         .journey-wrap { background: var(--bg-elevated); border: 1px solid rgba(59,130,246,0.18); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
         .journey-goal { font-size: 0.92rem; line-height: 1.75; color: var(--text-muted); margin: 0 0 1.25rem; max-width: 68ch; }
         .journey-goal strong { color: #93c5fd; font-weight: 600; }
         .journey-label { font-family: 'Space Mono', monospace; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem; }
-        .journey-path { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
-        .journey-arrow { color: var(--text-muted); font-size: 0.7rem; opacity: 0.5; }
         .journey-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
         .journey-note { font-size: 0.72rem; color: var(--text-muted); margin: 0.75rem 0 0; opacity: 0.75; }
         .if-badge-cached { display: inline-flex; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
@@ -4004,7 +3998,7 @@
             <div class="nav-dropdown">
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Explorations <span class="caret">▾</span></button>
                 <div class="nav-drop-menu">
-                    <a href="#journey">Aviation Journey 🛫</a>
+                    <a href="#journey">Flight Log (Hobby) 🛩️</a>
                     <a href="#aviation">Flight Tracker ✈️</a>
                     <a href="#metar">METAR ✈️📡📄📊</a>
                     <a href="#weather">Weather 🌤️</a>
@@ -4108,7 +4102,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <p>I'm a 24-year-old <strong>AI &amp; Software/Data Engineer</strong> who builds production systems — the kind with rate limiters, kill switches, retries and real traffic, not the kind that lives in a notebook. I hold a BS in Computer Science from UT Dallas and certifications in IBM AI Engineering, IBM Data Science, and the Databricks Certified Data Engineer Associate.</p>
         <p>My work spans both halves of the stack: designing and optimizing end-to-end data pipelines across Microsoft Fabric, Databricks, PySpark and SQL, and shipping full-stack AI systems — multi-model LLM gateways, hybrid RAG with reranking, agentic loops, and offline eval harnesses. This site is one of them. It runs a hybrid retrieval pipeline, a gateway across five model providers, and a seven-layer security stack that has taken sustained real attack traffic and held.</p>
         <p>Most of my side projects live where messy public data meets automation. <strong>ClimatePulse</strong> is a 57-year NOAA pipeline across 13 global stations with a Bronze&rarr;Silver&rarr;Gold architecture, refreshed daily by GitHub Actions — incremental per-station caching cut each run from 741 API calls to 13. The <strong>live flight tracker</strong> on this page is real-time geospatial ingestion. <strong>mcp-garmin</strong> came from reverse-engineering Garmin's undocumented workout schema into a typed spec an LLM can drive.</p>
-        <p>Outside the terminal I'm a competitive marathoner chasing a sub-3:00 finish, and I'm working toward my private pilot certificate — part-time at a Part 61 field, funded as I go. The METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), the live flight tracker, and the Infinite Flight tooling on this page all started as questions I had about flying. Weather systems, astronomy, and sport pull at me for the same reason. I value time with family and friends, and I'm happiest reading about — or building — whatever comes next. More on the aviation side →</p>
+        <p>Outside the terminal I'm a competitive marathoner chasing a sub-3:00 finish, and I fly small planes on weekends purely as a hobby. Both hobbies keep turning into engineering problems: the METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), the live flight tracker, and the Infinite Flight tooling on this page are real-time data work that started with aviation data, and the Strava and pace tools came from running. Weather systems, astronomy, and sport pull at me for the same reason. I value time with family and friends, and I'm happiest building whatever comes next. <a href="#journey">My flight log →</a></p>
 
         <div class="skill-group-label">⚙️ Data Engineering</div>
         <span class="skill-tag de">SQL (T-SQL · Spark SQL)</span>
@@ -4602,35 +4596,19 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     <!-- AVIATION -->
     <section id="aviation">
 
-        <h2 id="journey">🛫 My Aviation Journey</h2>
-        <p>My progress in flight training, the logbook behind it, and the aviation projects it inspires.</p>
+        <h2 id="journey">🛩️ Off the Clock: Flight Log</h2>
+        <p>Flying is a hobby. Here's my logbook, my live simulator stats, and the data engineering it gives me an excuse to build.</p>
 
         <div class="journey-wrap">
 
             <p class="journey-goal">
-                Aviation is one of my biggest interests outside of engineering. I'm pursuing flight training
-                part-time at a Part&nbsp;61 field while continuing to build my career in AI and data engineering.
-                Flying also inspires many of the projects on this site — including the METAR streaming pipeline,
-                the live flight tracker, and my Infinite Flight projects. For me, aviation and engineering are
-                two interests that naturally come together through software, real-time data, weather, and flight.
+                Aviation is a hobby, not a career track &mdash; my career is <strong>AI and data engineering</strong>.
+                I fly part-time for fun and I'm working toward a Private Pilot certificate (personal, non-commercial
+                flying) at my own pace. What the hobby gives my engineering is a steady supply of real-world data:
+                the <strong>METAR streaming pipeline</strong> (Kafka &rarr; Spark Structured Streaming &rarr; Delta Lake),
+                the <strong>live ADS-B flight tracker</strong>, and the <strong>Infinite Flight panel</strong> below
+                (a serverless API proxy with edge caching and last-known-good fallback) all started here.
             </p>
-
-            <div class="journey-label">Ratings path</div>
-            <div class="journey-path">
-                <span class="pilot-step active">Student</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">PPL</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">Instrument</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">Commercial</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">Multi-Engine</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">CFI</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">ATP</span>
-            </div>
 
             <div class="journey-cols">
 
@@ -4655,7 +4633,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                             <div class="aviation-stat-label">Type Flown</div>
                         </div>
                     </div>
-                    <p class="journey-note">Every hour here was paid for out of pocket. It starts small on purpose.</p>
+                    <p class="journey-note">Weekend flying, logged for fun.</p>
                 </div>
 
                 <div>

@@ -3208,16 +3208,106 @@
         }
         #metar .dbt-note a { color: inherit; }
         /* ── METAR terminal screenshots ── */
-        .metar-shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.75rem; margin: 1rem 0 0; }
-        .metar-shots figure { margin: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; background: #0b0d10; cursor: zoom-in; }
-        .metar-shots img { display: block; width: 100%; height: auto; max-height: 340px; object-fit: contain; object-position: top left; background: #0b0d10; transition: opacity 0.2s; }
-        .metar-shots figure:hover img { opacity: 0.85; }
-        .metar-shots figcaption { font-family: 'Space Mono', monospace; font-size: 0.62rem; line-height: 1.45; color: var(--text-muted); padding: 0.5rem 0.6rem; border-top: 1px solid rgba(255,255,255,0.06); }
-        .metar-shots figcaption b { color: inherit; opacity: 0.95; }
-        .metar-shots.single { grid-template-columns: minmax(0, 420px); }
+        .metar-shots, .proof-shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.75rem; margin: 1rem 0 0; }
+        .metar-shots figure, .proof-shots figure { margin: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; background: #0b0d10; cursor: zoom-in; }
+        .metar-shots img, .proof-shots img { display: block; width: 100%; height: auto; max-height: 340px; object-fit: contain; object-position: top left; background: #0b0d10; transition: opacity 0.2s; }
+        .metar-shots figure:hover img, .proof-shots figure:hover img { opacity: 0.85; }
+        .metar-shots figcaption, .proof-shots figcaption { font-family: 'Space Mono', monospace; font-size: 0.62rem; line-height: 1.45; color: var(--text-muted); padding: 0.5rem 0.6rem; border-top: 1px solid rgba(255,255,255,0.06); }
+        .metar-shots figcaption b, .proof-shots figcaption b { color: inherit; opacity: 0.95; }
+        .metar-shots.single, .proof-shots.single { grid-template-columns: minmax(0, 420px); }
+        .proof-shots img { max-height: 400px; object-position: top center; }
         @media (max-width: 640px) {
             #metar .dbt-arrow { display: none; }
             #metar .dbt-node  { width: 100%; }
+        }
+        /* ── mcp-garmin: generated training block ── */
+        #mcp-garmin .mg-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin: 1.5rem 0 2rem;
+        }
+        #mcp-garmin .mg-stat {
+            border: 1px solid rgba(128,128,128,0.22);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+        }
+        #mcp-garmin .mg-stat b {
+            display: block;
+            font-size: 1.55rem;
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--green-light);
+        }
+        #mcp-garmin .mg-stat span {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            opacity: 0.6;
+        }
+        #mcp-garmin .mg-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(0,0,0,0.18);
+        }
+        #mcp-garmin table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.78rem;
+            font-variant-numeric: tabular-nums;
+            min-width: 33rem;
+        }
+        #mcp-garmin th, #mcp-garmin td {
+            padding: 0.4rem 0.75rem;
+            text-align: right;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            white-space: nowrap;
+        }
+        #mcp-garmin th {
+            font-size: 0.66rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        #mcp-garmin th:first-child, #mcp-garmin td:first-child,
+        #mcp-garmin th:nth-child(2), #mcp-garmin td:nth-child(2) { text-align: left; }
+        #mcp-garmin tbody tr:last-child td { border-bottom: 0; }
+        #mcp-garmin tbody tr:hover td { background: rgba(76,175,80,0.06); }
+        #mcp-garmin .mg-bar {
+            display: inline-block;
+            height: 0.5rem;
+            border-radius: 2px;
+            background: var(--green);
+            opacity: 0.5;
+            vertical-align: middle;
+            margin-right: 0.45rem;
+        }
+        #mcp-garmin tr.mg-down td { color: #e0a33e; }
+        #mcp-garmin tr.mg-down .mg-bar { background: #e0a33e; }
+        #mcp-garmin tr.mg-race td { color: var(--green-light); font-weight: 700; }
+        #mcp-garmin .mg-legend {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin: 0.7rem 0 0;
+        }
+        #mcp-garmin .mg-verdict {
+            border-left: 3px solid var(--green);
+            background: var(--green-glow);
+            border-radius: 0 8px 8px 0;
+            padding: 0.85rem 1.1rem;
+            margin: 1.5rem 0;
+            font-size: 0.86rem;
+            line-height: 1.6;
+        }
+        #mcp-garmin .mg-verdict b { color: var(--green-light); }
+        @media (max-width: 640px) {
+            #mcp-garmin table { font-size: 0.72rem; }
+            #mcp-garmin th, #mcp-garmin td { padding: 0.35rem 0.5rem; }
         }
         /* ---------- Infinite Flight panel ---------- */
         #if-flight {
@@ -4016,6 +4106,7 @@
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Running <span class="caret">▾</span></button>
                 <div class="nav-drop-menu">
                     <a href="#running">Running</a>
+                    <a href="#mcp-garmin">Garmin Training Plans ⌚</a>
                     <a href="#heat-pace">Running Heat Adjustment Calculator</a>
                     <a href="#wind-cold">Wind &amp; Cold Adjustment</a>
                     <a href="#pace-calc">Pace Calculator</a>
@@ -4440,17 +4531,64 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
 
             <div class="project-card">
-                <div class="project-title">⌚🏃🏽‍♂️ Garmin MCP Server</div>
+                <div class="project-title">⌚🏃🏽‍♂️ Garmin MCP Server — Training Plans Built From Your Actual Fitness</div>
                 <div class="project-tech">
                     <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
                     <span class="skill-tag ai">MCP Servers</span>
-                   <span class="skill-tag ai">Pydantic</span>
+                    <span class="skill-tag ai">Pydantic</span>
                     <span class="tech-pill">Garmin Connect</span>
+                    <span class="tech-pill">Structured Workout Schema</span>
+                    <span class="tech-pill">Strength Workout API</span>
+                    <span class="skill-tag">Riegel Performance Modelling</span>
+                    <span class="skill-tag">Progressive Load Ramps</span>
                     <span class="skill-tag cl">Docker</span>
                     <span class="tech-pill">pytest</span>
                     <span class="skill-tag cl">GitHub Actions</span>
                 </div>
-                <div class="project-desc">Model Context Protocol server that lets Claude read Garmin activities and build &amp; schedule structured workouts and full training plans straight to a Garmin watch. Reverse-engineered Garmin's workout-service schema into a typed, LLM-friendly spec — with garth SSO auth, a bearer-secured HTTP transport, an offline test suite, and CI, packaged for one-command Docker/Railway deploy.</div>
+                <div class="project-desc">
+                    Model Context Protocol server that reads Garmin activities and writes
+                    structured workouts, strength sessions and whole training blocks straight
+                    to the Garmin calendar. Reverse-engineered Garmin's workout-service schema
+                    into a typed, LLM-friendly spec — garth SSO auth, a bearer-secured HTTP
+                    transport, an offline test suite, and CI, packaged for one-command
+                    Docker/Railway deploy.
+                    <br><br>
+                    Plans aren't templates. It reads the last eight weeks of logged running,
+                    derives weekly mileage, longest run, frequency and best effort, and
+                    compares that to what the goal demands. If the goal doesn't fit the
+                    runway it says so and builds toward the one that does — a 5:12 miler
+                    asking for sub-4:30 is told that's a two-or-three-season project, not a
+                    16-week one. Marathon blocks ramp 8%/week on a 3-up-1-down cycle from
+                    wherever the athlete actually is; high-school track blocks target the
+                    sub-2:00 800, sub-4:30 1600, sub-10:00 3200 and sub-15:00 5K with weekly
+                    mileage ceilings by training age. Every plan carries two strength sessions
+                    a week on quality days, per-session fuelling and recovery notes in the
+                    workout description, and a weekly nutrition brief.
+                    <div class="proof-shots">
+                        <figure onclick="openProofShot('images/mcp-garmin/calendar.png', '⌚ mcp-garmin')">
+                            <img src="images/mcp-garmin/calendar.png" loading="lazy" alt="Garmin Connect calendar showing two generated training weeks: easy runs with strides, hill and pace strides, Strength A and Strength B, and Sunday long runs">
+                            <figcaption><b>118 sessions, written over the API.</b> Two weeks of a generated sub-3 block on the Garmin Connect calendar — easy runs, quality, both strength days, Sunday long run.</figcaption>
+                        </figure>
+                        <figure onclick="openProofShot('images/mcp-garmin/watch.jpg', '⌚ mcp-garmin')">
+                            <img src="images/mcp-garmin/watch.jpg" loading="lazy" alt="Generated Strength A session loaded on a Garmin watch, showing the targeted muscle groups">
+                            <figcaption><b>Strength A on the watch.</b> Garmin renders the targeted muscle groups from the exercise codes the server wrote — the strength path needed garminconnect 0.3.7+.</figcaption>
+                        </figure>
+                    </div>
+                    <br>
+                    The interesting part is what broke. Between garminconnect 0.3.6 and 0.3.15,
+                    <code>get_scheduled_workouts()</code> went month-scoped and dict-returning;
+                    two shipped tools still called it the old way and raised <code>TypeError</code>
+                    against the version the project's own dependency floor allowed. The offline
+                    suite never caught it because every test mocked the calendar away — it
+                    surfaced on the first live run. Reading the generated output caught two more:
+                    the gap analysis told a sub-3:30 athlete the block had to reach 20 miles twice
+                    before the taper while the generator capped long runs at 30% of weekly volume,
+                    which tops out at 16 miles on a 53 mi/wk peak — the plan contradicted its own
+                    report. And down weeks were counted per phase while the mileage ramp cut on the
+                    absolute week, so cutback weeks ran full quality and climbing weeks got the
+                    reduced load. All three are now covered by tests that assert the plan against
+                    what the assessment claims, rather than just that it builds.
+                </div>
                 <div class="project-links">
                     <a href="https://github.com/yashhooda1/mcp-garmin" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
                 </div>
@@ -5359,6 +5497,111 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <div id="analytics-content">
             <div class="analytics-loading">Analyzing your training data...</div>
         </div>
+    </section>
+
+    <section id="mcp-garmin">
+        <h2>⌚ Garmin Training Plans — Generated From Real Training Data</h2>
+        <p>
+            <a href="https://github.com/yashhooda1/mcp-garmin" target="_blank" rel="noopener">mcp-garmin</a>
+            reads my logged Garmin history, works out the gap between current fitness and a
+            goal race, and writes a whole training block — runs, strength, fuelling notes —
+            straight to the Garmin calendar. The block below is real output: a sub-3:00
+            Chevron Houston Marathon build, generated from 34 mi/wk of logged running and a
+            1:25 half marathon.
+        </p>
+
+        <div class="mg-stats">
+            <div class="mg-stat"><b>118</b><span>sessions scheduled</span></div>
+            <div class="mg-stat"><b>17</b><span>weeks to race day</span></div>
+            <div class="mg-stat"><b>33</b><span>strength sessions</span></div>
+            <div class="mg-stat"><b>52.6</b><span>peak mi / week</span></div>
+            <div class="mg-stat"><b>2&times;</b><span>strength every week</span></div>
+        </div>
+
+        <div class="mg-verdict">
+            <b>Verdict: on_track</b> — the goal fits the runway, so the plan builds straight
+            toward it. When it doesn't, the plan says so: a 5:12 miler asking for sub-4:30
+            gets told that's normally a two-or-three-season project, and the block is built
+            toward the PR this season can actually deliver instead.
+        </div>
+
+        <h3>The generated block</h3>
+        <div class="mg-scroll">
+            <table>
+                <thead>
+                    <tr><th>Wk</th><th>Phase</th><th>Miles</th><th>Long</th><th>Strength</th><th></th></tr>
+                </thead>
+                <tbody id="mg-rows"></tbody>
+            </table>
+        </div>
+        <p class="mg-legend">
+            3-up-1-down cycles ramping 8%/week from current mileage, down weeks in amber,
+            long runs reaching 20 twice before a three-week taper. Strength lands on quality
+            days so easy days stay easy and nothing sits the day before a long run.
+        </p>
+
+        <h3 style="margin-top:2rem">On the calendar, on the watch</h3>
+        <div class="proof-shots">
+            <figure onclick="openProofShot('images/mcp-garmin/calendar.png', '⌚ mcp-garmin')">
+                <img src="images/mcp-garmin/calendar.png" loading="lazy" alt="Garmin Connect calendar showing two generated training weeks: easy runs with strides, hill and pace strides, Strength A and Strength B, and Sunday long runs">
+                <figcaption><b>Written over the API.</b> Two weeks of the block on the Garmin Connect calendar — easy runs, quality, both strength days, Sunday long run.</figcaption>
+            </figure>
+            <figure onclick="openProofShot('images/mcp-garmin/watch.jpg', '⌚ mcp-garmin')">
+                <img src="images/mcp-garmin/watch.jpg" loading="lazy" alt="Generated Strength A session loaded on a Garmin watch, showing the targeted muscle groups">
+                <figcaption><b>Strength A on the watch.</b> Garmin renders the targeted muscle groups from the exercise codes the server wrote.</figcaption>
+            </figure>
+        </div>
+
+        <h3 style="margin-top:2rem">What every plan carries</h3>
+        <p>
+            Two strength sessions a week on quality days — posterior chain and anti-extension
+            core on day A, hip control and anti-rotation on day B, dumbbells and a band.
+            Down and race weeks swap the heavy day for a mobility reset so the habit survives
+            when the load shouldn't. Each workout description carries its own fuelling and
+            recovery line, so the guidance is on the watch rather than in a document nobody
+            opens, and each week returns a nutrition, hydration and recovery brief alongside
+            the schedule. The same engine builds high-school track blocks for the sub-2:00
+            800, sub-4:30 1600, sub-10:00 3200 and sub-15:00 5K, with weekly mileage ceilings
+            set by training age and a full rest day every week.
+        </p>
+
+        <script>
+        (function () {
+            var weeks = [
+                { w: 1,  p: "base",     mi: 34.0, long:  8.8, lifts: 2 },
+                { w: 2,  p: "base",     mi: 35.5, long:  9.2, lifts: 2 },
+                { w: 3,  p: "base",     mi: 37.1, long:  9.6, lifts: 2 },
+                { w: 4,  p: "base",     mi: 29.1, long:  7.6, lifts: 2, down: true },
+                { w: 5,  p: "build",    mi: 38.8, long: 11.6, lifts: 2 },
+                { w: 6,  p: "build",    mi: 40.5, long: 12.2, lifts: 2 },
+                { w: 7,  p: "build",    mi: 42.3, long: 12.7, lifts: 2 },
+                { w: 8,  p: "build",    mi: 33.1, long:  9.9, lifts: 2, down: true },
+                { w: 9,  p: "build",    mi: 44.2, long: 13.3, lifts: 2 },
+                { w: 10, p: "specific", mi: 46.2, long: 16.2, lifts: 2 },
+                { w: 11, p: "specific", mi: 48.2, long: 18.0, lifts: 2 },
+                { w: 12, p: "specific", mi: 37.8, long: 13.2, lifts: 2, down: true },
+                { w: 13, p: "specific", mi: 50.4, long: 20.0, lifts: 2 },
+                { w: 14, p: "specific", mi: 52.6, long: 20.0, lifts: 2 },
+                { w: 15, p: "taper",    mi: 41.2, long: 14.4, lifts: 2 },
+                { w: 16, p: "taper",    mi: 30.3, long: 10.6, lifts: 2 },
+                { w: 17, p: "taper",    mi: 19.2, long: 26.2, lifts: 1, race: true }
+            ];
+            var peak = 52.6, rows = document.getElementById('mg-rows');
+            if (!rows) return;
+            rows.innerHTML = weeks.map(function (r) {
+                var cls = r.race ? 'mg-race' : (r.down ? 'mg-down' : '');
+                var width = (r.mi / peak * 3.2).toFixed(2);
+                var tag = r.race ? 'race day' : (r.down ? 'down' : '');
+                return '<tr class="' + cls + '">' +
+                    '<td>' + r.w + '</td>' +
+                    '<td>' + r.p + '</td>' +
+                    '<td><i class="mg-bar" style="width:' + width + 'rem"></i>' + r.mi.toFixed(1) + '</td>' +
+                    '<td>' + r.long.toFixed(1) + '</td>' +
+                    '<td>' + r.lifts + '&times;</td>' +
+                    '<td>' + tag + '</td></tr>';
+            }).join('');
+        })();
+        </script>
     </section>
 
     <!-- Running Heat pace Calculator -->
@@ -8999,14 +9242,18 @@ function openSnowLightbox(category, index) {
     document.body.style.overflow = 'hidden';
 }
 
-function openMetarShot(src) {
+function openProofShot(src, label) {
     snowLightboxPhotos = [src];
     snowIndex = 0;
     document.getElementById('snow-lightbox-img').src = src;
     document.getElementById('snow-counter').textContent = '';
-    document.getElementById('snow-location-tag').textContent = '🌪️ METAR Stream';
+    document.getElementById('snow-location-tag').textContent = label || '';
     document.getElementById('snow-lightbox').classList.add('open');
     document.body.style.overflow = 'hidden';
+}
+
+function openMetarShot(src) {
+    openProofShot(src, '🌪️ METAR Stream');
 }
 
 function closeSnowLightbox() {

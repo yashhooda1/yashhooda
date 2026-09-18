@@ -1304,17 +1304,11 @@
         .flight-status-pill.enroute { background: rgba(76,175,80,0.15); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
         .flight-status-pill.scheduled { background: rgba(147,197,253,0.1); color: #93c5fd; border: 1px solid rgba(147,197,253,0.2); }
         .flight-status-pill.landed { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
-        /* ── PILOT JOURNEY ── */
-        .pilot-step { font-family:'Space Mono',monospace; font-size:0.72rem; padding:0.4rem 0.75rem; border-radius:6px; background:var(--bg-elevated); border:1px solid rgba(255,255,255,0.08); color:var(--text-muted); transition:all 0.2s; }
-        .pilot-step.active { background:rgba(59,130,246,0.15); border-color:#3b82f6; color:#93c5fd; box-shadow:0 0 0 1px rgba(59,130,246,0.15); }
-        .pilot-step.done { color:var(--green); border-color:rgba(76,175,80,0.3); }
-        /* ── AVIATION JOURNEY (added) ── */
+        /* ── AVIATION Hobby (added) ── */
         .journey-wrap { background: var(--bg-elevated); border: 1px solid rgba(59,130,246,0.18); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
         .journey-goal { font-size: 0.92rem; line-height: 1.75; color: var(--text-muted); margin: 0 0 1.25rem; max-width: 68ch; }
         .journey-goal strong { color: #93c5fd; font-weight: 600; }
         .journey-label { font-family: 'Space Mono', monospace; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem; }
-        .journey-path { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
-        .journey-arrow { color: var(--text-muted); font-size: 0.7rem; opacity: 0.5; }
         .journey-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
         .journey-note { font-size: 0.72rem; color: var(--text-muted); margin: 0.75rem 0 0; opacity: 0.75; }
         .if-badge-cached { display: inline-flex; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
@@ -2087,6 +2081,11 @@
             overflow: hidden;
         }
         .agent-log-panel.active { display: flex; }
+        .agent-tools-box { padding: 0.75rem 0.75rem 0; border-bottom: 1px solid var(--border, #222); }
+        #agent-tools-out { max-height: 40vh; overflow-y: auto; }
+        .agent-tool-step { margin: 0.3rem 0; font-family: 'Space Mono', monospace; font-size: 0.65rem; }
+        .agent-tool-step summary { cursor: pointer; color: var(--accent, #7dd3fc); }
+        .agent-tool-step pre { white-space: pre-wrap; word-break: break-word; font-size: 0.6rem; max-height: 160px; overflow: auto; padding: 0.4rem; margin: 0.25rem 0 0; background: rgba(0,0,0,0.25); border-radius: 6px; }
         .agent-log-container {
             flex: 1;
             overflow-y: auto;
@@ -3210,9 +3209,107 @@
             margin-top: 1rem;
         }
         #metar .dbt-note a { color: inherit; }
+        /* ── METAR terminal screenshots ── */
+        .metar-shots, .proof-shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.75rem; margin: 1rem 0 0; }
+        .metar-shots figure, .proof-shots figure { margin: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; background: #0b0d10; cursor: zoom-in; }
+        .metar-shots img, .proof-shots img { display: block; width: 100%; height: auto; max-height: 340px; object-fit: contain; object-position: top left; background: #0b0d10; transition: opacity 0.2s; }
+        .metar-shots figure:hover img, .proof-shots figure:hover img { opacity: 0.85; }
+        .metar-shots figcaption, .proof-shots figcaption { font-family: 'Space Mono', monospace; font-size: 0.62rem; line-height: 1.45; color: var(--text-muted); padding: 0.5rem 0.6rem; border-top: 1px solid rgba(255,255,255,0.06); }
+        .metar-shots figcaption b, .proof-shots figcaption b { color: inherit; opacity: 0.95; }
+        .metar-shots.single, .proof-shots.single { grid-template-columns: minmax(0, 420px); }
+        .proof-shots img { max-height: 400px; object-position: top center; }
         @media (max-width: 640px) {
             #metar .dbt-arrow { display: none; }
             #metar .dbt-node  { width: 100%; }
+        }
+        /* ── mcp-garmin: generated training block ── */
+        #mcp-garmin .mg-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin: 1.5rem 0 2rem;
+        }
+        #mcp-garmin .mg-stat {
+            border: 1px solid rgba(128,128,128,0.22);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+        }
+        #mcp-garmin .mg-stat b {
+            display: block;
+            font-size: 1.55rem;
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--green-light);
+        }
+        #mcp-garmin .mg-stat span {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            opacity: 0.6;
+        }
+        #mcp-garmin .mg-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(0,0,0,0.18);
+        }
+        #mcp-garmin table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.78rem;
+            font-variant-numeric: tabular-nums;
+            min-width: 33rem;
+        }
+        #mcp-garmin th, #mcp-garmin td {
+            padding: 0.4rem 0.75rem;
+            text-align: right;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            white-space: nowrap;
+        }
+        #mcp-garmin th {
+            font-size: 0.66rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        #mcp-garmin th:first-child, #mcp-garmin td:first-child,
+        #mcp-garmin th:nth-child(2), #mcp-garmin td:nth-child(2) { text-align: left; }
+        #mcp-garmin tbody tr:last-child td { border-bottom: 0; }
+        #mcp-garmin tbody tr:hover td { background: rgba(76,175,80,0.06); }
+        #mcp-garmin .mg-bar {
+            display: inline-block;
+            height: 0.5rem;
+            border-radius: 2px;
+            background: var(--green);
+            opacity: 0.5;
+            vertical-align: middle;
+            margin-right: 0.45rem;
+        }
+        #mcp-garmin tr.mg-down td { color: #e0a33e; }
+        #mcp-garmin tr.mg-down .mg-bar { background: #e0a33e; }
+        #mcp-garmin tr.mg-race td { color: var(--green-light); font-weight: 700; }
+        #mcp-garmin .mg-legend {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin: 0.7rem 0 0;
+        }
+        #mcp-garmin .mg-verdict {
+            border-left: 3px solid var(--green);
+            background: var(--green-glow);
+            border-radius: 0 8px 8px 0;
+            padding: 0.85rem 1.1rem;
+            margin: 1.5rem 0;
+            font-size: 0.86rem;
+            line-height: 1.6;
+        }
+        #mcp-garmin .mg-verdict b { color: var(--green-light); }
+        @media (max-width: 640px) {
+            #mcp-garmin table { font-size: 0.72rem; }
+            #mcp-garmin th, #mcp-garmin td { padding: 0.35rem 0.5rem; }
         }
         /* ---------- Infinite Flight panel ---------- */
         #if-flight {
@@ -3894,6 +3991,17 @@
 
     <!-- Agent Activity Log Panel -->
     <div class="agent-log-panel" id="agent-panel">
+        <div class="agent-tools-box" id="agent-tools-box">
+            <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.4rem;">
+                🏃 Running Agent · MCP tools <span id="agent-tools-count"></span>
+            </div>
+            <textarea class="lab-input" id="agent-tools-query" aria-label="Ask the running agent" rows="2" placeholder="Am I overtraining? · What did I run this week? · Predict my marathon from my half PR"></textarea>
+            <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+                <button class="lab-run-btn" id="agent-tools-run" onclick="runAgentTools()">▶ Ask</button>
+                <button class="lab-compare-btn" onclick="document.getElementById('agent-tools-out').innerHTML=''">✕ Clear</button>
+            </div>
+            <div id="agent-tools-out"></div>
+        </div>
         <div class="agent-log-container" id="agent-log-container">
             <div class="agent-log-empty">Loading agent activity...</div>
         </div>
@@ -3959,6 +4067,8 @@
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Running <span class="caret">▾</span></button>
                 <div class="nav-drop-menu">
                     <a href="#running">Running</a>
+                    <a href="#running-analytics">Training Analytics</a>
+                    <a href="#mcp-garmin">Garmin Training Plans ⌚</a>
                     <a href="#heat-pace">Running Heat Adjustment Calculator</a>
                     <a href="#wind-cold">Wind &amp; Cold Adjustment</a>
                     <a href="#pace-calc">Pace Calculator</a>
@@ -3976,7 +4086,7 @@
             <div class="nav-dropdown">
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Explorations <span class="caret">▾</span></button>
                 <div class="nav-drop-menu">
-                    <a href="#journey">Aviation Journey 🛫</a>
+                    <a href="#journey">Flight Log (Hobby) 🛩️</a>
                     <a href="#aviation">Flight Tracker ✈️</a>
                     <a href="#metar">METAR ✈️📡📄📊</a>
                     <a href="#weather">Weather 🌤️</a>
@@ -4033,13 +4143,13 @@
   <aside class="deck-index" aria-label="Explore Yash's engineering work and running">
     <div class="deck-index-label">Engineering in practice</div>
     <a class="deck-destination" href="#projects">
-      <span>01</span><span><strong>Production AI systems</strong><small>HoodaAgents · Hybrid RAG · Agentic workflows</small></span><span aria-hidden="true">↗</span>
+      <span>01</span><span><strong>Production AI systems</strong><small>HoodaAgents · Local agents · Evaluated fine-tunes</small></span><span aria-hidden="true">↗</span>
     </a>
     <a class="deck-destination" href="#climate">
-      <span>02</span><span><strong>Data engineering, end to end</strong><small>ClimatePulse · Databricks · Streaming pipelines</small></span><span aria-hidden="true">↗</span>
+      <span>02</span><span><strong>Data engineering, end to end</strong><small>METAR Stream · ClimatePulse · PySpark</small></span><span aria-hidden="true">↗</span>
     </a>
-    <a class="deck-destination" href="#running-analytics">
-      <span>03</span><span><strong>Running, measured</strong><small>Strava Intelligence · Training load · Race predictions</small></span><span aria-hidden="true">↗</span>
+    <a class="deck-destination" href="#mcp-garmin">
+      <span>03</span><span><strong>Running, measured</strong><small>Garmin MCP · HoodaRoutes · PaceForge</small></span><span aria-hidden="true">↗</span>
     </a>
     <a class="deck-secondary-link" href="#journey">Also exploring: aviation &amp; flight training <span aria-hidden="true">↗</span></a>
     <a class="deck-photo" href="#hikes">
@@ -4128,7 +4238,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <p>I'm a 24-year-old <strong>AI &amp; Software/Data Engineer</strong> who builds production systems — the kind with rate limiters, kill switches, retries and real traffic, not the kind that lives in a notebook. I hold a BS in Computer Science from UT Dallas and certifications in IBM AI Engineering, IBM Data Science, and the Databricks Certified Data Engineer Associate.</p>
         <p>My work spans both halves of the stack: designing and optimizing end-to-end data pipelines across Microsoft Fabric, Databricks, PySpark and SQL, and shipping full-stack AI systems — multi-model LLM gateways, hybrid RAG with reranking, agentic loops, and offline eval harnesses. This site is one of them. It runs a hybrid retrieval pipeline, a gateway across five model providers, and a seven-layer security stack that has taken sustained real attack traffic and held.</p>
         <p>Most of my side projects live where messy public data meets automation. <strong>ClimatePulse</strong> is a 57-year NOAA pipeline across 13 global stations with a Bronze&rarr;Silver&rarr;Gold architecture, refreshed daily by GitHub Actions — incremental per-station caching cut each run from 741 API calls to 13. The <strong>live flight tracker</strong> on this page is real-time geospatial ingestion. <strong>mcp-garmin</strong> came from reverse-engineering Garmin's undocumented workout schema into a typed spec an LLM can drive.</p>
-        <p>Outside the terminal I'm a competitive marathoner chasing a sub-3:00 finish, and I'm working toward my private pilot certificate — part-time at a Part 61 field, funded as I go. The METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), the live flight tracker, and the Infinite Flight tooling on this page all started as questions I had about flying. Weather systems, astronomy, and sport pull at me for the same reason. I value time with family and friends, and I'm happiest reading about — or building — whatever comes next. More on the aviation side →</p>
+        <p>Outside the terminal I'm a competitive marathoner chasing a sub-3:00 finish, and I fly small planes on weekends purely as a hobby. Both hobbies keep turning into engineering problems: the METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), the live flight tracker, and the Infinite Flight tooling on this page are real-time data work that started with aviation data, and the Strava and pace tools came from running. Weather systems, astronomy, and sport pull at me for the same reason. I value time with family and friends, and I'm happiest building whatever comes next. <a href="#journey">My flight log →</a></p>
 
         <div class="skill-cloud">
         <div class="skill-group-label">⚙️ Data Engineering</div>
@@ -4192,10 +4302,23 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <h2>🚀 Projects</h2>
         <p>Here are some of my notable projects:</p>
 
+        <nav class="project-directory" aria-label="Project directory">
+            <a href="#project-hoodaagents"><span>01</span>HoodaAgents</a>
+            <a href="#project-metar-stream"><span>02</span>METAR Stream</a>
+            <a href="#project-running-coach-sft"><span>03</span>Running Coach SFT</a>
+            <a href="#project-slm-agent"><span>04</span>SLM Offline Agent</a>
+            <a href="#project-pyspark-assistant"><span>05</span>PySpark Assistant</a>
+            <a href="#project-infinite-flight"><span>06</span>Infinite Flight</a>
+            <a href="#project-climatepulse"><span>07</span>ClimatePulse</a>
+            <a href="#project-garmin-mcp"><span>08</span>Garmin MCP</a>
+            <a href="#project-hoodaroutes"><span>09</span>HoodaRoutes</a>
+            <a href="#project-paceforge"><span>10</span>PaceForge</a>
+        </nav>
+
         <div class="projects-grid">
 
-            <div class="project-card">
-                <div class="project-title">🧠 HoodaAgents — Agentic AI Platform</div>
+            <div class="project-card" id="project-hoodaagents">
+                <h3 class="project-title">🧠 HoodaAgents — Agentic AI Platform</h3>
                 <div class="project-tech">
                     <span class="tech-pill">AI / LLM Engineering</span>
                     <span class="skill-tag ai">Ollama</span>
@@ -4234,11 +4357,13 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <a href="#" class="nav-chat-btn" onclick="document.getElementById('nav-ai-chat').click(); return false;">💬 Try AI Chat</a>
                     <a href="https://ollama.com/hoodarunner/hoodaAgents" target="_blank" rel="noopener" class="project-btn">🦙 Ollama Model</a>
                     <a href="https://github.com/yashhooda1/yashhooda" target="_blank" class="project-btn">📂 GitHub</a>
+                    <a href="https://www.youtube.com/watch?v=hvS8gZ10YoA" target="_blank" rel="noopener" class="project-btn">🎬 HoodaAgents Demo</a>
+                    <a href="https://www.youtube.com/watch?v=ujYML8Xuvnc" target="_blank" rel="noopener" class="project-btn">🔒 Security Update Demo</a>
                 </div>
             </div>
 
-            <div class="project-card">
-                <div class="project-title">🌪️ METAR Stream — Real-Time Aviation Weather</div>
+            <div class="project-card" id="project-metar-stream">
+                <h3 class="project-title">🌪️ METAR Stream — Real-Time Aviation Weather</h3>
                 <div class="project-tech">
                     <span class="tech-pill">Streaming</span>
                     <span class="skill-tag de">Apache Kafka</span>
@@ -4270,7 +4395,13 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     and recovery meant rebuilding downstream layers from the replayable
                     bronze source. A 181-second broker outage was survived with zero
                     duplicate keys.
-                    <br><br>
+                    <div class="metar-shots single">
+                        <figure role="button" tabindex="0" aria-label="Enlarge screenshot" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="openMetarShot('images/metar/metar-broker-restart.png')">
+                            <img src="images/metar/metar-broker-restart.png" loading="lazy" alt="Terminal: silver row count draining after a forced Redpanda broker restart, duplicate keys 0">
+                            <figcaption><b>Forced broker restart.</b> Silver catches up in +1 / +5 / +16 / +27 steps after Redpanda comes back — duplicate keys stayed at 0 throughout.</figcaption>
+                        </figure>
+                    </div>
+                    <br>
                     Two hypotheses were measured and discarded. High p95 ingest lag looked
                     like watermark drops, but direct measurement showed 2 records lost out of
                     4,179 — 0.0%; ingest lag and event-time lateness are different quantities,
@@ -4284,8 +4415,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
             
-            <div class="project-card">
-                <div class="project-title">🏃 Running Coach SFT — What a Fine-Tune Didn't Learn</div>
+            <div class="project-card" id="project-running-coach-sft">
+                <h3 class="project-title">🏃 Running Coach SFT — What a Fine-Tune Didn't Learn</h3>
                 <div class="project-tech">
                     <span class="tech-pill">AI / LLM Engineering</span>
                     <span class="skill-tag ai">LoRA / PEFT</span>
@@ -4352,8 +4483,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
 
-            <div class="project-card">
-                <div class="project-title">🔌 SLM Offline Agent — Local ReAct, No API Key</div>
+            <div class="project-card" id="project-slm-agent">
+                <h3 class="project-title">🔌 SLM Offline Agent — Local ReAct, No API Key</h3>
                 <div class="project-tech">
                     <span class="tech-pill">AI / LLM Engineering</span>
                     <span class="skill-tag ai">Agentic / ReAct Loops</span>
@@ -4377,8 +4508,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
 
-            <div class="project-card">
-                <div class="project-title">🔥 PySpark Coding Assistant — QLoRA on Mistral-7B</div>
+            <div class="project-card" id="project-pyspark-assistant">
+                <h3 class="project-title">🔥 PySpark Coding Assistant — QLoRA on Mistral-7B</h3>
                 <div class="project-tech">
                     <span class="tech-pill">AI / LLM Engineering</span>
                     <span class="skill-tag ai">QLoRA Fine-Tuning</span>
@@ -4411,8 +4542,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
 
-            <div class="project-card">
-                <div class="project-title">✈️ Infinite Flight Live Tracker</div>
+            <div class="project-card" id="project-infinite-flight">
+                <h3 class="project-title">✈️ Infinite Flight Live Tracker</h3>
                 <div class="project-tech">
                     <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
                     <span class="skill-tag ai">FastAPI</span>
@@ -4429,8 +4560,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
 
 
-            <div class="project-card">
-                <div class="project-title">🌎 ClimatePulse – 57-Year Analytics Pipeline</div>
+            <div class="project-card" id="project-climatepulse">
+                <h3 class="project-title">🌎 ClimatePulse – 57-Year Analytics Pipeline</h3>
                 <div class="project-tech">
                     <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
                     <span class="skill-tag de">Delta Lake</span>
@@ -4458,25 +4589,165 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
             </div>
 
-            <div class="project-card">
-                <div class="project-title">⌚🏃🏽‍♂️ Garmin MCP Server</div>
+            <div class="project-card" id="project-garmin-mcp">
+                <h3 class="project-title">⌚🏃🏽‍♂️ Garmin MCP Server — Training Plans Built From Your Actual Fitness</h3>
                 <div class="project-tech">
                     <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
                     <span class="skill-tag ai">MCP Servers</span>
-                   <span class="skill-tag ai">Pydantic</span>
+                    <span class="skill-tag ai">Pydantic</span>
                     <span class="tech-pill">Garmin Connect</span>
+                    <span class="tech-pill">Structured Workout Schema</span>
+                    <span class="tech-pill">Strength Workout API</span>
+                    <span class="skill-tag">Riegel Performance Modelling</span>
+                    <span class="skill-tag">Progressive Load Ramps</span>
                     <span class="skill-tag cl">Docker</span>
                     <span class="tech-pill">pytest</span>
                     <span class="skill-tag cl">GitHub Actions</span>
                 </div>
-                <div class="project-desc">Model Context Protocol server that lets Claude read Garmin activities and build &amp; schedule structured workouts and full training plans straight to a Garmin watch. Reverse-engineered Garmin's workout-service schema into a typed, LLM-friendly spec — with garth SSO auth, a bearer-secured HTTP transport, an offline test suite, and CI, packaged for one-command Docker/Railway deploy.</div>
+                <div class="project-desc">
+                    Model Context Protocol server that reads Garmin activities and writes
+                    structured workouts, strength sessions and whole training blocks straight
+                    to the Garmin calendar. Reverse-engineered Garmin's workout-service schema
+                    into a typed, LLM-friendly spec — garth SSO auth, a bearer-secured HTTP
+                    transport, an offline test suite, and CI, packaged for one-command
+                    Docker/Railway deploy.
+                    <br><br>
+                    Plans aren't templates. It reads the last eight weeks of logged running,
+                    derives weekly mileage, longest run, frequency and best effort, and
+                    compares that to what the goal demands. If the goal doesn't fit the
+                    runway it says so and builds toward the one that does — a 5:12 miler
+                    asking for sub-4:30 is told that's a two-or-three-season project, not a
+                    16-week one. Marathon blocks ramp 8%/week on a 3-up-1-down cycle from
+                    wherever the athlete actually is; high-school track blocks target the
+                    sub-2:00 800, sub-4:30 1600, sub-10:00 3200 and sub-15:00 5K with weekly
+                    mileage ceilings by training age. Every plan carries two strength sessions
+                    a week on quality days, per-session fuelling and recovery notes in the
+                    workout description, and a weekly nutrition brief.
+                    <div class="proof-shots">
+                        <figure role="button" tabindex="0" aria-label="Enlarge screenshot" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="openProofShot('images/mcp-garmin/calendar.png', '⌚ mcp-garmin')">
+                            <img src="images/mcp-garmin/calendar.png" loading="lazy" alt="Garmin Connect calendar showing two generated training weeks: easy runs with strides, hill and pace strides, Strength A and Strength B, and Sunday long runs">
+                            <figcaption><b>118 sessions, written over the API.</b> Two weeks of a generated sub-3 block on the Garmin Connect calendar — easy runs, quality, both strength days, Sunday long run.</figcaption>
+                        </figure>
+                        <figure role="button" tabindex="0" aria-label="Enlarge screenshot" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="openProofShot('images/mcp-garmin/watch.jpg', '⌚ mcp-garmin')">
+                            <img src="images/mcp-garmin/watch.jpg" loading="lazy" alt="Generated Strength A session loaded on a Garmin watch, showing the targeted muscle groups">
+                            <figcaption><b>Strength A on the watch.</b> Garmin renders the targeted muscle groups from the exercise codes the server wrote — the strength path needed garminconnect 0.3.7+.</figcaption>
+                        </figure>
+                    </div>
+                    <br>
+                    The interesting part is what broke. Between garminconnect 0.3.6 and 0.3.15,
+                    <code>get_scheduled_workouts()</code> went month-scoped and dict-returning;
+                    two shipped tools still called it the old way and raised <code>TypeError</code>
+                    against the version the project's own dependency floor allowed. The offline
+                    suite never caught it because every test mocked the calendar away — it
+                    surfaced on the first live run. Reading the generated output caught two more:
+                    the gap analysis told a sub-3:30 athlete the block had to reach 20 miles twice
+                    before the taper while the generator capped long runs at 30% of weekly volume,
+                    which tops out at 16 miles on a 53 mi/wk peak — the plan contradicted its own
+                    report. And down weeks were counted per phase while the mileage ramp cut on the
+                    absolute week, so cutback weeks ran full quality and climbing weeks got the
+                    reduced load. All three are now covered by tests that assert the plan against
+                    what the assessment claims, rather than just that it builds.
+                </div>
                 <div class="project-links">
                     <a href="https://github.com/yashhooda1/mcp-garmin" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
                 </div>
             </div>
 
-            <div class="project-card">
-                <div class="project-title">⚡ PaceForge — Offline AI Running Coach</div>
+            <div class="project-card" id="project-hoodaroutes">
+                <h3 class="project-title">🗺️ HoodaRoutes — Route Generation Scored Against Your Goal Race</h3>
+                <div class="project-tech">
+                    <span class="tech-pill">Full-Stack</span>
+                    <span class="skill-tag de">Node.js Serverless</span>
+                    <span class="skill-tag de">REST API Ingestion</span>
+                    <span class="skill-tag de">Live API</span>
+                    <span class="skill-tag ai">Claude API</span>
+                    <span class="skill-tag ai">Structured LLM Output + Validation</span>
+                    <span class="skill-tag ai">Deterministic Fallbacks</span>
+                    <span class="skill-tag">OAuth 2.0</span>
+                    <span class="skill-tag">Signed Session Cookies (HS256)</span>
+                    <span class="skill-tag">Rate Limiting</span>
+                    <span class="skill-tag">Webhook Subscriptions</span>
+                    <span class="skill-tag">Binary Protocol Encoding</span>
+                    <span class="skill-tag">CI Test Suites (node:test)</span>
+                    <span class="skill-tag cl">Vercel</span>
+                    <span class="skill-tag cl">Railway</span>
+                    <span class="skill-tag cl">Upstash Redis</span>
+                    <span class="skill-tag cl">GitHub Actions</span>
+                    <span class="tech-pill">OpenRouteService</span>
+                    <span class="tech-pill">OpenStreetMap</span>
+                    <span class="tech-pill">Strava API</span>
+                    <span class="tech-pill">Copernicus DEM</span>
+                    <span class="tech-pill">Garmin FIT Protocol</span>
+                    <span class="tech-pill">Connect IQ / Monkey C</span>
+                    <span class="tech-pill">Leaflet</span>
+                </div>
+                <div class="project-desc">
+                    Drop a pin anywhere on earth and get a real running loop — snapped to
+                    OpenStreetMap via round-trip routing, surface classified from OSM tags as
+                    road/trail/track/mixed, sized to your own Strava training history, and
+                    scored for how specific it is to the race you're actually training for.
+                    Three deploy targets in one repo: a Vercel web app with serverless
+                    functions and Strava OAuth, a Railway push service, and a Connect IQ watch
+                    app.
+                    <br><br>
+                    <strong>The scoring was wrong in a way that only showed up in the city I
+                    live in.</strong> The fit score originally hard-coded one rolling mountain
+                    marathon, so it rewarded climbing — exactly backwards for a flat goal race.
+                    Rebuilding it around a per-athlete race profile exposed the real problem
+                    underneath: an 8.5&nbsp;mi loop through downtown Houston measured
+                    <strong>1,157&nbsp;ft of gain, 136&nbsp;ft/mi</strong>, against a true
+                    figure under ~150&nbsp;ft. One sample read below sea level.
+                    <br><br>
+                    OpenRouteService returns SRTM elevation and sums every micro-delta, so
+                    noise becomes phantom climb. Re-sampling against Copernicus DEM cut it to
+                    427&nbsp;ft — better, and still wrong, because Copernicus is a
+                    <em>surface</em> model: it reports building rooftops. Across that route,
+                    <strong>8% of samples read above 90&nbsp;ft against a true ground level of
+                    49&nbsp;ft</strong>, and a city block is a sustained plateau rather than a
+                    spike, so a narrow median filter can't reject it. Widening the filter to a
+                    window measured in <em>metres of route</em> rather than sample count
+                    brought the same loop to 14&nbsp;ft/mi. The trade-off is stated in the
+                    code: real terrain features under ~250&nbsp;m get flattened too, and a test
+                    pins that a 2&nbsp;km, 100&nbsp;m climb still survives intact.
+                    <br><br>
+                    The terrain term was also mine to fix. An absolute-difference Gaussian
+                    scored zero for anything past ~40&nbsp;ft/mi, so a flat-race route with
+                    ordinary DEM error was indistinguishable from a mountain route. Scoring on
+                    the <em>log ratio</em> of measured to target ft/mi makes it scale-free —
+                    3× the target costs the same whether the target is 13 or 130 — and a noise
+                    floor keeps a flat race from dividing by near-zero.
+                    <br><br>
+                    <strong>Sending a route to a watch has no free multi-user path, so I wrote
+                    one.</strong> Garmin's Courses API does exactly what's needed over OAuth,
+                    but only after Developer Program approval, and the unofficial route means
+                    collecting other people's Garmin passwords and MFA codes — a non-starter.
+                    Instead: a FIT course encoder written from the protocol spec
+                    (file_id → course → lap → events → records, semicircle coordinates, both
+                    CRCs), served to the Connect IQ app, which downloads it with
+                    <code>HTTP_RESPONSE_CONTENT_TYPE_FIT</code>. The system files it straight
+                    into the device's course list and the app hands off to native turn-by-turn
+                    navigation. No account linkage, no partner approval. Validated by an
+                    independent parser and by Garmin Connect's own importer accepting the file.
+                    <br><br>
+                    The AI layer is bounded on purpose. Natural language ("hilly 12-mile trail
+                    loop") becomes route parameters and a segment-by-segment coached plan, but
+                    every field is clamped and whitelisted before it reaches the route engine,
+                    and every LLM path falls back to a deterministic heuristic — no key, rate
+                    limit, timeout or malformed JSON can break route generation. The same
+                    principle covers infrastructure: without Redis configured the app degrades
+                    to an in-process store rather than failing, and a broken rate limiter fails
+                    open. One honest caveat left in place — the residual 26&nbsp;ft/mi downtown
+                    may be partly real, since freeway overpasses are exactly the >250&nbsp;m
+                    structure the filter can't reject.
+                </div>
+                <div class="project-links">
+                    <a href="https://routes.yashhooda.ai" target="_blank" rel="noopener" class="project-btn">🌐 Live App</a>
+                    <a href="https://github.com/yashhooda1/hoodaroutes" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                </div>
+            </div>
+
+            <div class="project-card" id="project-paceforge">
+                <h3 class="project-title">⚡ PaceForge — Offline AI Running Coach</h3>
                 <div class="project-tech">
                     <span class="tech-pill">Offline AI</span>
                     <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
@@ -4517,7 +4788,6 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <a href="https://ollama.com/hoodarunner/paceforge-coach" target="_blank" rel="noopener" class="project-btn">🦙 Ollama Model</a>
                 </div>
             </div>
-
         </div>
     </section>
 
@@ -4636,6 +4906,111 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <div id="analytics-content">
             <div class="analytics-loading">Analyzing your training data...</div>
         </div>
+    </section>
+
+    <section id="mcp-garmin">
+        <h2>⌚ Garmin Training Plans — Generated From Real Training Data</h2>
+        <p>
+            <a href="https://github.com/yashhooda1/mcp-garmin" target="_blank" rel="noopener">mcp-garmin</a>
+            reads my logged Garmin history, works out the gap between current fitness and a
+            goal race, and writes a whole training block — runs, strength, fuelling notes —
+            straight to the Garmin calendar. The block below is real output: a sub-3:00
+            Chevron Houston Marathon build, generated from 34 mi/wk of logged running and a
+            1:25 half marathon.
+        </p>
+
+        <div class="mg-stats">
+            <div class="mg-stat"><b>118</b><span>sessions scheduled</span></div>
+            <div class="mg-stat"><b>17</b><span>weeks to race day</span></div>
+            <div class="mg-stat"><b>33</b><span>strength sessions</span></div>
+            <div class="mg-stat"><b>52.6</b><span>peak mi / week</span></div>
+            <div class="mg-stat"><b>2&times;</b><span>strength every week</span></div>
+        </div>
+
+        <div class="mg-verdict">
+            <b>Verdict: on_track</b> — the goal fits the runway, so the plan builds straight
+            toward it. When it doesn't, the plan says so: a 5:12 miler asking for sub-4:30
+            gets told that's normally a two-or-three-season project, and the block is built
+            toward the PR this season can actually deliver instead.
+        </div>
+
+        <h3>The generated block</h3>
+        <div class="mg-scroll" tabindex="0" role="region" aria-label="Generated training block; scroll for all columns">
+            <table>
+                <thead>
+                    <tr><th>Wk</th><th>Phase</th><th>Miles</th><th>Long</th><th>Strength</th><th></th></tr>
+                </thead>
+                <tbody id="mg-rows"></tbody>
+            </table>
+        </div>
+        <p class="mg-legend">
+            3-up-1-down cycles ramping 8%/week from current mileage, down weeks in amber,
+            long runs reaching 20 twice before a three-week taper. Strength lands on quality
+            days so easy days stay easy and nothing sits the day before a long run.
+        </p>
+
+        <h3 style="margin-top:2rem">On the calendar, on the watch</h3>
+        <div class="proof-shots">
+            <figure role="button" tabindex="0" aria-label="Enlarge screenshot" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="openProofShot('images/mcp-garmin/calendar.png', '⌚ mcp-garmin')">
+                <img src="images/mcp-garmin/calendar.png" loading="lazy" alt="Garmin Connect calendar showing two generated training weeks: easy runs with strides, hill and pace strides, Strength A and Strength B, and Sunday long runs">
+                <figcaption><b>Written over the API.</b> Two weeks of the block on the Garmin Connect calendar — easy runs, quality, both strength days, Sunday long run.</figcaption>
+            </figure>
+            <figure role="button" tabindex="0" aria-label="Enlarge screenshot" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="openProofShot('images/mcp-garmin/watch.jpg', '⌚ mcp-garmin')">
+                <img src="images/mcp-garmin/watch.jpg" loading="lazy" alt="Generated Strength A session loaded on a Garmin watch, showing the targeted muscle groups">
+                <figcaption><b>Strength A on the watch.</b> Garmin renders the targeted muscle groups from the exercise codes the server wrote.</figcaption>
+            </figure>
+        </div>
+
+        <h3 style="margin-top:2rem">What every plan carries</h3>
+        <p>
+            Two strength sessions a week on quality days — posterior chain and anti-extension
+            core on day A, hip control and anti-rotation on day B, dumbbells and a band.
+            Down and race weeks swap the heavy day for a mobility reset so the habit survives
+            when the load shouldn't. Each workout description carries its own fuelling and
+            recovery line, so the guidance is on the watch rather than in a document nobody
+            opens, and each week returns a nutrition, hydration and recovery brief alongside
+            the schedule. The same engine builds high-school track blocks for the sub-2:00
+            800, sub-4:30 1600, sub-10:00 3200 and sub-15:00 5K, with weekly mileage ceilings
+            set by training age and a full rest day every week.
+        </p>
+
+        <script>
+        (function () {
+            var weeks = [
+                { w: 1,  p: "base",     mi: 34.0, long:  8.8, lifts: 2 },
+                { w: 2,  p: "base",     mi: 35.5, long:  9.2, lifts: 2 },
+                { w: 3,  p: "base",     mi: 37.1, long:  9.6, lifts: 2 },
+                { w: 4,  p: "base",     mi: 29.1, long:  7.6, lifts: 2, down: true },
+                { w: 5,  p: "build",    mi: 38.8, long: 11.6, lifts: 2 },
+                { w: 6,  p: "build",    mi: 40.5, long: 12.2, lifts: 2 },
+                { w: 7,  p: "build",    mi: 42.3, long: 12.7, lifts: 2 },
+                { w: 8,  p: "build",    mi: 33.1, long:  9.9, lifts: 2, down: true },
+                { w: 9,  p: "build",    mi: 44.2, long: 13.3, lifts: 2 },
+                { w: 10, p: "specific", mi: 46.2, long: 16.2, lifts: 2 },
+                { w: 11, p: "specific", mi: 48.2, long: 18.0, lifts: 2 },
+                { w: 12, p: "specific", mi: 37.8, long: 13.2, lifts: 2, down: true },
+                { w: 13, p: "specific", mi: 50.4, long: 20.0, lifts: 2 },
+                { w: 14, p: "specific", mi: 52.6, long: 20.0, lifts: 2 },
+                { w: 15, p: "taper",    mi: 41.2, long: 14.4, lifts: 2 },
+                { w: 16, p: "taper",    mi: 30.3, long: 10.6, lifts: 2 },
+                { w: 17, p: "taper",    mi: 19.2, long: 26.2, lifts: 1, race: true }
+            ];
+            var peak = 52.6, rows = document.getElementById('mg-rows');
+            if (!rows) return;
+            rows.innerHTML = weeks.map(function (r) {
+                var cls = r.race ? 'mg-race' : (r.down ? 'mg-down' : '');
+                var width = (r.mi / peak * 3.2).toFixed(2);
+                var tag = r.race ? 'race day' : (r.down ? 'down' : '');
+                return '<tr class="' + cls + '">' +
+                    '<td>' + r.w + '</td>' +
+                    '<td>' + r.p + '</td>' +
+                    '<td><i class="mg-bar" style="width:' + width + 'rem"></i>' + r.mi.toFixed(1) + '</td>' +
+                    '<td>' + r.long.toFixed(1) + '</td>' +
+                    '<td>' + r.lifts + '&times;</td>' +
+                    '<td>' + tag + '</td></tr>';
+            }).join('');
+        })();
+        </script>
     </section>
 
     <!-- Running Heat pace Calculator -->
@@ -5187,35 +5562,19 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     <!-- AVIATION -->
     <section id="aviation">
 
-        <h2 id="journey">🛫 My Aviation Journey</h2>
-        <p>My progress in flight training, the logbook behind it, and the aviation projects it inspires.</p>
+        <h2 id="journey">🛩️ Off the Clock: Flight Log</h2>
+        <p>Flying is a hobby. Here's my logbook, my live simulator stats, and the data engineering it gives me an excuse to build.</p>
 
         <div class="journey-wrap">
 
             <p class="journey-goal">
-                Aviation is one of my biggest interests outside of engineering. I'm pursuing flight training
-                part-time at a Part&nbsp;61 field while continuing to build my career in AI and data engineering.
-                Flying also inspires many of the projects on this site — including the METAR streaming pipeline,
-                the live flight tracker, and my Infinite Flight projects. For me, aviation and engineering are
-                two interests that naturally come together through software, real-time data, weather, and flight.
+                Aviation is a hobby, not a career track &mdash; my career is <strong>AI and data engineering</strong>.
+                I fly part-time for fun and I'm working toward a Private Pilot certificate (personal, non-commercial
+                flying) at my own pace. What the hobby gives my engineering is a steady supply of real-world data:
+                the <strong>METAR streaming pipeline</strong> (Kafka &rarr; Spark Structured Streaming &rarr; Delta Lake),
+                the <strong>live ADS-B flight tracker</strong>, and the <strong>Infinite Flight panel</strong> below
+                (a serverless API proxy with edge caching and last-known-good fallback) all started here.
             </p>
-
-            <div class="journey-label">Ratings path</div>
-            <div class="journey-path">
-                <span class="pilot-step active">Student</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">PPL</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">Instrument</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">Commercial</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">Multi-Engine</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">CFI</span>
-                <span class="journey-arrow">→</span>
-                <span class="pilot-step">ATP</span>
-            </div>
 
             <div class="journey-cols">
 
@@ -5240,7 +5599,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                             <div class="aviation-stat-label">Type Flown</div>
                         </div>
                     </div>
-                    <p class="journey-note">Every hour here was paid for out of pocket. It starts small on purpose.</p>
+                    <p class="journey-note">Weekend flying, logged for fun.</p>
                 </div>
 
                 <div>
@@ -5327,8 +5686,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 <div class="if-note" id="if-track-note"></div>
             </div>
 
-        </div><!-- /.journey-wrap -->
-
+        </div><!-- /.journey-wrap -->      
+            
 
         <h2 style="margin-top:2.5rem;">✈️ Live Flight Tracker</h2>
         <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
@@ -5385,7 +5744,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
             <h3>Strongest wind gusts observed</h3>
             <div id="metar-gusts"></div>
-
+ 
             <h3 style="margin-top:2rem">Active alerts</h3>
             <div id="metar-alerts"></div>
         </div>
@@ -5421,10 +5780,28 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 Gold job rather than replacing it, which means the two can be diffed
                 against each other. That diff is the last number below.
             </p>
-
+ 
             <div class="pipe-grid" id="dbt-grid"></div>
             <div class="dbt-lineage" id="dbt-lineage"></div>
             <div class="dbt-note" id="dbt-note"></div>
+            <div class="metar-shots">
+                <figure role="button" tabindex="0" aria-label="Enlarge screenshot" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="openMetarShot('images/metar/metar-publish-metrics.png')">
+                    <img src="images/metar/metar-publish-metrics.png" loading="lazy" alt="Terminal: metar_dbt.json publish output with model counts, test results, parity and ceiling-parser agreement">
+                    <figcaption><b>Where the numbers above come from.</b> <code>publish.sh</code> writes one JSON after every build — model row counts, 32/33 tests, parity split into count mismatches vs. rows missing in dbt, and the ceiling parser's agreement with NOAA.</figcaption>
+                </figure>
+                <figure role="button" tabindex="0" aria-label="Enlarge screenshot" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="openMetarShot('images/metar/metar-dbt-tests.png')">
+                    <img src="images/metar/metar-dbt-tests.png" loading="lazy" alt="Terminal: dbt run and test output for staging, intermediate and gold models">
+                    <figcaption><b>dbt run + test.</b> staging → intermediate → gold, with custom assertions. The single amber <code>WARN 1</code> is <code>assert_ceiling_parse_not_conflicting</code> — the two NOAA disagreements described above, kept visible rather than silenced.</figcaption>
+                </figure>
+                <figure role="button" tabindex="0" aria-label="Enlarge screenshot" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="openMetarShot('images/metar/metar-start-supervisor.png')">
+                    <img src="images/metar/metar-start-supervisor.png" loading="lazy" alt="Terminal: start.sh supervisor showing container health, process counts and tmux session">
+                    <figcaption><b>Idempotent <code>start.sh</code>.</b> Brings up Redpanda, waits for healthy, and leaves an already-running Spark job and producer alone — the process guard enforces exactly one of each.</figcaption>
+                </figure>
+                <figure role="button" tabindex="0" aria-label="Enlarge screenshot" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="openMetarShot('images/metar/metar-docker-compose.png')">
+                    <img src="images/metar/metar-docker-compose.png" loading="lazy" alt="Terminal: docker compose bringing up redpanda and redpanda-console, both healthy, containers up 44 hours">
+                    <figcaption><b>Docker under the hood.</b> Redpanda v24.2.7 and its console run as Compose services — health-checked on bring-up, ports 9092 / 8080 / 8081 / 9644 mapped, and 44 hours of uptime on this run before the Spark job and producer attach in tmux.</figcaption>
+                </figure>
+            </div>
         </div>
     </section>
 
@@ -6633,6 +7010,66 @@ function switchAgentTab(btn) {
     document.getElementById('chat-messages').classList.add('hidden');
     document.getElementById('agent-panel').classList.add('active');
     loadAgentLog();
+    loadAgentToolList();
+}
+
+// ── RUNNING AGENT (tool-calling loop over /api/agent-tools) ──
+let agentToolsHistory = [];
+let agentToolsLoaded  = false;
+
+async function loadAgentToolList() {
+    if (agentToolsLoaded) return;
+    try {
+        const res  = await fetch('/api/agent-tools');
+        const data = await res.json();
+        const el   = document.getElementById('agent-tools-count');
+        if (el && data.tools) {
+            el.textContent = `(${data.tools.length}: ${data.tools.map(t => t.name).join(', ')})`;
+            agentToolsLoaded = true;
+        }
+    } catch (_) {}
+}
+
+async function runAgentTools() {
+    const input = document.getElementById('agent-tools-query');
+    const out   = document.getElementById('agent-tools-out');
+    const btn   = document.getElementById('agent-tools-run');
+    const q     = (input.value || '').trim();
+    if (!q) return;
+
+    btn.disabled = true; btn.textContent = '⏳ Calling tools…';
+    out.insertAdjacentHTML('beforeend', `<div class="agent-log-entry"><div class="agent-log-body"><b>You:</b> ${escH(q)}</div></div>`);
+    input.value = '';
+
+    try {
+        const res  = await fetch('/api/agent-tools', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: q, history: agentToolsHistory.slice(-8) }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            if (data.error === 'login_required') showAuthRequired();
+            throw new Error(data.message || data.error || `HTTP ${res.status}`);
+        }
+        const steps = (data.steps || []).map(s => `
+            <details class="agent-tool-step">
+                <summary>🔧 ${escH(s.tool)}${s.isError ? ' ⚠️' : ''} <span style="color:var(--text-muted)">${escH(JSON.stringify(s.args || {}))}</span></summary>
+                <pre>${escH(s.result)}</pre>
+            </details>`).join('');
+        out.insertAdjacentHTML('beforeend', `
+            <div class="agent-log-entry">
+                ${steps}
+                <div class="agent-log-body">${typeof marked !== 'undefined' ? marked.parse(data.reply || '') : escH(data.reply || '')}</div>
+                <div style="font-size:0.6rem;color:var(--text-muted);margin-top:0.3rem;">${escH(data.model || '')} · ${(data.steps||[]).length} tool call${(data.steps||[]).length===1?'':'s'}</div>
+            </div>`);
+        agentToolsHistory.push({ role: 'user', content: q }, { role: 'assistant', content: data.reply || '' });
+    } catch (err) {
+        out.insertAdjacentHTML('beforeend', `<div class="agent-log-entry"><div class="agent-log-body" style="color:#f87171">⚠️ ${escH(err.message)}</div></div>`);
+    } finally {
+        btn.disabled = false; btn.textContent = '▶ Ask';
+        out.scrollTop = out.scrollHeight;
+    }
 }
 
 async function loadAgentLog() {
@@ -8864,6 +9301,20 @@ function openSnowLightbox(category, index) {
     document.getElementById('snow-location-tag').textContent = locationLabel;
     document.getElementById('snow-lightbox').classList.add('open');
     document.body.style.overflow = 'hidden';
+}
+
+function openProofShot(src, label) {
+    snowLightboxPhotos = [src];
+    snowIndex = 0;
+    document.getElementById('snow-lightbox-img').src = src;
+    document.getElementById('snow-counter').textContent = '';
+    document.getElementById('snow-location-tag').textContent = label || '';
+    document.getElementById('snow-lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function openMetarShot(src) {
+    openProofShot(src, '🌪️ METAR Stream');
 }
 
 function closeSnowLightbox() {

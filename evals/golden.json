@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "notes": "Curated regression set for the yashhooda.ai chatbot (aviation-forward). Each case is scored two ways: (1) cheap deterministic assertions (must_include / must_not_include / expect_agent) that never flake, and (2) the same Haiku LLM-judge used by api/eval.js. Running content is retained. expect_agent values assume the current agent set — Running Agent, Aviation Career Agent, Aviation Agent, Travel Agent, General Agent — and your routeToAgent keyword order (running -> career -> aviation -> travel -> general). Where routing is genuinely ambiguous between the Aviation Career Agent and the Aviation Agent, expect_agent is null so only content is judged. Run once and adjust any expect_agent that mismatches your router. Add cases whenever you find a bad answer in production.",
+  "notes": "Curated regression set for the yashhooda.ai chatbot (engineering-forward). Each case is scored two ways: (1) cheap deterministic assertions (must_include / must_not_include / expect_agent) that never flake, and (2) the same Haiku LLM-judge used by api/eval.js. Running content is retained. expect_agent values assume the current agent set — Running Agent, Aviation Career Agent, Aviation Agent, Travel Agent, General Agent — and your routeToAgent keyword order (running -> career -> aviation -> travel -> general). Where routing is genuinely ambiguous between the Aviation Career Agent and the Aviation Agent, expect_agent is null so only content is judged. Run once and adjust any expect_agent that mismatches your router. Add cases whenever you find a bad answer in production.",
   "cases": [
     {
       "id": "run-001-5k-pr",
@@ -49,10 +49,10 @@
       "id": "car-001-focus",
       "category": "career",
       "question": "What is Yash's current job or main focus right now?",
-      "expect_agent": "Aviation Career Agent",
-      "must_include": ["pilot"],
-      "must_not_include": [],
-      "notes": "Pivot check. Should say he's a student pilot training at ATP toward becoming an airline pilot; engineering is the foundation/background, not his current primary focus. Should NOT present him as currently working a full-time engineering job."
+      "expect_agent": null,
+      "must_include": ["engineer"],
+      "must_not_include": ["airline pilot", "ATP flight school"],
+      "notes": "Positioning check. Should say he's an AI/Data Engineer open to Data Engineering and AI Engineering roles. Flying may be mentioned only as a hobby."
     },
     {
       "id": "car-002-certs",
@@ -73,13 +73,13 @@
       "notes": "Accuracy check — he does NOT. Judge should reward an answer that says no. Left to the judge because phrasings vary too much for a string match, and routing is ambiguous."
     },
     {
-      "id": "car-004-pilot-path",
+      "id": "car-004-pilot-hobby",
       "category": "career",
-      "question": "What's the path for Yash to become an airline pilot?",
-      "expect_agent": "Aviation Career Agent",
-      "must_include": ["ATP"],
-      "must_not_include": [],
-      "notes": "Flagship aviation-career question — judge HELPFULNESS + ACCURACY. Should describe ATP's Airline Career Pilot Program -> PPL -> Instrument -> Commercial -> Multi -> CFI -> build to 1,500 hrs -> United Aviate -> regional -> major. Should mention the first-class medical as the gate."
+      "question": "Is Yash trying to become an airline pilot?",
+      "expect_agent": null,
+      "must_include": ["hobby"],
+      "must_not_include": ["ATP flight school", "Airline Career Pilot Program"],
+      "notes": "Positioning guard — judge ACCURACY. Correct answer: no; flying is a hobby and his career is AI/data engineering."
     },
     {
       "id": "car-005-engineering-foundation",
@@ -88,7 +88,7 @@
       "expect_agent": null,
       "must_include": [],
       "must_not_include": [],
-      "notes": "Foundation framing — engineering is real and funds the flight training. Judge should reward an answer that keeps engineering present-tense/available as the financial foundation rather than writing it off, while keeping the aviation goal central. Guards against the 'former engineer, no longer capable' framing."
+      "notes": "Judge should reward an answer that presents engineering as his current, primary work: yes, he builds and operates production data and AI systems and is open to engineering roles. Guards against the 'former engineer' framing."
     },
     {
       "id": "avi-001-license-honesty",
@@ -103,10 +103,10 @@
       "id": "avi-002-aviate-honesty",
       "category": "aviation",
       "question": "Is Yash currently in the United Aviate program?",
-      "expect_agent": "Aviation Career Agent",
+      "expect_agent": null,
       "must_include": [],
       "must_not_include": ["has been accepted", "is currently in", "is a participant", "is enrolled in Aviate"],
-      "notes": "Honesty guard. United Aviate is the GOAL, not a current status — he can interview once he earns his PPL. Judge ACCURACY should reward 'not yet / it's the target' and punish any claim that he is already accepted or participating."
+      "notes": "Honesty guard. He is not in Aviate and is not pursuing an airline career; flying is a hobby. Judge ACCURACY should reward a plain 'no'."
     },
     {
       "id": "avi-003-hours-sim-vs-real",
@@ -115,7 +115,7 @@
       "expect_agent": null,
       "must_include": [],
       "must_not_include": [],
-      "notes": "Nuance/honesty — judge ACCURACY. He has ~1 real logged hour toward his PPL; the ~1,367 hours are Infinite Flight SIMULATOR time. A correct answer distinguishes the two and never presents sim hours as real logged flight time. Left to the judge because 1,367 legitimately appears when correctly labeled as sim."
+      "notes": "Nuance/honesty — judge ACCURACY. He has ~7 real logged hour toward his PPL; the ~1,367 hours are Infinite Flight SIMULATOR time. A correct answer distinguishes the two and never presents sim hours as real logged flight time. Left to the judge because 1,367 legitimately appears when correctly labeled as sim."
     },
     {
       "id": "avi-004-sim-profile",

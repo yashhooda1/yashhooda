@@ -1,0 +1,25 @@
+name: Keepalive
+
+on:
+  schedule:
+    - cron: "23 6 15 * *"   # 15th of each month, 06:23 UTC
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-enable all scheduled workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh api "repos/$REPO/actions/workflows" --paginate \
+            --jq '.workflows[] | select(.path | startswith(".github/workflows/")) | [.id, .path] | @tsv' |
+          while IFS=$'\t' read -r id path; do
+            echo "Re-enabling $path ($id)"
+            gh api -X PUT "repos/$REPO/actions/workflows/$id/enable" || true
+          done

@@ -17,6 +17,18 @@ const ALLOWED_ORIGINS = new Set([
 
 // ── STATIC SHIPPED MILESTONES (always shown, most recent first) ──────────────
 const SHIPPED_MILESTONES = [
+  {
+    date:    '2026-09-21',
+    title:   'Hooda AI Governance Studio — Risk-Based Human Oversight',
+    body:    'Shipped an interactive AI governance solution that turns responsible-AI principles into an operational decision tool. Teams classify a use case across six risk signals — consequential impact, autonomous action, sensitive data, scale, reviewability, and reversibility — then receive one of four proportional governance tiers with concrete controls for human approval, least-privilege access, audit logging, appeals, monitoring, rollback, and kill switches. The studio exports a reusable Markdown governance brief with named ownership and approval fields, and is designed to complement NIST AI RMF, OECD principles, and the EU AI Act without presenting itself as legal advice or compliance certification. Integrated it into yashhooda.ai as a dedicated solution and a featured section between Projects and Explorations.',
+    tags:    ['ai-governance', 'responsible-ai', 'human-in-the-loop', 'risk-management', 'security', 'policy', 'vanilla-js', 'vercel'],
+    type:    'shipped',
+    links:   [
+      { label: 'Live Governance Studio', url: 'https://www.yashhooda.ai/solutions/ai-governance' },
+      { label: 'GitHub', url: 'https://github.com/yashhooda1/yashhooda/tree/main/solutions/ai-governance' },
+    ],
+  },
+
    {
     date:    '2026-08-27',
     title:   'Running Coach SFT — Fine-Tuned a 3B and Measured What It Didn\'t Learn',

@@ -540,6 +540,87 @@
             letter-spacing: 0.04em;
         }
 
+        /* ── AI GOVERNANCE ── */
+        .governance-showcase {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(11,61,145,0.28), rgba(30,41,59,0.96) 48%, rgba(46,125,50,0.24));
+            border: 1px solid rgba(76,175,80,0.32);
+            border-radius: 14px;
+            padding: clamp(1.4rem, 4vw, 2.5rem);
+            margin-top: 1.25rem;
+            box-shadow: 0 18px 55px rgba(0,0,0,0.24);
+        }
+        .governance-showcase::before {
+            content: 'GOVERN · MAP · MEASURE · MANAGE';
+            position: absolute;
+            top: 1rem; right: 1.25rem;
+            color: rgba(129,199,132,0.22);
+            font: 700 0.68rem 'Space Mono', monospace;
+            letter-spacing: 0.12em;
+        }
+        .governance-layout {
+            display: grid;
+            grid-template-columns: minmax(0,1.25fr) minmax(280px,0.75fr);
+            gap: 2rem;
+            align-items: center;
+        }
+        .governance-kicker {
+            color: var(--green-light);
+            font: 700 0.72rem 'Space Mono', monospace;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .governance-copy h3 {
+            font: 700 clamp(1.45rem,3vw,2.25rem) 'Space Mono', monospace;
+            line-height: 1.2;
+            margin: 0.65rem 0 0.9rem;
+            color: #fff;
+        }
+        .governance-copy p {
+            color: var(--text-muted);
+            max-width: 680px;
+            font-size: 0.94rem;
+        }
+        .governance-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.25rem;
+        }
+        .governance-signals {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(13,17,23,0.55);
+        }
+        .governance-signal {
+            padding: 1rem;
+            min-height: 96px;
+            border-right: 1px solid rgba(255,255,255,0.07);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .governance-signal:nth-child(even) { border-right: 0; }
+        .governance-signal:nth-child(n+3) { border-bottom: 0; }
+        .governance-signal strong {
+            display: block;
+            color: var(--green);
+            font: 700 0.8rem 'Space Mono', monospace;
+            margin-bottom: 0.35rem;
+        }
+        .governance-signal span {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.76rem;
+            line-height: 1.45;
+        }
+        @media (max-width: 780px) {
+            .governance-layout { grid-template-columns: 1fr; }
+            .governance-showcase::before { display: none; }
+        }
+
         /* ── CERTIFICATIONS ── */
         .cert-grid {
             display: grid;
@@ -4084,6 +4165,7 @@
         <div class="nav-links">
             <a href="#about">About</a>
             <a href="#projects">Projects</a>
+            <a href="#governance">AI Governance</a>
 
             <div class="nav-dropdown">
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Explorations <span class="caret">▾</span></button>
@@ -4726,6 +4808,36 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 <div class="project-links">
                     <a href="https://github.com/yashhooda1/paceforge" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
                     <a href="https://ollama.com/hoodarunner/paceforge-coach" target="_blank" rel="noopener" class="project-btn">🦙 Ollama Model</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI GOVERNANCE -->
+    <section id="governance">
+        <h2>🛡️ AI Governance</h2>
+        <p>Responsible AI is an engineering requirement—not a blanket ban and not a box-checking exercise.</p>
+
+        <div class="governance-showcase">
+            <div class="governance-layout">
+                <div class="governance-copy">
+                    <span class="governance-kicker">Featured solution · Human-accountable AI</span>
+                    <h3>Put AI to work. Keep humans in control.</h3>
+                    <p>
+                        The Hooda AI Governance Studio classifies a use case across six real-world risk signals,
+                        assigns a proportional oversight tier, and generates the controls a team needs before deployment.
+                        It turns governance principles into an actionable engineering brief.
+                    </p>
+                    <div class="governance-actions">
+                        <a href="/solutions/ai-governance" class="btn-primary">Launch Governance Studio →</a>
+                        <a href="https://www.nist.gov/itl/ai-risk-management-framework" target="_blank" rel="noopener" class="btn-secondary">NIST AI RMF ↗</a>
+                    </div>
+                </div>
+                <div class="governance-signals" aria-label="Governance capabilities">
+                    <div class="governance-signal"><strong>01 · CLASSIFY</strong><span>Assess autonomy, impact, data, scale, reviewability, and reversibility.</span></div>
+                    <div class="governance-signal"><strong>02 · CONTROL</strong><span>Apply human review, least privilege, monitoring, appeals, and kill switches.</span></div>
+                    <div class="governance-signal"><strong>03 · DOCUMENT</strong><span>Export a reusable governance brief with owners, purpose, and approval fields.</span></div>
+                    <div class="governance-signal"><strong>04 · ACCOUNT</strong><span>Keep a named human responsible for every consequential outcome.</span></div>
                 </div>
             </div>
         </div>

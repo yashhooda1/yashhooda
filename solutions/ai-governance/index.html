@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Assess an AI use case, identify its governance tier, and generate practical human oversight controls.">
+  <title>Hooda AI Governance Studio</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070b12'/%3E%3Cpath d='M32 10l19 8v13c0 12-8 20-19 24C21 51 13 43 13 31V18l19-8z' fill='none' stroke='%235eead4' stroke-width='5'/%3E%3Cpath d='M23 32l6 6 13-14' fill='none' stroke='%23f8fafc' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Hooda AI Governance home"><span class="brand-mark">H</span><span>HOODA / AI GOVERNANCE</span></a>
+    <nav aria-label="Page navigation"><a href="#framework">Framework</a><a href="#principles">Principles</a><a class="back" href="/">← yashhooda.ai</a></nav>
+  </header>
+
+  <main id="top">
+    <section class="intro">
+      <div class="eyebrow"><span></span> RESPONSIBLE AI, BUILT FOR REAL DECISIONS</div>
+      <h1>Put AI to work.<br><em>Keep humans in control.</em></h1>
+      <p class="lede">A practical governance studio for teams adopting AI. Classify a use case, expose its real-world risk, and generate the minimum controls required before deployment.</p>
+      <div class="trust-row"><span>Risk-based</span><span>Human-accountable</span><span>Security-first</span><span>Vendor-neutral</span></div>
+    </section>
+
+    <section class="studio" aria-labelledby="studio-title">
+      <div class="studio-head">
+        <div><span class="step-label">LIVE ASSESSMENT</span><h2 id="studio-title">AI Use-Case Classifier</h2></div>
+        <div class="progress-wrap"><span id="answeredCount">0 / 6 signals</span><div class="progress"><i id="progressBar"></i></div></div>
+      </div>
+
+      <div class="studio-grid">
+        <form id="riskForm" class="questions">
+          <fieldset data-key="impact"><legend><b>01</b> Does AI influence a consequential decision?</legend><p>Employment, credit, healthcare, education, insurance, legal rights, or essential services.</p><div class="choices"><label><input type="radio" name="impact" value="0"><span>No</span></label><label><input type="radio" name="impact" value="3"><span>Yes</span></label></div></fieldset>
+          <fieldset data-key="autonomy"><legend><b>02</b> Can it act without approval?</legend><p>Moves money, changes access, sends external messages, deploys code, or modifies records.</p><div class="choices"><label><input type="radio" name="autonomy" value="0"><span>No</span></label><label><input type="radio" name="autonomy" value="3"><span>Yes</span></label></div></fieldset>
+          <fieldset data-key="data"><legend><b>03</b> Does it handle sensitive data?</legend><p>Personal, financial, health, biometric, confidential, or regulated information.</p><div class="choices"><label><input type="radio" name="data" value="0"><span>No</span></label><label><input type="radio" name="data" value="2"><span>Yes</span></label></div></fieldset>
+          <fieldset data-key="scale"><legend><b>04</b> How many people can it affect?</legend><div class="choices three"><label><input type="radio" name="scale" value="0"><span>Internal / few</span></label><label><input type="radio" name="scale" value="1"><span>Hundreds</span></label><label><input type="radio" name="scale" value="2"><span>Thousands+</span></label></div></fieldset>
+          <fieldset data-key="transparency"><legend><b>05</b> Can its output be meaningfully reviewed?</legend><p>A qualified person can understand the basis, detect errors, and override the result.</p><div class="choices"><label><input type="radio" name="transparency" value="2"><span>No</span></label><label><input type="radio" name="transparency" value="0"><span>Yes</span></label></div></fieldset>
+          <fieldset data-key="reversibility"><legend><b>06</b> Are mistakes easily reversible?</legend><div class="choices"><label><input type="radio" name="reversibility" value="2"><span>No</span></label><label><input type="radio" name="reversibility" value="0"><span>Yes</span></label></div></fieldset>
+        </form>
+
+        <aside class="result" aria-live="polite">
+          <div class="result-top"><span class="status-dot"></span><span id="statusText">Awaiting assessment</span></div>
+          <div class="score-ring" id="scoreRing"><div><strong id="score">—</strong><span>RISK SCORE</span></div></div>
+          <div class="tier-block"><span>RECOMMENDED TIER</span><h3 id="tier">Complete all signals</h3><p id="tierDesc">Your answers will produce a proportional governance standard—not a blanket ban.</p></div>
+          <div class="controls"><span>REQUIRED CONTROLS</span><ul id="controlList"><li>Answer all six questions to generate controls.</li></ul></div>
+          <button id="downloadBtn" type="button" disabled>Download governance brief <span>↓</span></button>
+          <button id="resetBtn" class="text-btn" type="button">Reset assessment</button>
+        </aside>
+      </div>
+    </section>
+
+    <section id="framework" class="framework">
+      <div class="section-kicker">THE CONTROL MODEL</div>
+      <div class="section-title"><h2>Govern the capability,<br>not the hype.</h2><p>The same model can be low-risk when summarizing a memo and critical-risk when given credentials to move money. Controls should follow what the system can access, decide, and execute.</p></div>
+      <div class="tier-grid">
+        <article><span class="tier-num">01</span><div class="tier-line low"></div><h3>Assist</h3><p>Drafting, summarization, coding help, and internal research.</p><ul><li>Approved tools</li><li>Basic review</li><li>No sensitive inputs</li></ul></article>
+        <article><span class="tier-num">02</span><div class="tier-line mod"></div><h3>Advise</h3><p>Analysis that informs people but does not make the final decision.</p><ul><li>Output verification</li><li>Logging</li><li>Data controls</li></ul></article>
+        <article><span class="tier-num">03</span><div class="tier-line high"></div><h3>Decide</h3><p>Systems affecting rights, opportunities, safety, or essential services.</p><ul><li>Named human owner</li><li>Bias and impact tests</li><li>Appeal path</li></ul></article>
+        <article><span class="tier-num">04</span><div class="tier-line critical"></div><h3>Execute</h3><p>Autonomous actions with financial, security, infrastructure, or physical impact.</p><ul><li>Explicit authorization</li><li>Least privilege</li><li>Kill switch</li></ul></article>
+      </div>
+    </section>
+
+    <section id="principles" class="principles">
+      <div class="section-kicker">POLICY BASELINE</div>
+      <div class="principle-grid">
+        <div><span>01</span><h3>A human owns the outcome.</h3><p>Every consequential system has a named accountable owner. “The AI did it” is never an acceptable explanation.</p></div>
+        <div><span>02</span><h3>Access follows least privilege.</h3><p>Models and agents receive only the data, credentials, tools, and time-bound permissions required for the task.</p></div>
+        <div><span>03</span><h3>High-impact decisions are contestable.</h3><p>People receive notice, meaningful explanation, and a path to human review when AI affects them.</p></div>
+        <div><span>04</span><h3>Deployment is observable.</h3><p>Teams log actions, monitor failures and drift, test security, and maintain a rehearsed incident response.</p></div>
+      </div>
+    </section>
+
+    <section class="standards">
+      <p>Designed to complement—not certify compliance with—recognized governance approaches.</p>
+      <div><a href="https://www.nist.gov/itl/ai-risk-management-framework" target="_blank" rel="noreferrer">NIST AI RMF ↗</a><a href="https://oecd.ai/en/ai-principles" target="_blank" rel="noreferrer">OECD AI Principles ↗</a><a href="https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai" target="_blank" rel="noreferrer">EU AI Act overview ↗</a></div>
+    </section>
+  </main>
+
+  <footer><div class="brand"><span class="brand-mark">H</span><span>HOODA / AI GOVERNANCE</span></div><p>AI should expand human capability—not erase human accountability.</p><a href="/">Back to yashhooda.ai ↗</a></footer>
+  <script src="app.js"></script>
+</body>
+</html>

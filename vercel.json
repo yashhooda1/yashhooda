@@ -41,6 +41,12 @@
     "api/datacenters.js": {
       "includeFiles": "public_data_{datacenters,us_grid}_gold.json"
     },
+    "api/apple-lab.js": {
+      "includeFiles": "public_data_{apple_bench,runos}_gold.json"
+    },
+    "api/career-agent.js": {
+      "maxDuration": 30
+    },
     "api/imagine.js": {
       "maxDuration": 60
     },

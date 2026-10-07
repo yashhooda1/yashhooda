@@ -88,6 +88,13 @@ If you're skimming, these are the parts worth reading the code for:
 - **Honest framing** — contested per-query figures shown as ranges and placed in context; the real strain is the aggregate load and its geographic concentration on grids and watersheds
 - **Data** — IEA Energy & AI (2025), LBNL 2024, CBRE market data, and company sustainability reports; curated reference dataset served by `/api/datacenters` (no pipeline required)
 
+### 🍎 Apple Silicon Lab
+- **Local LLM Benchmark Lab** — one fixed prompt suite against Ollama, MLX and llama.cpp on the same MacBook Pro: generation and prompt-processing speed, time to first token, memory, optional power draw, and what the same tokens would cost on a cloud API
+- **RunOS** — streams an Apple Health export through Bronze → Silver → Gold: dedupes runs recorded twice, rejects GPS glitches, and publishes weekly mileage, training load, pace by temperature and marathon readiness; raw health data stays on the Mac
+- **Siri + Shortcuts career agent** — a private, token-protected endpoint (`/api/career-agent`) that turns dictated job leads and recruiter emails into a structured tracker
+- **Two SwiftUI apps** — a ClimatePulse companion and a hobby flight logbook, both with on-device summaries
+- **No seeded numbers** — `/api/apple-lab` serves only what was measured; until the tooling in [`apple/`](apple) has been run, the dashboards show an empty state
+
 ### 🔍 Network Analyzer
 - **DNS Lookup** — A, AAAA, MX, TXT, NS, CNAME records
 - **WHOIS** — domain registration, registrar, dates, nameservers via RDAP

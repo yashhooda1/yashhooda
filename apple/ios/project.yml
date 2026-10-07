@@ -1,0 +1,41 @@
+# XcodeGen spec. The .xcodeproj is generated, not committed:
+#   brew install xcodegen && cd apple/ios && xcodegen generate && open HoodaApple.xcodeproj
+name: HoodaApple
+options:
+  bundleIdPrefix: ai.yashhooda
+  deploymentTarget:
+    iOS: "18.0"
+settings:
+  base:
+    # Swift 5 language mode keeps strict-concurrency diagnostics as warnings.
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""          # pick your team in Xcode > Signing & Capabilities
+    GENERATE_INFOPLIST_FILE: YES
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+    TARGETED_DEVICE_FAMILY: "1"
+targets:
+  ClimatePulse:
+    type: application
+    platform: iOS
+    sources:
+      - ClimatePulse
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ai.yashhooda.climatepulse
+        INFOPLIST_KEY_CFBundleDisplayName: ClimatePulse
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Your location is used once to show current weather, air quality and alerts where you are. It is sent only to the weather services and is not stored."
+  Logbook:
+    type: application
+    platform: iOS
+    sources:
+      - Logbook
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ai.yashhooda.logbook
+        INFOPLIST_KEY_CFBundleDisplayName: Logbook

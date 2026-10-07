@@ -1,0 +1,3 @@
+# Mac-side tooling and Xcode sources. Nothing here is served by the site;
+# the site reads the gold JSON files at the repo root.
+apple/

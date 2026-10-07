@@ -2966,6 +2966,45 @@
             padding-left: 0.8rem;
             border-left: 2px solid var(--border);
         }
+        /* ── Apple Silicon Lab (#apple-lab) — reuses cp-*; only the additions live here ── */
+        .al-empty {
+            border: 1px dashed rgba(255,255,255,0.14);
+            border-radius: 10px;
+            padding: 1.5rem 1.25rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        .al-empty strong { color: var(--text); display: block; margin-bottom: 0.35rem; font-size: 0.95rem; }
+        .al-empty code {
+            display: inline-block;
+            margin-top: 0.6rem;
+            padding: 0.3rem 0.6rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--green);
+            overflow-wrap: anywhere;
+        }
+        .al-bars { display: grid; gap: 0.7rem; margin-top: 1rem; }
+        .al-bar-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.2rem 0.75rem; font-size: 0.78rem; color: var(--text-muted); }
+        .al-bar-row b { color: var(--text); font-family: 'Space Mono', monospace; font-weight: 400; }
+        .al-bar-track { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.07); overflow: hidden; }
+        .al-bar-fill { height: 100%; border-radius: 4px; background: var(--green); }
+        .al-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+        .al-chip {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .al-chip b { display: block; font-family: 'Space Mono', monospace; font-size: 0.95rem; color: var(--text); letter-spacing: 0; }
+        .al-status { font-size: 0.68rem; font-family: 'Space Mono', monospace; color: var(--text-muted); letter-spacing: 0.04em; }
         .cp-caveats {
             margin-top: 1rem;
             font-size: 0.72rem;
@@ -4178,6 +4217,7 @@
                     <a href="#hurricanes">Hurricanes 🌀</a>
                     <a href="#sealevel">Rising Seas 🌊</a>
                     <a href="#datacenters">Data Centers 🖥️</a>
+                    <a href="#apple-lab">Apple Silicon Lab 🍎</a>
                     <a href="#snow">Snow ❄️</a>
                     <a href="#network">Network 🔍</a>
                     <a href="#sports">Sports 🏆</a>
@@ -5539,6 +5579,228 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <p id="dc-caveat" style="margin-top:1rem;border-left:2px solid #a78bfa;background:rgba(167,139,250,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
             <strong style="color:var(--text);">Reading this honestly:</strong> per-query water and energy numbers are genuinely contested and span orders of magnitude, so they're shown as ranges. At the individual level an AI prompt is tiny next to everyday items — a single burger is ~1,650 L of water. What actually strains systems is the <em>aggregate</em> and its <em>geographic concentration</em>: a handful of clusters (Northern Virginia alone ≈ a quarter of the state's electricity) pull enormous, localized loads on grids and watersheds — and efficiency gains keep being outrun by sheer growth.
         </p>
+    </section>
+
+    <!-- APPLE SILICON LAB -->
+    <section id="apple-lab">
+        <h2>🍎 Apple Silicon Lab</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                Local AI on Apple Silicon, cloud-scale habits: benchmarks measured on my own MacBook Pro, an Apple Health running pipeline, a Siri career agent, and two SwiftUI apps
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="al-machine-badge">Loading…</span>
+                <a href="https://github.com/yashhooda1/yashhooda/tree/main/apple" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+            </div>
+        </div>
+
+        <div class="cp-tabs">
+            <button class="cp-tab active" id="al-tab-projects" onclick="alTab(this,'projects')">🧩 Projects</button>
+            <button class="cp-tab" id="al-tab-bench" onclick="alTab(this,'bench')">🧪 LLM Benchmarks</button>
+            <button class="cp-tab" id="al-tab-runos" onclick="alTab(this,'runos')">🏃 RunOS</button>
+        </div>
+
+        <!-- Projects -->
+        <div class="cp-panel active" id="al-panel-projects">
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-title">🧪 Local LLM Benchmark Lab</div>
+                    <div class="project-tech">
+                        <span class="tech-pill">AI / LLM Engineering</span>
+                        <span class="skill-tag ai">MLX</span>
+                        <span class="skill-tag ai">Ollama</span>
+                        <span class="skill-tag ai">llama.cpp</span>
+                        <span class="skill-tag de">Python</span>
+                    </div>
+                    <div class="project-desc">
+                        One fixed prompt suite run against three local inference engines on the same machine.
+                        Records generation speed, prompt-processing speed, time to first token, memory and
+                        optional power draw, then prices the same tokens on a cloud API. Each repetition
+                        defeats the prompt cache so repeat runs are not flattered.
+                    </div>
+                    <div class="project-links">
+                        <a href="#apple-lab" class="project-btn" onclick="alTab(document.getElementById('al-tab-bench'),'bench')">📊 Results</a>
+                        <a href="https://github.com/yashhooda1/yashhooda/tree/main/apple/benchlab" target="_blank" rel="noopener" class="project-btn">📂 Code</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">🏃 RunOS — Apple Health Pipeline</div>
+                    <div class="project-tech">
+                        <span class="tech-pill">Data Engineering</span>
+                        <span class="skill-tag de">Medallion Architecture</span>
+                        <span class="skill-tag de">Streaming XML</span>
+                        <span class="skill-tag de">Data Quality &amp; Dedup</span>
+                        <span class="skill-tag de">Python</span>
+                    </div>
+                    <div class="project-desc">
+                        Streams a multi-gigabyte Apple Health export through Bronze → Silver → Gold at a flat
+                        memory footprint. Removes runs recorded twice by the watch and a synced app, rejects
+                        GPS glitches, and publishes weekly mileage, training load, pace by temperature and
+                        marathon readiness. Raw health data stays on the Mac; heart-rate metrics are opt-in.
+                    </div>
+                    <div class="project-links">
+                        <a href="#apple-lab" class="project-btn" onclick="alTab(document.getElementById('al-tab-runos'),'runos')">📊 Dashboard</a>
+                        <a href="https://github.com/yashhooda1/yashhooda/tree/main/apple/runos" target="_blank" rel="noopener" class="project-btn">📂 Code</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">🎙️ Siri + Shortcuts Career Agent</div>
+                    <div class="project-tech">
+                        <span class="tech-pill">Agents</span>
+                        <span class="skill-tag ai">Claude API</span>
+                        <span class="skill-tag ai">Structured Extraction</span>
+                        <span class="skill-tag cl">Apple Shortcuts</span>
+                        <span class="skill-tag cl">Redis</span>
+                        <span class="skill-tag">Token Auth · Rate Limiting</span>
+                    </div>
+                    <div class="project-desc">
+                        “Hey Siri, log this job lead.” A Shortcut on iPhone and Mac sends dictated notes and
+                        recruiter emails to a private serverless endpoint that structures them into an
+                        application tracker and reads the result back. Email text is treated as untrusted
+                        input: the model can only return whitelisted fields.
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/yashhooda1/yashhooda/blob/main/api/career-agent.js" target="_blank" rel="noopener" class="project-btn">📂 Endpoint</a>
+                        <a href="https://github.com/yashhooda1/yashhooda/tree/main/apple/career-agent" target="_blank" rel="noopener" class="project-btn">📱 Shortcut setup</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">🌡️ ClimatePulse for iOS</div>
+                    <div class="project-tech">
+                        <span class="tech-pill">iOS</span>
+                        <span class="skill-tag cl">SwiftUI</span>
+                        <span class="skill-tag cl">Swift Charts</span>
+                        <span class="skill-tag ai">On-device AI</span>
+                        <span class="skill-tag de">Live API</span>
+                    </div>
+                    <div class="project-desc">
+                        A companion app on top of the ClimatePulse gold layer: 57 years of station trends
+                        from this site's API next to current conditions, air quality and active weather
+                        alerts for where you are, with summaries written on-device.
+                    </div>
+                    <div class="project-links">
+                        <span class="al-status">Source published · build in Xcode</span>
+                        <a href="https://github.com/yashhooda1/yashhooda/tree/main/apple/ios" target="_blank" rel="noopener" class="project-btn">📂 Code</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">🛩️ Logbook (hobby)</div>
+                    <div class="project-tech">
+                        <span class="tech-pill">iOS</span>
+                        <span class="skill-tag cl">SwiftUI</span>
+                        <span class="skill-tag cl">SwiftData</span>
+                        <span class="skill-tag ai">On-device AI</span>
+                        <span class="skill-tag de">METAR</span>
+                    </div>
+                    <div class="project-desc">
+                        A private flight-training logbook for the hobby side: hours, landings and maneuvers
+                        stored on the phone, the current METAR attached when a flight is logged, and a lesson
+                        debrief drafted on-device from my own notes. Nothing leaves the device.
+                    </div>
+                    <div class="project-links">
+                        <span class="al-status">Source published · build in Xcode</span>
+                        <a href="https://github.com/yashhooda1/yashhooda/tree/main/apple/ios" target="_blank" rel="noopener" class="project-btn">📂 Code</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LLM Benchmarks -->
+        <div class="cp-panel" id="al-panel-bench">
+            <div class="al-empty" id="al-bench-empty">
+                <strong>No benchmark results published yet</strong>
+                Numbers appear here once the suite has been run on the MacBook itself. Nothing on this tab is estimated.
+                <br><code>python3 apple/benchlab/bench.py run --backend ollama --models qwen3:8b</code>
+            </div>
+            <div id="al-bench-body" style="display:none;">
+                <div class="cp-kpi-row">
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val" id="al-b-gen">—</span><span class="cp-kpi-label">Fastest generation (tok/s)</span></div>
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="al-b-prompt">—</span><span class="cp-kpi-label">Fastest prompt processing (tok/s)</span></div>
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val" id="al-b-ttft">—</span><span class="cp-kpi-label">Lowest time to first token (ms)</span></div>
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val" id="al-b-models">—</span><span class="cp-kpi-label">Model runs</span></div>
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val" id="al-b-backends">—</span><span class="cp-kpi-label">Engines compared</span></div>
+                </div>
+                <div class="cp-controls">
+                    <label for="al-b-metric">Metric</label>
+                    <select id="al-b-metric" onchange="alBenchDraw()">
+                        <option value="gen_tps">Generation speed (tok/s)</option>
+                        <option value="prompt_tps">Prompt processing (tok/s)</option>
+                        <option value="ttft_ms">Time to first token (ms)</option>
+                        <option value="peak_mem_gb">Memory (GB)</option>
+                    </select>
+                </div>
+                <div class="cp-legend" id="al-b-legend"></div>
+                <div class="cp-chart-wrap" id="al-b-chart-wrap"><canvas id="al-b-chart"></canvas></div>
+                <p class="cp-insight" id="al-b-signal"></p>
+                <div class="cp-table-wrap" style="margin-top:1.25rem;">
+                    <table class="cp-table">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Engine</th>
+                                <th>Quant</th>
+                                <th class="num">Gen tok/s</th>
+                                <th class="num">Prompt tok/s</th>
+                                <th class="num">TTFT ms</th>
+                                <th class="num">Memory GB</th>
+                                <th class="num">Watts</th>
+                                <th class="num" id="al-b-cost-head">Cloud $ / 1k runs</th>
+                            </tr>
+                        </thead>
+                        <tbody id="al-b-rows"></tbody>
+                    </table>
+                </div>
+                <p class="cp-signal" id="al-b-method"></p>
+            </div>
+        </div>
+
+        <!-- RunOS -->
+        <div class="cp-panel" id="al-panel-runos">
+            <div class="al-empty" id="al-runos-empty">
+                <strong>No Apple Health export processed yet</strong>
+                This dashboard fills in after the pipeline runs against a real export from the Health app.
+                <br><code>python3 apple/runos/runos.py ~/Downloads/export.zip</code>
+            </div>
+            <div id="al-runos-body" style="display:none;">
+                <div class="cp-kpi-row">
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val" id="al-r-week">—</span><span class="cp-kpi-label">Latest week (mi)</span></div>
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val" id="al-r-chronic">—</span><span class="cp-kpi-label">4-week average (mi)</span></div>
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="al-r-acwr">—</span><span class="cp-kpi-label">Acute : chronic load</span></div>
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val" id="al-r-total">—</span><span class="cp-kpi-label">Lifetime miles</span></div>
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val" id="al-r-runs">—</span><span class="cp-kpi-label">Runs after dedup</span></div>
+                    <div class="cp-kpi-cell"><span class="cp-kpi-val hot" id="al-r-days">—</span><span class="cp-kpi-label" id="al-r-days-label">Days to race</span></div>
+                </div>
+                <div class="cp-controls">
+                    <label for="al-r-view">View</label>
+                    <select id="al-r-view" onchange="alRunosDraw()">
+                        <option value="weekly">Weekly mileage, last 52 weeks</option>
+                        <option value="heat">Pace by temperature</option>
+                        <option value="yearly">Miles per year</option>
+                    </select>
+                </div>
+                <div class="cp-legend" id="al-r-legend"></div>
+                <div class="cp-chart-wrap"><canvas id="al-r-chart"></canvas></div>
+                <p class="cp-insight" id="al-r-signal"></p>
+
+                <div id="al-r-goal" style="display:none;margin-top:1.5rem;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+                        <h3 style="margin:0;font-size:0.95rem;" id="al-r-goal-title">Goal race</h3>
+                        <span class="cp-refresh-badge" id="al-r-goal-badge">—</span>
+                    </div>
+                    <div class="al-bars" id="al-r-goal-bars"></div>
+                </div>
+                <div id="al-r-pred" style="display:none;">
+                    <div class="al-chips" id="al-r-pred-chips"></div>
+                    <p class="cp-signal" id="al-r-pred-note"></p>
+                </div>
+                <p class="cp-signal" id="al-r-pipeline"></p>
+            </div>
+        </div>
     </section>
 
     <!-- RUNNING -->
@@ -13421,6 +13683,298 @@ window.cpUpdateSignal = function (tab) {
         new IntersectionObserver((entries) => {
             entries.forEach(e => { if (e.isIntersecting) dcLoad(); });
         }, { threshold: 0.1 }).observe(dcSection);
+    }
+})();
+
+// ═══════════ APPLE SILICON LAB — self-contained (paste after the DC IIFE's })(); ) ═══════════
+// Fetches /api/apple-lab once, lazy-loads on scroll, reuses cp-* styling.
+// Both dashboards show an empty state until real data has been published; nothing
+// here is seeded or estimated. Globals exposed: window.alTab, alBenchDraw, alRunosDraw.
+(function () {
+    'use strict';
+
+    const AL = { data: null, charts: {}, loaded: false, loading: false, tab: 'projects', userPicked: false };
+    const ENGINE = {
+        mlx:      { label: 'MLX',       color: '#4caf50' },
+        ollama:   { label: 'Ollama',    color: '#38bdf8' },
+        llamacpp: { label: 'llama.cpp', color: '#fb923c' },
+    };
+    const METRIC = {
+        gen_tps:     { label: 'Generation speed (tok/s)',  better: 'higher' },
+        prompt_tps:  { label: 'Prompt processing (tok/s)', better: 'higher' },
+        ttft_ms:     { label: 'Time to first token (ms)',  better: 'lower' },
+        peak_mem_gb: { label: 'Memory (GB)',               better: 'lower' },
+    };
+    const TICK = { color: '#9ca3af', font: { size: 10 } };
+    const GRID = { color: 'rgba(255,255,255,0.05)' };
+
+    const $ = (id) => document.getElementById(id);
+    const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const num = (v, d = 1) => (typeof v === 'number' && isFinite(v)) ? v.toLocaleString(undefined, { maximumFractionDigits: d }) : '—';
+    const pace = (s) => (typeof s === 'number' && s > 0) ? Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0') : '—';
+    const engine = (b) => ENGINE[b] || { label: b, color: '#a78bfa' };
+    const benchOk = () => AL.data && AL.data.bench && AL.data.bench.status === 'ok';
+    const runosOk = () => AL.data && AL.data.runos && AL.data.runos.status === 'ok';
+    const destroy = (k) => { if (AL.charts[k]) { AL.charts[k].destroy(); AL.charts[k] = null; } };
+
+    async function alLoad() {
+        if (AL.loaded || AL.loading) return;
+        AL.loading = true;
+        try {
+            const res = await fetch('/api/apple-lab');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            AL.data = await res.json();
+            AL.loaded = true;
+            alBadge();
+            alBenchRender();
+            alRunosRender();
+            // Open on whichever dashboard has real data, unless the visitor already chose a tab.
+            if (!AL.userPicked) {
+                const first = benchOk() ? 'bench' : runosOk() ? 'runos' : null;
+                if (first) show(first);
+            }
+        } catch (err) {
+            console.error('[AppleLab] Failed to load data:', err);
+            set('al-machine-badge', 'Data unavailable');
+        } finally {
+            AL.loading = false;
+        }
+    }
+
+    function alBadge() {
+        const m = benchOk() ? AL.data.bench.machine : null;
+        if (m && m.chip) {
+            set('al-machine-badge', [m.chip, m.memory_gb ? m.memory_gb + ' GB' : null, m.os].filter(Boolean).join(' · '));
+        } else {
+            set('al-machine-badge', runosOk() ? 'RunOS live · benchmarks pending' : 'Awaiting first run');
+        }
+    }
+
+    // ── LLM benchmarks ──────────────────────────────────────────────────────
+    function benchRows() {
+        return (AL.data.bench.results || []).filter(r => r.summary);
+    }
+
+    function alBenchRender() {
+        const ok = benchOk() && benchRows().length > 0;
+        $('al-bench-empty').style.display = ok ? 'none' : '';
+        $('al-bench-body').style.display = ok ? '' : 'none';
+        if (!ok) return;
+        const rows = benchRows();
+        const best = (key, dir) => rows.filter(r => typeof r.summary[key] === 'number')
+            .sort((a, b) => dir * (a.summary[key] - b.summary[key]))[0];
+        const g = best('gen_tps', -1), p = best('prompt_tps', -1), t = best('ttft_ms', 1);
+        set('al-b-gen', g ? num(g.summary.gen_tps) : '—');
+        set('al-b-prompt', p ? num(p.summary.prompt_tps, 0) : '—');
+        set('al-b-ttft', t ? num(t.summary.ttft_ms, 0) : '—');
+        set('al-b-models', rows.length);
+        set('al-b-backends', new Set(rows.map(r => r.backend)).size);
+
+        const cloudName = (((rows[0].cost || {}).cloud || [])[0] || {}).model;
+        if (cloudName) set('al-b-cost-head', cloudName + ' $ / 1k runs');
+        $('al-b-rows').innerHTML = rows
+            .slice().sort((a, b) => (b.summary.gen_tps || 0) - (a.summary.gen_tps || 0))
+            .map(r => {
+                const s = r.summary, c = ((r.cost || {}).cloud || [])[0];
+                return `<tr>
+                    <td>${esc(r.model)}${r.params ? ` <span style="color:var(--text-muted);">${esc(r.params)}</span>` : ''}</td>
+                    <td><span style="color:${engine(r.backend).color};">●</span> ${esc(engine(r.backend).label)}</td>
+                    <td>${esc(r.quant || '—')}</td>
+                    <td class="num">${num(s.gen_tps)}</td>
+                    <td class="num">${num(s.prompt_tps, 0)}</td>
+                    <td class="num">${num(s.ttft_ms, 0)}</td>
+                    <td class="num">${num(s.peak_mem_gb)}</td>
+                    <td class="num">${num(s.avg_watts)}</td>
+                    <td class="num">${c ? '$' + num(c.usd_per_1k_suite_runs, 2) : '—'}</td>
+                </tr>`;
+            }).join('');
+
+        const b = AL.data.bench;
+        const wall = rows.some(r => r.timing_source === 'wallclock');
+        $('al-b-method').innerHTML =
+            `<strong style="color:var(--text);">Method:</strong> ${(b.suite || []).length} fixed prompts ` +
+            `(${(b.suite || []).map(s => esc(s.label)).join(', ')}), median of repeated runs after a warm-up, ` +
+            `temperature 0. Each repetition changes the first tokens of the prompt so no engine can reuse a cached prefix. ` +
+            `Prompt-processing speed comes from the long-context prompt only. ` +
+            (wall ? `Rows from engines that do not report their own timings are stopwatch-derived. ` : '') +
+            (cloudName ? `Cloud cost is what the same suite's tokens would bill at ${esc(cloudName)} list price` +
+                (b.prices_as_of ? ` as of ${esc(b.prices_as_of)}` : '') + `. ` : '') +
+            `Measured ${esc((b.generated_at || '').slice(0, 10))}.`;
+        if (AL.tab === 'bench') alBenchDraw();
+    }
+
+    window.alBenchDraw = function () {
+        if (!benchOk()) return;
+        const key = $('al-b-metric').value;
+        const meta = METRIC[key];
+        const rows = benchRows().filter(r => typeof r.summary[key] === 'number')
+            .sort((a, b) => (meta.better === 'higher' ? -1 : 1) * (a.summary[key] - b.summary[key]));
+        destroy('bench');
+        const wrap = $('al-b-chart-wrap');
+        wrap.style.height = Math.max(180, 44 + rows.length * 34) + 'px';
+        const used = [...new Set(rows.map(r => r.backend))];
+        $('al-b-legend').innerHTML = used.map(b =>
+            `<span class="cp-leg-item"><span class="cp-leg-dot" style="background:${engine(b).color};"></span>${esc(engine(b).label)}</span>`).join('');
+        const sig = $('al-b-signal');
+        if (!rows.length) { sig.innerHTML = 'No engine reported this metric.'; return; }
+        AL.charts.bench = new Chart($('al-b-chart'), {
+            type: 'bar',
+            data: {
+                labels: rows.map(r => r.model + ' · ' + engine(r.backend).label),
+                datasets: [{
+                    label: meta.label, data: rows.map(r => r.summary[key]),
+                    backgroundColor: rows.map(r => engine(r.backend).color), borderRadius: 4, maxBarThickness: 22,
+                }],
+            },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, ticks: TICK, grid: GRID, title: { display: true, text: meta.label, color: '#9ca3af', font: { size: 10 } } },
+                    y: { ticks: { color: '#E0E0E0', font: { size: 10 } }, grid: { display: false } },
+                },
+            },
+        });
+        const top = rows[0];
+        sig.innerHTML = `<strong>Signal:</strong> ${meta.better === 'higher' ? 'Highest' : 'Lowest'} is ` +
+            `${esc(top.model)} on ${esc(engine(top.backend).label)} at ${num(top.summary[key], key === 'gen_tps' || key === 'peak_mem_gb' ? 1 : 0)}` +
+            (rows.length > 1 ? `; the spread across ${rows.length} runs is ${num(rows[rows.length - 1].summary[key], 1)} to ${num(top.summary[key], 1)}.` : '.') +
+            ` ${meta.better === 'higher' ? 'Higher' : 'Lower'} is better. Different quantizations are not like-for-like: read the Quant column.`;
+    };
+
+    // ── RunOS ───────────────────────────────────────────────────────────────
+    function alRunosRender() {
+        const ok = runosOk();
+        $('al-runos-empty').style.display = ok ? 'none' : '';
+        $('al-runos-body').style.display = ok ? '' : 'none';
+        if (!ok) return;
+        const r = AL.data.runos, w = r.weekly || [], last = w[w.length - 1] || {};
+        set('al-r-week', num(last.miles));
+        set('al-r-chronic', num((r.load || {}).chronic_28d_weekly_mi));
+        set('al-r-acwr', num((r.load || {}).acwr, 2));
+        set('al-r-total', num((r.totals || {}).miles, 0));
+        set('al-r-runs', num((r.totals || {}).runs, 0));
+
+        const g = r.goal_race;
+        if (g) {
+            set('al-r-days', g.days_to_go >= 0 ? g.days_to_go : '—');
+            set('al-r-days-label', 'Days to ' + (g.name || 'race'));
+            $('al-r-goal').style.display = '';
+            set('al-r-goal-title', '🎯 ' + (g.name || 'Goal race') + (g.goal_time ? ' · goal ' + g.goal_time : ''));
+            set('al-r-goal-badge', g.readiness_pct != null ? g.readiness_pct + '% of build targets' : g.date);
+            $('al-r-goal-bars').innerHTML = (g.components || []).map(c => `
+                <div class="al-bar-row">
+                    <span>${esc(c.label)}</span>
+                    <b>${num(c.value)} / ${num(c.target)} ${esc(c.unit)}</b>
+                    <div class="al-bar-track"><div class="al-bar-fill" style="width:${Math.max(0, Math.min(100, c.pct))}%;"></div></div>
+                </div>`).join('');
+        } else {
+            set('al-r-days', '—');
+        }
+
+        const p = r.predictions;
+        if (p && p.races) {
+            $('al-r-pred').style.display = '';
+            $('al-r-pred-chips').innerHTML = Object.entries(p.races)
+                .map(([k, v]) => `<span class="al-chip">${esc(k)}<b>${esc(v)}</b></span>`).join('');
+            $('al-r-pred-note').innerHTML = `<strong style="color:var(--text);">Predictions:</strong> ${esc(p.method)} ` +
+                `(${esc(p.basis.miles)} mi in ${esc(p.basis.time)} on ${esc(p.basis.date)}). ` +
+                `Training runs are not races, so treat these as a conservative floor, not a forecast.`;
+        }
+        const pl = r.pipeline || {};
+        const rej = Object.values(pl.rejected || {}).reduce((a, b) => a + b, 0);
+        $('al-r-pipeline').innerHTML = `<strong style="color:var(--text);">Pipeline:</strong> ` +
+            `${num(pl.bronze, 0)} running workouts in bronze → ${num(pl.silver, 0)} in silver ` +
+            `(${num(pl.duplicates_removed, 0)} duplicate recordings removed, ${num(rej, 0)} failed quality checks). ` +
+            `Data through ${esc(r.data_through || '—')}. Source: Apple Health export; raw records never leave the Mac.`;
+        if (AL.tab === 'runos') alRunosDraw();
+    }
+
+    window.alRunosDraw = function () {
+        if (!runosOk()) return;
+        const r = AL.data.runos, view = $('al-r-view').value;
+        destroy('runos');
+        const leg = $('al-r-legend'), sig = $('al-r-signal');
+        const dot = (c, t) => `<span class="cp-leg-item"><span class="cp-leg-dot" style="background:${c};"></span>${t}</span>`;
+        const base = (extra) => ({
+            responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+            scales: { x: { ticks: { ...TICK, maxTicksLimit: 13 }, grid: GRID }, y: { beginAtZero: true, ticks: TICK, grid: GRID } },
+            ...extra,
+        });
+        if (view === 'weekly') {
+            const w = r.weekly || [];
+            leg.innerHTML = dot('#4caf50', 'Weekly miles') + dot('#38bdf8', 'Long run');
+            AL.charts.runos = new Chart($('al-r-chart'), {
+                data: {
+                    labels: w.map(x => x.week_start.slice(5)),
+                    datasets: [
+                        { type: 'bar', label: 'Weekly miles', data: w.map(x => x.miles), backgroundColor: 'rgba(76,175,80,0.75)', borderRadius: 3, order: 2 },
+                        { type: 'line', label: 'Long run', data: w.map(x => x.long_run_mi || null), borderColor: '#38bdf8', backgroundColor: '#38bdf8',
+                          borderWidth: 2, pointRadius: 0, tension: 0.3, spanGaps: true, order: 1 },
+                    ],
+                },
+                options: base({}),
+            });
+            const active = w.filter(x => x.miles > 0);
+            const peak = active.reduce((a, c) => c.miles > a.miles ? c : a, active[0] || { miles: 0, week_start: '' });
+            sig.innerHTML = active.length
+                ? `<strong>Signal:</strong> ${active.length} of the last 52 weeks have mileage. Peak week was ${num(peak.miles)} mi (week of ${esc(peak.week_start)}); ` +
+                  `the 4-week average is ${num((r.load || {}).chronic_28d_weekly_mi)} mi with an acute:chronic ratio of ${num((r.load || {}).acwr, 2)}.`
+                : '';
+        } else if (view === 'heat') {
+            const h = (r.pace_by_temperature || []).filter(x => x.runs > 0);
+            leg.innerHTML = dot('#fb923c', 'Average pace (min/mi), outdoor runs');
+            AL.charts.runos = new Chart($('al-r-chart'), {
+                type: 'bar',
+                data: { labels: h.map(x => x.band), datasets: [{ label: 'Pace', data: h.map(x => x.avg_pace_s_per_mi), backgroundColor: 'rgba(251,146,60,0.8)', borderRadius: 3 }] },
+                options: base({
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => pace(c.parsed.y) + ' /mi · ' + h[c.dataIndex].runs + ' runs' } } },
+                    scales: { x: { ticks: TICK, grid: GRID }, y: { beginAtZero: false, ticks: { ...TICK, callback: (v) => pace(v) }, grid: GRID } },
+                }),
+            });
+            const cool = h[0], hot = h[h.length - 1];
+            sig.innerHTML = h.length > 1
+                ? `<strong>Signal:</strong> average pace runs from ${pace(cool.avg_pace_s_per_mi)} /mi in the ${esc(cool.band)} band to ${pace(hot.avg_pace_s_per_mi)} /mi in the ${esc(hot.band)} band. ` +
+                  `This is association, not a controlled comparison: easy days and hard days are not spread evenly across temperatures.`
+                : 'Not enough outdoor runs with recorded weather to compare temperature bands.';
+        } else {
+            const y = r.yearly || [];
+            leg.innerHTML = dot('#4caf50', 'Miles per year');
+            AL.charts.runos = new Chart($('al-r-chart'), {
+                type: 'bar',
+                data: { labels: y.map(x => x.year), datasets: [{ label: 'Miles', data: y.map(x => x.miles), backgroundColor: 'rgba(76,175,80,0.75)', borderRadius: 3 }] },
+                options: base({}),
+            });
+            sig.innerHTML = y.length ? `<strong>Signal:</strong> ${num((r.totals || {}).miles, 0)} miles across ${num((r.totals || {}).runs, 0)} runs since ${esc(r.first_run || '')}. The current year is partial.` : '';
+        }
+    };
+
+    // ── Tab switching ───────────────────────────────────────────────────────
+    function show(id) {
+        AL.tab = id;
+        document.querySelectorAll('#apple-lab .cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#apple-lab .cp-panel').forEach(p => p.classList.remove('active'));
+        const btn = $('al-tab-' + id), panel = $('al-panel-' + id);
+        if (btn) btn.classList.add('active');
+        if (panel) panel.classList.add('active');
+        // Charts are drawn only while their panel is visible: Chart.js sizes a
+        // canvas inside display:none to zero.
+        if (id === 'bench') alBenchDraw();
+        if (id === 'runos') alRunosDraw();
+    }
+    window.alTab = function (btn, id) {
+        AL.userPicked = true;
+        show(id);
+        if (!AL.loaded) alLoad();
+    };
+
+    // ── Lazy-load on scroll ─────────────────────────────────────────────────
+    const alSection = document.getElementById('apple-lab');
+    if (alSection) {
+        new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) alLoad(); });
+        }, { threshold: 0.05 }).observe(alSection);
     }
 })();
 

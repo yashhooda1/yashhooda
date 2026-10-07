@@ -26,7 +26,7 @@ struct FlightListView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            ThemedList {
                 if flights.isEmpty {
                     ContentUnavailableView(
                         "No flights logged",
@@ -45,7 +45,7 @@ struct FlightListView: View {
                             Chart(months) { month in
                                 BarMark(x: .value("Month", month.start, unit: .month),
                                         y: .value("Hours", month.hours))
-                                    .foregroundStyle(.green)
+                                    .foregroundStyle(Theme.green)
                             }
                             .frame(height: 160)
                             .accessibilityLabel("Flight hours by month")

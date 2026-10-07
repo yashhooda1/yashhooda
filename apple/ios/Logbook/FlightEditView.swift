@@ -24,7 +24,7 @@ struct FlightEditView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            ThemedForm {
                 Section("Flight") {
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                     TextField("Aircraft type (C172)", text: $aircraftType)

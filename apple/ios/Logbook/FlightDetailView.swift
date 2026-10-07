@@ -7,7 +7,7 @@ struct FlightDetailView: View {
     @State private var draftError: String?
 
     var body: some View {
-        List {
+        ThemedList {
             Section {
                 LabeledContent("Date", value: flight.date.formatted(date: .long, time: .omitted))
                 LabeledContent("Route", value: flight.route)

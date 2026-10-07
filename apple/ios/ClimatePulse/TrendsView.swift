@@ -34,7 +34,7 @@ struct TrendsView: View {
 
     @ViewBuilder
     private func content(_ station: Station) -> some View {
-        List {
+        ThemedList {
             Section {
                 Picker("Station", selection: $selected) {
                     ForEach(store.stations) { s in
@@ -49,12 +49,12 @@ struct TrendsView: View {
                     ForEach(station.years) { y in
                         LineMark(x: .value("Year", y.year), y: .value("Mean °F", y.meanF),
                                  series: .value("Series", "Observed"))
-                            .foregroundStyle(.green)
+                            .foregroundStyle(Theme.green)
                     }
                     ForEach(station.years.filter { $0.trendF != nil }) { y in
                         LineMark(x: .value("Year", y.year), y: .value("Trend °F", y.trendF ?? y.meanF),
                                  series: .value("Series", "Trend"))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Theme.orange)
                             .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 4]))
                     }
                 }

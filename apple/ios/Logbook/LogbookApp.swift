@@ -6,7 +6,7 @@ struct LogbookApp: App {
     var body: some Scene {
         WindowGroup {
             FlightListView()
-                .tint(.green)
+                .hoodaTheme()
         }
         // Stored on the device only. There is no account, sync or server.
         .modelContainer(for: Flight.self)

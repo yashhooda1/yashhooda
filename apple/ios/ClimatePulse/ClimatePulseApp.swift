@@ -10,7 +10,7 @@ struct ClimatePulseApp: App {
                 HereView()
                     .tabItem { Label("Here", systemImage: "location") }
             }
-            .tint(.green)
+            .hoodaTheme()
         }
     }
 }

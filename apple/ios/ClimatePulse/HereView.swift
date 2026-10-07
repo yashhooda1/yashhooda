@@ -5,7 +5,7 @@ struct HereView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            ThemedList {
                 if store.locationDenied {
                     ContentUnavailableView(
                         "Location is off",

@@ -59,6 +59,9 @@ struct TrendsView: View {
                     }
                 }
                 .chartYScale(domain: .automatic(includesZero: false))
+                // Without an explicit domain the year axis starts at zero and the
+                // whole record collapses into a sliver at the right edge.
+                .chartXScale(domain: (station.years.first?.year ?? 1970)...(station.years.last?.year ?? 2026))
                 .chartXAxis { AxisMarks(values: .automatic(desiredCount: 6)) { value in
                     AxisGridLine()
                     AxisValueLabel { if let year = value.as(Int.self) { Text(String(year)) } }

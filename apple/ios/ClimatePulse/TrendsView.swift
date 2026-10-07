@@ -114,14 +114,20 @@ struct TrendsView: View {
         defer { summarizing = false }
         guard let first = station.years.first, let last = station.years.last else { return }
         let warmest = station.years.max { $0.meanF < $1.meanF }
-        var facts = "Station: \(station.name). Record: \(first.year) to \(last.year). "
-        facts += "First year mean: \(String(format: "%.1f", first.meanF)) F. "
-        facts += "Latest year mean: \(String(format: "%.1f", last.meanF)) F (the latest year may be partial). "
-        if let warmest { facts += "Warmest year: \(warmest.year) at \(String(format: "%.1f", warmest.meanF)) F. " }
-        if let slope = station.slopePerDecade { facts += "Linear trend: \(String(format: "%+.2f", slope)) F per decade." }
+        // Each fact is a full sentence with its own year. Handing the small
+        // on-device model a list of "label: value" pairs made it splice the
+        // record's date range onto the first-year figure.
+        let partial = last.year == Calendar.current.component(.year, from: .now)
+        var facts = "The station is \(station.name). "
+        facts += "In \(first.year), the first year of the record, the annual mean temperature was \(String(format: "%.1f", first.meanF)) F. "
+        facts += "In \(last.year), the latest year\(partial ? ", which is not finished yet," : ""), it was \(String(format: "%.1f", last.meanF)) F. "
+        if let warmest { facts += "The warmest year was \(warmest.year) at \(String(format: "%.1f", warmest.meanF)) F. " }
+        if let slope = station.slopePerDecade {
+            facts += "Across the whole record the linear trend is \(String(format: "%+.2f", slope)) F per decade."
+        }
         do {
             summary = try await OnDeviceAI.respond(
-                instructions: "You write two plain sentences describing a temperature record. Use only the numbers given. Do not mention causes or make forecasts.",
+                instructions: "You describe a temperature record in three short plain sentences. Use only the facts given, keep every temperature attached to its own year, and include the trend per decade. Do not mention causes or make forecasts.",
                 prompt: facts
             )
         } catch {

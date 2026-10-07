@@ -40,6 +40,9 @@ struct WeatherAlert: Identifiable {
 final class HereStore: NSObject, CLLocationManagerDelegate {
     var conditions: Conditions?
     var air: AirQuality?
+    /// True when the air-quality request failed, so the view can say so
+    /// instead of silently dropping the card.
+    var airUnavailable = false
     var alerts: [WeatherAlert] = []
     var alertsCovered = true
     var placeName: String?
@@ -129,8 +132,10 @@ final class HereStore: NSObject, CLLocationManagerDelegate {
            let current = root["current"] as? [String: Any],
            let aqi = current.double("us_aqi") {
             air = AirQuality(usAQI: aqi, pm25: current.double("pm2_5"))
+            airUnavailable = false
         } else {
             air = nil
+            airUnavailable = true
         }
 
         let alertURL = URL(string: "https://api.weather.gov/alerts/active?point=\(lat),\(lon)")!

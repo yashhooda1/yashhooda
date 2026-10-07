@@ -55,3 +55,16 @@ Desktop.ini
 !airports.json                   # aviation tracker lookup table
 !evals/golden.json               # eval test set
 !evals/baseline.json             # eval reference scores
+
+# ── APPLE SILICON LAB ─────────────────────────────────────────────────────────
+# RunOS bronze/silver are raw Apple Health data: never commit them. Only the
+# aggregated gold file at the repo root (public_data_runos_gold.json) ships.
+apple/runos/data/
+export.zip
+export.xml
+apple_health_export/
+# Xcode
+apple/ios/**/*.xcodeproj/
+apple/ios/**/xcuserdata/
+apple/ios/**/DerivedData/
+__pycache__/

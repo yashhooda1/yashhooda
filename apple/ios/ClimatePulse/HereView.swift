@@ -26,6 +26,11 @@ struct HereView: View {
                             LabeledContent("US AQI", value: String(format: "%.0f · %@", air.usAQI, air.band))
                             if let pm = air.pm25 { LabeledContent("PM2.5", value: String(format: "%.1f µg/m³", pm)) }
                         }
+                    } else if store.airUnavailable {
+                        Section("Air quality") {
+                            Text("Air quality is unavailable right now. Tap refresh to try again.")
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     if store.conditions != nil {
                         Section("Active alerts") {

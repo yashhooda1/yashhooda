@@ -4212,6 +4212,7 @@
                     <a href="#journey">Flight Log (Hobby) 🛩️</a>
                     <a href="#aviation">Flight Tracker ✈️</a>
                     <a href="#metar">METAR ✈️📡📄📊</a>
+                    <a href="#ercot">ERCOT Grid ⚡</a>
                     <a href="#weather">Weather 🌤️</a>
                     <a href="#climate">Climate 🌡️</a>
                     <a href="#hurricanes">Hurricanes 🌀</a>
@@ -5130,6 +5131,66 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     </section>
 
     <!-- WEATHER -->
+    <!-- ERCOT GRID -->
+    <section id="ercot">
+        <h2>⚡ ERCOT Grid — Texas Power, Live</h2>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">
+                Texas grid demand, generation mix and prices from ERCOT, joined to METAR weather from six Texas airports. Same Kafka → Spark → Delta pipeline as METAR Stream.
+            </p>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span class="cp-refresh-badge" id="er-badge">Loading…</span>
+                <a href="https://github.com/yashhooda1/metar-stream#ercot-grid" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+            </div>
+        </div>
+
+        <div class="al-empty" id="er-empty">
+            <strong>Waiting for the first hourly refresh</strong>
+            The ERCOT pipeline publishes a snapshot every hour. Nothing on this panel is estimated, so it stays empty until real data arrives.
+        </div>
+
+        <div id="er-body" style="display:none;">
+            <div class="cp-kpi-row">
+                <div class="cp-kpi-cell"><span class="cp-kpi-val" id="er-demand">—</span><span class="cp-kpi-label">Demand now (MW)</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="er-margin">—</span><span class="cp-kpi-label">Capacity margin</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val" id="er-ws">—</span><span class="cp-kpi-label">Wind + solar share</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val" id="er-net">—</span><span class="cp-kpi-label">Net load (MW)</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val hot" id="er-price">—</span><span class="cp-kpi-label">Houston hub ($/MWh)</span></div>
+            </div>
+
+            <div class="cp-tabs">
+                <button class="cp-tab active" onclick="erTab(this,'demand')">📈 Demand</button>
+                <button class="cp-tab" onclick="erTab(this,'fuel')">🔥 Fuel mix</button>
+                <button class="cp-tab" onclick="erTab(this,'price')">💲 Prices</button>
+                <button class="cp-tab" onclick="erTab(this,'weather')">🌡️ Weather vs load</button>
+            </div>
+
+            <div class="cp-panel active" id="er-panel-demand">
+                <div class="cp-legend" id="er-leg-demand"></div>
+                <div class="cp-chart-wrap"><canvas id="er-chart-demand"></canvas></div>
+                <p class="cp-insight" id="er-sig-demand"></p>
+            </div>
+            <div class="cp-panel" id="er-panel-fuel">
+                <div class="cp-legend" id="er-leg-fuel"></div>
+                <div class="cp-chart-wrap"><canvas id="er-chart-fuel"></canvas></div>
+                <p class="cp-insight" id="er-sig-fuel"></p>
+            </div>
+            <div class="cp-panel" id="er-panel-price">
+                <div class="cp-legend" id="er-leg-price"></div>
+                <div class="cp-chart-wrap"><canvas id="er-chart-price"></canvas></div>
+                <p class="cp-insight" id="er-sig-price"></p>
+            </div>
+            <div class="cp-panel" id="er-panel-weather">
+                <div class="cp-legend" id="er-leg-weather"></div>
+                <div class="cp-chart-wrap"><canvas id="er-chart-weather"></canvas></div>
+                <p class="cp-insight" id="er-sig-weather"></p>
+            </div>
+
+            <p class="cp-signal" id="er-pipeline"></p>
+        </div>
+    </section>
+
     <section id="weather">
         <h2>🌤️ Your Current Weather</h2>
         <p>Live weather for wherever you're accessing this site from.</p>
@@ -13975,6 +14036,202 @@ window.cpUpdateSignal = function (tab) {
         new IntersectionObserver((entries) => {
             entries.forEach(e => { if (e.isIntersecting) alLoad(); });
         }, { threshold: 0.05 }).observe(alSection);
+    }
+})();
+
+// ═══════════ ERCOT GRID — self-contained ═══════════
+// Fetches the hourly snapshot from metar-stream's data branch (same pattern as
+// the METAR panel), lazy-loads on scroll, reuses cp-* styling.
+// Globals exposed: window.erTab only.
+(function () {
+    'use strict';
+    const SRC = 'https://raw.githubusercontent.com/yashhooda1/metar-stream/data/docs/ercot_dashboard.json';
+    const ER = { d: null, charts: {}, loading: false, tab: 'demand' };
+    const FUEL_COLORS = {
+        'Natural Gas': '#fb923c', 'Wind': '#38bdf8', 'Solar': '#facc15', 'Nuclear': '#a78bfa',
+        'Coal and Lignite': '#a8a29e', 'Power Storage': '#4caf50', 'Hydro': '#60a5fa', 'Other': '#6b7280',
+    };
+    const HUB_COLORS = { HB_HOUSTON: '#f87171', HB_NORTH: '#60a5fa', HB_WEST: '#facc15', HB_HUBAVG: '#4caf50' };
+    const HUB_NAMES = { HB_HOUSTON: 'Houston hub', HB_NORTH: 'North hub', HB_WEST: 'West hub', HB_HUBAVG: 'Hub average' };
+    const TICK = { color: '#9ca3af', font: { size: 10 } };
+    const GRID = { color: 'rgba(255,255,255,0.05)' };
+    const $ = (id) => document.getElementById(id);
+    const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const num = (v, d = 0) => (typeof v === 'number' && isFinite(v)) ? v.toLocaleString(undefined, { maximumFractionDigits: d }) : '—';
+    const ct = (iso, opts) => new Date(iso).toLocaleString(undefined, Object.assign({ timeZone: 'America/Chicago' }, opts));
+    const hm = (iso) => ct(iso, { hour: 'numeric', minute: '2-digit' });
+    const dayHour = (iso) => ct(iso, { weekday: 'short', hour: 'numeric' });
+    const dot = (c, t) => `<span class="cp-leg-item"><span class="cp-leg-dot" style="background:${c};"></span>${t}</span>`;
+    const dash = (c, t) => `<span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:${c};"></span>${t}</span>`;
+    const destroy = (k) => { if (ER.charts[k]) { ER.charts[k].destroy(); ER.charts[k] = null; } };
+    const base = (extra = {}) => Object.assign({
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { ticks: { ...TICK, maxTicksLimit: 8 }, grid: GRID }, y: { ticks: TICK, grid: GRID } },
+    }, extra);
+
+    async function erLoad() {
+        if (ER.d || ER.loading) return;
+        ER.loading = true;
+        try {
+            const res = await fetch(SRC, { cache: 'no-cache' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            ER.d = await res.json();
+            if (!ER.d.latest) throw new Error('snapshot has no data yet');
+            $('er-empty').style.display = 'none';
+            $('er-body').style.display = '';
+            erRender();
+        } catch (err) {
+            console.warn('[ERCOT] no snapshot yet:', err.message);
+            set('er-badge', 'Awaiting first refresh');
+        } finally {
+            ER.loading = false;
+        }
+    }
+
+    function erRender() {
+        const d = ER.d, l = d.latest;
+        const ageMin = (Date.now() - new Date(d.generated_at)) / 60000;
+        set('er-badge', (ageMin < 150 ? 'Live · ' : 'Last updated · ') + ct(d.generated_at, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' CT');
+        set('er-demand', num(l.demand_mw));
+        set('er-margin', l.margin_pct != null ? num(l.margin_pct, 1) + '%' : '—');
+        set('er-ws', l.wind_solar_share_pct != null ? num(l.wind_solar_share_pct, 1) + '%' : '—');
+        set('er-net', num(l.net_load_mw));
+        set('er-price', l.rt_prices && l.rt_prices.HB_HOUSTON != null ? '$' + num(l.rt_prices.HB_HOUSTON, 2) : '—');
+
+        const s = d.stats || {};
+        const rej = Object.values(s.rejected_this_run || {}).reduce((a, b) => a + b, 0);
+        const recs = Object.values(s.records_this_run || {}).reduce((a, b) => a + b, 0);
+        $('er-pipeline').innerHTML = `<strong style="color:var(--text);">Pipeline:</strong> ${num(recs)} records parsed in the last run, ` +
+            `${num(rej)} quarantined, ${num(s.revised_cells_this_run)} values revised by ERCOT since the previous run ` +
+            `(${num(s.revised_cells_total)} across ${num(s.runs)} runs). ${num(s.history_hours)} hours of history. ` +
+            `Sources: ERCOT public dashboards and NOAA METAR.` +
+            ((d.warnings || []).length ? ` <span style="color:#fb923c;">${esc(d.warnings.length)} feed warning(s) on the last run.</span>` : '');
+        draw();
+    }
+
+    function draw() {
+        if (!ER.d) return;
+        ({ demand: drawDemand, fuel: drawFuel, price: drawPrice, weather: drawWeather })[ER.tab]();
+    }
+
+    function drawDemand() {
+        destroy('demand');
+        const t = ER.d.today, dem = t.demand || [], fc = t.forecast || [];
+        // One shared time axis: actuals every 15 minutes, forecast hourly.
+        const times = [...new Set([...dem.map(p => p.t), ...fc.map(p => p.t)])].sort();
+        const byT = (arr, k) => { const m = {}; arr.forEach(p => { m[p.t] = p[k]; }); return times.map(x => m[x] ?? null); };
+        $('er-leg-demand').innerHTML = dot('#4caf50', 'Actual demand') + dash('#9ca3af', 'ERCOT forecast') + dash('#f87171', 'Committed capacity');
+        ER.charts.demand = new Chart($('er-chart-demand'), {
+            type: 'line',
+            data: { labels: times.map(hm), datasets: [
+                { data: byT(dem, 'mw'), borderColor: '#4caf50', backgroundColor: 'rgba(76,175,80,0.12)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3, spanGaps: true },
+                { data: byT(fc, 'mw'), borderColor: '#9ca3af', borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, spanGaps: true },
+                { data: byT(dem, 'cap'), borderColor: '#f87171', borderDash: [2, 3], borderWidth: 1.5, pointRadius: 0, spanGaps: true },
+            ] },
+            options: base({ scales: { x: { ticks: { ...TICK, maxTicksLimit: 8 }, grid: GRID }, y: { ticks: { ...TICK, callback: v => (v / 1000) + 'k' }, grid: GRID, title: { display: true, text: 'MW', color: '#9ca3af', font: { size: 10 } } } } }),
+        });
+        const peak = dem.reduce((a, p) => p.mw > a.mw ? p : a, dem[0] || { mw: 0 });
+        $('er-sig-demand').innerHTML = dem.length
+            ? `<strong>Signal:</strong> peak in the last 24 hours was ${num(peak.mw)} MW at ${hm(peak.t)} CT. The gap between demand and committed capacity is the system's cushion; it is thinnest on hot late afternoons as solar fades.`
+            : '';
+    }
+
+    function drawFuel() {
+        destroy('fuel');
+        const rows = ER.d.fuel_hourly || [];
+        const fuels = Object.keys(FUEL_COLORS).filter(f => rows.some(r => (r[f] || 0) !== 0));
+        $('er-leg-fuel').innerHTML = fuels.map(f => dot(FUEL_COLORS[f], esc(f))).join('');
+        ER.charts.fuel = new Chart($('er-chart-fuel'), {
+            type: 'bar',
+            data: { labels: rows.map(r => dayHour(r.t)), datasets: fuels.map(f => ({
+                label: f, data: rows.map(r => r[f]), backgroundColor: FUEL_COLORS[f], borderWidth: 0, stack: 'gen',
+            })) },
+            options: base({
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${num(c.parsed.y)} MW` } } },
+                scales: { x: { stacked: true, ticks: { ...TICK, maxTicksLimit: 8 }, grid: { display: false } }, y: { stacked: true, ticks: { ...TICK, callback: v => (v / 1000) + 'k' }, grid: GRID } },
+            }),
+        });
+        const l = ER.d.latest;
+        $('er-sig-fuel').innerHTML = l && l.fuel_mw && Object.keys(l.fuel_mw).length
+            ? `<strong>Signal:</strong> right now wind and solar supply ${num(l.wind_solar_share_pct, 1)}% of generation. Storage below zero is batteries charging, usually midday when solar is plentiful.`
+            : 'Fuel mix was unavailable on the last refresh.';
+    }
+
+    function drawPrice() {
+        destroy('price');
+        const series = ER.d.today.rt_prices || {};
+        const hubs = Object.keys(HUB_COLORS).filter(h => (series[h] || []).length);
+        const times = [...new Set(hubs.flatMap(h => series[h].map(p => p.t)))].sort();
+        $('er-leg-price').innerHTML = hubs.map(h => dot(HUB_COLORS[h], HUB_NAMES[h])).join('');
+        ER.charts.price = new Chart($('er-chart-price'), {
+            type: 'line',
+            data: { labels: times.map(hm), datasets: hubs.map(h => {
+                const m = {}; series[h].forEach(p => { m[p.t] = p.usd; });
+                return { label: HUB_NAMES[h], data: times.map(t => m[t] ?? null), borderColor: HUB_COLORS[h], borderWidth: 1.8, pointRadius: 0, tension: 0.2, spanGaps: true };
+            }) },
+            options: base({ scales: { x: { ticks: { ...TICK, maxTicksLimit: 8 }, grid: GRID }, y: { ticks: { ...TICK, callback: v => '$' + v }, grid: GRID, title: { display: true, text: '$/MWh, real time', color: '#9ca3af', font: { size: 10 } } } } }),
+        });
+        const all = hubs.flatMap(h => series[h].map(p => ({ h, ...p })));
+        const hi = all.reduce((a, p) => p.usd > a.usd ? p : a, all[0] || { usd: 0 });
+        $('er-sig-price').innerHTML = all.length
+            ? `<strong>Signal:</strong> highest 15-minute price in the last 24 hours was $${num(hi.usd, 2)}/MWh at ${esc(HUB_NAMES[hi.h])} (${hm(hi.t)} CT). Hubs diverge when transmission is congested; the West hub often trades below Houston when West Texas wind is strong.`
+            : 'Prices were unavailable on the last refresh.';
+    }
+
+    function drawWeather() {
+        destroy('weather');
+        const w = ER.d.weather_load || {}, pts = w.points || [], m = w.model;
+        const datasets = [{ type: 'scatter', data: pts.map(p => ({ x: p.temp_f, y: p.demand_mw })), backgroundColor: 'rgba(56,189,248,0.55)', pointRadius: 2.5 }];
+        let leg = dot('#38bdf8', 'Hourly demand vs weighted temperature');
+        if (m && pts.length) {
+            const xs = pts.map(p => p.temp_f), lo = Math.floor(Math.min(...xs)), hi = Math.ceil(Math.max(...xs));
+            const f = t => m.intercept_mw + (m.mw_per_cooling_degree || 0) * Math.max(t - m.balance_point_f, 0) + (m.mw_per_heating_degree || 0) * Math.max(m.balance_point_f - t, 0);
+            const line = []; for (let t = lo; t <= hi; t += 0.5) line.push({ x: t, y: f(t) });
+            datasets.push({ type: 'line', data: line, borderColor: '#fb923c', borderDash: [6, 4], borderWidth: 2, pointRadius: 0 });
+            leg += dash('#fb923c', 'Degree-day fit');
+        }
+        $('er-leg-weather').innerHTML = leg;
+        ER.charts.weather = new Chart($('er-chart-weather'), {
+            type: 'scatter', data: { datasets },
+            options: base({
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${num(c.parsed.x, 1)}°F · ${num(c.parsed.y)} MW` } } },
+                scales: {
+                    x: { type: 'linear', ticks: { ...TICK, callback: v => v + '°F' }, grid: GRID, title: { display: true, text: 'Population-weighted temperature, 6 ERCOT airports', color: '#9ca3af', font: { size: 10 } } },
+                    y: { ticks: { ...TICK, callback: v => (v / 1000) + 'k' }, grid: GRID, title: { display: true, text: 'Demand, MW', color: '#9ca3af', font: { size: 10 } } },
+                },
+            }),
+        });
+        const sig = $('er-sig-weather');
+        if (!m) {
+            sig.innerHTML = `<strong>Collecting:</strong> ${num(pts.length)} of the 48 hourly points needed before a model is fitted.`;
+            return;
+        }
+        const parts = [];
+        const effect = (v) => `${v >= 0 ? 'adds' : 'removes'} about ${num(Math.abs(v))} MW`;
+        if (m.mw_per_cooling_degree != null) parts.push(`each °F above ${m.balance_point_f}°F ${effect(m.mw_per_cooling_degree)}`);
+        if (m.mw_per_heating_degree != null) parts.push(`each °F below ${m.balance_point_f}°F ${effect(m.mw_per_heating_degree)}`);
+        else parts.push(`too few hours below ${m.balance_point_f}°F so far to estimate heating load`);
+        sig.innerHTML = `<strong>Model:</strong> ${parts.join('; ')} (n = ${num(m.n)} hours, R² = ${num(m.r2, 2)}). ` +
+            `Temperature alone, by design: time of day and weekday drive much of hourly load and are not in this fit, so R² measures how much weather explains on its own. Not a forecast.`;
+    }
+
+    window.erTab = function (btn, id) {
+        ER.tab = id;
+        document.querySelectorAll('#ercot .cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#ercot .cp-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        $('er-panel-' + id).classList.add('active');
+        if (!ER.d) { erLoad(); return; }
+        draw();
+    };
+
+    const sec = document.getElementById('ercot');
+    if (sec) {
+        new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) erLoad(); });
+        }, { threshold: 0.05 }).observe(sec);
     }
 })();
 

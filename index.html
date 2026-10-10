@@ -4233,6 +4233,7 @@
                     <a href="#heat-pace">Running Heat Adjustment Calculator</a>
                     <a href="#wind-cold">Wind &amp; Cold Adjustment</a>
                     <a href="#pace-calc">Pace Calculator</a>
+                    <a href="#race-predictor">Race Predictor &amp; Training Paces</a>
                     <a href="#heat-equivalent">Race Time by Temperature</a>
                     <a href="#strava-feed">Live Strava feed</a>
                     <a href="#hikes">Hikes</a>
@@ -6413,6 +6414,105 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
       </div>
 
       <p class="hpc-foot">Straight arithmetic — no fatigue curve. Holding 5K pace for a marathon is a math result, not a prediction. For that, use the heat predictor below or a Riegel-style equivalence.</p>
+    </section>
+
+    <div style="height:28px"></div>
+
+    <!-- ========================================================= -->
+    <!-- RACE PREDICTOR + TRAINING PACES (Daniels–Gilbert VDOT)     -->
+    <!-- ========================================================= -->
+    <section class="hpc" id="race-predictor">
+      <p class="hpc-eyebrow">Tool · Fitness</p>
+      <h1 class="hpc-title">Race Predictor &amp; Training Paces</h1>
+      <p class="hpc-lede">Enter one recent race. It works out your VDOT, predicts every other distance, and turns that fitness into the five training paces: easy, marathon, threshold, interval and repetition.</p>
+
+      <div class="hpc-grid">
+        <div class="hpc-block">
+          <p class="hpc-legend">A recent race</p>
+          <div class="hpc-field">
+            <label class="hpc-label" for="rp-event">Distance</label>
+            <select id="rp-event">
+              <option value="1500">1500 m</option>
+              <option value="1609.344">1 mile</option>
+              <option value="3000">3K</option>
+              <option value="3218.688">2 miles</option>
+              <option value="5000" selected>5K</option>
+              <option value="8000">8K</option>
+              <option value="8046.72">5 miles</option>
+              <option value="10000">10K</option>
+              <option value="15000">15K</option>
+              <option value="16093.44">10 miles</option>
+              <option value="21097.5">Half marathon</option>
+              <option value="25000">25K</option>
+              <option value="30000">30K</option>
+              <option value="42195">Marathon</option>
+            </select>
+          </div>
+          <div class="hpc-field">
+            <span class="hpc-label" id="rp-time-label">Finish time</span>
+            <div class="hpc-timefields" role="group" aria-labelledby="rp-time-label">
+              <input type="number" id="rp-h" inputmode="numeric" min="0" max="99" step="1" value="0" aria-label="Hours"><span>h</span>
+              <input type="number" id="rp-m" inputmode="numeric" min="0" max="59" step="1" value="18" aria-label="Minutes"><span>m</span>
+              <input type="number" id="rp-s" inputmode="numeric" min="0" max="59" step="1" value="15" aria-label="Seconds"><span>s</span>
+            </div>
+            <span class="hpc-hint">Use a race run all-out in cool weather on a flat course.</span>
+          </div>
+        </div>
+
+        <div class="hpc-block">
+          <p class="hpc-legend">Show paces</p>
+          <div class="hpc-field">
+            <span class="hpc-label" id="rp-units-label">Pace unit</span>
+            <div class="hpc-seg" role="group" aria-labelledby="rp-units-label">
+              <input type="radio" name="rp-units" id="rp-u-mi" value="mi" checked><label for="rp-u-mi">per mile</label>
+              <input type="radio" name="rp-units" id="rp-u-km" value="km"><label for="rp-u-km">per km</label>
+            </div>
+          </div>
+          <div class="hpc-field">
+            <label class="hpc-label" for="rp-target">Goal race</label>
+            <select id="rp-target">
+              <option value="1609.344">1 mile</option>
+              <option value="5000">5K</option>
+              <option value="10000">10K</option>
+              <option value="16093.44">10 miles</option>
+              <option value="21097.5">Half marathon</option>
+              <option value="42195" selected>Marathon</option>
+            </select>
+          </div>
+          <div class="hpc-actions" style="margin-top:16px">
+            <button type="button" class="hpc-btn hpc-ghost" id="rp-send" hidden>Adjust this prediction for race-day weather ↓</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hpc-results" aria-live="polite">
+        <p class="hpc-headline" id="rp-headline">—</p>
+        <p class="hpc-sub" id="rp-sub"></p>
+
+        <dl class="hpc-metrics">
+          <div class="hpc-metric"><dt>Goal race prediction</dt><dd id="rp-g1">—</dd></div>
+          <div class="hpc-metric"><dt>Goal race pace</dt><dd id="rp-g2">—</dd></div>
+          <div class="hpc-metric"><dt>Riegel check</dt><dd id="rp-g3">—</dd></div>
+        </dl>
+
+        <div class="hpc-matrix-wrap">
+        <table class="hpc-table" style="min-width:560px">
+          <caption>Training paces</caption>
+          <thead><tr><th scope="col">Zone</th><th scope="col">Pace</th><th scope="col">Reps</th><th scope="col">What it's for</th></tr></thead>
+          <tbody id="rp-paces"></tbody>
+        </table>
+        </div>
+
+        <div class="hpc-matrix-wrap">
+          <table class="hpc-table" style="min-width:420px">
+            <caption>Equivalent race times</caption>
+            <thead><tr><th scope="col">Race</th><th scope="col">VDOT</th><th scope="col">Pace</th><th scope="col">Riegel</th></tr></thead>
+            <tbody id="rp-races"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="hpc-foot">Built on Daniels &amp; Gilbert's oxygen-power equations (1979): the oxygen cost of running a given speed, and the share of VO₂max a runner can hold for a given duration. VDOT is the VO₂max those two imply for your race. Training paces are speeds at a fixed share of VDOT: easy 62–70%, threshold 88%, interval 98%, repetition 105%; marathon pace is the marathon prediction itself. Riegel's formula (time × distance ratio<sup>1.06</sup>) is shown beside it as a second opinion. Predictions assume you have trained for the distance: long races, the marathon most of all, come out optimistic without the mileage behind them. Heat, hills and wind are not included; for heat, send the prediction to the tool below.</p>
     </section>
 
     <div style="height:28px"></div>
@@ -14233,6 +14333,147 @@ window.cpUpdateSignal = function (tab) {
             entries.forEach(e => { if (e.isIntersecting) erLoad(); });
         }, { threshold: 0.05 }).observe(sec);
     }
+})();
+
+// ═══════════ RACE PREDICTOR + TRAINING PACES — self-contained ═══════════
+// Daniels & Gilbert (1979) "Oxygen Power" equations:
+//   VO2 cost of running at v metres/min:  VO2 = -4.60 + 0.182258 v + 0.000104 v^2
+//   share of VO2max sustainable for t minutes:
+//                       pct = 0.8 + 0.1894393 e^(-0.012778 t) + 0.2989558 e^(-0.1932605 t)
+//   VDOT = VO2(race speed) / pct(race duration)
+// Predictions solve the same relation for time at another distance; training
+// paces invert the cost curve at a fixed share of VDOT.
+(function () {
+    'use strict';
+    const root = document.getElementById('race-predictor');
+    if (!root) return;
+    const $ = (id) => document.getElementById(id);
+    const MILE = 1609.344;
+
+    const vo2 = (v) => -4.60 + 0.182258 * v + 0.000104 * v * v;
+    const pctMax = (t) => 0.8 + 0.1894393 * Math.exp(-0.012778 * t) + 0.2989558 * Math.exp(-0.1932605 * t);
+    const vdotOf = (meters, minutes) => vo2(meters / minutes) / pctMax(minutes);
+    // speed (m/min) whose oxygen cost is the given VO2
+    const speedAt = (v) => (-0.182258 + Math.sqrt(0.182258 * 0.182258 + 4 * 0.000104 * (v + 4.60))) / (2 * 0.000104);
+
+    // Time to run `meters` at a given VDOT. vdotOf(meters, t) falls as t grows,
+    // so bisection on t always converges.
+    function predictMinutes(vdot, meters) {
+        let lo = 0.5, hi = 1200;
+        for (let i = 0; i < 80; i++) {
+            const mid = (lo + hi) / 2;
+            if (vdotOf(meters, mid) > vdot) lo = mid; else hi = mid;
+        }
+        return (lo + hi) / 2;
+    }
+    const riegel = (min, fromM, toM) => min * Math.pow(toM / fromM, 1.06);
+
+    function fmtTime(min) {
+        let s = Math.round(min * 60);
+        const h = Math.floor(s / 3600); s -= h * 3600;
+        const m = Math.floor(s / 60); s -= m * 60;
+        return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+    }
+    const fmtPace = (mPerMin, unitM) => fmtTime(unitM / mPerMin);
+    const fmtSec = (sec) => sec >= 60 ? fmtTime(sec / 60) : `${Math.round(sec)}s`;
+    const unitM = () => (document.querySelector('input[name="rp-units"]:checked').value === 'km' ? 1000 : MILE);
+    const unitLabel = () => (unitM() === 1000 ? '/km' : '/mi');
+    const n = (id) => { const v = parseFloat($(id).value); return isFinite(v) && v >= 0 ? v : 0; };
+
+    const RACES = [
+        ['1 mile', MILE], ['3K', 3000], ['5K', 5000], ['8K', 8000], ['10K', 10000], ['15K', 15000],
+        ['10 miles', 10 * MILE], ['Half marathon', 21097.5], ['30K', 30000], ['Marathon', 42195],
+    ];
+
+    function render() {
+        const meters = parseFloat($('rp-event').value);
+        const minutes = (n('rp-h') * 3600 + n('rp-m') * 60 + n('rp-s')) / 60;
+        const speed = meters / minutes;
+        // Outside roughly 3:30 to 20 hours per event, or slower than a brisk walk,
+        // the equations are being asked about something they were not fitted to.
+        if (!(minutes >= 3.5 && minutes <= 1200) || speed < 80) {
+            $('rp-headline').textContent = '—';
+            $('rp-sub').textContent = 'Enter a race between about 3½ minutes and 20 hours, run faster than a walk.';
+            ['rp-g1', 'rp-g2', 'rp-g3'].forEach(id => { $(id).textContent = '—'; });
+            $('rp-paces').innerHTML = ''; $('rp-races').innerHTML = '';
+            return;
+        }
+        const vdot = vdotOf(meters, minutes);
+        const U = unitM(), UL = unitLabel();
+        const eventName = $('rp-event').selectedOptions[0].textContent;
+
+        $('rp-headline').innerHTML = `${vdot.toFixed(1)} <small>VDOT</small>`;
+        $('rp-sub').textContent = `From your ${fmtTime(minutes)} ${eventName}.`;
+
+        const tM = parseFloat($('rp-target').value);
+        const tName = $('rp-target').selectedOptions[0].textContent;
+        const tMin = predictMinutes(vdot, tM);
+        $('rp-g1').textContent = `${tName} ${fmtTime(tMin)}`;
+        $('rp-g2').textContent = fmtPace(tM / tMin, U) + UL;
+        $('rp-g3').textContent = Math.abs(tM - meters) < 1 ? '—' : fmtTime(riegel(minutes, meters, tM));
+
+        const mpSpeed = 42195 / predictMinutes(vdot, 42195);
+        const at = (share) => speedAt(share * vdot);
+        const ZONES = [
+            ['Easy', [at(0.62), at(0.70)], null, 'Most of your mileage, long runs, recovery. Conversational.'],
+            ['Marathon', [mpSpeed], null, 'Goal-pace work inside long runs.'],
+            ['Threshold', [at(0.88)], [[MILE, 'mile'], [1000, '1K']], 'Comfortably hard; 20 minutes steady or cruise intervals.'],
+            ['Interval', [at(0.98)], [[400, '400'], [1000, '1K']], 'VO₂max work: reps of 3–5 minutes with near-equal jog recovery.'],
+            ['Repetition', [at(1.05)], [[200, '200'], [400, '400']], 'Speed and economy: short reps with full recovery.'],
+        ];
+        $('rp-paces').innerHTML = ZONES.map(([name, speeds, reps, use]) => {
+            const pace = speeds.length === 2
+                ? `${fmtPace(speeds[1], U)}–${fmtPace(speeds[0], U)}${UL}`
+                : `${fmtPace(speeds[0], U)}${UL}`;
+            const r = reps ? reps.map(([m, l]) => `${l} ${fmtSec(m / speeds[0] * 60)}`).join(' · ') : '—';
+            return `<tr><td>${name}</td><td>${pace}</td><td>${r}</td><td style="font-family:var(--hpc-sans);font-size:12px;color:var(--hpc-ink-2)">${use}</td></tr>`;
+        }).join('');
+
+        $('rp-races').innerHTML = RACES.map(([name, m]) => {
+            const t = predictMinutes(vdot, m);
+            const same = Math.abs(m - meters) < 1;
+            return `<tr${same ? ' style="font-weight:700"' : ''}><td>${name}${same ? ' (your race)' : ''}</td>` +
+                `<td>${fmtTime(t)}</td><td>${fmtPace(m / t, U)}${UL}</td><td>${same ? '—' : fmtTime(riegel(minutes, meters, m))}</td></tr>`;
+        }).join('');
+    }
+
+    root.addEventListener('input', render);
+    root.addEventListener('change', render);
+
+    // Hand the goal-race prediction to "Race Time by Temperature", when that
+    // tool offers the same distance, so race-day heat can be layered on top.
+    const he = document.getElementById('heat-equivalent');
+    const heEvent = document.getElementById('he-event');
+    const send = $('rp-send');
+    function syncSend() {
+        const tM = $('rp-target').value;
+        send.hidden = !(he && heEvent && [...heEvent.options].some(o => Math.abs(parseFloat(o.value) - parseFloat(tM)) < 1));
+    }
+    if (he && heEvent) {
+        send.addEventListener('click', () => {
+            const tM = parseFloat($('rp-target').value);
+            const opt = [...heEvent.options].find(o => Math.abs(parseFloat(o.value) - tM) < 1);
+            const ms = $('rp-event').value, mins = (n('rp-h') * 3600 + n('rp-m') * 60 + n('rp-s')) / 60;
+            if (!opt || !(mins > 0)) return;
+            let s = Math.round(predictMinutes(vdotOf(parseFloat(ms), mins), tM) * 60);
+            heEvent.value = opt.value;
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+            set('he-h', Math.floor(s / 3600)); s %= 3600;
+            set('he-m', Math.floor(s / 60));
+            set('he-s', s % 60);
+            // The prediction assumes cool air, so the "ran it in" conditions are cool too.
+            set('he-temp', document.querySelector('input[name="he-units"]:checked')?.value === 'C' ? 10 : 50);
+            set('he-dew', document.querySelector('input[name="he-units"]:checked')?.value === 'C' ? 4 : 40);
+            document.getElementById('he-s')?.dispatchEvent(new Event('input', { bubbles: true }));
+            he.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        $('rp-target').addEventListener('change', syncSend);
+        syncSend();
+    }
+    render();
+
+    // Exposed for tests only.
+    window.__vdot = { vo2, pctMax, vdotOf, speedAt, predictMinutes };
 })();
 
 // ═══════════ THIS WEEK — self-contained (paste after the DC IIFE's })(); ) ═══════════

@@ -14122,7 +14122,7 @@ window.cpUpdateSignal = function (tab) {
         // One shared time axis: actuals every 15 minutes, forecast hourly.
         const times = [...new Set([...dem.map(p => p.t), ...fc.map(p => p.t)])].sort();
         const byT = (arr, k) => { const m = {}; arr.forEach(p => { m[p.t] = p[k]; }); return times.map(x => m[x] ?? null); };
-        $('er-leg-demand').innerHTML = dot('#4caf50', 'Actual demand') + dash('#9ca3af', 'ERCOT forecast') + dash('#f87171', 'Committed capacity');
+        $('er-leg-demand').innerHTML = dot('#4caf50', 'Actual demand') + dash('#9ca3af', 'ERCOT forecast, next day') + dash('#f87171', 'Committed capacity');
         ER.charts.demand = new Chart($('er-chart-demand'), {
             type: 'line',
             data: { labels: times.map(hm), datasets: [
@@ -14134,7 +14134,7 @@ window.cpUpdateSignal = function (tab) {
         });
         const peak = dem.reduce((a, p) => p.mw > a.mw ? p : a, dem[0] || { mw: 0 });
         $('er-sig-demand').innerHTML = dem.length
-            ? `<strong>Signal:</strong> peak in the last 24 hours was ${num(peak.mw)} MW at ${hm(peak.t)} CT. The gap between demand and committed capacity is the system's cushion; it is thinnest on hot late afternoons as solar fades.`
+            ? `<strong>Signal:</strong> today's peak so far is ${num(peak.mw)} MW at ${hm(peak.t)} CT. The gap between demand and committed capacity is the system's cushion; it is thinnest on hot late afternoons as solar fades.`
             : '';
     }
 
@@ -14176,7 +14176,7 @@ window.cpUpdateSignal = function (tab) {
         const all = hubs.flatMap(h => series[h].map(p => ({ h, ...p })));
         const hi = all.reduce((a, p) => p.usd > a.usd ? p : a, all[0] || { usd: 0 });
         $('er-sig-price').innerHTML = all.length
-            ? `<strong>Signal:</strong> highest 15-minute price in the last 24 hours was $${num(hi.usd, 2)}/MWh at ${esc(HUB_NAMES[hi.h])} (${hm(hi.t)} CT). Hubs diverge when transmission is congested; the West hub often trades below Houston when West Texas wind is strong.`
+            ? `<strong>Signal:</strong> highest 15-minute price today was $${num(hi.usd, 2)}/MWh at ${esc(HUB_NAMES[hi.h])} (${hm(hi.t)} CT). Hubs diverge when transmission is congested; the West hub often trades below Houston when West Texas wind is strong.`
             : 'Prices were unavailable on the last refresh.';
     }
 

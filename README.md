@@ -55,7 +55,7 @@ If you're skimming, these are the parts worth reading the code for:
 - Shows temp, feels like, humidity, wind speed/direction, precipitation
 
 ### 🌡️ ClimatePulse — Live Climate Dashboard
-- **57 years (1970–present)** of NOAA daily station data across **13 cities** — Houston (IAH), Newark (EWR), Dallas (DAL), Denver (DEN), London (LHR), Chicago (ORD), Helsinki (HEL), Paris (CDG), Amsterdam (AMS), Rome (FCO), Brussels (BRU), Los Angeles (LAX), and Delhi (DEL)
+- **57 years (1970–present)** of NOAA daily station data across **14 cities** — Houston (IAH), Austin (AUS), Newark (EWR), Dallas (DAL), Denver (DEN), London (LHR), Chicago (ORD), Helsinki (HEL), Paris (CDG), Amsterdam (AMS), Rome (FCO), Brussels (BRU), Los Angeles (LAX), and Delhi (DEL)
 - **Bronze → Silver → Gold medallion pipeline** in a separate [`climatepulse`](https://github.com/yashhooda1/climatepulse) repo, refreshed **daily** via a GitHub Actions cron (every day at 04:00 UTC) that computes the gold layer and pushes `public_data_climate_gold.json` into this repo
 - **Incremental caching** — per-station parquet files mean each run pulls only new data, reducing NOAA API calls from 741 to 13 per run
 - **Four interactive tabs** — Annual Trend (with linear-regression trend lines, °F/decade), Seasonal climatology, Heat Days (≥ 80°F), and Winter Lows

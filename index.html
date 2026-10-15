@@ -4688,8 +4688,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
                 <div class="project-desc">
                     End-to-end Bronze → Silver → Gold pipeline analyzing 57 years (1970–2026) 
-                    of NOAA daily station data across 14 global cities — Austin (home station), Houston, Newark, Dallas,
-                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, and Delhi. Features automated daily refresh via GitHub Actions,
+                    of NOAA daily station data across 17 global cities — Austin (home station), Houston, Newark, Dallas,
+                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, San Francisco, Seattle, New York City, and Delhi. Features automated daily refresh via GitHub Actions,
                     Celsius→Fahrenheit conversion for international stations, an interactive
                     dashboard with city toggle comparisons, and an Austin-vs-Houston layer contrasting winter freezes and humidity (dew point, afternoon RH).
                     Denver included for Boulderthon marathon race planning context.
@@ -5184,7 +5184,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Texas grid demand, generation mix and prices from ERCOT, joined to METAR weather from six Texas airports. Same Kafka → Spark → Delta pipeline as METAR Stream.
+                Texas grid demand, generation mix and prices from ERCOT, joined to METAR weather from six Texas airports. Austin is the home view: Austin Energy's load-zone price (LZ_AEN) and KAUS weather, contrasted with Houston. Same Kafka → Spark → Delta pipeline as METAR Stream.
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="er-badge">Loading…</span>
@@ -5203,7 +5203,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="er-margin">—</span><span class="cp-kpi-label">Capacity margin</span></div>
                 <div class="cp-kpi-cell"><span class="cp-kpi-val" id="er-ws">—</span><span class="cp-kpi-label">Wind + solar share</span></div>
                 <div class="cp-kpi-cell"><span class="cp-kpi-val" id="er-net">—</span><span class="cp-kpi-label">Net load (MW)</span></div>
-                <div class="cp-kpi-cell"><span class="cp-kpi-val hot" id="er-price">—</span><span class="cp-kpi-label">Houston hub ($/MWh)</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val home" id="er-price">—</span><span class="cp-kpi-label" id="er-price-label">Austin Energy zone ($/MWh)</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val home" id="er-home-temp">—</span><span class="cp-kpi-label" id="er-home-temp-label">Austin now (KAUS)</span></div>
             </div>
 
             <div class="cp-tabs">
@@ -5261,7 +5262,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="cp-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                57 years (1970–2026) of NOAA daily station data · 14 cities · Austin home station · Bronze → Silver → Gold pipeline
+                57 years (1970–2026) of NOAA daily station data · 17 cities · Austin home station · Bronze → Silver → Gold pipeline
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="cp-last-updated">Updated daily</span>
@@ -5405,7 +5406,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="co2-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 14 station series (Austin home)
+                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 17 station series (Austin home)
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="co2-updated">Updated monthly</span>
@@ -12000,6 +12001,9 @@ const HOODAAGENTS_KILL_SWITCH = true;
             CDG: { name: 'Paris, France',      color: '#818cf8' },
             BRU: { name: 'Brussels, Belgium',  color: '#e879f9' },
             FCO: { name: 'Rome, Italy',        color: '#fb7185' },
+            SFO: { name: 'San Francisco, CA',  color: '#38bdf8' },
+            SEA: { name: 'Seattle, WA',        color: '#94a3b8' },
+            NYC: { name: 'New York City, NY',  color: '#fde68a' },
         },
     };
 
@@ -12054,7 +12058,9 @@ const HOODAAGENTS_KILL_SWITCH = true;
     };
 
     function cpRedrawAll() {
-        const activePanel = document.querySelector('.cp-panel.active');
+        // Scoped to #climate: the ERCOT section above reuses .cp-panel, so an
+        // unscoped lookup found ERCOT's panel and toggles never redrew.
+        const activePanel = document.querySelector('#climate .cp-panel.active');
         if (!activePanel) return;
         const id = activePanel.id.replace('cp-panel-', '');
         if (id === 'trend')    { destroyChart('trend');    cpDrawTrend(); }
@@ -12172,7 +12178,10 @@ const HOODAAGENTS_KILL_SWITCH = true;
 
     // ── Legend builder ───────────────────────────────────────────────────────
     function buildLegend(cities, showTrend = false, showYTD = false) {
-        const el = document.getElementById('cp-legend-dynamic');
+        // Every panel's legend shares the id cp-legend-dynamic, so getElementById
+        // always hit the trend panel's; write into the visible panel's legend.
+        const el = document.querySelector('#climate .cp-panel.active .cp-legend') ||
+                   document.getElementById('cp-legend-dynamic');
         if (!el) return;
         el.innerHTML = cities.map(({ cfg }) => `
             <span class="cp-leg-item">
@@ -12192,8 +12201,8 @@ const HOODAAGENTS_KILL_SWITCH = true;
 
     // ── Tab switching ────────────────────────────────────────────────────────
     window.cpTab = function(btn, id) {
-        document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.cp-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#climate .cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#climate .cp-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('cp-panel-' + id).classList.add('active');
         if (!CP.loaded) { cpLoad(); return; }
@@ -12373,7 +12382,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
         });
  
         buildLegend(cities);
-        const legEl = document.getElementById('cp-legend-dynamic');
+        const legEl = document.querySelector('#cp-panel-heat .cp-legend');
         if (anyYTD && legEl) legEl.innerHTML += `
             <span class="cp-leg-item" title="Heat days so far this year (hollow) and full-year pace (faint), vs same date in prior years">
                 <span style="display:inline-block;width:9px;height:9px;border:2px solid var(--text-muted);background:transparent;margin-right:4px;"></span>
@@ -12495,7 +12504,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
             `${kSgn(h.jja_dewpt_diff, 1)}°F · 65°F+ reads as muggy`));
         if (a.home_range != null) cards.push(hvCard('Daily temperature swing',
             kNum(a.home_range), kNum(a.ref_range), '°F',
-            `${kSgn(a.range_diff, 1)}°F wider — dry air cools faster at night`));
+            `${kSgn(a.range_diff, 1)}°F · mean daily high − low, ${a.window[0]}–${a.window[1]}`));
         grid.innerHTML = cards.join('') ||
             `<div class="cp-hv-empty">Comparison data not available this run.</div>`;
     }
@@ -12571,9 +12580,15 @@ const HOODAAGENTS_KILL_SWITCH = true;
         if (!hv) return '';
         const w = hv.winter || {}, h = hv.humidity || {}, a = hv.annual || {};
         const parts = [];
-        if (w.tmin_diff != null) parts.push(`Austin's winter nights average ${kNum(w.home_tmin)}°F against Houston's ${kNum(w.ref_tmin)}°F, and it logs ${kNum(w.home_freeze_nights)} freeze nights a winter to Houston's ${kNum(w.ref_freeze_nights)} (${w.window[0]}–${w.window[1]}). Distance from the Gulf is the difference: no warm-water moisture blanket holding heat in overnight.`);
-        if (h.djf_dewpt_diff != null) parts.push(`The air is drier too — winter dew point runs ${kNum(Math.abs(h.djf_dewpt_diff))}°F ${h.djf_dewpt_diff < 0 ? 'lower' : 'higher'} and afternoon humidity ${kNum(Math.abs(h.djf_rhmn_diff), 0)} points ${h.djf_rhmn_diff < 0 ? 'lower' : 'higher'}${h.jja_dewpt_diff != null ? `; in summer the dew-point gap is ${kNum(Math.abs(h.jja_dewpt_diff))}°F (${kNum(h.jja_home_dewpt)}°F vs ${kNum(h.jja_ref_dewpt)}°F)` : ''}.`);
-        if (a.range_diff != null) parts.push(`That dryness shows up in the temperature record as a ${kNum(Math.abs(a.range_diff))}°F ${a.range_diff > 0 ? 'wider' : 'narrower'} daily swing.`);
+        // Lead with humidity — that's where the two cities genuinely differ.
+        // Temperature gaps are stated as measured, and only called meaningful
+        // when they are (≥ 2°F), so the copy can't overstate a small difference.
+        if (h.djf_dewpt_diff != null) parts.push(`The clearest difference is moisture. Austin's winter dew point averages ${kNum(h.djf_home_dewpt)}°F vs Houston's ${kNum(h.djf_ref_dewpt)}°F (${kSgn(h.djf_dewpt_diff, 1)}°F), with afternoon humidity ${kNum(Math.abs(h.djf_rhmn_diff), 0)} points ${h.djf_rhmn_diff < 0 ? 'lower' : 'higher'}${h.jja_rhmn_diff != null ? `; in summer, afternoon humidity runs ${kNum(Math.abs(h.jja_rhmn_diff), 0)} points ${h.jja_rhmn_diff < 0 ? 'lower' : 'higher'} and dew point ${kNum(Math.abs(h.jja_dewpt_diff))}°F ${h.jja_dewpt_diff < 0 ? 'lower' : 'higher'} (${kNum(h.jja_home_dewpt)}°F vs ${kNum(h.jja_ref_dewpt)}°F)` : ''}.`);
+        if (w.tmin_diff != null) {
+            const big = Math.abs(w.tmin_diff) >= 2;
+            parts.push(`Winter temperatures are ${big ? 'noticeably' : 'only slightly'} different: night lows average ${kNum(w.home_tmin)}°F in Austin vs ${kNum(w.ref_tmin)}°F in Houston (${kSgn(w.tmin_diff, 1)}°F), and Austin logs ${kNum(w.home_freeze_nights)} freeze nights a winter to Houston's ${kNum(w.ref_freeze_nights)} (${w.window[0]}–${w.window[1]})${w.home_freeze_recent != null ? `, ${kNum(w.home_freeze_recent)} vs ${kNum(w.ref_freeze_recent)} over the last 10 winters` : ''}. Houston's winter nights are also warming faster (${kSgn(w.ref_slope)} vs ${kSgn(w.home_slope)}°F/decade).`);
+        }
+        if (a.range_diff != null && Math.abs(a.range_diff) >= 1) parts.push(`Austin's daily high–low swing is ${kNum(Math.abs(a.range_diff))}°F ${a.range_diff > 0 ? 'wider' : 'narrower'}.`);
         if (h.record_start) parts.push(`Humidity comes from NOAA daily dew point/RH, which begins ${h.record_start.slice(0, 4)} for these stations — a shorter window than the 1970+ temperature series.`);
         return parts.join(' ');
     }
@@ -12597,8 +12612,8 @@ const swing = (d) => (july(d) != null && jan(d) != null) ? july(d) - jan(d) : nu
 const hvOf = () => (CP.data && CP.data.home_vs) || {};
 const CP_SIGNALS = {
     AUS: {
-        trend:    (d) => `Austin (Camp Mabry) — the home station — warms at ${sgn(d.slope_annual)}°F/decade. Sitting inland, ~150 mi from the Gulf, it gets less of the coastal moisture that keeps Houston's nights warm and muggy.`,
-        seasonal: (d) => `Austin's July mean is ${num(july(d))}°F against ${num(jan(d))}°F in January — a ${num(swing(d))}°F seasonal swing. With less Gulf moisture to damp it, Austin's summer heat is a drier heat and its winters dip lower.`,
+        trend:    (d) => `Austin (Camp Mabry) — the home station — warms at ${sgn(d.slope_annual)}°F/decade. Sitting inland, ~150 mi from the Gulf, it gets less of the Gulf moisture that keeps Houston's air muggy.`,
+        seasonal: (d) => `Austin's July mean is ${num(july(d))}°F against ${num(jan(d))}°F in January — a ${num(swing(d))}°F seasonal swing. Average temperatures track Houston closely; the real difference is humidity — Austin's air is noticeably drier year-round.`,
         heat:     (d) => `Austin logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}, with Feb–Mar heat days changing ${sgn(d.slope_80f_febmar)} days/decade.`,
         winter:   (d) => {
             const w = hvOf().winter;
@@ -12682,6 +12697,24 @@ const CP_SIGNALS = {
         seasonal: (d) => `Rome has a classic Mediterranean profile — hot, dry summers near ${num(july(d))}°F in July against mild, wet winters around ${num(jan(d))}°F, a ${num(swing(d))}°F swing. The rain comes when the heat doesn't.`,
         heat:     (d) => `Ciampino logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — the highest count of the European cities here. Italy hit 48.8°C in 2021, a provisional European record.`,
         winter:   (d) => `Rome winter lows warm at ${sgn(d.slope_winter)}°F/decade from an already-mild baseline. Mediterranean winters are the wet season, so warming interacts directly with water security.`,
+    },
+    SFO: {
+        trend:    (d) => `San Francisco (SFO) warms at ${sgn(d.slope_annual)}°F/decade. The cold California Current and the marine layer it feeds keep the Bay Area mild, so its warming shows less in the average than in inland heat waves.`,
+        seasonal: (d) => `San Francisco has one of the flattest curves here — about ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a ${num(swing(d))}°F swing. Summer fog keeps July cool; at SFO, September is the warmest month on average, not July.`,
+        heat:     (d) => `SFO logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — few, because the sea breeze caps afternoon highs at the bay's edge.`,
+        winter:   (d) => `San Francisco winter lows warm at ${sgn(d.slope_winter)}°F/decade from a mild base — frost is rare at the bay's edge, and winter is the rainy season.`,
+    },
+    SEA: {
+        trend:    (d) => `Seattle (Sea-Tac) warms at ${sgn(d.slope_annual)}°F/decade. The Pacific keeps it temperate, but the June 2021 heat dome pushed Sea-Tac to 108°F — its all-time record — in a city where few homes had air conditioning.`,
+        seasonal: (d) => `Seattle is classic marine west coast — about ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a ${num(swing(d))}°F swing. Summers are dry and mild; the rain comes October through spring.`,
+        heat:     (d) => `Sea-Tac recorded ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. Hot days are still uncommon here, which is exactly why a heat wave hits so hard.`,
+        winter:   (d) => `Seattle winter lows warm at ${sgn(d.slope_winter)}°F/decade. Mild, wet winters mean snow in the city depends on a few degrees either way — the margin warming erodes.`,
+    },
+    NYC: {
+        trend:    (d) => `New York City (Central Park) warms at ${sgn(d.slope_annual)}°F/decade. Central Park is the city's official record station, with observations back to 1869; dense surrounding development adds an urban heat island on top of regional warming.`,
+        seasonal: (d) => `New York swings from about ${num(jan(d))}°F in January to ${num(july(d))}°F in July — a ${num(swing(d))}°F range, with hot, humid summers and cold winters.`,
+        heat:     (d) => `Central Park logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. Summer heat in New York lands hardest at night, when pavement and buildings keep releasing the day's heat.`,
+        winter:   (d) => `New York winter lows warm at ${sgn(d.slope_winter)}°F/decade. Compare it with Newark across the river — two stations, one metro, different surroundings.`,
     },
 };
 
@@ -14399,8 +14432,9 @@ window.cpUpdateSignal = function (tab) {
         'Natural Gas': '#fb923c', 'Wind': '#38bdf8', 'Solar': '#facc15', 'Nuclear': '#a78bfa',
         'Coal and Lignite': '#a8a29e', 'Power Storage': '#4caf50', 'Hydro': '#60a5fa', 'Other': '#6b7280',
     };
-    const HUB_COLORS = { HB_HOUSTON: '#f87171', HB_NORTH: '#60a5fa', HB_WEST: '#facc15', HB_HUBAVG: '#4caf50' };
-    const HUB_NAMES = { HB_HOUSTON: 'Houston hub', HB_NORTH: 'North hub', HB_WEST: 'West hub', HB_HUBAVG: 'Hub average' };
+    // Austin Energy's load zone leads; Houston's load zone is its direct counterpart.
+    const HUB_COLORS = { LZ_AEN: '#f97316', LZ_HOUSTON: '#e879f9', HB_HOUSTON: '#f87171', HB_NORTH: '#60a5fa', HB_WEST: '#facc15', HB_HUBAVG: '#4caf50' };
+    const HUB_NAMES = { LZ_AEN: 'Austin Energy zone', LZ_HOUSTON: 'Houston load zone', HB_HOUSTON: 'Houston hub', HB_NORTH: 'North hub', HB_WEST: 'West hub', HB_HUBAVG: 'Hub average' };
     const TICK = { color: '#9ca3af', font: { size: 10 } };
     const GRID = { color: 'rgba(255,255,255,0.05)' };
     const $ = (id) => document.getElementById(id);
@@ -14446,7 +14480,17 @@ window.cpUpdateSignal = function (tab) {
         set('er-margin', l.margin_pct != null ? num(l.margin_pct, 1) + '%' : '—');
         set('er-ws', l.wind_solar_share_pct != null ? num(l.wind_solar_share_pct, 1) + '%' : '—');
         set('er-net', num(l.net_load_mw));
-        set('er-price', l.rt_prices && l.rt_prices.HB_HOUSTON != null ? '$' + num(l.rt_prices.HB_HOUSTON, 2) : '—');
+        // Austin Energy zone once the refresh publishes it; Houston hub until then.
+        const rp = l.rt_prices || {};
+        const priceKey = rp.LZ_AEN != null ? 'LZ_AEN' : (rp.HB_HOUSTON != null ? 'HB_HOUSTON' : null);
+        set('er-price', priceKey ? '$' + num(rp[priceKey], 2) : '—');
+        set('er-price-label', (priceKey ? HUB_NAMES[priceKey] : 'Austin Energy zone') + ' ($/MWh)');
+        const home = d.home || {};
+        const tn = home.temp_now;
+        set('er-home-temp', tn && tn.temp_f != null ? num(tn.temp_f, 0) + '°F' : '—');
+        const homeTempEl = $('er-home-temp');
+        if (homeTempEl) homeTempEl.title = tn ? `KAUS METAR, ${ct(tn.t, { month: 'short', day: 'numeric', hour: 'numeric' })} CT` +
+            (home.ref_temp_now ? ` · Houston (KIAH) ${num(home.ref_temp_now.temp_f, 0)}°F` : '') : '';
 
         const s = d.stats || {};
         const rej = Object.values(s.rejected_this_run || {}).reduce((a, b) => a + b, 0);
@@ -14523,8 +14567,17 @@ window.cpUpdateSignal = function (tab) {
         });
         const all = hubs.flatMap(h => series[h].map(p => ({ h, ...p })));
         const hi = all.reduce((a, p) => p.usd > a.usd ? p : a, all[0] || { usd: 0 });
+        // Austin vs Houston load zones, computed by the pipeline over the last 24 h.
+        const z = (ER.d.home || {}).zones_24h || {};
+        let zoneText = '';
+        if (z.LZ_AEN && z.LZ_HOUSTON && z.spread_avg != null) {
+            const sp = z.spread_avg;
+            zoneText = ` Over the last 24 hours Austin Energy's zone averaged $${num(z.LZ_AEN.avg, 2)}/MWh vs $${num(z.LZ_HOUSTON.avg, 2)} for Houston's — ` +
+                (Math.abs(sp) < 0.5 ? 'essentially level' : `Austin $${num(Math.abs(sp), 2)} ${sp > 0 ? 'higher' : 'lower'} on average`) +
+                ` across ${num(z.spread_n)} matching 15-minute intervals (Austin peak $${num(z.LZ_AEN.max, 2)}).`;
+        }
         $('er-sig-price').innerHTML = all.length
-            ? `<strong>Signal:</strong> highest 15-minute price today was $${num(hi.usd, 2)}/MWh at ${esc(HUB_NAMES[hi.h])} (${hm(hi.t)} CT). Hubs diverge when transmission is congested; the West hub often trades below Houston when West Texas wind is strong.`
+            ? `<strong>Signal:</strong> highest 15-minute price today was $${num(hi.usd, 2)}/MWh at ${esc(HUB_NAMES[hi.h])} (${hm(hi.t)} CT).${zoneText} Hubs are trading points; load zones are what customers in an area settle at, and they diverge when transmission is congested.`
             : 'Prices were unavailable on the last refresh.';
     }
 
@@ -14562,7 +14615,13 @@ window.cpUpdateSignal = function (tab) {
         if (m.mw_per_heating_degree != null) parts.push(`each °F below ${m.balance_point_f}°F ${effect(m.mw_per_heating_degree)}`);
         else parts.push(`too few hours below ${m.balance_point_f}°F so far to estimate heating load`);
         sig.innerHTML = `<strong>Model:</strong> ${parts.join('; ')} (n = ${num(m.n)} hours, R² = ${num(m.r2, 2)}). ` +
-            `Temperature alone, by design: time of day and weekday drive much of hourly load and are not in this fit, so R² measures how much weather explains on its own. Not a forecast.`;
+            `Temperature alone, by design: time of day and weekday drive much of hourly load and are not in this fit, so R² measures how much weather explains on its own. Not a forecast.` +
+            (() => {
+                const tn = (ER.d.home || {}).temp_now, lastPt = pts[pts.length - 1];
+                return tn && lastPt && tn.t === lastPt.t
+                    ? ` Austin (KAUS, ~11% of the population weighting) read ${num(tn.temp_f, 0)}°F in the latest hour vs the statewide weighted ${num(lastPt.temp_f, 0)}°F.`
+                    : '';
+            })();
     }
 
     window.erTab = function (btn, id) {

@@ -2662,6 +2662,52 @@
         }
         .cp-kpi-val.hot   { color: #f87171; }
         .cp-kpi-val.blue  { color: #60a5fa; }
+        .cp-kpi-val.home  { color: #f97316; }
+        /* Austin vs Houston panel */
+        .cp-hv-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .cp-hv-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+        }
+        .cp-hv-label {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .cp-hv-pair {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-top: 0.4rem;
+            font-family: 'Space Mono', monospace;
+            flex-wrap: wrap;
+        }
+        .cp-hv-pair b { font-size: 1.2rem; color: #f97316; }
+        .cp-hv-pair span { font-size: 0.85rem; color: #f87171; }
+        .cp-hv-pair em { font-style: normal; font-size: 0.72rem; color: var(--text-muted); }
+        .cp-hv-delta { margin-top: 0.3rem; font-size: 0.75rem; color: var(--text-muted); }
+        .cp-hv-empty { color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem 0; }
+        .cp-home-flag {
+            display: inline-block;
+            margin-left: 0.4rem;
+            padding: 0 0.35rem;
+            border-radius: 4px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.06em;
+            color: #f97316;
+            border: 1px solid #f9731666;
+            vertical-align: middle;
+        }
+        tr.cp-home-row td { background: rgba(249,115,22,0.07); }
         .cp-kpi-label {
             display: block;
             font-size: 0.68rem;
@@ -4642,10 +4688,10 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
                 <div class="project-desc">
                     End-to-end Bronze → Silver → Gold pipeline analyzing 57 years (1970–2026) 
-                    of NOAA daily station data across 13 global cities — Houston, Newark, Dallas, 
-                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, and Delhi. Features automated daily refresh via GitHub Actions, 
-                    Celsius→Fahrenheit conversion for international stations, and an interactive 
-                    dashboard with city toggle comparisons. Houston warming: +0.77°F/decade. 
+                    of NOAA daily station data across 14 global cities — Austin (home station), Houston, Newark, Dallas,
+                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, and Delhi. Features automated daily refresh via GitHub Actions,
+                    Celsius→Fahrenheit conversion for international stations, an interactive
+                    dashboard with city toggle comparisons, and an Austin-vs-Houston layer contrasting winter freezes and humidity (dew point, afternoon RH).
                     Denver included for Boulderthon marathon race planning context.
                 </div>
                 <div class="project-links">
@@ -5215,7 +5261,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="cp-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                57 years (1970–2026) of NOAA daily station data · 13 cities · Bronze → Silver → Gold pipeline
+                57 years (1970–2026) of NOAA daily station data · 14 cities · Austin home station · Bronze → Silver → Gold pipeline
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="cp-last-updated">Updated daily</span>
@@ -5226,20 +5272,28 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <!-- KPI strip -->
         <div class="cp-kpi-row">
             <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="cp-hou-annual">—</span>
-                <span class="cp-kpi-label">Houston °F / decade</span>
+                <span class="cp-kpi-val home" id="cp-home-annual">—</span>
+                <span class="cp-kpi-label" id="cp-home-annual-label">Austin °F / decade</span>
             </div>
             <div class="cp-kpi-cell">
-                <span class="cp-kpi-val blue" id="cp-ewr-annual">—</span>
-                <span class="cp-kpi-label">Newark °F / decade</span>
+                <span class="cp-kpi-val hot" id="cp-ref-annual">—</span>
+                <span class="cp-kpi-label" id="cp-ref-annual-label">Houston °F / decade</span>
             </div>
             <div class="cp-kpi-cell">
-                <span class="cp-kpi-val hot" id="cp-hou-winter">—</span>
-                <span class="cp-kpi-label">HOU winter nights / dec</span>
+                <span class="cp-kpi-val home" id="cp-home-winter">—</span>
+                <span class="cp-kpi-label" id="cp-home-winter-label">AUS winter nights / dec</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="cp-freeze">—</span>
+                <span class="cp-kpi-label" id="cp-freeze-label">Freeze nights / winter · AUS vs HOU</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="cp-dewpt">—</span>
+                <span class="cp-kpi-label" id="cp-dewpt-label">Winter dew point vs HOU</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val" id="cp-80f">—</span>
-                <span class="cp-kpi-label">Extra 80°F days / decade</span>
+                <span class="cp-kpi-label" id="cp-80f-label">AUS extra 80°F days / decade</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val" id="cp-years">57</span>
@@ -5265,6 +5319,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <button class="cp-tab" onclick="cpTab(this,'seasonal')">📅 Seasonal</button>
             <button class="cp-tab" onclick="cpTab(this,'heat')">🔥 Heat Days</button>
             <button class="cp-tab" onclick="cpTab(this,'winter')">❄️ Winter Lows</button>
+            <button class="cp-tab" onclick="cpTab(this,'home')">💧 Austin vs Houston</button>
         </div>
  
         <!-- Annual Trend -->
@@ -5303,6 +5358,24 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <p class="cp-insight" id="cp-signal-winter">Loading signal...</p>
         </div>
 
+        <!-- Austin vs Houston — winters + humidity (fixed pair, ignores the city toggles) -->
+        <div class="cp-panel" id="cp-panel-home">
+            <div class="cp-hv-grid" id="cp-hv-grid"></div>
+            <div class="cp-controls">
+                <label for="cp-hv-sel">Compare</label>
+                <select id="cp-hv-sel" onchange="cpDrawHome()">
+                    <option value="dewpt">Dew point by month</option>
+                    <option value="rhmn">Afternoon humidity by month</option>
+                    <option value="rh">Average humidity by month</option>
+                    <option value="freeze">Freeze nights per winter</option>
+                    <option value="range">Daily temperature swing by month</option>
+                </select>
+            </div>
+            <div id="cp-hv-legend" class="cp-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="cp-home-chart"></canvas></div>
+            <p class="cp-insight" id="cp-signal-home">Loading signal...</p>
+        </div>
+
         <div id="cp-roster-block" style="margin-top:2rem;display:none;">
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.75rem;">
                 <h3 style="margin:0;font-size:0.95rem;">📡 Active weather stations</h3>
@@ -5332,7 +5405,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="co2-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 13 station series
+                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 14 station series (Austin home)
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="co2-updated">Updated monthly</span>
@@ -11906,10 +11979,14 @@ const HOODAAGENTS_KILL_SWITCH = true;
         data:    null,
         charts:  {},
         loaded:  false,
-        // Default active cities — Houston + Newark on load
-        active:  new Set(['IAH', 'EWR']),
+        // Home station (Austin) + its reference (Houston) on load. The gold file
+        // names the home station; these are the fallbacks until it does.
+        HOME:    'AUS',
+        REF:     'IAH',
+        active:  new Set(['AUS', 'IAH']),
         MONTHS:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
         CITIES: {
+            AUS: { name: 'Austin, TX',   color: '#f97316' },
             IAH: { name: 'Houston, TX',  color: '#f87171' },
             EWR: { name: 'Newark, NJ',   color: '#60a5fa' },
             DAL: { name: 'Dallas, TX',   color: '#facc15' },
@@ -11934,6 +12011,9 @@ const HOODAAGENTS_KILL_SWITCH = true;
             if (!res.ok) throw new Error('HTTP ' + res.status);
             CP.data   = await res.json();
             CP.loaded = true;
+            if (CP.data.home_station && CP.CITIES[CP.data.home_station]) CP.HOME = CP.data.home_station;
+            // Until the pipeline has produced Austin, don't leave an empty default slot.
+            if (!CP.data[CP.HOME]) CP.active = new Set([CP.REF, 'EWR'].filter(c => CP.data[c]));
             cpBuildToggles();
             cpPopulateKPIs();
             cpDrawTrend();
@@ -11981,36 +12061,60 @@ const HOODAAGENTS_KILL_SWITCH = true;
         if (id === 'seasonal') { destroyChart('seasonal'); cpDrawSeasonal(); }
         if (id === 'heat')     { destroyChart('heat');     cpDrawHeat(); }
         if (id === 'winter')   { destroyChart('winter');   cpDrawWinter(); }
+        // 'home' is a fixed Austin/Houston pair — the city toggles don't change it
     }
 
     function destroyChart(key) {
         if (CP.charts[key]) { CP.charts[key].destroy(); delete CP.charts[key]; }
     }
 
-    // ── KPI strip — show Houston as primary ──────────────────────────────────
-    function cpPopulateKPIs() {
-        const hou = CP.data.IAH;
-        const ewr = CP.data.EWR;
-        if (!hou || !ewr) return;
+    // ── KPI strip — Austin (home) as primary, Houston as reference ───────────
+    const kSgn = (v, d = 2) => (v == null || Number.isNaN(v)) ? '—' : (v >= 0 ? '+' : '') + v.toFixed(d);
+    const kNum = (v, d = 1) => (v == null || Number.isNaN(v)) ? '—' : v.toFixed(d);
+    const shortCode = (code) => ({ AUS: 'AUS', IAH: 'HOU' })[code] || code;
 
-        set('cp-hou-annual', '+' + hou.slope_annual.toFixed(2) + '°F');
-        set('cp-ewr-annual', '+' + ewr.slope_annual.toFixed(2) + '°F');
-        set('cp-hou-winter', '+' + hou.slope_winter.toFixed(2) + '°F');
-        set('cp-80f',        '+' + hou.slope_80f_febmar.toFixed(2) + ' days');
+    function cpPopulateKPIs() {
+        // Before the first pipeline run that includes Austin, fall back to
+        // Houston + Newark rather than leaving the strip blank.
+        const homeCode = CP.data[CP.HOME] ? CP.HOME : CP.REF;
+        const refCode  = homeCode === CP.REF ? 'EWR' : CP.REF;
+        const home = CP.data[homeCode], ref = CP.data[refCode];
+        if (!home) return;
+        const homeName = (CP.CITIES[homeCode] || {}).name?.split(',')[0] || homeCode;
+        const refName  = (CP.CITIES[refCode] || {}).name?.split(',')[0] || refCode;
+        const hv = CP.data.home_vs || {};
+
+        set('cp-home-annual', kSgn(home.slope_annual) + '°F');
+        set('cp-home-annual-label', `${homeName} °F / decade`);
+        set('cp-ref-annual', ref ? kSgn(ref.slope_annual) + '°F' : '—');
+        set('cp-ref-annual-label', `${refName} °F / decade`);
+        set('cp-home-winter', kSgn(home.slope_winter) + '°F');
+        set('cp-home-winter-label', `${shortCode(homeCode)} winter nights / dec`);
+        set('cp-80f', kSgn(home.slope_80f_febmar) + ' days');
+        set('cp-80f-label', `${shortCode(homeCode)} extra 80°F days / decade`);
+
+        const w = hv.winter, hum = hv.humidity;
+        set('cp-freeze', w && w.home_freeze_nights != null
+            ? `${kNum(w.home_freeze_nights)} vs ${kNum(w.ref_freeze_nights)}` : '—');
+        set('cp-dewpt', hum && hum.djf_dewpt_diff != null ? kSgn(hum.djf_dewpt_diff, 1) + '°F' : '—');
+        const dp = document.getElementById('cp-dewpt');
+        if (dp && hum && hum.djf_home_dewpt != null)
+            dp.title = `DJF mean dew point: Austin ${kNum(hum.djf_home_dewpt)}°F vs Houston ${kNum(hum.djf_ref_dewpt)}°F (${hum.djf_window[0]}–${hum.djf_window[1]})`;
 
         // Dynamic year count
-        const lastYear = hou.yearly[hou.yearly.length - 1].year;
+        const lastYear = home.yearly[home.yearly.length - 1].year;
         // The current year is excluded from `yearly` until complete, so lastYear
         // alone makes a live dashboard read as a full year stale.
-        const ytdYear  = (hou.ytd && hou.ytd.partial) ? hou.ytd.year : null;
+        const ytdYear  = (home.ytd && home.ytd.partial) ? home.ytd.year : null;
         const numYears = lastYear - 1970 + 1;
         set('cp-years',    numYears);
-        set('cp-stations', Object.keys(CP.CITIES).length);
+        const nStations = (CP.data.station_codes || []).length || Object.keys(CP.CITIES).length;
+        set('cp-stations', nStations);
 
         // Update subtitle
         const sub = document.getElementById('cp-subtitle');
         if (sub) sub.textContent =
-            `${numYears} years (1970–${lastYear}${ytdYear ? ' + ' + ytdYear + ' YTD' : ''}) of NOAA daily station data · ${Object.keys(CP.CITIES).length} cities · Bronze → Silver → Gold pipeline`;
+            `${numYears} years (1970–${lastYear}${ytdYear ? ' + ' + ytdYear + ' YTD' : ''}) of NOAA daily station data · ${nStations} cities · ${homeName} home station · Bronze → Silver → Gold pipeline`;
 
         if (CP.data.generated_at) {
             const el = document.getElementById('cp-last-updated');
@@ -12097,6 +12201,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
         if (id === 'seasonal' && !CP.charts.seasonal) cpDrawSeasonal();
         if (id === 'heat'     && !CP.charts.heat)     cpDrawHeat();
         if (id === 'winter'   && !CP.charts.winter)   cpDrawWinter();
+        if (id === 'home'     && !CP.charts.home)     window.cpDrawHome();
         // Always refresh the signal for the active tab, even if chart already exists
         window.cpUpdateSignal(id);
     };
@@ -12309,7 +12414,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
     function cpDrawWinter() {
         const cities = activeCities();
         if (!cities.length) return;
-        const labels = (CP.data.IAH || cities[0].data).winter.map(r => r.year);
+        const labels = (CP.data[CP.HOME] || CP.data[CP.REF] || cities[0].data).winter.map(r => r.year);
         const datasets = [];
 
         cities.forEach(({ cfg, data }) => {
@@ -12352,6 +12457,128 @@ const HOODAAGENTS_KILL_SWITCH = true;
         window.cpUpdateSignal('winter');
     }
 
+    // ── Austin vs Houston — winters + humidity ───────────────────────────────
+    // Everything here reads gold.home_vs and the two station blocks; nothing is
+    // hand-typed, so the cards move with the daily regression like the rest.
+    function hvCard(label, home, ref, unit, delta) {
+        return `<div class="cp-hv-card">
+            <div class="cp-hv-label">${label}</div>
+            <div class="cp-hv-pair"><b>${home}${unit}</b><em>Austin</em><span>${ref}${unit}</span><em>Houston</em></div>
+            ${delta ? `<div class="cp-hv-delta">${delta}</div>` : ''}
+        </div>`;
+    }
+
+    function cpRenderHomeCards() {
+        const grid = document.getElementById('cp-hv-grid');
+        if (!grid) return;
+        const hv = CP.data.home_vs;
+        if (!hv) {
+            grid.innerHTML = `<div class="cp-hv-empty">Austin's series populates on the next ClimatePulse pipeline run.</div>`;
+            return;
+        }
+        const w = hv.winter || {}, a = hv.annual || {}, h = hv.humidity || {};
+        const cards = [];
+        if (w.home_tmin != null) cards.push(hvCard('Winter night lows (DJF)',
+            kNum(w.home_tmin), kNum(w.ref_tmin), '°F',
+            `Austin ${kNum(Math.abs(w.tmin_diff))}°F ${w.tmin_diff < 0 ? 'colder' : 'warmer'} · ${w.window[0]}–${w.window[1]}`));
+        if (w.home_freeze_nights != null) cards.push(hvCard('Freeze nights per winter (≤32°F)',
+            kNum(w.home_freeze_nights), kNum(w.ref_freeze_nights), '',
+            `${w.freeze_ratio ? w.freeze_ratio + '× Houston' : ''} · last 10: ${kNum(w.home_freeze_recent)} vs ${kNum(w.ref_freeze_recent)}`));
+        if (h.djf_home_dewpt != null) cards.push(hvCard('Winter dew point',
+            kNum(h.djf_home_dewpt), kNum(h.djf_ref_dewpt), '°F',
+            `${kSgn(h.djf_dewpt_diff, 1)}°F · ${h.djf_n} winters, ${h.djf_window[0]}–${h.djf_window[1]}`));
+        if (h.djf_home_rhmn != null) cards.push(hvCard('Winter afternoon humidity',
+            kNum(h.djf_home_rhmn, 0), kNum(h.djf_ref_rhmn, 0), '%',
+            `${kSgn(h.djf_rhmn_diff, 0)} pts · daily minimum RH`));
+        if (h.jja_home_dewpt != null) cards.push(hvCard('Summer dew point (JJA)',
+            kNum(h.jja_home_dewpt), kNum(h.jja_ref_dewpt), '°F',
+            `${kSgn(h.jja_dewpt_diff, 1)}°F · 65°F+ reads as muggy`));
+        if (a.home_range != null) cards.push(hvCard('Daily temperature swing',
+            kNum(a.home_range), kNum(a.ref_range), '°F',
+            `${kSgn(a.range_diff, 1)}°F wider — dry air cools faster at night`));
+        grid.innerHTML = cards.join('') ||
+            `<div class="cp-hv-empty">Comparison data not available this run.</div>`;
+    }
+
+    window.cpDrawHome = function () {
+        destroyChart('home');
+        cpRenderHomeCards();
+        const home = CP.data[CP.HOME], ref = CP.data[CP.REF];
+        const legend = document.getElementById('cp-hv-legend');
+        const canvas = document.getElementById('cp-home-chart');
+        if (!home || !ref || !canvas) { if (legend) legend.innerHTML = ''; window.cpUpdateSignal('home'); return; }
+
+        const metric = document.getElementById('cp-hv-sel').value;
+        const pair = [[CP.HOME, home], [CP.REF, ref]];
+        const cfgOf = (code) => CP.CITIES[code];
+        let labels, datasets, type = 'line', unit = '°F', yTitle = '';
+
+        if (metric === 'freeze') {
+            type = 'bar'; unit = ''; yTitle = 'Nights ≤ 32°F';
+            const yrs = [...new Set(pair.flatMap(([, d]) => (d.winter || []).map(r => r.year)))].sort((x, y) => x - y);
+            labels = yrs;
+            datasets = pair.map(([code, d]) => {
+                const m = Object.fromEntries((d.winter || []).map(r => [r.year, r.freeze_nights]));
+                return { label: cfgOf(code).name, data: yrs.map(y => m[y] ?? null),
+                         backgroundColor: cfgOf(code).color + 'aa', borderColor: cfgOf(code).color, borderWidth: 0.5 };
+            });
+        } else {
+            labels = CP.MONTHS;
+            const pick = {
+                dewpt: (d) => (d.humidity?.monthly || []).map(r => r.avg_dewpt),
+                rh:    (d) => (d.humidity?.monthly || []).map(r => r.avg_rh),
+                rhmn:  (d) => (d.humidity?.monthly || []).map(r => r.avg_rhmn),
+                range: (d) => (d.monthly || []).map(r => r.avg_range ?? (r.avg_tmax - r.avg_tmin)),
+            }[metric];
+            if (metric === 'rh' || metric === 'rhmn') unit = '%';
+            datasets = pair.map(([code, d]) => ({
+                label: cfgOf(code).name, data: pick(d),
+                borderColor: cfgOf(code).color, backgroundColor: cfgOf(code).color + '18',
+                fill: true, borderWidth: 2, pointRadius: 4, tension: 0.4, spanGaps: true,
+            }));
+        }
+
+        if (legend) legend.innerHTML = pair.map(([code]) => `
+            <span class="cp-leg-item"><span class="cp-leg-dot" style="background:${cfgOf(code).color}"></span>${cfgOf(code).name}</span>`).join('');
+
+        const empty = datasets.every(ds => !ds.data.some(v => v != null));
+        if (empty) {
+            canvas.style.display = 'none';
+            if (legend) legend.innerHTML = `<span class="cp-hv-empty">No ${metric === 'freeze' ? 'freeze' : 'humidity'} data in this run yet.</span>`;
+        } else {
+            canvas.style.display = '';
+            CP.charts.home = new Chart(canvas, {
+                type,
+                data: { labels, datasets },
+                options: mergeOpts({
+                    plugins: { tooltip: { mode: 'index', intersect: false, callbacks: {
+                        label: ctx => ctx.parsed.y == null ? '' :
+                            `${ctx.dataset.label}: ${(+ctx.parsed.y).toFixed(unit === '%' || !unit ? 0 : 1)}${unit || ' nights'}`,
+                    } } },
+                    scales: {
+                        x: type === 'bar' ? { ticks: { maxTicksLimit: 12 } } : {},
+                        y: unit ? { ticks: { callback: v => v + unit } }
+                                : { title: { display: true, text: yTitle, color: '#9ca3af', font: { size: 11 } } },
+                    },
+                }),
+            });
+        }
+        window.cpUpdateSignal('home');
+    };
+
+    function cpHomeSignal() {
+        const hv = CP.data && CP.data.home_vs;
+        if (!hv) return '';
+        const w = hv.winter || {}, h = hv.humidity || {}, a = hv.annual || {};
+        const parts = [];
+        if (w.tmin_diff != null) parts.push(`Austin's winter nights average ${kNum(w.home_tmin)}°F against Houston's ${kNum(w.ref_tmin)}°F, and it logs ${kNum(w.home_freeze_nights)} freeze nights a winter to Houston's ${kNum(w.ref_freeze_nights)} (${w.window[0]}–${w.window[1]}). Distance from the Gulf is the difference: no warm-water moisture blanket holding heat in overnight.`);
+        if (h.djf_dewpt_diff != null) parts.push(`The air is drier too — winter dew point runs ${kNum(Math.abs(h.djf_dewpt_diff))}°F ${h.djf_dewpt_diff < 0 ? 'lower' : 'higher'} and afternoon humidity ${kNum(Math.abs(h.djf_rhmn_diff), 0)} points ${h.djf_rhmn_diff < 0 ? 'lower' : 'higher'}${h.jja_dewpt_diff != null ? `; in summer the dew-point gap is ${kNum(Math.abs(h.jja_dewpt_diff))}°F (${kNum(h.jja_home_dewpt)}°F vs ${kNum(h.jja_ref_dewpt)}°F)` : ''}.`);
+        if (a.range_diff != null) parts.push(`That dryness shows up in the temperature record as a ${kNum(Math.abs(a.range_diff))}°F ${a.range_diff > 0 ? 'wider' : 'narrower'} daily swing.`);
+        if (h.record_start) parts.push(`Humidity comes from NOAA daily dew point/RH, which begins ${h.record_start.slice(0, 4)} for these stations — a shorter window than the 1970+ temperature series.`);
+        return parts.join(' ');
+    }
+    window.cpHomeSignal = cpHomeSignal;
+
 // ── DYNAMIC SIGNALS — replaces the static CP_SIGNALS object + cpGetSignal ──
 // Signals are now functions of the station's live gold data, so every number
 // shown comes from the pipeline (single source of truth — no hand-typed stats
@@ -12367,7 +12594,17 @@ const last = (d) => d?.yearly?.[d.yearly.length - 1] || {};
 const heatDays = (d) => last(d).count_80f;
 const swing = (d) => (july(d) != null && jan(d) != null) ? july(d) - jan(d) : null;
 
+const hvOf = () => (CP.data && CP.data.home_vs) || {};
 const CP_SIGNALS = {
+    AUS: {
+        trend:    (d) => `Austin (Camp Mabry) — the home station — warms at ${sgn(d.slope_annual)}°F/decade. Sitting inland, ~150 mi from the Gulf, it gets less of the coastal moisture that keeps Houston's nights warm and muggy.`,
+        seasonal: (d) => `Austin's July mean is ${num(july(d))}°F against ${num(jan(d))}°F in January — a ${num(swing(d))}°F seasonal swing. With less Gulf moisture to damp it, Austin's summer heat is a drier heat and its winters dip lower.`,
+        heat:     (d) => `Austin logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}, with Feb–Mar heat days changing ${sgn(d.slope_80f_febmar)} days/decade.`,
+        winter:   (d) => {
+            const w = hvOf().winter;
+            return `Austin winter nighttime lows warm at ${sgn(d.slope_winter)}°F/decade from a colder base than Houston${w ? ` — ${num(w.home_tmin)}°F vs ${num(w.ref_tmin)}°F on average, with ${num(w.home_freeze_nights)} freeze nights a winter to Houston's ${num(w.ref_freeze_nights)}` : ''}. Open the 💧 Austin vs Houston tab for the humidity side.`;
+        },
+    },
     IAH: {
         trend:    (d) => `Houston (IAH) warms at ${sgn(d.slope_annual)}°F/decade — one of the fastest-warming major US cities, driven by urban heat island effects and Gulf Coast humidity.`,
         seasonal: (d) => `Houston summers are brutal — July averages ${num(july(d))}°F mean with extreme humidity. Winters are mild but warming faster than summers (${sgn(d.slope_winter)}°F/decade for winter nights).`,
@@ -12503,7 +12740,7 @@ function cpGetSignal(tab) {
 window.cpUpdateSignal = function (tab) {
     const el = document.getElementById('cp-signal-' + tab);
     if (!el) return;
-    let text = cpGetSignal(tab);
+    let text = tab === 'home' ? cpHomeSignal() : cpGetSignal(tab);
     if (tab === 'trend') {
         const ytds = activeCities().filter(c => c.data.ytd)
             .map(c => `${c.cfg.name} ${c.data.ytd.year} through ${c.data.ytd.through_label}`);
@@ -13048,7 +13285,10 @@ window.cpUpdateSignal = function (tab) {
     }
  
     function render(d) {
-        const roster = d.stations, sum = d.stations_summary;
+        const sum = d.stations_summary;
+        // Home station pinned to the top; the rest keep the pipeline's triage order.
+        const roster = Array.isArray(d.stations)
+            ? [...d.stations].sort((a, b) => (b.home === true) - (a.home === true)) : d.stations;
         if (!Array.isArray(roster) || !roster.length || !sum) return;
  
         const block = document.getElementById('cp-roster-block');
@@ -13067,10 +13307,11 @@ window.cpUpdateSignal = function (tab) {
                 ? `<span style="color:${s.slope_annual > 0 ? '#f87171' : '#60a5fa'}">${s.slope_annual > 0 ? '+' : ''}${fmt(s.slope_annual, 2)}</span>`
                 : `<span style="color:var(--text-muted)" title="under 25 complete years">—</span>`;
  
-            return `<tr>
+            return `<tr${s.home ? ' class="cp-home-row"' : ''}>
                 <td>
                     <span class="cp-status-dot ${s.status}"></span>
                     <span class="cp-city-dot" style="background:${s.color}"></span>${s.name}
+                    ${s.home ? '<span class="cp-home-flag">HOME</span>' : ''}
                     ${gap ? ' <span class="cp-flag">RECORD ENDS ' + s.record_end + '</span>' : ''}
                     ${s.note ? '<span class="cp-note">' + s.note + '</span>' : ''}
                 </td>
@@ -13195,8 +13436,8 @@ window.cpUpdateSignal = function (tab) {
                 'Updated ' + new Date(d.generated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
  
-        // Per-city table
-        const rows = d.stations || [];
+        // Per-city table — home station (Austin) pinned first, rest by slope
+        const rows = [...(d.stations || [])].sort((a, b) => (b.home === true) - (a.home === true));
         document.getElementById('co2-city-body').innerHTML = rows.map(s => {
             const v   = s.vs_cumulative_emissions || {};
             const c   = s.vs_concentration || {};
@@ -13205,8 +13446,9 @@ window.cpUpdateSignal = function (tab) {
             // station's own time trend means the two regressions span different
             // windows — i.e. the record has holes. Flag it rather than hide it.
             const wide = div !== undefined && Math.abs(div) > 0.25;
-            return `<tr>
+            return `<tr${s.home ? ' class="cp-home-row"' : ''}>
                 <td><span class="cp-city-dot" style="background:${s.color}"></span>${s.name}
+                    ${s.home ? '<span class="cp-home-flag">HOME</span>' : ''}
                     ${s.trend_reliable ? '' : ' <span class="cp-flag">SHORT RECORD</span>'}</td>
                 <td class="num" style="color:${v.slope > 2 ? '#f87171' : 'var(--text)'}">${fmt(v.slope, 2)}</td>
                 <td class="num" style="color:var(--text-muted)">${v.r2 !== undefined ? v.r2.toFixed(2) : '—'}</td>
@@ -13221,6 +13463,12 @@ window.cpUpdateSignal = function (tab) {
         const parts = [];
         if (t) {
             parts.push(`Global warming scales at ${t.slope} °C per 1000 GtCO₂ emitted (r² ${t.r2}, n=${t.n}), which lands ${t.within_ar6_likely_range ? 'inside' : 'outside'} the range IPCC AR6 assessed from models and paleoclimate — three independent observational records reproducing a published figure.`);
+        }
+        const homeEff = d.effects.find(e => e.id === 'local_home');
+        const iah     = rows.find(s => s.code === 'IAH');
+        if (homeEff) {
+            const hs = homeEff.value, is = iah && (iah.vs_cumulative_emissions || {}).slope;
+            parts.push(`Home station ${homeEff.label.split('—')[1].replace('(home)', '').trim()} shows ${hs} °F per 1000 GtCO₂ (rank ${homeEff.rank} of ${homeEff.n})${is != null ? `, against ${is} °F for Houston` : ''}.`);
         }
         if (coll.cumulative_vs_year) {
             parts.push(`The per-city numbers are correlations, not attribution: cumulative CO₂ tracks the calendar year at r=${coll.cumulative_vs_year}, so a single-station fit can't separate CO₂ from any other monotonic trend.`);

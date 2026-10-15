@@ -12495,7 +12495,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
             `${kSgn(h.jja_dewpt_diff, 1)}°F · 65°F+ reads as muggy`));
         if (a.home_range != null) cards.push(hvCard('Daily temperature swing',
             kNum(a.home_range), kNum(a.ref_range), '°F',
-            `${kSgn(a.range_diff, 1)}°F wider — dry air cools faster at night`));
+            `${kSgn(a.range_diff, 1)}°F · mean daily high − low, ${a.window[0]}–${a.window[1]}`));
         grid.innerHTML = cards.join('') ||
             `<div class="cp-hv-empty">Comparison data not available this run.</div>`;
     }
@@ -12571,9 +12571,15 @@ const HOODAAGENTS_KILL_SWITCH = true;
         if (!hv) return '';
         const w = hv.winter || {}, h = hv.humidity || {}, a = hv.annual || {};
         const parts = [];
-        if (w.tmin_diff != null) parts.push(`Austin's winter nights average ${kNum(w.home_tmin)}°F against Houston's ${kNum(w.ref_tmin)}°F, and it logs ${kNum(w.home_freeze_nights)} freeze nights a winter to Houston's ${kNum(w.ref_freeze_nights)} (${w.window[0]}–${w.window[1]}). Distance from the Gulf is the difference: no warm-water moisture blanket holding heat in overnight.`);
-        if (h.djf_dewpt_diff != null) parts.push(`The air is drier too — winter dew point runs ${kNum(Math.abs(h.djf_dewpt_diff))}°F ${h.djf_dewpt_diff < 0 ? 'lower' : 'higher'} and afternoon humidity ${kNum(Math.abs(h.djf_rhmn_diff), 0)} points ${h.djf_rhmn_diff < 0 ? 'lower' : 'higher'}${h.jja_dewpt_diff != null ? `; in summer the dew-point gap is ${kNum(Math.abs(h.jja_dewpt_diff))}°F (${kNum(h.jja_home_dewpt)}°F vs ${kNum(h.jja_ref_dewpt)}°F)` : ''}.`);
-        if (a.range_diff != null) parts.push(`That dryness shows up in the temperature record as a ${kNum(Math.abs(a.range_diff))}°F ${a.range_diff > 0 ? 'wider' : 'narrower'} daily swing.`);
+        // Lead with humidity — that's where the two cities genuinely differ.
+        // Temperature gaps are stated as measured, and only called meaningful
+        // when they are (≥ 2°F), so the copy can't overstate a small difference.
+        if (h.djf_dewpt_diff != null) parts.push(`The clearest difference is moisture. Austin's winter dew point averages ${kNum(h.djf_home_dewpt)}°F vs Houston's ${kNum(h.djf_ref_dewpt)}°F (${kSgn(h.djf_dewpt_diff, 1)}°F), with afternoon humidity ${kNum(Math.abs(h.djf_rhmn_diff), 0)} points ${h.djf_rhmn_diff < 0 ? 'lower' : 'higher'}${h.jja_rhmn_diff != null ? `; in summer, afternoon humidity runs ${kNum(Math.abs(h.jja_rhmn_diff), 0)} points ${h.jja_rhmn_diff < 0 ? 'lower' : 'higher'} and dew point ${kNum(Math.abs(h.jja_dewpt_diff))}°F ${h.jja_dewpt_diff < 0 ? 'lower' : 'higher'} (${kNum(h.jja_home_dewpt)}°F vs ${kNum(h.jja_ref_dewpt)}°F)` : ''}.`);
+        if (w.tmin_diff != null) {
+            const big = Math.abs(w.tmin_diff) >= 2;
+            parts.push(`Winter temperatures are ${big ? 'noticeably' : 'only slightly'} different: night lows average ${kNum(w.home_tmin)}°F in Austin vs ${kNum(w.ref_tmin)}°F in Houston (${kSgn(w.tmin_diff, 1)}°F), and Austin logs ${kNum(w.home_freeze_nights)} freeze nights a winter to Houston's ${kNum(w.ref_freeze_nights)} (${w.window[0]}–${w.window[1]})${w.home_freeze_recent != null ? `, ${kNum(w.home_freeze_recent)} vs ${kNum(w.ref_freeze_recent)} over the last 10 winters` : ''}. Houston's winter nights are also warming faster (${kSgn(w.ref_slope)} vs ${kSgn(w.home_slope)}°F/decade).`);
+        }
+        if (a.range_diff != null && Math.abs(a.range_diff) >= 1) parts.push(`Austin's daily high–low swing is ${kNum(Math.abs(a.range_diff))}°F ${a.range_diff > 0 ? 'wider' : 'narrower'}.`);
         if (h.record_start) parts.push(`Humidity comes from NOAA daily dew point/RH, which begins ${h.record_start.slice(0, 4)} for these stations — a shorter window than the 1970+ temperature series.`);
         return parts.join(' ');
     }
@@ -12597,8 +12603,8 @@ const swing = (d) => (july(d) != null && jan(d) != null) ? july(d) - jan(d) : nu
 const hvOf = () => (CP.data && CP.data.home_vs) || {};
 const CP_SIGNALS = {
     AUS: {
-        trend:    (d) => `Austin (Camp Mabry) — the home station — warms at ${sgn(d.slope_annual)}°F/decade. Sitting inland, ~150 mi from the Gulf, it gets less of the coastal moisture that keeps Houston's nights warm and muggy.`,
-        seasonal: (d) => `Austin's July mean is ${num(july(d))}°F against ${num(jan(d))}°F in January — a ${num(swing(d))}°F seasonal swing. With less Gulf moisture to damp it, Austin's summer heat is a drier heat and its winters dip lower.`,
+        trend:    (d) => `Austin (Camp Mabry) — the home station — warms at ${sgn(d.slope_annual)}°F/decade. Sitting inland, ~150 mi from the Gulf, it gets less of the Gulf moisture that keeps Houston's air muggy.`,
+        seasonal: (d) => `Austin's July mean is ${num(july(d))}°F against ${num(jan(d))}°F in January — a ${num(swing(d))}°F seasonal swing. Average temperatures track Houston closely; the real difference is humidity — Austin's air is noticeably drier year-round.`,
         heat:     (d) => `Austin logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}, with Feb–Mar heat days changing ${sgn(d.slope_80f_febmar)} days/decade.`,
         winter:   (d) => {
             const w = hvOf().winter;

@@ -4688,8 +4688,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
                 <div class="project-desc">
                     End-to-end Bronze → Silver → Gold pipeline analyzing 57 years (1970–2026) 
-                    of NOAA daily station data across 21 global cities — Austin (home station), Houston, Newark, Dallas,
-                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, San Francisco, Seattle, New York City, Boston, Miami, Atlanta, Washington DC, and Delhi. Features automated daily refresh via GitHub Actions,
+                    of NOAA daily station data across 24 global cities — Austin (home station), Houston, Newark, Dallas,
+                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, San Francisco, Seattle, New York City, Boston, Miami, Atlanta, Washington DC, Orlando, Anchorage, Toronto, and Delhi. Features automated daily refresh via GitHub Actions,
                     Celsius→Fahrenheit conversion for international stations, an interactive
                     dashboard with city toggle comparisons, and an Austin-vs-Houston layer contrasting winter freezes and humidity (dew point, afternoon RH).
                     Denver included for Boulderthon marathon race planning context.
@@ -5262,7 +5262,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="cp-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                57 years (1970–2026) of NOAA daily station data · 21 cities · Austin home station · Bronze → Silver → Gold pipeline
+                57 years (1970–2026) of NOAA daily station data · 24 cities · Austin home station · Bronze → Silver → Gold pipeline
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="cp-last-updated">Updated daily</span>
@@ -5406,7 +5406,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="co2-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 21 station series (Austin home)
+                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 24 station series (Austin home)
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="co2-updated">Updated monthly</span>
@@ -12008,6 +12008,9 @@ const HOODAAGENTS_KILL_SWITCH = true;
             MIA: { name: 'Miami, FL',          color: '#f9a8d4' },
             ATL: { name: 'Atlanta, GA',        color: '#bef264' },
             DCA: { name: 'Washington, DC',     color: '#e2e8f0' },
+            MCO: { name: 'Orlando, FL',        color: '#fdba74' },
+            ANC: { name: 'Anchorage, AK',      color: '#7dd3fc' },
+            YYZ: { name: 'Toronto, Canada',    color: '#fca5a5' },
         },
     };
 
@@ -12756,6 +12759,45 @@ const CP_SIGNALS = {
         winter:   (d) => {
             const fz = avgFreeze(d);
             return `DC winter lows warm at ${sgn(d.slope_winter)}°F/decade${fz != null ? `; the record averages ${num(fz, 0)} freeze nights a winter` : ''}.`;
+        },
+    },
+    MCO: {
+        trend:    (d) => `Orlando (MCO) warms at ${sgn(d.slope_annual)}°F/decade. NOAA's record here has no complete years for 1971–1974, so the fit uses ${d.n_years ?? '—'} years.`,
+        seasonal: (d) => {
+            const mia = CP.data && CP.data.MIA;
+            return `Orlando runs from about ${num(jan(d))}°F in January to ${num(july(d))}°F in July — a ${num(swing(d))}°F swing${mia && swing(mia) != null ? `, against ${num(swing(mia))}°F at Miami. Inland, away from the ocean's moderating effect, central Florida gets noticeably cooler winters than the coast` : ''}.`;
+        },
+        heat:     (d) => `Orlando logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}.`,
+        winter:   (d) => {
+            const fz = avgFreeze(d);
+            return `Orlando winter lows warm at ${sgn(d.slope_winter)}°F/decade${fz != null ? `. Freezes are occasional rather than rare — about ${num(fz, 1)} freeze nights a winter on average` : ''}.`;
+        },
+    },
+    ANC: {
+        trend:    (d) => `Anchorage warms at ${sgn(d.slope_annual)}°F/decade${d.slope_annual_ci95 ? ` (95% CI ${num(d.slope_annual_ci95[0], 2)}–${num(d.slope_annual_ci95[1], 2)})` : ''}. At 61°N it sits in the high-latitude band that is warming fastest worldwide; big year-to-year swings make the estimate less precise than most here.`,
+        seasonal: (d) => `Anchorage is subarctic — about ${num(jan(d))}°F in January to ${num(july(d))}°F in July, a ${num(swing(d))}°F swing. Cook Inlet keeps it milder than Alaska's interior.`,
+        heat:     (d) => {
+            const yrs = (d.yearly || []).filter(y => y.count_80f != null);
+            const any = yrs.filter(y => y.count_80f > 0).length;
+            return `Anchorage logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}${yrs.length ? `; only ${any} of ${yrs.length} years on record had even one` : ''}.`;
+        },
+        winter:   (d) => {
+            const fz = avgFreeze(d);
+            return `Anchorage's winter nights warm at ${sgn(d.slope_winter)}°F/decade against an annual ${sgn(d.slope_annual)}°F${fz != null ? `, while still averaging ${num(fz, 0)} freeze nights in a December–February season of about 90 nights` : ''}. Winter is where high-latitude warming shows first.`;
+        },
+    },
+    YYZ: {
+        trend:    (d) => {
+            const codes = (CP.data && CP.data.station_codes) || [];
+            const rates = codes.map(c => CP.data[c]?.slope_annual).filter(v => typeof v === 'number').sort((a, b) => b - a);
+            const rank = rates.indexOf(d.slope_annual) + 1;
+            return `Toronto (Pearson) warms at ${sgn(d.slope_annual)}°F/decade${rank > 0 ? ` — ${rank === 1 ? 'the fastest' : `#${rank}`} of the ${rates.length} stations on this dashboard` : ''}. The record is stitched across a 2013 station-ID change, but the pre-2013 station alone gives an even steeper trend, so the stitch isn't the cause; heavy development around the airport likely adds to it.`;
+        },
+        seasonal: (d) => `Toronto runs from about ${num(jan(d))}°F in January to ${num(july(d))}°F in July — a ${num(swing(d))}°F swing. Lake Ontario moderates the shoreline, but Pearson sits inland enough to feel more of the continental range.`,
+        heat:     (d) => `Pearson logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}.`,
+        winter:   (d) => {
+            const fz = avgFreeze(d);
+            return `Toronto winter nights warm at ${sgn(d.slope_winter)}°F/decade${fz != null ? `, though nearly every winter night still freezes — about ${num(fz, 0)} a season` : ''}.`;
         },
     },
 };

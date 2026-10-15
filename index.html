@@ -5184,7 +5184,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Texas grid demand, generation mix and prices from ERCOT, joined to METAR weather from six Texas airports. Same Kafka → Spark → Delta pipeline as METAR Stream.
+                Texas grid demand, generation mix and prices from ERCOT, joined to METAR weather from six Texas airports. Austin is the home view: Austin Energy's load-zone price (LZ_AEN) and KAUS weather, contrasted with Houston. Same Kafka → Spark → Delta pipeline as METAR Stream.
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="er-badge">Loading…</span>
@@ -5203,7 +5203,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="er-margin">—</span><span class="cp-kpi-label">Capacity margin</span></div>
                 <div class="cp-kpi-cell"><span class="cp-kpi-val" id="er-ws">—</span><span class="cp-kpi-label">Wind + solar share</span></div>
                 <div class="cp-kpi-cell"><span class="cp-kpi-val" id="er-net">—</span><span class="cp-kpi-label">Net load (MW)</span></div>
-                <div class="cp-kpi-cell"><span class="cp-kpi-val hot" id="er-price">—</span><span class="cp-kpi-label">Houston hub ($/MWh)</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val home" id="er-price">—</span><span class="cp-kpi-label" id="er-price-label">Austin Energy zone ($/MWh)</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val home" id="er-home-temp">—</span><span class="cp-kpi-label" id="er-home-temp-label">Austin now (KAUS)</span></div>
             </div>
 
             <div class="cp-tabs">
@@ -14405,8 +14406,9 @@ window.cpUpdateSignal = function (tab) {
         'Natural Gas': '#fb923c', 'Wind': '#38bdf8', 'Solar': '#facc15', 'Nuclear': '#a78bfa',
         'Coal and Lignite': '#a8a29e', 'Power Storage': '#4caf50', 'Hydro': '#60a5fa', 'Other': '#6b7280',
     };
-    const HUB_COLORS = { HB_HOUSTON: '#f87171', HB_NORTH: '#60a5fa', HB_WEST: '#facc15', HB_HUBAVG: '#4caf50' };
-    const HUB_NAMES = { HB_HOUSTON: 'Houston hub', HB_NORTH: 'North hub', HB_WEST: 'West hub', HB_HUBAVG: 'Hub average' };
+    // Austin Energy's load zone leads; Houston's load zone is its direct counterpart.
+    const HUB_COLORS = { LZ_AEN: '#f97316', LZ_HOUSTON: '#e879f9', HB_HOUSTON: '#f87171', HB_NORTH: '#60a5fa', HB_WEST: '#facc15', HB_HUBAVG: '#4caf50' };
+    const HUB_NAMES = { LZ_AEN: 'Austin Energy zone', LZ_HOUSTON: 'Houston load zone', HB_HOUSTON: 'Houston hub', HB_NORTH: 'North hub', HB_WEST: 'West hub', HB_HUBAVG: 'Hub average' };
     const TICK = { color: '#9ca3af', font: { size: 10 } };
     const GRID = { color: 'rgba(255,255,255,0.05)' };
     const $ = (id) => document.getElementById(id);
@@ -14452,7 +14454,17 @@ window.cpUpdateSignal = function (tab) {
         set('er-margin', l.margin_pct != null ? num(l.margin_pct, 1) + '%' : '—');
         set('er-ws', l.wind_solar_share_pct != null ? num(l.wind_solar_share_pct, 1) + '%' : '—');
         set('er-net', num(l.net_load_mw));
-        set('er-price', l.rt_prices && l.rt_prices.HB_HOUSTON != null ? '$' + num(l.rt_prices.HB_HOUSTON, 2) : '—');
+        // Austin Energy zone once the refresh publishes it; Houston hub until then.
+        const rp = l.rt_prices || {};
+        const priceKey = rp.LZ_AEN != null ? 'LZ_AEN' : (rp.HB_HOUSTON != null ? 'HB_HOUSTON' : null);
+        set('er-price', priceKey ? '$' + num(rp[priceKey], 2) : '—');
+        set('er-price-label', (priceKey ? HUB_NAMES[priceKey] : 'Austin Energy zone') + ' ($/MWh)');
+        const home = d.home || {};
+        const tn = home.temp_now;
+        set('er-home-temp', tn && tn.temp_f != null ? num(tn.temp_f, 0) + '°F' : '—');
+        const homeTempEl = $('er-home-temp');
+        if (homeTempEl) homeTempEl.title = tn ? `KAUS METAR, ${ct(tn.t, { month: 'short', day: 'numeric', hour: 'numeric' })} CT` +
+            (home.ref_temp_now ? ` · Houston (KIAH) ${num(home.ref_temp_now.temp_f, 0)}°F` : '') : '';
 
         const s = d.stats || {};
         const rej = Object.values(s.rejected_this_run || {}).reduce((a, b) => a + b, 0);
@@ -14529,8 +14541,17 @@ window.cpUpdateSignal = function (tab) {
         });
         const all = hubs.flatMap(h => series[h].map(p => ({ h, ...p })));
         const hi = all.reduce((a, p) => p.usd > a.usd ? p : a, all[0] || { usd: 0 });
+        // Austin vs Houston load zones, computed by the pipeline over the last 24 h.
+        const z = (ER.d.home || {}).zones_24h || {};
+        let zoneText = '';
+        if (z.LZ_AEN && z.LZ_HOUSTON && z.spread_avg != null) {
+            const sp = z.spread_avg;
+            zoneText = ` Over the last 24 hours Austin Energy's zone averaged $${num(z.LZ_AEN.avg, 2)}/MWh vs $${num(z.LZ_HOUSTON.avg, 2)} for Houston's — ` +
+                (Math.abs(sp) < 0.5 ? 'essentially level' : `Austin $${num(Math.abs(sp), 2)} ${sp > 0 ? 'higher' : 'lower'} on average`) +
+                ` across ${num(z.spread_n)} matching 15-minute intervals (Austin peak $${num(z.LZ_AEN.max, 2)}).`;
+        }
         $('er-sig-price').innerHTML = all.length
-            ? `<strong>Signal:</strong> highest 15-minute price today was $${num(hi.usd, 2)}/MWh at ${esc(HUB_NAMES[hi.h])} (${hm(hi.t)} CT). Hubs diverge when transmission is congested; the West hub often trades below Houston when West Texas wind is strong.`
+            ? `<strong>Signal:</strong> highest 15-minute price today was $${num(hi.usd, 2)}/MWh at ${esc(HUB_NAMES[hi.h])} (${hm(hi.t)} CT).${zoneText} Hubs are trading points; load zones are what customers in an area settle at, and they diverge when transmission is congested.`
             : 'Prices were unavailable on the last refresh.';
     }
 
@@ -14568,7 +14589,13 @@ window.cpUpdateSignal = function (tab) {
         if (m.mw_per_heating_degree != null) parts.push(`each °F below ${m.balance_point_f}°F ${effect(m.mw_per_heating_degree)}`);
         else parts.push(`too few hours below ${m.balance_point_f}°F so far to estimate heating load`);
         sig.innerHTML = `<strong>Model:</strong> ${parts.join('; ')} (n = ${num(m.n)} hours, R² = ${num(m.r2, 2)}). ` +
-            `Temperature alone, by design: time of day and weekday drive much of hourly load and are not in this fit, so R² measures how much weather explains on its own. Not a forecast.`;
+            `Temperature alone, by design: time of day and weekday drive much of hourly load and are not in this fit, so R² measures how much weather explains on its own. Not a forecast.` +
+            (() => {
+                const tn = (ER.d.home || {}).temp_now, lastPt = pts[pts.length - 1];
+                return tn && lastPt && tn.t === lastPt.t
+                    ? ` Austin (KAUS, ~11% of the population weighting) read ${num(tn.temp_f, 0)}°F in the latest hour vs the statewide weighted ${num(lastPt.temp_f, 0)}°F.`
+                    : '';
+            })();
     }
 
     window.erTab = function (btn, id) {

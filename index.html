@@ -4688,8 +4688,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
                 <div class="project-desc">
                     End-to-end Bronze → Silver → Gold pipeline analyzing 57 years (1970–2026) 
-                    of NOAA daily station data across 14 global cities — Austin (home station), Houston, Newark, Dallas,
-                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, and Delhi. Features automated daily refresh via GitHub Actions,
+                    of NOAA daily station data across 17 global cities — Austin (home station), Houston, Newark, Dallas,
+                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, San Francisco, Seattle, New York City, and Delhi. Features automated daily refresh via GitHub Actions,
                     Celsius→Fahrenheit conversion for international stations, an interactive
                     dashboard with city toggle comparisons, and an Austin-vs-Houston layer contrasting winter freezes and humidity (dew point, afternoon RH).
                     Denver included for Boulderthon marathon race planning context.
@@ -5262,7 +5262,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="cp-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                57 years (1970–2026) of NOAA daily station data · 14 cities · Austin home station · Bronze → Silver → Gold pipeline
+                57 years (1970–2026) of NOAA daily station data · 17 cities · Austin home station · Bronze → Silver → Gold pipeline
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="cp-last-updated">Updated daily</span>
@@ -5406,7 +5406,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="co2-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 14 station series (Austin home)
+                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 17 station series (Austin home)
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="co2-updated">Updated monthly</span>
@@ -12001,6 +12001,9 @@ const HOODAAGENTS_KILL_SWITCH = true;
             CDG: { name: 'Paris, France',      color: '#818cf8' },
             BRU: { name: 'Brussels, Belgium',  color: '#e879f9' },
             FCO: { name: 'Rome, Italy',        color: '#fb7185' },
+            SFO: { name: 'San Francisco, CA',  color: '#38bdf8' },
+            SEA: { name: 'Seattle, WA',        color: '#94a3b8' },
+            NYC: { name: 'New York City, NY',  color: '#fde68a' },
         },
     };
 
@@ -12055,7 +12058,9 @@ const HOODAAGENTS_KILL_SWITCH = true;
     };
 
     function cpRedrawAll() {
-        const activePanel = document.querySelector('.cp-panel.active');
+        // Scoped to #climate: the ERCOT section above reuses .cp-panel, so an
+        // unscoped lookup found ERCOT's panel and toggles never redrew.
+        const activePanel = document.querySelector('#climate .cp-panel.active');
         if (!activePanel) return;
         const id = activePanel.id.replace('cp-panel-', '');
         if (id === 'trend')    { destroyChart('trend');    cpDrawTrend(); }
@@ -12173,7 +12178,10 @@ const HOODAAGENTS_KILL_SWITCH = true;
 
     // ── Legend builder ───────────────────────────────────────────────────────
     function buildLegend(cities, showTrend = false, showYTD = false) {
-        const el = document.getElementById('cp-legend-dynamic');
+        // Every panel's legend shares the id cp-legend-dynamic, so getElementById
+        // always hit the trend panel's; write into the visible panel's legend.
+        const el = document.querySelector('#climate .cp-panel.active .cp-legend') ||
+                   document.getElementById('cp-legend-dynamic');
         if (!el) return;
         el.innerHTML = cities.map(({ cfg }) => `
             <span class="cp-leg-item">
@@ -12193,8 +12201,8 @@ const HOODAAGENTS_KILL_SWITCH = true;
 
     // ── Tab switching ────────────────────────────────────────────────────────
     window.cpTab = function(btn, id) {
-        document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.cp-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#climate .cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#climate .cp-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('cp-panel-' + id).classList.add('active');
         if (!CP.loaded) { cpLoad(); return; }
@@ -12374,7 +12382,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
         });
  
         buildLegend(cities);
-        const legEl = document.getElementById('cp-legend-dynamic');
+        const legEl = document.querySelector('#cp-panel-heat .cp-legend');
         if (anyYTD && legEl) legEl.innerHTML += `
             <span class="cp-leg-item" title="Heat days so far this year (hollow) and full-year pace (faint), vs same date in prior years">
                 <span style="display:inline-block;width:9px;height:9px;border:2px solid var(--text-muted);background:transparent;margin-right:4px;"></span>
@@ -12689,6 +12697,24 @@ const CP_SIGNALS = {
         seasonal: (d) => `Rome has a classic Mediterranean profile — hot, dry summers near ${num(july(d))}°F in July against mild, wet winters around ${num(jan(d))}°F, a ${num(swing(d))}°F swing. The rain comes when the heat doesn't.`,
         heat:     (d) => `Ciampino logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — the highest count of the European cities here. Italy hit 48.8°C in 2021, a provisional European record.`,
         winter:   (d) => `Rome winter lows warm at ${sgn(d.slope_winter)}°F/decade from an already-mild baseline. Mediterranean winters are the wet season, so warming interacts directly with water security.`,
+    },
+    SFO: {
+        trend:    (d) => `San Francisco (SFO) warms at ${sgn(d.slope_annual)}°F/decade. The cold California Current and the marine layer it feeds keep the Bay Area mild, so its warming shows less in the average than in inland heat waves.`,
+        seasonal: (d) => `San Francisco has one of the flattest curves here — about ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a ${num(swing(d))}°F swing. Summer fog keeps July cool; at SFO, September is the warmest month on average, not July.`,
+        heat:     (d) => `SFO logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — few, because the sea breeze caps afternoon highs at the bay's edge.`,
+        winter:   (d) => `San Francisco winter lows warm at ${sgn(d.slope_winter)}°F/decade from a mild base — frost is rare at the bay's edge, and winter is the rainy season.`,
+    },
+    SEA: {
+        trend:    (d) => `Seattle (Sea-Tac) warms at ${sgn(d.slope_annual)}°F/decade. The Pacific keeps it temperate, but the June 2021 heat dome pushed Sea-Tac to 108°F — its all-time record — in a city where few homes had air conditioning.`,
+        seasonal: (d) => `Seattle is classic marine west coast — about ${num(july(d))}°F in July against ${num(jan(d))}°F in January, a ${num(swing(d))}°F swing. Summers are dry and mild; the rain comes October through spring.`,
+        heat:     (d) => `Sea-Tac recorded ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. Hot days are still uncommon here, which is exactly why a heat wave hits so hard.`,
+        winter:   (d) => `Seattle winter lows warm at ${sgn(d.slope_winter)}°F/decade. Mild, wet winters mean snow in the city depends on a few degrees either way — the margin warming erodes.`,
+    },
+    NYC: {
+        trend:    (d) => `New York City (Central Park) warms at ${sgn(d.slope_annual)}°F/decade. Central Park is the city's official record station, with observations back to 1869; dense surrounding development adds an urban heat island on top of regional warming.`,
+        seasonal: (d) => `New York swings from about ${num(jan(d))}°F in January to ${num(july(d))}°F in July — a ${num(swing(d))}°F range, with hot, humid summers and cold winters.`,
+        heat:     (d) => `Central Park logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. Summer heat in New York lands hardest at night, when pavement and buildings keep releasing the day's heat.`,
+        winter:   (d) => `New York winter lows warm at ${sgn(d.slope_winter)}°F/decade. Compare it with Newark across the river — two stations, one metro, different surroundings.`,
     },
 };
 

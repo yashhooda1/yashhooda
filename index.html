@@ -4688,8 +4688,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
                 <div class="project-desc">
                     End-to-end Bronze → Silver → Gold pipeline analyzing 57 years (1970–2026) 
-                    of NOAA daily station data across 17 global cities — Austin (home station), Houston, Newark, Dallas,
-                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, San Francisco, Seattle, New York City, and Delhi. Features automated daily refresh via GitHub Actions,
+                    of NOAA daily station data across 21 global cities — Austin (home station), Houston, Newark, Dallas,
+                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, San Francisco, Seattle, New York City, Boston, Miami, Atlanta, Washington DC, and Delhi. Features automated daily refresh via GitHub Actions,
                     Celsius→Fahrenheit conversion for international stations, an interactive
                     dashboard with city toggle comparisons, and an Austin-vs-Houston layer contrasting winter freezes and humidity (dew point, afternoon RH).
                     Denver included for Boulderthon marathon race planning context.
@@ -5262,7 +5262,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="cp-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                57 years (1970–2026) of NOAA daily station data · 17 cities · Austin home station · Bronze → Silver → Gold pipeline
+                57 years (1970–2026) of NOAA daily station data · 21 cities · Austin home station · Bronze → Silver → Gold pipeline
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="cp-last-updated">Updated daily</span>
@@ -5406,7 +5406,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="co2-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 17 station series (Austin home)
+                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 21 station series (Austin home)
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="co2-updated">Updated monthly</span>
@@ -12004,6 +12004,10 @@ const HOODAAGENTS_KILL_SWITCH = true;
             SFO: { name: 'San Francisco, CA',  color: '#38bdf8' },
             SEA: { name: 'Seattle, WA',        color: '#94a3b8' },
             NYC: { name: 'New York City, NY',  color: '#fde68a' },
+            BOS: { name: 'Boston, MA',         color: '#c4b5fd' },
+            MIA: { name: 'Miami, FL',          color: '#f9a8d4' },
+            ATL: { name: 'Atlanta, GA',        color: '#bef264' },
+            DCA: { name: 'Washington, DC',     color: '#e2e8f0' },
         },
     };
 
@@ -12610,6 +12614,10 @@ const heatDays = (d) => last(d).count_80f;
 const swing = (d) => (july(d) != null && jan(d) != null) ? july(d) - jan(d) : null;
 
 const hvOf = () => (CP.data && CP.data.home_vs) || {};
+const avgFreeze = (d) => {
+    const w = (d?.winter || []).filter(r => r.freeze_nights != null);
+    return w.length ? w.reduce((a, r) => a + r.freeze_nights, 0) / w.length : null;
+};
 const CP_SIGNALS = {
     AUS: {
         trend:    (d) => `Austin (Camp Mabry) — the home station — warms at ${sgn(d.slope_annual)}°F/decade. Sitting inland, ~150 mi from the Gulf, it gets less of the Gulf moisture that keeps Houston's air muggy.`,
@@ -12715,6 +12723,40 @@ const CP_SIGNALS = {
         seasonal: (d) => `New York swings from about ${num(jan(d))}°F in January to ${num(july(d))}°F in July — a ${num(swing(d))}°F range, with hot, humid summers and cold winters.`,
         heat:     (d) => `Central Park logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. Summer heat in New York lands hardest at night, when pavement and buildings keep releasing the day's heat.`,
         winter:   (d) => `New York winter lows warm at ${sgn(d.slope_winter)}°F/decade. Compare it with Newark across the river — two stations, one metro, different surroundings.`,
+    },
+    BOS: {
+        trend:    (d) => `Boston (Logan) warms at ${sgn(d.slope_annual)}°F/decade. Logan sits on the harbor, so the ocean tempers both extremes compared with inland Massachusetts.`,
+        seasonal: (d) => `Boston runs from about ${num(jan(d))}°F in January to ${num(july(d))}°F in July — a ${num(swing(d))}°F swing, with long winters and a sea breeze that can cool summer afternoons at the airport.`,
+        heat:     (d) => `Logan logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — well below the southern cities here.`,
+        winter:   (d) => {
+            const fz = avgFreeze(d);
+            return `Boston winter lows warm at ${sgn(d.slope_winter)}°F/decade${fz != null ? `, and it still averages ${num(fz, 0)} freeze nights a winter across the record` : ''}.`;
+        },
+    },
+    MIA: {
+        trend:    (d) => `Miami warms at ${sgn(d.slope_annual)}°F/decade from the warmest baseline in the US set. For Miami, warming arrives alongside rising seas — the low-lying coast feels both at once.`,
+        seasonal: (d) => `Miami is tropical — about ${num(jan(d))}°F in January to ${num(july(d))}°F in July, a ${num(swing(d))}°F swing. The seasons are wet and dry more than warm and cold.`,
+        heat:     (d) => `Miami logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'} — most of the year. Here "hot day" is the default, and the story is how humid nights have become.`,
+        winter:   (d) => {
+            const w = (d.winter || []).filter(r => r.freeze_nights != null);
+            const total = w.reduce((a, r) => a + r.freeze_nights, 0);
+            return `Miami winter lows warm at ${sgn(d.slope_winter)}°F/decade.${w.length ? ` Freezes are rare: ${total} freeze night${total === 1 ? '' : 's'} at the airport across ${w.length} winters on record here.` : ''}`;
+        },
+    },
+    ATL: {
+        trend:    (d) => `Atlanta (Hartsfield-Jackson) warms at ${sgn(d.slope_annual)}°F/decade. At roughly 1,000 ft in the Piedmont, it runs milder in summer than the Gulf Coast but with a large, fast-growing metro around the station.`,
+        seasonal: (d) => `Atlanta swings from about ${num(jan(d))}°F in January to ${num(july(d))}°F in July — a ${num(swing(d))}°F range, with humid summers and winters cold enough for regular frosts.`,
+        heat:     (d) => `Atlanta logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}.`,
+        winter:   (d) => `Atlanta winter nights warm at ${sgn(d.slope_winter)}°F/decade against an annual rate of ${sgn(d.slope_annual)}°F — the nights are where the change is concentrated.`,
+    },
+    DCA: {
+        trend:    (d) => `Washington DC (Reagan National) warms at ${sgn(d.slope_annual)}°F/decade. National Airport is DC's official record station, sitting on the Potomac just across the river from the city.`,
+        seasonal: (d) => `Washington runs from about ${num(jan(d))}°F in January to ${num(july(d))}°F in July — a ${num(swing(d))}°F swing, with the notoriously humid summers the city is known for.`,
+        heat:     (d) => `Reagan National logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}.`,
+        winter:   (d) => {
+            const fz = avgFreeze(d);
+            return `DC winter lows warm at ${sgn(d.slope_winter)}°F/decade${fz != null ? `; the record averages ${num(fz, 0)} freeze nights a winter` : ''}.`;
+        },
     },
 };
 

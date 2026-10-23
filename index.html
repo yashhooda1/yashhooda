@@ -6114,6 +6114,628 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         </script>
     </section>
 
+    <!-- HoodaRun Workout Builder — build on the web, run it on Apple Watch (CloudKit) -->
+    <section id="hoodarun">
+        <style>
+            #hoodarun .hr-lede { max-width: 62ch; }
+            #hoodarun .hr-flow {
+                display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+                font-family: 'Space Mono', monospace; font-size: 0.72rem;
+                margin: 1.25rem 0 1.75rem; color: var(--text-muted);
+            }
+            #hoodarun .hr-flow b {
+                border: 1px solid var(--border); border-radius: 8px;
+                padding: 0.4rem 0.7rem; color: var(--text); font-weight: 400;
+                background: rgba(0,0,0,0.18);
+            }
+            #hoodarun .hr-grid {
+                display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+                gap: 1.25rem; align-items: start;
+            }
+            #hoodarun .hr-card {
+                border: 1px solid var(--border); border-radius: 12px;
+                background: rgba(0,0,0,0.18); padding: 1.1rem;
+                min-width: 0;
+            }
+            #hoodarun .hr-card h3 { margin: 0 0 0.85rem; font-size: 0.95rem; }
+            #hoodarun label {
+                display: block; font-size: 0.66rem; text-transform: uppercase;
+                letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.25rem;
+            }
+            #hoodarun input, #hoodarun select {
+                width: 100%; box-sizing: border-box; min-height: 2.25rem;
+                background: var(--bg); color: var(--text);
+                border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
+                padding: 0.4rem 0.55rem; font: inherit; font-size: 0.85rem;
+            }
+            #hoodarun input:focus, #hoodarun select:focus {
+                outline: 2px solid var(--green); outline-offset: 1px;
+            }
+            #hoodarun .hr-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+            #hoodarun .hr-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem; }
+            #hoodarun .hr-field { margin-bottom: 0.7rem; }
+            #hoodarun .hr-steps { display: flex; flex-direction: column; gap: 0.45rem; margin: 0.5rem 0; }
+            #hoodarun .hr-step {
+                display: grid; grid-template-columns: 6.5rem 5.5rem 5.5rem minmax(0,1fr) auto;
+                gap: 0.4rem; align-items: center;
+                border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 0.4rem;
+            }
+            #hoodarun .hr-repeat {
+                border: 1px dashed rgba(76,175,80,0.45); border-radius: 10px;
+                padding: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;
+            }
+            #hoodarun .hr-repeat-head {
+                display: flex; align-items: center; gap: 0.5rem;
+                font-family: 'Space Mono', monospace; font-size: 0.75rem;
+            }
+            #hoodarun .hr-repeat-head input { width: 4.5rem; }
+            #hoodarun .hr-repeat-head .hr-spacer { flex: 1; }
+            #hoodarun button {
+                font: inherit; font-size: 0.78rem; cursor: pointer; min-height: 2.25rem;
+                border-radius: 8px; padding: 0.35rem 0.75rem;
+                border: 1px solid var(--border); background: transparent; color: var(--text);
+            }
+            #hoodarun button:hover { border-color: var(--green); }
+            #hoodarun button.hr-primary {
+                background: var(--green); border-color: var(--green); color: #0d1117; font-weight: 700;
+            }
+            #hoodarun button.hr-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+            #hoodarun button.hr-x { padding: 0.35rem 0.55rem; color: var(--text-muted); }
+            #hoodarun .hr-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
+            #hoodarun .hr-preview {
+                font-family: 'Space Mono', monospace; font-size: 0.74rem; line-height: 1.6;
+                background: var(--bg); border-radius: 8px; padding: 0.75rem;
+                border: 1px solid rgba(255,255,255,0.06); overflow-wrap: anywhere;
+            }
+            #hoodarun .hr-preview .hr-k { color: var(--green-light); }
+            #hoodarun .hr-note { font-size: 0.74rem; color: var(--text-muted); margin: 0.6rem 0 0; }
+            #hoodarun .hr-err { color: #ef8a80; font-size: 0.78rem; margin: 0.5rem 0 0; min-height: 1em; }
+            #hoodarun .hr-ok { color: var(--green-light); }
+            #hoodarun .hr-auth { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem; }
+            #hoodarun .hr-auth-state { font-size: 0.78rem; color: var(--text-muted); }
+            #hoodarun .hr-list { list-style: none; margin: 0; padding: 0; }
+            #hoodarun .hr-list li {
+                display: grid; grid-template-columns: 5.2rem minmax(0,1fr) auto; gap: 0.5rem;
+                align-items: center; padding: 0.5rem 0;
+                border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.82rem;
+            }
+            #hoodarun .hr-list li:last-child { border-bottom: 0; }
+            #hoodarun .hr-date { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
+            #hoodarun .hr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            #hoodarun .hr-badge {
+                display: inline-block; font-size: 0.62rem; text-transform: uppercase;
+                letter-spacing: 0.05em; padding: 0.1rem 0.4rem; border-radius: 999px;
+                margin-left: 0.35rem; vertical-align: middle;
+                border: 1px solid rgba(255,255,255,0.18); color: var(--text-muted);
+            }
+            #hoodarun .hr-badge.on { border-color: var(--green); color: var(--green-light); }
+            #hoodarun .hr-empty { font-size: 0.8rem; color: var(--text-muted); }
+            #hoodarun .hr-list li.hr-empty { display: block; }
+            #hoodarun .hr-exlist { margin: 0.25rem 0 0; padding-left: 1.1rem; font-size: 0.82rem; line-height: 1.7; }
+            @media (max-width: 860px) {
+                #hoodarun .hr-grid { grid-template-columns: minmax(0, 1fr); }
+            }
+            @media (max-width: 560px) {
+                #hoodarun .hr-step { grid-template-columns: 1fr 1fr; }
+                #hoodarun .hr-step { grid-template-columns: 1fr 1fr auto; }
+                #hoodarun .hr-step [data-f="kind"] { grid-column: 1 / 2; }
+                #hoodarun .hr-step [data-f="duration"] { grid-column: 2 / 4; }
+                #hoodarun .hr-step .hr-x { grid-column: 3; justify-self: end; }
+                #hoodarun .hr-row3 { grid-template-columns: 1fr 1fr; }
+            }
+        </style>
+
+        <h2>⌚ HoodaRun — Build a Workout, Run It on Apple Watch</h2>
+        <p class="hr-lede">
+            HoodaRun is my Apple Watch Ultra workout app: a Garmin Connect–style builder for
+            easy runs, tempos, intervals, mile repeats, fartleks and long runs. Build one here,
+            sign in with your Apple ID, and it's saved to your own iCloud. HoodaRun on your
+            iPhone picks it up and schedules it in the Workout app with step-by-step pace and
+            heart-rate alerts. Claude-built plans from
+            <a href="https://github.com/yashhooda1/mcp-apple-workouts" target="_blank" rel="noopener">mcp-apple-workouts</a>
+            use the exact same workout format.
+        </p>
+
+        <div class="hr-flow" aria-label="How a workout reaches the watch">
+            <b>yashhooda.ai builder</b><span>→</span>
+            <b>your private iCloud (CloudKit)</b><span>→</span>
+            <b>HoodaRun on iPhone</b><span>→</span>
+            <b>Workout app on Apple Watch</b>
+        </div>
+
+        <div class="hr-grid">
+            <div class="hr-card">
+                <h3>Build</h3>
+                <div class="hr-field">
+                    <label for="hr-template">Start from</label>
+                    <select id="hr-template"></select>
+                </div>
+                <div class="hr-field">
+                    <label for="hr-name">Workout name</label>
+                    <input id="hr-name" maxlength="60" autocomplete="off">
+                </div>
+                <div class="hr-row3 hr-field">
+                    <div><label for="hr-date">Date</label><input id="hr-date" type="date"></div>
+                    <div><label for="hr-time">Time</label><input id="hr-time" type="time" value="06:00"></div>
+                    <div><label for="hr-loc">Where</label>
+                        <select id="hr-loc"><option value="outdoor">Outdoor</option><option value="indoor">Treadmill</option></select>
+                    </div>
+                </div>
+
+                <div id="hr-run-editor">
+                    <label>Steps</label>
+                    <div class="hr-steps" id="hr-steps"></div>
+                    <div class="hr-actions">
+                        <button type="button" id="hr-add-step">+ Step</button>
+                        <button type="button" id="hr-add-repeat">+ Repeat</button>
+                    </div>
+                    <p class="hr-note">Duration: <code>15:00</code>, <code>90s</code>, <code>1mi</code>,
+                        <code>400m</code>, <code>1km</code> or <code>open</code> (lap button).
+                        Pace is min/mi, e.g. <code>6:35-6:55</code>.</p>
+                </div>
+                <div id="hr-strength-editor" hidden>
+                    <label>Exercises</label>
+                    <ol class="hr-exlist" id="hr-exlist"></ol>
+                    <p class="hr-note">Rep sets end with the Action button; holds and rest are timed.</p>
+                </div>
+            </div>
+
+            <div>
+                <div class="hr-card">
+                    <h3>Preview</h3>
+                    <div class="hr-preview" id="hr-preview" aria-live="polite"></div>
+                    <p class="hr-err" id="hr-err" role="alert"></p>
+                    <div class="hr-auth">
+                        <div id="hr-ck-signin"></div>
+                        <div id="hr-ck-signout"></div>
+                        <span class="hr-auth-state" id="hr-auth-state">Checking iCloud…</span>
+                    </div>
+                    <div class="hr-actions">
+                        <button type="button" class="hr-primary" id="hr-save" disabled>Send to Apple Watch</button>
+                        <button type="button" id="hr-copy">Copy JSON</button>
+                    </div>
+                </div>
+
+                <div class="hr-card" style="margin-top:1.25rem">
+                    <h3>Upcoming in your iCloud</h3>
+                    <ul class="hr-list" id="hr-list"><li class="hr-empty">Sign in to see your scheduled workouts.</li></ul>
+                    <p class="hr-note">"On Watch" means HoodaRun has scheduled it. Open HoodaRun on
+                        your iPhone to sync. Workouts are stored only in your own iCloud account.</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        (function () {
+            'use strict';
+
+            // ---- configuration: CloudKit container + web API token for HoodaRun ----
+            // Create the token in CloudKit Console › API Access (allowed origin: https://yashhooda.ai).
+            // Web API tokens are designed to be public; access is limited to each user's own data.
+            var CK = {
+                container: 'iCloud.ai.yashhooda.HoodaRun',
+                apiToken: '',                 // set to enable sign-in; empty = preview mode
+                environment: 'production',
+                recordType: 'PlannedWorkout'
+            };
+
+            var root = document.getElementById('hoodarun');
+            if (!root) return;
+            var $ = function (id) { return document.getElementById(id); };
+
+            // ---------------------------------------------------------- compiler
+            // Port of mcp-apple-workouts/apple.py so web and Claude workouts are identical.
+            var M_PER_MILE = 1609.34;
+            var SCHEMA = 'hooda.workouts.custom/v1';
+            var PURPOSE = { warmup: 'work', run: 'work', cooldown: 'work', recovery: 'recovery', rest: 'recovery' };
+
+            function paceToMps(p) {
+                var m = /^(\d{1,2}):([0-5]\d)$/.exec(String(p).trim());
+                if (!m) throw new Error('Pace must look like 6:45');
+                return M_PER_MILE / (parseInt(m[1], 10) * 60 + parseInt(m[2], 10));
+            }
+            function parseDuration(t) {
+                t = String(t || '').trim().toLowerCase();
+                if (!t) throw new Error('Every step needs a duration');
+                if (t === 'open' || t === 'lap') return { type: 'open' };
+                var num = function (s) {
+                    var v = parseFloat(s);
+                    if (!(v > 0) || !/^\d*\.?\d+$/.test(s)) throw new Error('Bad duration "' + t + '"');
+                    return v;
+                };
+                if (/mi$/.test(t)) return { type: 'distance', meters: +(num(t.slice(0, -2)) * M_PER_MILE).toFixed(2) };
+                if (/km$/.test(t)) return { type: 'distance', meters: +(num(t.slice(0, -2)) * 1000).toFixed(2) };
+                if (/m$/.test(t)) return { type: 'distance', meters: num(t.slice(0, -1)) };
+                if (/s$/.test(t)) return { type: 'time', seconds: num(t.slice(0, -1)) };
+                if (/^\d+(:[0-5]\d){1,2}$/.test(t)) {
+                    var secs = t.split(':').reduce(function (a, p) { return a * 60 + parseInt(p, 10); }, 0);
+                    return { type: 'time', seconds: secs };
+                }
+                throw new Error('Bad duration "' + t + '"');
+            }
+            function parseTarget(kind, value) {
+                if (kind === 'hr') {
+                    var z = parseInt(value, 10);
+                    if (!(z >= 1 && z <= 5)) throw new Error('HR zone must be 1–5');
+                    return { type: 'hr_zone', zone: z };
+                }
+                if (kind === 'pace') {
+                    var parts = String(value).split('-');
+                    if (parts.length !== 2) throw new Error('Pace window looks like 6:35-6:55');
+                    var a = paceToMps(parts[0]), b = paceToMps(parts[1]);
+                    return { type: 'speed', min_mps: +Math.min(a, b).toFixed(3), max_mps: +Math.max(a, b).toFixed(3) };
+                }
+                return null;
+            }
+            function stepJSON(s) {
+                return { goal: parseDuration(s.duration), alert: parseTarget(s.tkind, s.tval), display_name: null };
+            }
+            function compileRun(spec) {
+                var items = spec.steps.slice();
+                if (!items.length) throw new Error('Add at least one step');
+                var warmup = null, cooldown = null;
+                if (items[0].type === 'step' && items[0].kind === 'warmup' && items.length > 1) warmup = stepJSON(items.shift());
+                var last = items[items.length - 1];
+                if (last.type === 'step' && last.kind === 'cooldown' && items.length > 1) cooldown = stepJSON(items.pop());
+                var blocks = [], singles = [];
+                items.forEach(function (it) {
+                    if (it.type === 'repeat') {
+                        if (singles.length) { blocks.push({ iterations: 1, steps: singles }); singles = []; }
+                        var n = parseInt(it.repeat, 10);
+                        if (!(n >= 1 && n <= 99)) throw new Error('Repeat count must be 1–99');
+                        if (!it.steps.length) throw new Error('A repeat needs at least one step');
+                        blocks.push({ iterations: n, steps: it.steps.map(function (s) {
+                            return { purpose: PURPOSE[s.kind] || 'work', step: stepJSON(s) };
+                        }) });
+                    } else {
+                        singles.push({ purpose: PURPOSE[it.kind] || 'work', step: stepJSON(it) });
+                    }
+                });
+                if (singles.length) blocks.push({ iterations: 1, steps: singles });
+                return { schema: SCHEMA, activity: 'running', location: spec.location,
+                         display_name: spec.name, warmup: warmup, blocks: blocks, cooldown: cooldown,
+                         estimated_seconds: 3600 };
+            }
+            function compileStrength(spec) {
+                return { schema: SCHEMA, activity: 'traditional_strength_training',
+                         fallback_activity: 'functional_strength_training', location: 'indoor',
+                         display_name: spec.name, warmup: null, cooldown: null,
+                         estimated_seconds: spec.minutes * 60,
+                         blocks: spec.exercises.map(function (e) {
+                             var work = e.hold
+                                 ? { goal: { type: 'time', seconds: e.hold }, alert: null, display_name: e.name + ' · ' + e.hold + 's hold' }
+                                 : { goal: { type: 'open' }, alert: null, display_name: e.name + ' · ' + e.reps + ' reps' };
+                             return { iterations: e.sets, steps: [
+                                 { purpose: 'work', step: work },
+                                 { purpose: 'recovery', step: { goal: { type: 'time', seconds: e.rest }, alert: null, display_name: 'Rest' } }
+                             ] };
+                         }) };
+            }
+
+            // ---------------------------------------------------------- templates
+            function S(kind, duration, tkind, tval) { return { type: 'step', kind: kind, duration: duration, tkind: tkind || 'none', tval: tval || '' }; }
+            function R(n, steps) { return { type: 'repeat', repeat: n, steps: steps }; }
+            var TEMPLATES = [
+                { key: 'easy', name: 'Easy 6mi + strides', steps: [S('run', '6mi', 'hr', '2'), R(6, [S('run', '20s'), S('recovery', '60s', 'hr', '2')])] },
+                { key: 'tempo', name: 'Tempo 3x2mi', steps: [S('warmup', '2mi', 'hr', '2'), R(3, [S('run', '2mi', 'pace', '6:15-6:25'), S('recovery', '2:00', 'hr', '2')]), S('cooldown', '1mi', 'hr', '2')] },
+                { key: 'intervals', name: '6x800m', steps: [S('warmup', '15:00', 'hr', '2'), R(6, [S('run', '800m', 'pace', '5:40-5:50'), S('recovery', '400m', 'hr', '2')]), S('cooldown', '10:00', 'hr', '2')] },
+                { key: 'miles', name: 'Mile repeats 4x1mi', steps: [S('warmup', '15:00', 'hr', '2'), R(4, [S('run', '1mi', 'pace', '6:00-6:10'), S('recovery', '2:30', 'hr', '2')]), S('cooldown', '10:00', 'hr', '2')] },
+                { key: 'fartlek', name: 'Fartlek 10x1min', steps: [S('warmup', '15:00', 'hr', '2'), R(10, [S('run', '60s', 'hr', '4'), S('recovery', '60s', 'hr', '2')]), S('cooldown', '10:00', 'hr', '2')] },
+                { key: 'long', name: 'Long run 12mi', steps: [S('run', '12mi', 'hr', '2')] },
+                { key: 'longhmp', name: 'Long 12mi, last 3 @ HMP', steps: [S('run', '9mi', 'hr', '2'), S('run', '3mi', 'pace', '6:22-6:30')] },
+                { key: 'blank', name: 'Custom workout', steps: [S('run', '3mi', 'none', '')] },
+                { key: 'strA', name: 'Strength A — posterior chain + core', strength: true, minutes: 30, exercises: [
+                    { name: 'Romanian Deadlift', sets: 4, reps: 8, rest: 90 },
+                    { name: 'Bulgarian Split Squat', sets: 3, reps: 8, rest: 75 },
+                    { name: 'Single-Leg Calf Raise', sets: 3, reps: 12, rest: 45 },
+                    { name: 'Single-Arm Dumbbell Row', sets: 3, reps: 10, rest: 60 },
+                    { name: 'Plank', sets: 3, hold: 45, rest: 45 },
+                    { name: 'Dead Bug', sets: 3, reps: 10, rest: 45 } ] },
+                { key: 'strB', name: 'Strength B — hips + anti-rotation', strength: true, minutes: 28, exercises: [
+                    { name: 'Single-Leg Hip Raise', sets: 3, reps: 12, rest: 45 },
+                    { name: 'Banded Lateral Walk', sets: 3, reps: 12, rest: 45 },
+                    { name: 'Walking Lunge', sets: 3, reps: 10, rest: 60 },
+                    { name: 'Push-Up', sets: 3, reps: 12, rest: 45 },
+                    { name: 'Side Plank', sets: 3, hold: 30, rest: 30 },
+                    { name: 'Bird Dog', sets: 3, reps: 10, rest: 30 } ] }
+            ];
+
+            // ---------------------------------------------------------- state + editor
+            var state = { template: null, steps: [] };
+            var clone = function (o) { return JSON.parse(JSON.stringify(o)); };
+
+            function esc(s) {
+                return String(s).replace(/[&<>"']/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
+            function today() {
+                var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                return d.toISOString().slice(0, 10);
+            }
+
+            var sel = $('hr-template');
+            sel.innerHTML = TEMPLATES.map(function (t) {
+                return '<option value="' + t.key + '">' + esc(t.name) + '</option>';
+            }).join('');
+            function loadTemplate(key) {
+                var t = TEMPLATES.filter(function (x) { return x.key === key; })[0];
+                state.template = t;
+                state.steps = t.strength ? [] : clone(t.steps);
+                $('hr-name').value = t.name;
+                $('hr-run-editor').hidden = !!t.strength;
+                $('hr-strength-editor').hidden = !t.strength;
+                $('hr-loc').disabled = !!t.strength;
+                if (t.strength) {
+                    $('hr-exlist').innerHTML = t.exercises.map(function (e) {
+                        return '<li>' + e.sets + ' × ' + (e.hold ? e.hold + 's' : e.reps) + ' ' + esc(e.name) +
+                            ' <span class="hr-date">rest ' + e.rest + 's</span></li>';
+                    }).join('');
+                }
+                render();
+            }
+
+            var KINDS = ['warmup', 'run', 'recovery', 'rest', 'cooldown'];
+            function stepRow(s, path) {
+                var opts = function (list, cur) {
+                    return list.map(function (v) {
+                        var val = Array.isArray(v) ? v[0] : v, lab = Array.isArray(v) ? v[1] : v;
+                        return '<option value="' + val + '"' + (val === cur ? ' selected' : '') + '>' + lab + '</option>';
+                    }).join('');
+                };
+                return '<div class="hr-step" data-path="' + path + '">' +
+                    '<select data-f="kind" aria-label="Step type">' + opts(KINDS, s.kind) + '</select>' +
+                    '<input data-f="duration" value="' + esc(s.duration) + '" aria-label="Duration" placeholder="1mi">' +
+                    '<select data-f="tkind" aria-label="Target">' + opts([['none', 'No target'], ['hr', 'HR zone'], ['pace', 'Pace']], s.tkind) + '</select>' +
+                    '<input class="hr-tval" data-f="tval" value="' + esc(s.tval) + '" aria-label="Target value" placeholder="' +
+                        (s.tkind === 'hr' ? '1–5' : s.tkind === 'pace' ? '6:35-6:55' : '') + '"' + (s.tkind === 'none' ? ' disabled' : '') + '>' +
+                    '<button type="button" class="hr-x" data-act="del" aria-label="Remove step">✕</button>' +
+                    '</div>';
+            }
+            function renderSteps() {
+                $('hr-steps').innerHTML = state.steps.map(function (it, i) {
+                    if (it.type === 'repeat') {
+                        return '<div class="hr-repeat" data-path="' + i + '">' +
+                            '<div class="hr-repeat-head"><span>Repeat</span>' +
+                            '<input data-f="repeat" type="number" min="1" max="99" value="' + esc(it.repeat) + '" aria-label="Repeat count">' +
+                            '<span>×</span><span class="hr-spacer"></span>' +
+                            '<button type="button" data-act="add-in">+ Step</button>' +
+                            '<button type="button" class="hr-x" data-act="del" aria-label="Remove repeat">✕</button></div>' +
+                            it.steps.map(function (s, j) { return stepRow(s, i + '.' + j); }).join('') +
+                            '</div>';
+                    }
+                    return stepRow(it, String(i));
+                }).join('');
+            }
+            function at(path) {
+                var p = path.split('.').map(Number);
+                return p.length === 1 ? { list: state.steps, i: p[0] } : { list: state.steps[p[0]].steps, i: p[1] };
+            }
+            $('hr-steps').addEventListener('input', function (e) {
+                var f = e.target.getAttribute('data-f'); if (!f) return;
+                var host = e.target.closest('[data-path]'), ref = at(host.getAttribute('data-path'));
+                ref.list[ref.i][f] = e.target.value;
+                if (f === 'tkind') { ref.list[ref.i].tval = e.target.value === 'hr' ? '2' : ''; renderSteps(); }
+                renderPreview();
+            });
+            $('hr-steps').addEventListener('click', function (e) {
+                var act = e.target.getAttribute('data-act'); if (!act) return;
+                var ref = at(e.target.closest('[data-path]').getAttribute('data-path'));
+                if (act === 'del') ref.list.splice(ref.i, 1);
+                if (act === 'add-in') ref.list[ref.i].steps.push(S('run', '400m', 'none', ''));
+                render();
+            });
+            $('hr-add-step').addEventListener('click', function () { state.steps.push(S('run', '1mi', 'hr', '2')); render(); });
+            $('hr-add-repeat').addEventListener('click', function () {
+                state.steps.push(R(4, [S('run', '400m', 'pace', '5:40-5:50'), S('recovery', '90s', 'hr', '2')])); render();
+            });
+            sel.addEventListener('change', function () { loadTemplate(sel.value); });
+            ['hr-name', 'hr-date', 'hr-time', 'hr-loc'].forEach(function (id) { $(id).addEventListener('input', renderPreview); });
+
+            // ---------------------------------------------------------- preview
+            function goalText(g) {
+                if (g.type === 'open') return 'open';
+                if (g.type === 'distance') {
+                    var mi = g.meters / M_PER_MILE;
+                    return Math.abs(mi - Math.round(mi * 100) / 100) < 0.005 && mi >= 0.99
+                        ? (+mi.toFixed(2)) + ' mi' : (+g.meters.toFixed(0)) + ' m';
+                }
+                var s = Math.round(g.seconds);
+                return s < 60 ? s + 's' : Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+            }
+            function alertText(a) {
+                if (!a) return '';
+                if (a.type === 'hr_zone') return ' @ Z' + a.zone;
+                var p = function (mps) { var s = Math.round(M_PER_MILE / mps); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+                return ' @ ' + p(a.max_mps) + '–' + p(a.min_mps) + '/mi';
+            }
+            function stepText(st) { return (st.display_name ? esc(st.display_name) : goalText(st.goal)) + alertText(st.alert); }
+            function current() {
+                var t = state.template;
+                var name = $('hr-name').value.trim() || t.name;
+                var w = t.strength
+                    ? compileStrength({ name: name, minutes: t.minutes, exercises: t.exercises })
+                    : compileRun({ name: name, location: $('hr-loc').value, steps: state.steps });
+                var date = $('hr-date').value, time = $('hr-time').value || null;
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Pick a date');
+                if (date < today()) throw new Error('Pick today or a future date');
+                return { name: name, date: date, time: time, sport: t.strength ? 'strength' : 'running', workout: w };
+            }
+            var lastGood = null;
+            function renderPreview() {
+                var out = $('hr-preview'), err = $('hr-err');
+                try {
+                    var c = current();
+                    lastGood = c;
+                    var w = c.workout, lines = [];
+                    if (w.warmup) lines.push('<span class="hr-k">Warmup</span> ' + stepText(w.warmup));
+                    w.blocks.forEach(function (b) {
+                        var inner = b.steps.map(function (s) {
+                            if (s.purpose === 'recovery') return (s.step.display_name === 'Rest' ? 'rest ' + goalText(s.step.goal) : 'recover ' + stepText(s.step));
+                            return stepText(s.step);
+                        }).join(' → ');
+                        lines.push(b.iterations > 1 ? '<span class="hr-k">' + b.iterations + '×</span> [ ' + inner + ' ]' : inner);
+                    });
+                    if (w.cooldown) lines.push('<span class="hr-k">Cooldown</span> ' + stepText(w.cooldown));
+                    out.innerHTML = '<b>' + esc(c.name) + '</b><br>' + esc(c.date) + (c.time ? ' · ' + esc(c.time) : '') +
+                        ' · ' + (w.activity !== 'running' ? 'strength' : w.location === 'indoor' ? 'treadmill' : 'outdoor') +
+                        '<br><br>' + lines.join('<br>');
+                    err.textContent = '';
+                } catch (e) {
+                    lastGood = null;
+                    err.textContent = e.message;
+                }
+                updateSaveButton();
+            }
+            function render() { renderSteps(); renderPreview(); }
+
+            $('hr-copy').addEventListener('click', function () {
+                if (!lastGood) return;
+                var txt = JSON.stringify(lastGood.workout, null, 2);
+                if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () {
+                    $('hr-copy').textContent = 'Copied'; setTimeout(function () { $('hr-copy').textContent = 'Copy JSON'; }, 1500);
+                });
+            });
+
+            // ---------------------------------------------------------- CloudKit
+            var db = null, signedIn = false;
+            function setAuth(msg) { $('hr-auth-state').textContent = msg; }
+            function updateSaveButton() { $('hr-save').disabled = !(signedIn && lastGood); }
+
+            async function sha16(s) {
+                if (!(window.crypto && crypto.subtle)) return String(Date.now());
+                var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+                return Array.from(new Uint8Array(buf)).slice(0, 8).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+            }
+            function newId() {
+                return (crypto.randomUUID ? crypto.randomUUID()
+                    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                    })).toUpperCase();
+            }
+
+            async function refreshList() {
+                var list = $('hr-list');
+                if (!db) return;
+                try {
+                    var res = await db.performQuery({
+                        recordType: CK.recordType,
+                        filterBy: [{ fieldName: 'date', comparator: 'GREATER_THAN_OR_EQUALS', fieldValue: { value: today() } }],
+                        sortBy: [{ fieldName: 'date', ascending: true }]
+                    });
+                    if (res.hasErrors) throw res.errors[0];
+                    var recs = res.records || [];
+                    if (!recs.length) { list.innerHTML = '<li class="hr-empty">Nothing scheduled yet.</li>'; return; }
+                    list.innerHTML = recs.map(function (r) {
+                        var f = r.fields, v = function (k) { return f[k] ? f[k].value : ''; };
+                        var on = v('scheduledRev') && v('scheduledRev') === v('rev');
+                        return '<li><span class="hr-date">' + esc(v('date')) + '</span>' +
+                            '<span class="hr-name" title="' + esc(v('name')) + '">' + esc(v('name')) +
+                            '<span class="hr-badge' + (on ? ' on' : '') + '">' + (on ? 'On Watch' : 'Waiting for iPhone') + '</span></span>' +
+                            '<button type="button" class="hr-x" data-del="' + esc(r.recordName) + '" aria-label="Delete ' + esc(v('name')) + '">✕</button></li>';
+                    }).join('');
+                } catch (e) {
+                    list.innerHTML = '<li class="hr-empty">Couldn\'t load workouts: ' + esc(e.reason || e.message || e) + '</li>';
+                }
+            }
+            $('hr-list').addEventListener('click', async function (e) {
+                var id = e.target.getAttribute('data-del');
+                if (!id || !db) return;
+                e.target.disabled = true;
+                var res = await db.deleteRecords([id]);
+                if (res.hasErrors) $('hr-err').textContent = res.errors[0].reason || 'Delete failed';
+                refreshList();
+            });
+
+            $('hr-save').addEventListener('click', async function () {
+                if (!lastGood || !db) return;
+                var btn = $('hr-save'), c = lastGood;
+                btn.disabled = true; btn.textContent = 'Saving…';
+                try {
+                    var json = JSON.stringify(c.workout);
+                    var rev = await sha16(json + '|' + (c.time || ''));
+                    var res = await db.saveRecords([{
+                        recordType: CK.recordType,
+                        recordName: newId(),
+                        fields: {
+                            date: { value: c.date }, time: { value: c.time || '' },
+                            name: { value: c.name }, sport: { value: c.sport },
+                            workoutJSON: { value: json }, rev: { value: rev },
+                            source: { value: 'web' }
+                        }
+                    }]);
+                    if (res.hasErrors) throw res.errors[0];
+                    $('hr-err').innerHTML = '<span class="hr-ok">Saved to iCloud. Open HoodaRun on your iPhone to put it on your Watch.</span>';
+                    refreshList();
+                } catch (e) {
+                    $('hr-err').textContent = 'Save failed: ' + (e.reason || e.message || e);
+                } finally {
+                    btn.textContent = 'Send to Apple Watch'; updateSaveButton();
+                }
+            });
+
+            function onSignedIn(identity) {
+                signedIn = !!identity;
+                setAuth(signedIn ? 'Signed in with your Apple ID.' : 'Sign in with your Apple ID to send workouts to your Watch.');
+                if (!signedIn) $('hr-list').innerHTML = '<li class="hr-empty">Sign in to see your scheduled workouts.</li>';
+                updateSaveButton();
+                if (signedIn) refreshList();
+            }
+
+            function startCloudKit() {
+                if (!CK.apiToken) {
+                    setAuth('Preview mode — Apple ID sign-in is coming soon. You can still build and copy workouts.');
+                    return;
+                }
+                var s = document.createElement('script');
+                s.src = 'https://cdn.apple-cloudkit.com/ck/2/cloudkit.js';
+                s.async = true;
+                s.onerror = function () { setAuth('Couldn\'t reach iCloud. Try again later.'); };
+                s.onload = function () {
+                    try {
+                        window.CloudKit.configure({ containers: [{
+                            containerIdentifier: CK.container,
+                            apiTokenAuth: { apiToken: CK.apiToken, persist: true,
+                                signInButton: { id: 'hr-ck-signin', theme: 'black' },
+                                signOutButton: { id: 'hr-ck-signout', theme: 'black' } },
+                            environment: CK.environment
+                        }] });
+                        var container = window.CloudKit.getDefaultContainer();
+                        db = container.privateCloudDatabase;
+                        var watchIn = function () {
+                            container.whenUserSignsIn().then(function (id) { onSignedIn(id); watchOut(); });
+                        };
+                        var watchOut = function () {
+                            container.whenUserSignsOut().then(function () { onSignedIn(null); watchIn(); });
+                        };
+                        container.setUpAuth().then(function (id) {
+                            onSignedIn(id);
+                            if (id) watchOut(); else watchIn();
+                        });
+                    } catch (e) {
+                        setAuth('iCloud setup failed: ' + (e.message || e));
+                    }
+                };
+                document.head.appendChild(s);
+            }
+
+            // ---------------------------------------------------------- boot
+            $('hr-date').value = today();
+            $('hr-date').min = today();
+            loadTemplate('tempo');
+            // Load CloudKit only when the section is near the viewport.
+            if ('IntersectionObserver' in window) {
+                var io = new IntersectionObserver(function (es) {
+                    if (es.some(function (x) { return x.isIntersecting; })) { io.disconnect(); startCloudKit(); }
+                }, { rootMargin: '400px' });
+                io.observe(root);
+            } else {
+                startCloudKit();
+            }
+        })();
+        </script>
+    </section>
+
     <!-- Running Heat pace Calculator -->
     <section class="hpc" id="heat-pace">
       <p class="hpc-eyebrow">Tool · Running × Weather</p>

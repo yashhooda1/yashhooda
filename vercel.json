@@ -72,6 +72,12 @@
     "api/code-agent.js": {
       "maxDuration": 120,
       "memory": 1024
+    },
+    "api/fit-check.js": {
+      "maxDuration": 45
+    },
+    "api/navigate.js": {
+      "maxDuration": 20
     }
   },
   "rewrites": [
@@ -117,6 +123,15 @@
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/llms.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
         }
       ]
     }

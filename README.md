@@ -21,6 +21,24 @@ If you're skimming, these are the parts worth reading the code for:
 
 ---
 
+## ✨ v2 shell (Oct 2026): themes, ⌘K navigator, Fit Check
+
+Nothing was removed in the v2 redesign — it is a layer on top of the existing page.
+
+| Area | What shipped | Where |
+|---|---|---|
+| **Themes** | 8 themes — Terminal (default), Midnight, Aurora, Ember, Cockpit, Rose, Daylight, Paper — via CSS custom properties. 300+ hard-coded colors in `index.html` were tokenized (`rgba(76,175,80,…)` → `rgba(var(--accent-rgb),…)`, `#4caf50` → `var(--green)`, …) so nav, cards, charts, particle canvas and chat all recolor at once. Flash-free boot script in `<head>`, persisted in `localStorage("yh_theme")`, “match system” opt-in. | `css/themes.css`, `js/ui-shell.js` (`YH.theme`) |
+| **Logo** | New YH monogram — Y whose stem doubles as the H's left bar, data-point dot, blinking terminal cursor. Theme-aware inline SVG in the nav; standalone `logo.svg`, `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`, `logo-512.png` (OpenGraph). Old favicon kept as `favicon-legacy.svg`. | root |
+| **Navigation** | `⌘K` / `Ctrl+K` / `/` command palette: fuzzy search over every section + actions, recent jumps, voice input (Web Speech API), `Tab` to toggle AI mode. Desktop section rail with scroll-spy (only shown when there is free margin), sticky breadcrumb under the nav, mobile bottom bar (Home · Jump · AI Chat · Fit · Theme), keyboard shortcuts (`?` help, `t` cycle theme, `c` chat, `g`+`a/p/f/r/b/c/m` go-to). | `js/ui-shell.js` (`YH.palette`, `YH.rail`, `YH.keys`) |
+| **Fit Check** | `#fit-check` — paste a job description. A deterministic keyword scan runs instantly in the browser (free, logged-out). The AI report (`POST /api/fit-check`, Claude Haiku 4.5) scores the fit, cites the project/role proving each strength, lists honest gaps — the model is told which skills are known gaps so it can't bluff — and writes a tailored first-person pitch plus questions to ask. Score = 75% model judgement + 25% keyword coverage. Login-gated, rate-limited, content-guarded, kill-switch `fit-check`, 24h Redis cache keyed on a JD hash. | `api/fit-check.js`, `lib/profile.js` |
+| **AI Navigator** | Palette AI mode (`?` prefix or `Tab`): `POST /api/navigate` receives the live section index from the client and routes a natural-language question (“where can I convert my race time for heat?”) to the right section with a one-line answer. Login-gated, kill-switch `navigate`, 6h cache. | `api/navigate.js` |
+| **Ask AI per section** | Every section heading gets “✨ Ask AI” (pre-loads an explain-this prompt into HoodaAgents) and “🔗” (copy deep link). | `js/ui-shell.js` (`YH.askAbout`) |
+| **Fixes** | Restored the missing `<div class="skill-cloud">` in About — its stray closing tag ended `.container` early, so every section after About rendered full-bleed. Added `<meta name="description">`, OpenGraph tags, `/llms.txt`. The marked / highlight.js includes that sat inside a `<style>` block (never executed) are now loaded for real before `</body>`; `js/chat-enhanced.js` and `js/strava-map-fix.js` are intentionally still not activated pending a compatibility review. | `index.html`, `llms.txt`, `vercel.json` |
+
+Kill switches for the new endpoints: `SET killswitch:fit-check on`, `SET killswitch:navigate on` (or env `FIT_CHECK_OFF` / `NAVIGATE_OFF`).
+
+---
+
 ## Features
 
 ### 🛰️ Live Flight Tracker

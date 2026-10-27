@@ -9415,11 +9415,20 @@ function providerLogo(provider) {
     
 // ── AI MODEL SELECTION ──
 const AI_MODELS = [
+    // ── Oct 2026 additions: Claude 5.5 family (lib/models.js keeps the server registry in sync) ──
+    { key: 'claude-opus-5-5',   name: 'Claude Opus 5.5',    provider: 'Anthropic', note: 'Newest Opus — deepest reasoning, long agentic tasks' },
+    { key: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5',  provider: 'Anthropic', note: 'Newest Sonnet — fast, sharp, best everyday Claude' },
+    { key: 'claude-haiku-5-5',  name: 'Claude Haiku 5.5',   provider: 'Anthropic', note: 'Newest Haiku — near-instant, lowest cost Claude' },
     { key: 'claude-opus-5',     name: 'Claude Opus 5',      provider: 'Anthropic', note: 'Smartest, best for deep advice' },
     { key: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6',  provider: 'Anthropic', note: 'Fast and capable, great default' },
     { key: 'claude-fable-5',    name: 'Claude Fable 5',     provider: 'Anthropic', note: 'Anthropic\'s most capable model' },
     { key: 'claude-fable-5-1',  name: 'Claude Fable 5.1',   provider: 'Anthropic', note: 'Latest Fable — long-horizon agentic coding & research' },
     { key: 'claude-sonnet-5',   name: 'Claude Sonnet 5',    provider: 'Anthropic', note: 'Newest Sonnet — fast, capable, great everyday default' },
+    // ── Oct 2026 additions: GPT-6.x line ──
+    { key: 'gpt-6.1-terra',     name: 'ChatGPT 6.1 Terra',  provider: 'OpenAI',    note: 'Newest (Oct 26) — fast visual reasoning & computer use, half the cost of 5.6 Terra' },
+    { key: 'gpt-6.1-sol',       name: 'ChatGPT 6.1 Sol',    provider: 'OpenAI',    note: 'Complex coding & professional work, cheaper than Astra' },
+    { key: 'gpt-6-sol',         name: 'ChatGPT 6 Sol',      provider: 'OpenAI',    note: 'Reasoning model with text + image input' },
+    { key: 'gpt-6-luna',        name: 'ChatGPT 6 Luna',     provider: 'OpenAI',    note: 'Low-cost reasoning — high-volume work' },
     { key: 'gpt-6-astra',       name: 'ChatGPT 6 Astra',    provider: 'OpenAI',    note: 'OpenAI frontier — computer use, browsing, deep research' },
     { key: 'gpt-5.6-sol',       name: 'ChatGPT 5.6 Sol',    provider: 'OpenAI',    note: 'Newest flagship — hardest coding & agentic work' },
     { key: 'gpt-5.6-terra',     name: 'ChatGPT 5.6 Terra',  provider: 'OpenAI',    note: 'Balanced — GPT-5.5 quality at ~half the cost' },
@@ -9427,9 +9436,17 @@ const AI_MODELS = [
     { key: 'gpt-5.5',           name: 'ChatGPT 5.5',        provider: 'OpenAI',    note: 'OpenAI flagship' },
     { key: 'gpt-5.4',           name: 'ChatGPT 5.4',        provider: 'OpenAI',    note: 'Strong all-rounder' },
     { key: 'gpt-5.4-mini',      name: 'ChatGPT 5.4 mini',   provider: 'OpenAI',    note: 'Fastest, lowest cost' },
+    { key: 'gpt-5.4-nano',      name: 'ChatGPT 5.4 nano',   provider: 'OpenAI',    note: 'Tiniest & cheapest — simple high-volume tasks' },
+    // ── Oct 2026 additions: Grok 4.6 / 4.7 ──
+    { key: 'grok-4.7',          name: 'Grok 4.7',           provider: 'xAI',       note: 'Newest xAI flagship — coding, agents, knowledge work' },
+    { key: 'grok-4.6',          name: 'Grok 4.6',           provider: 'xAI',       note: 'Tuned for long-running agent tasks' },
     { key: 'grok-4.3',          name: 'Grok 4.3',           provider: 'xAI',       note: 'xAI flagship, great for reasoning' },
     { key: 'grok-4.5',          name: 'Grok 4.5',           provider: 'xAI',       note: 'Fast and efficient Grok for coding' },
+    // ── Oct 2026 additions: Gemini 4 + current Flash tiers ──
+    { key: 'gemini-4-argon',    name: 'Gemini 4 Argon',     provider: 'Google',    note: 'Google flagship reasoning model' },
     { key: 'gemini-3.8-flash',  name: 'Gemini 3.8 Flash',   provider: 'Google',    note: 'Newest Flash — agentic work, 1M context' },
+    { key: 'gemini-3.6-flash',  name: 'Gemini 3.6 Flash',   provider: 'Google',    note: 'Previous-gen Flash — stable & fast' },
+    { key: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite', provider: 'Google', note: 'Lightest, cheapest Gemini' },
     { key: 'gemini-3.5-flash',  name: 'Gemini 3.5 Flash',   provider: 'Google',    note: 'Google flagship, fast + multimodal' },
     { key: 'gemini-3.1-pro-preview',    name: 'Gemini 3.1 Pro',     provider: 'Google',    note: 'Google most capable model' },
     { key: 'llama-4-maverick',  name: 'Llama 4 Maverick',   provider: 'Meta',      note: 'Meta open-source, via Together.ai' },

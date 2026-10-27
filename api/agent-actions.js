@@ -164,7 +164,7 @@ function buildRecommendations(strava, github, weather, timeCtx) {
         title:    `Houston Marathon in ${daysToRace} days`,
         body:     daysToRace <= 14
           ? `Taper time. Reduce mileage 20-30%, keep intensity, prioritize sleep.`
-          : `On track for sub-3:00 marathon goal. Current weekly mileage: ${weekly}mi. Target: 50-55mpw peak.`,
+          : `On track for the 2027 Aramco Houston Half (PR goal < 1:24:31); sub-3:00 marathon remains the long-term goal. Current weekly mileage: ${weekly}mi. Target: 40mpw in this block, 50-55mpw peak for the marathon build.`,
         action:   daysToRace <= 14 ? 'Begin taper protocol' : 'Check training plan',
         color:    '#f97316',
       });

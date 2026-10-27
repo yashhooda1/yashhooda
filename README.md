@@ -37,6 +37,34 @@ Nothing was removed in the v2 redesign — it is a layer on top of the existing 
 
 Kill switches for the new endpoints: `SET killswitch:fit-check on`, `SET killswitch:navigate on` (or env `FIT_CHECK_OFF` / `NAVIGATE_OFF`).
 
+### 🧠 Model catalog refresh (Oct 27, 2026)
+
+`lib/models.js` is the new single source of truth. It adds these to every chat registry (`api/chat.js`, `api/chat-voice.js`, `api/chat-search.js`) and to the Models tab in `index.html`:
+
+| Provider | Added | Fallback if the account can't access it |
+|---|---|---|
+| Anthropic | `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` | → `claude-opus-5` / `claude-sonnet-5` / Haiku 4.5 |
+| OpenAI | `gpt-6.1-terra` (Oct 26), `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.4-nano` | → one step down, then `gpt-5.5` |
+| Google | `gemini-4-argon`, `gemini-3.6-flash`, `gemini-3.5-flash-lite` | → `gemini-3.8-flash` / `gemini-3.5-flash` |
+| xAI | `grok-4.7`, `grok-4.6` | → `grok-4.5` |
+
+Every provider branch in chat, voice and search now retries one step down on a model-access error (404/403/`model_not_found`) instead of surfacing a 502. Nothing was removed — the existing entries stay.
+
+Env overrides (all optional, defaults unchanged):
+
+| Var | Default | Purpose |
+|---|---|---|
+| `DEFAULT_CHAT_MODEL` | `gpt-5.5` | chat + voice default |
+| `DEFAULT_SEARCH_MODEL` | `claude-opus-5` | web-search chat default |
+| `ANTHROPIC_FAST_MODEL` | `claude-haiku-4-5-20251001` | CRAG grading, reranking, analyze, code-agent, agent-learn/research, fit-check, navigate — set `claude-haiku-5-5` to upgrade |
+| `ANTHROPIC_INSIGHTS_MODEL` | `claude-sonnet-5-5` | Strava analytics coaching insights (falls back to `claude-sonnet-5`) |
+| `PROMPT_LAB_MODEL` | `claude-sonnet-4-6` | Prompt Lab |
+| `TTS_DEFAULT_MODEL` | `tts-1` | `gpt-4o-mini-tts` is the newest OpenAI TTS id |
+
+Knowledge refresh in the same change: the chatbot, voice, search, analytics, running agent and analyzer prompts carry a dated **Oct 2026 running update** (Austin move, 2027 Aramco Houston Half on Jan 17 as the goal race with a sub-1:24:31 PR target, NYRR 5K Oct 31, Run for the Water 5K Nov 8, Coach Andy 30K Dec 13 as a long run, Apple Watch Ultra 4) while keeping **sub-3:00 marathon as the lifelong goal**, now likely 2028. `api/ingest.mjs` has a new `currentChunks` knowledge base (20 chunks) ingested with dense **and** sparse vectors so hybrid RAG gets sparse hits; the old chunks stay as `legacyChunks` (ingest with `INCLUDE_LEGACY=1`). Re-run `node api/ingest.mjs` after merging.
+
+Two syntax errors found by `node --check` were fixed on the way: `api/prompt-lab.js` (`}),` → `});`) and `api/darkweb.js` (stray `}`), both of which had broken those functions.
+
 ---
 
 ## Features

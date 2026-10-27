@@ -16,6 +16,7 @@ import { gate }      from '../lib/gateway.js';
 import { rateLimit } from '../lib/rateLimit.js';
 import { PROFILE }   from '../lib/profile.js';
 
+import { FAST_MODEL } from '../lib/models.js';
 export const maxDuration = 20;
 
 const redis = new Redis({
@@ -23,7 +24,7 @@ const redis = new Redis({
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-const MODEL = 'claude-haiku-4-5-20251001';
+const MODEL = FAST_MODEL /* was 'claude-haiku-4-5-20251001'; ANTHROPIC_FAST_MODEL=claude-haiku-5-5 upgrades */;
 
 export default async function handler(req, res) {
     const g = await gate(req, res, { endpoint: 'navigate', methods: ['POST'], auth: 'user' });

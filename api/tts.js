@@ -5,7 +5,9 @@
 import { gate } from '../lib/gateway.js';
 export const config = { runtime: 'nodejs' };
 
+// Oct 2026: OpenAI shipped no new TTS IDs this year (gpt-4o-mini-tts is the newest); TTS_DEFAULT_MODEL overrides the default.
 const ALLOWED_TTS_MODELS = ['gpt-4o-mini-tts', 'tts-1', 'tts-1-hd'];
+const DEFAULT_TTS_MODEL  = ALLOWED_TTS_MODELS.includes(process.env.TTS_DEFAULT_MODEL) ? process.env.TTS_DEFAULT_MODEL : 'tts-1';
 
 export default async function handler(req, res) {
   const g = await gate(req, res, { endpoint: 'tts', methods: ['POST'], auth: 'user', plan: 'premium' });
@@ -19,7 +21,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured' });
 
-  const ttsModel  = ALLOWED_TTS_MODELS.includes(model) ? model : 'tts-1';
+  const ttsModel  = ALLOWED_TTS_MODELS.includes(model) ? model : DEFAULT_TTS_MODEL;
   const ttsVoice  = voice  || 'nova';
   const ttsFormat = format || 'mp3';
   const input     = text.slice(0, 4000);

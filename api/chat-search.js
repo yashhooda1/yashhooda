@@ -5,6 +5,7 @@
 import { getAuthUser }  from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
+import { MODEL_ADDITIONS, fallbackFor, isModelAccessError } from '../lib/models.js';
 
 export const maxDuration = 60; // seconds — requires Vercel Pro (you already have it)
 
@@ -29,8 +30,10 @@ const MODELS = {
   'gemini-3.1-pro-preview': { provider: 'google',  api: 'gemini-3.1-pro-preview' },
   'llama-4-maverick':       { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
   'llama-3.3-70b':          { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
+  // Oct 2026 additions (Claude 5.5 family, GPT-6.x, Gemini 4, Grok 4.6/4.7) — see lib/models.js
+  ...MODEL_ADDITIONS,
 };
-const DEFAULT_MODEL = 'claude-opus-5';
+const DEFAULT_MODEL = process.env.DEFAULT_SEARCH_MODEL || 'claude-opus-5';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -101,23 +104,29 @@ export default async function handler(req, res) {
         if (cfg.provider === 'xai' || cfg.provider === 'together') {
           const baseUrl = cfg.provider === 'xai' ? 'https://api.x.ai/v1' : 'https://api.together.xyz/v1';
           const key     = cfg.provider === 'xai' ? process.env.XAI_API_KEY : process.env.TOGETHER_API_KEY;
-          const r = await fetch(`${baseUrl}/chat/completions`, {
+          const callCompat = (model) => fetch(`${baseUrl}/chat/completions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-            body: JSON.stringify({ model: cfg.api, max_tokens: 1024, messages: [{ role: 'system', content: buildSystemPrompt() }, ...cleanMessages] }),
+            body: JSON.stringify({ model, max_tokens: 1024, messages: [{ role: 'system', content: buildSystemPrompt() }, ...cleanMessages] }),
           });
-          const d = await r.json();
+          let r = await callCompat(cfg.api);
+          let d = await r.json();
+          const altC = fallbackFor(cfg.api); // Oct 2026 fallback chain
+          if (!r.ok && altC && isModelAccessError(r.status, d)) { console.warn(`[search/${cfg.provider}] ${cfg.api} not accessible — falling back to ${altC}`); r = await callCompat(altC); d = await r.json(); }
           text = d.choices?.[0]?.message?.content || '(no response)';
         } else {
           // Google Gemini
           const key = process.env.GOOGLE_API_KEY;
           const gemContents = cleanMessages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
-          const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${cfg.api}:generateContent?key=${key}`, {
+          const callGem = (model) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ systemInstruction: { parts: [{ text: buildSystemPrompt() }] }, contents: gemContents, generationConfig: { maxOutputTokens: 1024 } }),
           });
-          const d = await r.json();
+          let r = await callGem(cfg.api);
+          let d = await r.json();
+          const altG = fallbackFor(cfg.api); // Oct 2026 fallback chain
+          if (!r.ok && altG && isModelAccessError(r.status, d)) { console.warn(`[search/google] ${cfg.api} not accessible — falling back to ${altG}`); r = await callGem(altG); d = await r.json(); }
           text = d.candidates?.[0]?.content?.parts?.[0]?.text || '(no response)';
         }
       } catch (e) { text = 'Error: ' + e.message; }
@@ -131,14 +140,14 @@ export default async function handler(req, res) {
     if (cfg.provider === 'openai') {
       sendEvent({ type: 'searching', message: '🔍 Searching the web…' });
 
-      const oaiRes = await fetch('https://api.openai.com/v1/responses', {
+      const callOai = (model) => fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: cfg.api,
+          model,
           instructions: buildSystemPrompt(),
           input: cleanMessages,
           tools: [{ type: 'web_search' }],
@@ -147,7 +156,13 @@ export default async function handler(req, res) {
         }),
       });
 
-      const data = await oaiRes.json();
+      let oaiRes = await callOai(cfg.api);
+      let data = await oaiRes.json();
+      const altO = fallbackFor(cfg.api) || (/^gpt-(5\.6|6)/.test(cfg.api) ? 'gpt-5.5' : null); // Oct 2026 fallback chain
+      if (!oaiRes.ok && altO && isModelAccessError(oaiRes.status, data)) {
+        console.warn(`[search/OpenAI] ${cfg.api} not accessible — falling back to ${altO}`);
+        oaiRes = await callOai(altO); data = await oaiRes.json();
+      }
       if (!oaiRes.ok) {
         console.error('OpenAI API error:', oaiRes.status, JSON.stringify(data));
         sendEvent({ type: 'error', error: `OpenAI error ${oaiRes.status}` });
@@ -164,7 +179,7 @@ export default async function handler(req, res) {
     // ════════════════════════════════════════════════════════
     // ANTHROPIC PATH (Claude): streaming + web_search tool.
     // ════════════════════════════════════════════════════════
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const callClaude = (model) => fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -173,7 +188,7 @@ export default async function handler(req, res) {
         'anthropic-beta': 'web-search-2025-03-05',
       },
       body: JSON.stringify({
-        model: cfg.api,
+        model,
         max_tokens: 4096,
         output_config: { effort: 'high' },
         stream: true,
@@ -188,6 +203,15 @@ export default async function handler(req, res) {
         messages: cleanMessages,
       }),
     });
+    let anthropicRes = await callClaude(cfg.api);
+    if (!anthropicRes.ok) {
+      // Oct 2026: if the account can't reach a newer Claude (e.g. 5.5 family), retry one step down before giving up
+      const altA = fallbackFor(cfg.api);
+      if (altA) {
+        const peek = await anthropicRes.clone().text(); let pj = {}; try { pj = JSON.parse(peek); } catch {}
+        if (isModelAccessError(anthropicRes.status, pj)) { console.warn(`[search/Anthropic] ${cfg.api} not accessible — falling back to ${altA}`); anthropicRes = await callClaude(altA); }
+      }
+    }
 
     if (!anthropicRes.ok) {
       const errText = await anthropicRes.text();
@@ -283,7 +307,7 @@ function extractOpenAIText(data) {
 function buildSystemPrompt() {
   return `You are Yash Hooda's AI assistant on his portfolio website. You have web_search to find current information.
 
-IDENTITY: AI and Data Engineer (UT Dallas CS grad, Databricks certified), open to Data Engineering and AI Engineering roles. Aviation is a hobby (part-time flying toward a private pilot certificate), not a career goal — never call him an aspiring airline pilot. Runner — 5K PR 18:15, HM PR 1:24:31, training for 2026 Boulderthon Marathon. You can discuss his projects: HoodaAgents AI Hiring Engine, ClimatePulse pipeline, Virtual TA Chatbot, and more.
+IDENTITY: AI and Data Engineer (UT Dallas CS grad, Databricks certified), open to Data Engineering and AI Engineering roles. Aviation is a hobby (part-time flying toward a private pilot certificate), not a career goal — never call him an aspiring airline pilot. Runner — 5K PR 18:15, HM PR 1:24:31, training for 2026 Boulderthon Marathon. UPDATE (Oct 2026): he now lives in Austin, TX; current goal race is the 2027 Aramco Houston Half (Jan 17, 2027, PR goal under 1:24:31) with tune-ups NYRR 5K (Oct 31), Run for the Water 5K Austin (Nov 8) and Coach Andy 30K (Dec 13, long run); a sub-3:00 marathon remains his lifelong goal, likely 2028. You can discuss his projects: HoodaAgents AI Hiring Engine, ClimatePulse pipeline, Virtual TA Chatbot, and more.
 You know about his interests in aviation, astronomy, current world events, politics, economy, climate change, etc....
 
 SEARCH RULES:

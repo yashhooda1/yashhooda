@@ -3,6 +3,7 @@ import { notifyFailure } from './_notify.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
 import { getAuthUser }  from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
+import { MODEL_ADDITIONS, fallbackFor, isModelAccessError } from '../lib/models.js';
 
 
 export const maxDuration = 120;
@@ -28,8 +29,13 @@ const MODELS = {
   'gemini-3.1-pro-preview': { provider: 'google',  api: 'gemini-3.1-pro-preview' },
   'llama-4-maverick':       { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
   'llama-3.3-70b':          { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
+  // Oct 2026 additions (Claude 5.5 family, GPT-6.x, Gemini 4, Grok 4.6/4.7) — see lib/models.js
+  ...MODEL_ADDITIONS,
 };
-const DEFAULT_MODEL = 'gpt-5.5';
+const DEFAULT_MODEL = process.env.DEFAULT_CHAT_MODEL || 'gpt-5.5';
+
+// Parse a failed response body once, decide whether it is a model-access problem.
+function accessErrorFromText(status, t) { let d = {}; try { d = JSON.parse(t); } catch {} return isModelAccessError(status, d); }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -155,6 +161,8 @@ async function streamAnthropic(apiModel, messages, send) {
 
   if (!r.ok) {
     const t = await r.text();
+    const alt = fallbackFor(apiModel); // Oct 2026: drop one step if the account can't reach this Claude
+    if (alt && accessErrorFromText(r.status, t)) { console.warn(`[voice/Anthropic] ${apiModel} not accessible — falling back to ${alt}`); return streamAnthropic(alt, messages, send); }
     console.error('Anthropic voice error:', r.status, t);
     await notifyFailure({ route: '/api/chat-voice [Anthropic]', model: apiModel, error: `${r.status}: ${t.slice(0, 200)}`, userMessage: messages.slice(-1)[0]?.content?.slice(0, 150) });
     send({ type: 'error', error: `Anthropic ${r.status}: ${t.slice(0, 200)}` });
@@ -216,6 +224,8 @@ async function streamOpenAI(apiModel, messages, send) {
 
   if (!r.ok) {
     const t = await r.text();
+    const alt = fallbackFor(apiModel) || (/^gpt-(5\.6|6)/.test(apiModel) ? 'gpt-5.5' : null); // Oct 2026 fallback chain
+    if (alt && accessErrorFromText(r.status, t)) { console.warn(`[voice/OpenAI] ${apiModel} not accessible — falling back to ${alt}`); return streamOpenAI(alt, messages, send); }
     console.error('OpenAI voice error:', r.status, t);
     await notifyFailure({ route: '/api/chat-voice [OpenAI]', model: apiModel, error: `${r.status}: ${t.slice(0, 200)}`, userMessage: messages.slice(-1)[0]?.content?.slice(0, 150) });
     send({ type: 'error', error: `OpenAI ${r.status}: ${t.slice(0, 200)}` });
@@ -275,6 +285,8 @@ async function streamOpenAICompat(baseUrl, apiKey, model, messages, send) {
   });
   if (!r.ok) {
     const t = await r.text();
+    const alt = fallbackFor(model); // Oct 2026: grok-4.7/4.6 → grok-4.5 when not accessible
+    if (alt && accessErrorFromText(r.status, t)) { console.warn(`[voice/${baseUrl}] ${model} not accessible — falling back to ${alt}`); return streamOpenAICompat(baseUrl, apiKey, alt, messages, send); }
     await notifyFailure({ route: `/api/chat-voice [${baseUrl}]`, model, error: `${r.status}: ${t.slice(0, 200)}`, userMessage: messages.slice(-1)[0]?.content?.slice(0, 150) });
     send({ type: 'error', error: `${baseUrl} ${r.status}: ${t.slice(0, 200)}` });
     return;
@@ -322,6 +334,8 @@ async function streamGemini(model, messages, send) {
       }
     );
     const data = await r.json();
+    const alt = fallbackFor(model); // Oct 2026: gemini-4-argon → 3.8-flash when not accessible
+    if (!r.ok && alt && isModelAccessError(r.status, data)) { console.warn(`[voice/Gemini] ${model} not accessible — falling back to ${alt}`); return streamGemini(alt, messages, send); }
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, no response.';
     send({ type: 'token', text });
     send({ type: 'done', text });
@@ -334,6 +348,7 @@ async function streamGemini(model, messages, send) {
 const VOICE_PROMPT = `You are Yash Hooda's AI voice assistant
 
 WHO YASH IS: 24-year-old AI and Data Engineer (UT Dallas CS grad, Databricks Certified Data Engineer Associate), open to Data Engineering and AI Engineering roles. He builds production data pipelines and AI systems, including this site. Aviation is a hobby: he flies part-time for fun and is working toward a private pilot certificate. He is NOT pursuing a flying career — never call him an aspiring or future airline pilot. Runner — 5K PR 18:15, half marathon PR 1:24:31, training for the 2026 Boulderthon Marathon at 45 miles/week.
+UPDATE (Oct 2026): Yash now lives in Austin, Texas (moved from the Houston area in October 2026). Current goal race is the 2027 Aramco Houston Half Marathon on January 17, 2027, where he wants a PR under 1:24:31; he is on a 12-week Apple Watch training block (Oct 27, 2026 to Jan 17, 2027) at roughly 30 to 35 miles a week. Tune-up races: NYRR 5K on Oct 31, 2026; Run for the Water Austin 5K on Nov 8, 2026; Coach Andy 30K on Dec 13, 2026 as a long run. A sub-3-hour marathon remains his lifelong goal, now likely in 2028 after he rebuilds base and mileage; his marathon debut is planned for late 2027 or early 2028. He trains on an Apple Watch Ultra 4 synced to Strava.
 
 VOICE RULES — your text is read aloud, so:
 - Replies must be 1-3 SHORT sentences maximum. This is a conversation.

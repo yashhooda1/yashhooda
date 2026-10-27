@@ -24,6 +24,7 @@ import { rateLimit }    from '../lib/rateLimit.js';
 import { guardRequest } from '../lib/contentGuard.js';
 import { PROFILE, scanKeywords } from '../lib/profile.js';
 
+import { FAST_MODEL } from '../lib/models.js';
 export const maxDuration = 45;
 
 const redis = new Redis({
@@ -31,7 +32,7 @@ const redis = new Redis({
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-const MODEL     = 'claude-haiku-4-5-20251001';
+const MODEL     = FAST_MODEL /* was 'claude-haiku-4-5-20251001'; ANTHROPIC_FAST_MODEL=claude-haiku-5-5 upgrades */;
 const MAX_JD    = 12000;
 const MIN_JD    = 80;
 const CACHE_TTL = 60 * 60 * 24;

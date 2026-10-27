@@ -10,6 +10,7 @@ import { checkUsageLimit } from '../lib/usageLimit.js';
 import { getAuthUser }     from '../lib/auth.js';
 import { guardRequest }    from '../lib/contentGuard.js';
 
+import { FAST_MODEL } from '../lib/models.js';
 export const maxDuration = 60;
 
 const MAX_BASE64_LENGTH = 7_340_032;
@@ -73,7 +74,7 @@ const AGENT_SYSTEM_EXT = {
 You are analyzing a running/fitness related file as Yash's expert running coach.
 - Extract splits, paces, heart rate zones, mileage, elevation, workout type.
 - Compare against Yash's PRs: 5K 18:15, HM 1:24:31. Identify where performance lands.
-- Comment on training load relative to Chevron Houston Marathon prep.
+- Comment on training load relative to Chevron Houston Marathon prep. (Oct 2026: the current goal race is the 2027 Aramco Houston Half, Jan 17, 2027 — judge load against a half-marathon build; sub-3 marathon remains the long-term goal.)
 - Give 3 specific, actionable coaching recommendations based on the data.
 - Flag any injury risk patterns (e.g. too much threshold work, rapid mileage jumps).`,
 
@@ -120,7 +121,7 @@ async function fetchWebContext(query, apiKey) {
                 'anthropic-version': '2023-06-01',
             },
             body: JSON.stringify({
-                model:      'claude-haiku-4-5-20251001',
+                model:      FAST_MODEL /* was 'claude-haiku-4-5-20251001'; ANTHROPIC_FAST_MODEL=claude-haiku-5-5 upgrades */,
                 max_tokens: 400,
                 tools:      [{ type: 'web_search_20250305', name: 'web_search' }],
                 messages:   [{
@@ -152,7 +153,7 @@ async function generateSuggestions(agentKey, analysisResult, apiKey) {
         const r = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-            body:    JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 120, messages: [{ role: 'user', content: prompt }] }),
+            body:    JSON.stringify({ model: FAST_MODEL /* was 'claude-haiku-4-5-20251001'; ANTHROPIC_FAST_MODEL=claude-haiku-5-5 upgrades */, max_tokens: 120, messages: [{ role: 'user', content: prompt }] }),
         });
         const data  = await r.json();
         const raw   = data?.content?.[0]?.text?.trim() ?? '[]';

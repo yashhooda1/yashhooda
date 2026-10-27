@@ -19,6 +19,17 @@ const ALLOWED_ORIGINS = new Set([
 const SHIPPED_MILESTONES = [
   {
     date:    '2026-10-27',
+    title:   'HoodaAgents — Claude 5.5 / GPT-6.1 / Gemini 4 / Grok 4.7, fallback chains, RAG refresh',
+    body:    'Added 13 models across every chat surface (chat, voice, web-search, Models tab) from a new shared catalog in lib/models.js: Claude Opus/Sonnet/Haiku 5.5, GPT-6.1 Terra & Sol, GPT-6 Sol & Luna, GPT-5.4 nano, Gemini 4 Argon, Gemini 3.6 Flash and 3.5 Flash-Lite, Grok 4.7 and 4.6. Every provider branch now retries one step down on a model-access error instead of 502ing, and the small utility model behind CRAG grading, reranking, analysis and extraction is env-selectable (ANTHROPIC_FAST_MODEL). Rebuilt the RAG knowledge base with 20 current chunks ingested as dense + sparse vectors — and fixed the sparse query shape so hybrid retrieval actually returns sparse hits. Refreshed the running knowledge everywhere: Austin, the 2027 Aramco Houston Half as the goal race, the Oct–Dec tune-up calendar, Apple Watch Ultra 4 — with sub-3:00 marathon kept as the lifelong goal. Also fixed two latent syntax errors (prompt-lab.js, darkweb.js) that had taken those endpoints down.',
+    tags:    ['hoodaagents', 'llm-routing', 'claude-5.5', 'gpt-6', 'gemini-4', 'grok-4.7', 'rag', 'upstash-vector', 'running'],
+    type:    'shipped',
+    links:   [
+      { label: 'Models tab', url: 'https://www.yashhooda.ai/#tars' },
+      { label: 'GitHub', url: 'https://github.com/yashhooda1/yashhooda' },
+    ],
+  },
+  {
+    date:    '2026-10-27',
     title:   'yashhooda.ai v2 — Themes, ⌘K Navigator, Fit Check, New Logo',
     body:    'Redesigned the site shell without removing a single feature. Added an 8-theme system (Terminal, Midnight, Aurora, Ember, Cockpit, Rose, Daylight, Paper) driven by CSS custom properties — 300+ hard-coded colors were tokenized so the nav, cards, charts, particle canvas and chat panel all recolor together, with a flash-free boot script and per-device persistence. Navigation got a ⌘K / Ctrl+K command palette with fuzzy search over every section and action, recent jumps, voice input (Web Speech API), keyboard shortcuts (/, ?, t, c, g+letter), a desktop section rail with scroll-spy, a sticky breadcrumb, and a mobile bottom bar. New AI features: Fit Check (paste a job description → deterministic keyword scan in the browser plus a login-gated Claude Haiku report that scores the fit, cites proof per strength, lists honest gaps it is told not to bluff about, and writes a tailored pitch — cached 24h, rate-limited, kill-switch protected), an AI Navigator mode in the palette (/api/navigate routes natural-language questions to the right section), and a “✨ Ask AI” button on every section that pre-loads an explain-this prompt into HoodaAgents. Shipped a new YH monogram logo (SVG + favicon + touch icons), OpenGraph/description meta, /llms.txt, and fixed a long-standing markup bug where a missing wrapper div closed the main column early so every section after About rendered full-bleed.',
     tags:    ['redesign', 'themes', 'command-palette', 'accessibility', 'ai-features', 'fit-check', 'vanilla-js', 'vercel', 'claude-haiku'],

@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis';
+import { isModelAccessError } from '../lib/models.js';
 
 export const maxDuration = 60;
 
@@ -328,7 +329,7 @@ TEMPERATURE SCIENCE (El Helou 2012, Ely 2007; Pugh 1971, Davies 1980):
     // 9. ── AI INSIGHTS via Claude ──
     // AFTER — Gemini Flash, free, works now
     const coachPrompt = `You are a world-class running coach analyzing Yash Hooda's training data.
-Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00. Currently training for 2027 Chevron Houston Marathon (goal: sub 3 at sea level).
+Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00 (lifelong goal, now targeted for ~2028). Currently training for the 2027 Aramco Houston Half Marathon on Jan 17, 2027 (goal: PR under 1:24:31) on a 12-week block that started Oct 27, 2026; tune-ups: NYRR 5K Oct 31, Run for the Water 5K (Austin) Nov 8, Coach Andy 30K Dec 13 as a long run. He now lives in Austin, TX. (Earlier plan, kept for context: 2027 Chevron Houston Marathon, sub 3 at sea level.)
 CTL (fitness): ${ctlRounded}, ATL (fatigue): ${atlRounded}, Form: ${form}
 Pace zones (last 30 runs): ${JSON.stringify(paceZones)}
 ${weatherContext}
@@ -340,18 +341,21 @@ TEMPERATURE SCIENCE CONTEXT:
 - High humidity (≥70%) prevents sweat evaporation — compounds heat stress significantly
 - Houston summers require slowing easy runs 60-90 sec/mile vs goal pace
 - Boulder altitude will slow pace ~3-5% vs sea level Houston training
+- Austin (his home since Oct 2026) is hillier than Houston and still hot/humid into October; the 2027 Aramco Houston Half (Jan 17, 2027) is flat at sea level, so treat Austin hill runs as extra load, not slowness
 - 80/20 rule: 80% easy (conversational), 20% quality — crucial in heat to avoid overtraining
 
 Write 3 short sharp coaching insights (2-3 sentences each) about:
 1. Current fitness trend and readiness — reference actual CTL/ATL/form numbers
 2. Weather impact on training — be specific about the actual conditions from recent runs. Identify whether heat, cold, or wind is the dominant factor and what pace adjustments follow. Do not default to heat if the data shows otherwise.
-3. One specific actionable recommendation for marathon prep considering both fitness data and current conditions
+3. One specific actionable recommendation for the current goal race (the 2027 Aramco Houston Half; keep the sub-3 marathon as the long-term arc) considering both fitness data and current conditions
 
 Be specific, data-driven, and honest. If conditions are brutal, say so clearly. No bullet points — flowing paragraphs separated by newlines.`;
 
     let insights = 'Unable to generate insights at this time.';
     try {
-      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+      // Oct 2026: Sonnet 5.5 by default (ANTHROPIC_INSIGHTS_MODEL overrides); drops to claude-sonnet-5 if the account can't access it
+      const INSIGHTS_MODEL = process.env.ANTHROPIC_INSIGHTS_MODEL || 'claude-sonnet-5-5';
+      const callInsights = (model) => fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -359,12 +363,17 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-5',
+          model,
           max_tokens: 2000,
           thinking: { type: 'disabled' },
           messages: [{ role: 'user', content: coachPrompt }],
         }),
       });
+      let claudeRes = await callInsights(INSIGHTS_MODEL);
+      if (!claudeRes.ok && INSIGHTS_MODEL !== 'claude-sonnet-5') {
+        const peek = await claudeRes.clone().text(); let pj = {}; try { pj = JSON.parse(peek); } catch {}
+        if (isModelAccessError(claudeRes.status, pj)) { console.warn(`[analytics] ${INSIGHTS_MODEL} not accessible — falling back to claude-sonnet-5`); claudeRes = await callInsights('claude-sonnet-5'); }
+      }
 
       if (!claudeRes.ok) {
         const errBody = await claudeRes.text();

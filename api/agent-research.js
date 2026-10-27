@@ -8,6 +8,7 @@ import { Redis } from '@upstash/redis';
 import { notifyFailure } from './_notify.js';
 import { gate } from '../lib/gateway.js';
 
+import { FAST_MODEL } from '../lib/models.js';
 export const maxDuration = 90;
 
 const AGENT_LOG_KEY = 'hooda_agent:activity_log';
@@ -22,7 +23,7 @@ const TOOLS = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
+          model: FAST_MODEL /* was 'claude-haiku-4-5-20251001'; ANTHROPIC_FAST_MODEL=claude-haiku-5-5 upgrades */,
           max_tokens: 500,
           tools: [{ type: 'web_search_20250305', name: 'web_search' }],
           messages: [{ role: 'user', content: `Search: "${query}". Return 3-4 sentences of factual findings only.` }],

@@ -232,7 +232,7 @@ async function aiFallback(type, target) {
 export default async function handler(req, res) {
   const g = await gate(req, res, { endpoint: 'darkweb', methods: ['POST'], auth: 'user' });
   if (!g.ok) return;
-  }
+  // (fixed Oct 2026: a stray `}` here was a syntax error that broke the Dark Web Intel tool)
 
   const { tool, target } = req.body;
 

@@ -199,7 +199,7 @@ try {
     return res.status(403).json({
       error: 'security_block',
       message: 'This request was flagged and your account has been suspended.',
-      }),
+    }); // fixed Oct 2026: was `}),` — a syntax error that broke the whole Prompt Lab function
   }
 
   // ── DISALLOWED CONTENT CHECK ─────────────────────────────────────────────
@@ -243,7 +243,7 @@ try {
         : safeSystem;
 
       const requestBody = {
-        model:      'claude-sonnet-4-6',
+        model:      process.env.PROMPT_LAB_MODEL || 'claude-sonnet-4-6', // Oct 2026: set PROMPT_LAB_MODEL=claude-sonnet-5-5 to upgrade the Lab (4.6 kept as the proven default: Sonnet 5+ thinks by default and would need the thinking/max_tokens shape adjusted)
         max_tokens: 1024,
         system:     systemContent,
         messages:   [{ role: 'user', content: built.user }],

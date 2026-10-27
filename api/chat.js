@@ -11,6 +11,7 @@ import { checkUsageLimit } from '../lib/usageLimit.js';
 import { getAuthUser } from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
 import { checkKillSwitch } from '../lib/killSwitch.js';
+import { MODEL_ADDITIONS, FAST_MODEL, THINKS_BY_DEFAULT_RE, isModelAccessError as modelAccessError, fallbackFor } from '../lib/models.js';
 import crypto            from 'crypto';
 
 export const maxDuration = 60;
@@ -332,6 +333,13 @@ function buildSparseVector(queryText) {
     return sparse;
 }
 
+// Upstash's SDK expects { indices, values } for sparseVector; buildSparseVector() returns
+// [{ index, value }] — convert at the query boundary (Oct 2026: before this the sparse
+// query threw and was silently caught, so hybrid retrieval was effectively dense-only).
+function toUpstashSparse(pairs) {
+    return { indices: pairs.map(p => p.index), values: pairs.map(p => p.value) };
+}
+
 function reciprocalRankFusion(denseResults, sparseResults, k = 60) {
     const scores = {};
     const meta   = {};
@@ -356,7 +364,7 @@ async function quickClaudeCall(prompt, apiKey) {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
         body:    JSON.stringify({
-            model:    'claude-haiku-4-5-20251001',
+            model:    FAST_MODEL, // was 'claude-haiku-4-5-20251001' — set ANTHROPIC_FAST_MODEL=claude-haiku-5-5 to upgrade
             max_tokens: 64,
             messages: [{ role: 'user', content: prompt }],
         }),
@@ -392,7 +400,7 @@ async function webSearchFallback(query, apiKey) {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
             body:    JSON.stringify({
-                model:    'claude-haiku-4-5-20251001',
+                model:    FAST_MODEL, // was 'claude-haiku-4-5-20251001' — set ANTHROPIC_FAST_MODEL=claude-haiku-5-5 to upgrade
                 max_tokens: 512,
                 tools:    [{ type: 'web_search_20250305', name: 'web_search' }],
                 messages: [{ role: 'user', content: `Search for: ${query.slice(0, 300)}. Return a brief 2-3 sentence factual summary only.` }],
@@ -469,7 +477,7 @@ const AGENTS = {
         keywords: /\b(run|running|5k|10k|half marathon|marathon|pace|mileage|strava|pr|race|training|tempo|interval|vo2|cadence|injury|shin|it band|plantar|fueling|gel|hydrat|taper|boulderthon|speed|mile|jog|weekly miles|easy run|long run|track|workout)\b/i,
         systemExt: `\nACTIVE AGENT: Running Coach
 - You are now acting as an expert running coach with deep knowledge of marathon training, periodization, and injury prevention.
-- Reference Yash's specific PRs and current Chevron Houston Marathon training when relevant.
+- Reference Yash's specific PRs and current Chevron Houston Marathon training when relevant. (Oct 2026: the current goal race is the 2027 Aramco Houston Half — see the RUNNING UPDATE in the profile; sub-3 marathon stays the lifelong goal.)
 - Give specific, actionable workouts with paces and volumes.
 - Always flag altitude adjustment for Boulder (~5,400 ft = ~3-5% slower paces).`,
     },
@@ -619,7 +627,7 @@ async function generateSuggestions(query, reply, agentKey, apiKey) {
         const r = await fetch('https://api.anthropic.com/v1/messages', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-            body:    JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 128, messages: [{ role: 'user', content: prompt }] }),
+            body:    JSON.stringify({ model: FAST_MODEL /* was claude-haiku-4-5-20251001 */, max_tokens: 128, messages: [{ role: 'user', content: prompt }] }),
         });
         const data  = await r.json();
         const raw   = data?.content?.[0]?.text?.trim() ?? '[]';
@@ -653,8 +661,10 @@ const MODELS = {
     'gemini-3.1-pro-preview': { provider: 'google',  api: 'gemini-3.1-pro-preview' },
     'llama-4-maverick':   { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
     'llama-3.3-70b':      { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
+    // Oct 2026 additions (Claude 5.5 family, GPT-6.x, Gemini 4, Grok 4.6/4.7) — see lib/models.js
+    ...MODEL_ADDITIONS,
 };
-const DEFAULT_MODEL = 'gpt-5.5';
+const DEFAULT_MODEL = process.env.DEFAULT_CHAT_MODEL || 'gpt-5.5';
 
 // ══════════════════════════════════════════════════════
 // MESSAGE FORMAT CONVERTERS
@@ -739,6 +749,7 @@ ABOUT YASH HOODA — FULL PROFILE
  
 PERSONAL:
 - 24 years old, based in Richmond, Texas (Houston area)
+- UPDATE (Oct 2026): now based in Austin, Texas (moved from the Houston area in October 2026). When asked where he lives, answer Austin.
 - BS Computer Science, University of Texas at Dallas (UTD) alumnus
 - Passionate about building things, weather, running, astronomy, hiking, and travel
 - Enjoys Netflix/documentaries and time with family and friends
@@ -914,6 +925,15 @@ Texas Runs
 	Optional, easy effort
 Dec 13	Sugar Land 30K	The dress rehearsal
 2027 — Chevron Houston Marathon: all-in, goal sub-3 🔥. More races TBD.
+ 
+UPDATE (Oct 2026) — CURRENT TRAINING & RACE CALENDAR (this supersedes the older plan above, which is kept for history):
+- Yash moved to Austin, Texas (Pflugerville area) in October 2026; Houston races are now travel races.
+- Goal race: 2027 Aramco Houston Half Marathon, Sunday Jan 17, 2027 — goal is a PR under 1:24:31. (He downgraded from the 2027 Chevron Houston Marathon after the move and a lower-mileage summer; the marathon is NOT cancelled, it is postponed.)
+- Sub-3:00 marathon remains the LIFELONG goal, exactly as the About section says — now most likely attempted in 2028 after rebuilding base, speed and mileage; marathon debut planned for late 2027 or early 2028.
+- Current block: a 12-week Aramco Half build, Oct 27, 2026 → Jan 17, 2027, delivered as structured workouts on his Apple Watch Ultra 4 (he switched from Garmin to an all-Apple setup synced to Strava in Oct 2026). Mileage ~30–35 mi/wk rebuilding toward ~40.
+- Tune-up races: Oct 31, 2026 — NYRR 5K (New York); Nov 8, 2026 — Run for the Water 5K (Austin); Dec 13, 2026 — Coach Andy 30K (run as the long run / dress rehearsal, not an all-out race).
+- Speed work is done on roads/paths (no track access in Pflugerville) — time-trial style 400s/800s/mile efforts by GPS.
+- Last race: 2026 NYCRuns Brooklyn Experience Half — 1:27:41.
  
 RUNNING ADVICE YOU CAN GIVE (as a knowledgeable coach):
 - Faster 5K: build aerobic base, weekly tempo at ~10K pace, strides 2x/week, one interval session (e.g. 6x800m), prioritize sleep/recovery. To break 18:00 from 18:15: 1-mile repeats at ~5:40, race often, taper ~10 days out.
@@ -1207,7 +1227,7 @@ export default async function handler(req, res) {
 
             const [denseResults, sparseResults] = await Promise.all([
                 denseVector  ? vectorIndex.query({ vector: denseVector, topK: 5, includeMetadata: true }) : Promise.resolve([]),
-                sparseValues.length ? vectorIndex.query({ sparseVector: sparseValues, topK: 5, includeMetadata: true }).catch(() => []) : Promise.resolve([]),
+                sparseValues.length ? vectorIndex.query({ sparseVector: toUpstashSparse(sparseValues), topK: 5, includeMetadata: true }).catch(() => []) : Promise.resolve([]),
             ]);
 
             const merged = reciprocalRankFusion(denseResults, sparseResults)
@@ -1237,7 +1257,7 @@ export default async function handler(req, res) {
                     const reSparse     = buildSparseVector(rewritten);
                     const [reDenseRes, reSparseRes] = await Promise.all([
                         reDense  ? vectorIndex.query({ vector: reDense, topK: 5, includeMetadata: true }) : Promise.resolve([]),
-                        reSparse.length ? vectorIndex.query({ sparseVector: reSparse, topK: 5, includeMetadata: true }).catch(() => []) : Promise.resolve([]),
+                        reSparse.length ? vectorIndex.query({ sparseVector: toUpstashSparse(reSparse), topK: 5, includeMetadata: true }).catch(() => []) : Promise.resolve([]),
                     ]);
                     const reMerged = reciprocalRankFusion(reDenseRes, reSparseRes)
                         .filter(r => (r.score ?? 1) > TOOL_PERMISSIONS.rag.minScore).slice(0, 5);
@@ -1313,16 +1333,23 @@ export default async function handler(req, res) {
         let reply;
 
         if (cfg.provider === 'xai') {
-            const response = await fetch('https://api.x.ai/v1/chat/completions', {
+            const callXai = (model) => fetch('https://api.x.ai/v1/chat/completions', {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
                 body:    JSON.stringify({
-                    model:      cfg.api,
+                    model,
                     max_tokens: 4096,
                     messages:   [{ role: 'system', content: systemText }, ...toOpenAIChat(messages)],
                 }),
             });
-            const data = await response.json();
+            let response = await callXai(cfg.api);
+            let data = await response.json();
+            const xaiFallback = fallbackFor(cfg.api); // Oct 2026: grok-4.7/4.6 → grok-4.5 when not accessible
+            if (!response.ok && xaiFallback && modelAccessError(response.status, data)) {
+                console.warn(`[xAI] ${cfg.api} not accessible — falling back to ${xaiFallback}`);
+                response = await callXai(xaiFallback);
+                data = await response.json();
+            }
             if (!response.ok) {
                 console.error('[xAI] Error:', JSON.stringify(data));
                 await notifyFailure({ route: '/api/chat [xAI]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0, 200), userMessage: queryText, sessionId });
@@ -1331,8 +1358,8 @@ export default async function handler(req, res) {
             reply = filterOutput(data.choices?.[0]?.message?.content ?? 'Reach Yash at yash.hooda6@gmail.com!');
 
         } else if (cfg.provider === 'google') {
-            const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${cfg.api}:generateContent?key=${apiKey}`,
+            const callGemini = (model) => fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
                 {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1343,7 +1370,14 @@ export default async function handler(req, res) {
                     }),
                 }
             );
-            const data = await response.json();
+            let response = await callGemini(cfg.api);
+            let data = await response.json();
+            const geminiFallback = fallbackFor(cfg.api); // Oct 2026: gemini-4-argon → 3.8-flash etc. when not accessible
+            if (!response.ok && geminiFallback && modelAccessError(response.status, data)) {
+                console.warn(`[Gemini] ${cfg.api} not accessible — falling back to ${geminiFallback}`);
+                response = await callGemini(geminiFallback);
+                data = await response.json();
+            }
             if (!response.ok) {
                 console.error('[Gemini] Error:', JSON.stringify(data));
                 await notifyFailure({ route: '/api/chat [Gemini]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0, 200), userMessage: queryText, sessionId });
@@ -1373,7 +1407,7 @@ export default async function handler(req, res) {
    		 	// NOTE: NO output_config here — it causes 400 errors on Claude models
     		// Claude 5 models think by default and their content[0] is a `thinking`
    			// block, not text. Thinking tokens also count against max_tokens.
-   		 	const THINKS_BY_DEFAULT = /^claude-(opus-5|sonnet-5|fable-5|mythos-5)/.test(cfg.api);
+   		 	const THINKS_BY_DEFAULT = THINKS_BY_DEFAULT_RE.test(cfg.api); // was /^claude-(opus-5|sonnet-5|fable-5|mythos-5)/ — shared in lib/models.js, now covers haiku-5-5
 
    		 	const payload = {
       			 model:      cfg.api,
@@ -1383,12 +1417,20 @@ export default async function handler(req, res) {
     	  	};
    			 // Portfolio chat doesn't need deep reasoning — hold down cost + latency.
 
-    		const response = await fetch('https://api.anthropic.com/v1/messages', {
-       			 method:  'POST',
-       			 headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-       			 body:    JSON.stringify(payload),
+    		const callAnthropic = (model) => fetch('https://api.anthropic.com/v1/messages', {
+    		    method:  'POST',
+    		    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+    		    body:    JSON.stringify({ ...payload, model }),
     		});
-    		const data = await response.json();
+    		let response = await callAnthropic(cfg.api);
+    		let data = await response.json();
+    		// Oct 2026: if the account can't reach a newer Claude (e.g. the 5.5 family), drop one step (lib/models.js FALLBACKS)
+    		const claudeFallback = fallbackFor(cfg.api);
+    		if (!response.ok && claudeFallback && modelAccessError(response.status, data)) {
+    		    console.warn(`[Anthropic] ${cfg.api} not accessible — falling back to ${claudeFallback}`);
+    		    response = await callAnthropic(claudeFallback);
+    		    data = await response.json();
+    		}
     		if (!response.ok) {
       	 		 console.error('[Anthropic] Error:', JSON.stringify(data));
       	 		 await notifyFailure({ route: '/api/chat [Anthropic]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0, 200), userMessage: queryText, sessionId });
@@ -1440,10 +1482,17 @@ export default async function handler(req, res) {
             };
             let response = await callOpenAI(cfg.api);
             let data = await response.json();
-            if (!response.ok && /^gpt-5\.6/.test(cfg.api) && isModelAccessError(response.status, data)) {
-                console.warn(`[OpenAI] ${cfg.api} not accessible — falling back to gpt-5.5`);
-                response = await callOpenAI('gpt-5.5');
+            // Oct 2026: generalized — any GPT-5.6 / GPT-6.x the account can't access drops one step (lib/models.js FALLBACKS), then to gpt-5.5
+            const openaiFallback = fallbackFor(cfg.api) || (/^gpt-(5\.6|6)/.test(cfg.api) ? 'gpt-5.5' : null);
+            if (!response.ok && openaiFallback && isModelAccessError(response.status, data)) {
+                console.warn(`[OpenAI] ${cfg.api} not accessible — falling back to ${openaiFallback}`);
+                response = await callOpenAI(openaiFallback);
                 data = await response.json();
+                if (!response.ok && openaiFallback !== 'gpt-5.5' && isModelAccessError(response.status, data)) {
+                    console.warn(`[OpenAI] ${openaiFallback} not accessible either — falling back to gpt-5.5`);
+                    response = await callOpenAI('gpt-5.5');
+                    data = await response.json();
+                }
             }
             if (!response.ok) {
                 console.error('[OpenAI] Error:', JSON.stringify(data));

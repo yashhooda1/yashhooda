@@ -19,6 +19,7 @@ import { getAuthUser }   from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
 import { checkKillSwitch } from '../lib/killSwitch.js';
 
+import { FAST_MODEL } from '../lib/models.js';
 export const maxDuration = 90;
 
 const redis = new Redis({
@@ -161,7 +162,7 @@ async function callModel(cfg, messages) {
 
 // ── TOOL 1: LANGUAGE DETECTOR ─────────────────────────────────────────────────
 async function detectLanguage(prompt, code) {
-    const cfg     = { provider: 'anthropic', model: 'claude-haiku-4-5-20251001', maxTokens: 64 };
+    const cfg     = { provider: 'anthropic', model: FAST_MODEL /* was 'claude-haiku-4-5-20251001'; ANTHROPIC_FAST_MODEL=claude-haiku-5-5 upgrades */, maxTokens: 64 };
     const content = code
         ? `Detect the programming language of this code snippet. Reply with ONLY the language name in lowercase (e.g. python, javascript, sql, typescript, bash). Code:\n\`\`\`\n${code.slice(0, 500)}\n\`\`\``
         : `What programming language is this task about? Reply with ONLY the language name in lowercase. Task: "${prompt.slice(0, 200)}"`;
@@ -173,7 +174,7 @@ async function detectLanguage(prompt, code) {
 
 // ── TOOL 2: TASK CLASSIFIER ───────────────────────────────────────────────────
 async function classifyTask(prompt) {
-    const cfg = { provider: 'anthropic', model: 'claude-haiku-4-5-20251001', maxTokens: 32 };
+    const cfg = { provider: 'anthropic', model: FAST_MODEL /* was 'claude-haiku-4-5-20251001'; ANTHROPIC_FAST_MODEL=claude-haiku-5-5 upgrades */, maxTokens: 32 };
     try {
         const result = await callModel(cfg, [{
             role:    'user',
@@ -247,7 +248,7 @@ async function explainCode(code, language, taskType) {
 
 // ── TOOL 7: SUGGESTION GENERATOR ─────────────────────────────────────────────
 async function generateCodingSuggestions(prompt, language, taskType) {
-    const cfg = { provider: 'anthropic', model: 'claude-haiku-4-5-20251001', maxTokens: 128 };
+    const cfg = { provider: 'anthropic', model: FAST_MODEL /* was 'claude-haiku-4-5-20251001'; ANTHROPIC_FAST_MODEL=claude-haiku-5-5 upgrades */, maxTokens: 128 };
     try {
         const result = await callModel(cfg, [{
             role:    'user',

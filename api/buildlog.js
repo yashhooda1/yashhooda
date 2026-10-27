@@ -18,6 +18,17 @@ const ALLOWED_ORIGINS = new Set([
 // ── STATIC SHIPPED MILESTONES (always shown, most recent first) ──────────────
 const SHIPPED_MILESTONES = [
   {
+    date:    '2026-10-27',
+    title:   'yashhooda.ai v2 — Themes, ⌘K Navigator, Fit Check, New Logo',
+    body:    'Redesigned the site shell without removing a single feature. Added an 8-theme system (Terminal, Midnight, Aurora, Ember, Cockpit, Rose, Daylight, Paper) driven by CSS custom properties — 300+ hard-coded colors were tokenized so the nav, cards, charts, particle canvas and chat panel all recolor together, with a flash-free boot script and per-device persistence. Navigation got a ⌘K / Ctrl+K command palette with fuzzy search over every section and action, recent jumps, voice input (Web Speech API), keyboard shortcuts (/, ?, t, c, g+letter), a desktop section rail with scroll-spy, a sticky breadcrumb, and a mobile bottom bar. New AI features: Fit Check (paste a job description → deterministic keyword scan in the browser plus a login-gated Claude Haiku report that scores the fit, cites proof per strength, lists honest gaps it is told not to bluff about, and writes a tailored pitch — cached 24h, rate-limited, kill-switch protected), an AI Navigator mode in the palette (/api/navigate routes natural-language questions to the right section), and a “✨ Ask AI” button on every section that pre-loads an explain-this prompt into HoodaAgents. Shipped a new YH monogram logo (SVG + favicon + touch icons), OpenGraph/description meta, /llms.txt, and fixed a long-standing markup bug where a missing wrapper div closed the main column early so every section after About rendered full-bleed.',
+    tags:    ['redesign', 'themes', 'command-palette', 'accessibility', 'ai-features', 'fit-check', 'vanilla-js', 'vercel', 'claude-haiku'],
+    type:    'shipped',
+    links:   [
+      { label: 'Fit Check', url: 'https://www.yashhooda.ai/#fit-check' },
+      { label: 'GitHub PR', url: 'https://github.com/yashhooda1/yashhooda/pulls' },
+    ],
+  },
+  {
     date:    '2026-09-21',
     title:   'Hooda AI Governance Studio — Risk-Based Human Oversight',
     body:    'Shipped an interactive AI governance solution that turns responsible-AI principles into an operational decision tool. Teams classify a use case across six risk signals — consequential impact, autonomous action, sensitive data, scale, reviewability, and reversibility — then receive one of four proportional governance tiers with concrete controls for human approval, least-privilege access, audit logging, appeals, monitoring, rollback, and kill switches. The studio exports a reusable Markdown governance brief with named ownership and approval fields, and is designed to complement NIST AI RMF, OECD principles, and the EU AI Act without presenting itself as legal advice or compliance certification. Integrated it into yashhooda.ai as a dedicated solution and a featured section between Projects and Explorations.',

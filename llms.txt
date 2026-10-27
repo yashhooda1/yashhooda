@@ -1,0 +1,26 @@
+# yashhooda.ai
+
+> Yash Hooda — Data Engineer & AI Engineer (Austin, TX). BS Computer Science, UT Dallas (2024). Databricks Certified Data Engineer Associate. Builds and operates production LLM systems and real-time data pipelines; open to Data Engineering / AI Engineering roles. Contact: yash.hooda6@gmail.com
+
+This is a single-page portfolio that is also a working AI application (HoodaAgents). Sections are addressable by hash.
+
+## Key sections
+- [About](https://www.yashhooda.ai/#about): background, skills by domain
+- [Fit Check](https://www.yashhooda.ai/#fit-check): paste a job description → keyword scan + AI fit report (login required for the AI report)
+- [Projects](https://www.yashhooda.ai/#projects): HoodaAgents, METAR Stream, ClimatePulse, PaceForge, fine-tuning work, MCP servers, Apple apps
+- [AI Governance Studio](https://www.yashhooda.ai/solutions/ai-governance): risk-tiered human-oversight decision tool
+- [METAR Stream](https://www.yashhooda.ai/#metar): Kafka → Spark Structured Streaming → Delta medallion, live US airspace
+- [ClimatePulse](https://www.yashhooda.ai/#climate): 56-year NOAA pipeline, 13 cities
+- [Running tools](https://www.yashhooda.ai/#heat-pace): heat-adjusted pace, pace calculator, race predictor, race time by temperature
+- [Build Log](https://www.yashhooda.ai/#buildlog): build-in-public changelog
+- [Contact](https://www.yashhooda.ai/#contact)
+
+## Code
+- Site + API: https://github.com/yashhooda1/yashhooda
+- METAR Stream: https://github.com/yashhooda1/metar-stream
+- PaceForge: https://github.com/yashhooda1/paceforge
+- mcp-garmin: https://github.com/yashhooda1/mcp-garmin
+
+## Notes for agents
+- Aviation and flying are hobbies, not a career path.
+- Paid AI endpoints under /api/* require a logged-in user; do not scrape them.

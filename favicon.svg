@@ -1,9 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <rect width="64" height="64" rx="12" fill="#0d1117"/>
-  <text x="50%" y="53%" dominant-baseline="middle" text-anchor="middle"
-        font-family="'Space Mono','Courier New',monospace" font-weight="700"
-        font-size="26" fill="#4caf50" letter-spacing="1">YH</text>
-  <rect x="44" y="34" width="9" height="4" rx="1" fill="#4caf50">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+  <defs>
+    <linearGradient id="yhTile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b3d91"/>
+      <stop offset="0.55" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#1a4a1d"/>
+    </linearGradient>
+    <linearGradient id="yhInk" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#81c784"/>
+      <stop offset="1" stop-color="#4caf50"/>
+    </linearGradient>
+    <filter id="yhGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- tile -->
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#yhTile)"/>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="none" stroke="#4caf50" stroke-opacity="0.35" stroke-width="2"/>
+  <!-- Y: two arms meeting into a stem that becomes a flight/data path -->
+  <g fill="none" stroke="url(#yhInk)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" filter="url(#yhGlow)">
+    <path d="M28 30 L54 58"/>
+    <path d="M80 30 L54 58"/>
+    <path d="M54 58 L54 96"/>
+  </g>
+  <!-- H ghost: right bar + crossbar reading as the second letter -->
+  <g fill="none" stroke="#81c784" stroke-opacity="0.85" stroke-width="8" stroke-linecap="round">
+    <path d="M96 42 L96 96"/>
+    <path d="M58 76 L96 76"/>
+  </g>
+  <!-- data point climbing the right arm (the "ai" dot) -->
+  <circle cx="80" cy="30" r="7" fill="#fff"/>
+  <circle cx="80" cy="30" r="4" fill="#4caf50"/>
+  <!-- terminal cursor -->
+  <rect x="44" y="104" width="20" height="5" rx="2" fill="#4caf50">
     <animate attributeName="opacity" values="1;1;0;0" dur="1.1s" repeatCount="indefinite"/>
   </rect>
 </svg>

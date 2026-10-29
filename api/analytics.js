@@ -1,13 +1,14 @@
 import { Redis } from '@upstash/redis';
-import { isModelAccessError } from '../lib/models.js';
+import { isModelAccessError, THINKS_BY_DEFAULT_RE, FAST_MODEL } from '../lib/models.js';
 
 export const maxDuration = 60;
 
 // ── 30-MIN RESPONSE CACHE ─────────────────────────────────────────────────────
 // One Strava pull + one Claude call per 30 min for the whole site, regardless
 // of how many visitors (or bots) load the homepage.
-const CACHE_KEY = 'analytics:homepage:v1';
+const CACHE_KEY = 'analytics:homepage:v2'; // v2 (Oct 2026): bumped to purge a cached 'Unable to generate insights' payload
 const CACHE_TTL = 1800; // seconds
+const FAIL_TTL  = 120;  // if the AI insights failed, cache briefly so a transient error doesn't stick for 30 min
 
 const cacheRedis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
   ? new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN })
@@ -352,48 +353,100 @@ Write 3 short sharp coaching insights (2-3 sentences each) about:
 Be specific, data-driven, and honest. If conditions are brutal, say so clearly. No bullet points — flowing paragraphs separated by newlines.`;
 
     let insights = 'Unable to generate insights at this time.';
-    try {
-      // Oct 2026: Sonnet 5.5 by default (ANTHROPIC_INSIGHTS_MODEL overrides); drops to claude-sonnet-5 if the account can't access it
-      const INSIGHTS_MODEL = process.env.ANTHROPIC_INSIGHTS_MODEL || 'claude-sonnet-5-5';
-      const callInsights = (model) => fetch('https://api.anthropic.com/v1/messages', {
+    let insightsOk = false;
+    let insightsModel = null;
+    // ── Oct 2026 fix ──────────────────────────────────────────────────────────
+    // After the model refresh this call failed and the 30-min cache pinned the
+    // failure. Root causes we now guard against, in order:
+    //   • `thinking: { type: 'disabled' }` is rejected (400) by Claude 5.x models,
+    //     which think by default — a 400 is NOT an access error, so the old
+    //     fallback never fired. We now send no thinking param to those models.
+    //   • Thinking tokens count against max_tokens, so 2000 could be eaten by
+    //     thinking and return zero text blocks → "Claude insights empty".
+    //   • Any non-OK / empty result now walks a chain of models instead of one
+    //     access-error-only retry, ending on the proven Haiku 4.5 snapshot.
+    const INSIGHTS_MODEL = process.env.ANTHROPIC_INSIGHTS_MODEL || 'claude-sonnet-5-5';
+    const CHAIN = [...new Set([INSIGHTS_MODEL, 'claude-sonnet-5', 'claude-sonnet-4-6', FAST_MODEL, 'claude-haiku-4-5-20251001'])];
+
+    const callInsights = (model, { withThinkingOff } = {}) => {
+      const thinks = THINKS_BY_DEFAULT_RE.test(model);
+      const body = {
+        model,
+        max_tokens: thinks ? 6000 : 2000,
+        messages: [{ role: 'user', content: coachPrompt }],
+      };
+      // Only pre-5 models accept an explicit thinking:disabled; 5.x reject it.
+      if (withThinkingOff && !thinks) body.thinking = { type: 'disabled' };
+      return fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': process.env.ANTHROPIC_API_KEY,
           'anthropic-version': '2023-06-01',
         },
-        body: JSON.stringify({
-          model,
-          max_tokens: 2000,
-          thinking: { type: 'disabled' },
-          messages: [{ role: 'user', content: coachPrompt }],
-        }),
+        body: JSON.stringify(body),
       });
-      let claudeRes = await callInsights(INSIGHTS_MODEL);
-      if (!claudeRes.ok && INSIGHTS_MODEL !== 'claude-sonnet-5') {
-        const peek = await claudeRes.clone().text(); let pj = {}; try { pj = JSON.parse(peek); } catch {}
-        if (isModelAccessError(claudeRes.status, pj)) { console.warn(`[analytics] ${INSIGHTS_MODEL} not accessible — falling back to claude-sonnet-5`); claudeRes = await callInsights('claude-sonnet-5'); }
-      }
+    };
 
-      if (!claudeRes.ok) {
-        const errBody = await claudeRes.text();
-        console.error(`Claude insights ${claudeRes.status}:`, errBody.slice(0, 400));
-      } else {
-        const claudeData = await claudeRes.json();
-        const insightText = (claudeData.content ?? [])
-          .filter(b => b.type === 'text')
-          .map(b => b.text)
-          .join('')
-          .trim();
-
-        if (insightText) {
-          insights = insightText;
-        } else {
-          console.error('Claude insights empty:', JSON.stringify(claudeData).slice(0, 300));
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('[analytics] ANTHROPIC_API_KEY not set — skipping insights');
+    } else {
+      for (const model of CHAIN) {
+        try {
+          let claudeRes = await callInsights(model, { withThinkingOff: true });
+          let errBody = '';
+          if (!claudeRes.ok) {
+            errBody = await claudeRes.text();
+            // If the model objected to the thinking param, retry once without it.
+            if (claudeRes.status === 400 && /thinking/i.test(errBody)) {
+              console.warn(`[analytics] ${model} rejected thinking param — retrying without it`);
+              claudeRes = await callInsights(model, { withThinkingOff: false });
+              if (!claudeRes.ok) errBody = await claudeRes.text();
             }
+          }
+          if (!claudeRes.ok) {
+            let pj = {}; try { pj = JSON.parse(errBody); } catch {}
+            const kind = isModelAccessError(claudeRes.status, pj) ? 'not accessible' : `HTTP ${claudeRes.status}`;
+            console.error(`[analytics] insights via ${model} failed (${kind}):`, errBody.slice(0, 400));
+            continue; // next model in the chain
+          }
+          const claudeData = await claudeRes.json();
+          const insightText = (claudeData.content ?? [])
+            .filter(b => b.type === 'text')
+            .map(b => b.text)
+            .join('')
+            .trim();
+          if (insightText) {
+            insights = insightText; insightsOk = true; insightsModel = model;
+            break;
+          }
+          console.error(`[analytics] insights via ${model} returned no text (stop_reason=${claudeData.stop_reason}):`, JSON.stringify(claudeData).slice(0, 300));
+        } catch (e) {
+          console.error(`[analytics] insights via ${model} threw:`, e.message);
+        }
       }
-    } catch (e) {
-      console.error('Claude insights fetch failed:', e.message);
+    }
+
+    // Last resort: OpenAI (the key was already read above but never used). Keeps the
+    // coach alive if every Claude model is unavailable or the Anthropic key is missing.
+    if (!insightsOk && openaikey) {
+      const OPENAI_CHAIN = [process.env.OPENAI_INSIGHTS_MODEL || 'gpt-5.5', 'gpt-5.4-mini'];
+      for (const model of OPENAI_CHAIN) {
+        try {
+          const r = await fetch('https://api.openai.com/v1/responses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaikey}` },
+            body: JSON.stringify({ model, input: coachPrompt, reasoning: { effort: 'low' }, max_output_tokens: 1500 }),
+            signal: AbortSignal.timeout(40000),
+          });
+          const d = await r.json().catch(() => ({}));
+          if (!r.ok) { console.error(`[analytics] OpenAI insights via ${model} failed (HTTP ${r.status}):`, JSON.stringify(d).slice(0, 300)); continue; }
+          const text = (d.output_text || (d.output || []).flatMap(o => o.content || []).filter(c => c.type === 'output_text').map(c => c.text).join('')).trim();
+          if (text) { insights = text; insightsOk = true; insightsModel = model; break; }
+        } catch (e) {
+          console.error(`[analytics] OpenAI insights via ${model} threw:`, e.message);
+        }
+      }
     }
 
         const payload = {
@@ -402,14 +455,18 @@ Be specific, data-driven, and honest. If conditions are brutal, say so clearly. 
           paceZones,
           predictions,
           insights,
+          insightsOk,
+          insightsModel,
+          generatedAt: new Date().toISOString(),
         };
 
         if (cacheRedis) {
-          try { await cacheRedis.set(CACHE_KEY, JSON.stringify(payload), { ex: CACHE_TTL }); }
+          // failed insights are cached only briefly so the next load retries
+          try { await cacheRedis.set(CACHE_KEY, JSON.stringify(payload), { ex: insightsOk ? CACHE_TTL : FAIL_TTL }); }
           catch (e) { console.error('[ANALYTICS] cache write failed:', e.message); }
         }
 
-        res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+        res.setHeader('Cache-Control', insightsOk ? 's-maxage=1800, stale-while-revalidate=3600' : 's-maxage=120');
         res.setHeader('X-Cache', 'MISS');
         return res.status(200).json(payload);
 

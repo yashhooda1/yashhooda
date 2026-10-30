@@ -120,7 +120,7 @@
     'projects': 'portfolio, github, what has he built, HoodaAgents, METAR, PaceForge, fine-tuning, RAG',
     'governance': 'AI governance studio, responsible AI, risk tiers, human oversight, NIST, EU AI Act',
     'aviation': 'flight tracker, infinite flight, live aircraft map, pilot logbook, flying hobby',
-    'metar': 'aviation weather streaming, kafka, spark, delta lake, medallion, airports',
+    'metar': 'aviation weather streaming, kafka, spark, delta lake, medallion, airports, preflight brief, go no-go, TAF, NOTAM, route weather',
     'ercot': 'texas power grid, electricity demand, energy',
     'weather': 'current weather, local conditions, forecast, radar',
     'climate': 'ClimatePulse, warming trends, NOAA, 13 cities, temperature',

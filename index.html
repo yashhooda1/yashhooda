@@ -17,6 +17,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="stylesheet" href="/css/themes.css" />
+    <link rel="stylesheet" href="/css/preflight.css" />
     <script>
     /* Theme boot — runs before first paint so there is no flash of the wrong theme.
        Full switcher lives in js/ui-shell.js. */
@@ -5190,6 +5191,48 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
             <h3 style="margin-top:2rem">Active alerts</h3>
             <div id="metar-alerts"></div>
+        </div>
+        <!-- ═══ PREFLIGHT BRIEF — route go/no-go agent (api/preflight-brief.js, lib/preflight.js, js/preflight.js) ═══ -->
+        <div class="pipe-panel" id="preflight-panel">
+            <div class="pipe-head">
+                <h3 style="text-transform:none;letter-spacing:0;opacity:1;font-size:1rem">
+                    ✈️ Preflight Brief agent — go / no-go for a route
+                </h3>
+                <div class="pipe-when">METAR · TAF · NOTAM</div>
+            </div>
+            <p style="font-size:0.8rem;opacity:0.7;margin:0 0 0.75rem">
+                The same observations, turned into a decision. A deterministic rules engine checks
+                every METAR and TAF group against the pilot's minimums and flags exactly what fails.
+                Airports without a TAF borrow the nearest one within 40 nm. A model then writes the
+                brief in pilot shorthand but cannot change the verdict. The multi-step tool-calling
+                version lives in the <a href="https://github.com/yashhooda1/metar-stream#preflight-briefing-agent" target="_blank" rel="noopener">METAR Stream repo</a>.
+            </p>
+            <form class="pf-form" id="pf-form" autocomplete="off">
+                <label>Route (departure first)
+                    <input id="pf-route" type="text" value="KAUS KHOU" maxlength="40" spellcheck="false" aria-label="Route as ICAO codes">
+                </label>
+                <label>Minimums
+                    <select id="pf-profile">
+                        <option value="vfr_conservative">VFR — conservative</option>
+                        <option value="vfr_standard">VFR — basic 1000/3</option>
+                        <option value="ifr">IFR — instrument</option>
+                    </select>
+                </label>
+                <label>Departure (local, blank = now)
+                    <input id="pf-etd" type="datetime-local">
+                </label>
+                <label>ETE h
+                    <input id="pf-ete" type="number" min="0.2" max="12" step="0.1" value="1">
+                </label>
+                <button class="btn-primary" id="pf-run" type="submit">Brief me</button>
+            </form>
+            <div class="pf-presets">Try:
+                <button type="button" data-pf-route="KAUS KHOU">KAUS → KHOU</button>
+                <button type="button" data-pf-route="KEDC KCLL KHOU">KEDC → KCLL → KHOU</button>
+                <button type="button" data-pf-route="KAUS KDAL">KAUS → KDAL</button>
+                <button type="button" data-pf-route="KSGR KLBX">KSGR → KLBX</button>
+            </div>
+            <div id="pf-out"><div class="pf-placeholder">✈️ Enter a route and hit <b>Brief me</b>. Not an official briefing — practice and portfolio use only.</div></div>
         </div>
         <div class="pipe-panel" id="pipe-panel" hidden>
             <div class="pipe-head">
@@ -17395,5 +17438,6 @@ if (buildlogSection) buildlogObserver.observe(buildlogSection);
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
 <script src="/js/ui-shell.js" defer></script>
+<script src="/js/preflight.js" defer></script>
 </body>
 </html>

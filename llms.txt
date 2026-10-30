@@ -9,7 +9,7 @@ This is a single-page portfolio that is also a working AI application (HoodaAgen
 - [Fit Check](https://www.yashhooda.ai/#fit-check): paste a job description → keyword scan + AI fit report (login required for the AI report)
 - [Projects](https://www.yashhooda.ai/#projects): HoodaAgents, METAR Stream, ClimatePulse, PaceForge, fine-tuning work, MCP servers, Apple apps
 - [AI Governance Studio](https://www.yashhooda.ai/solutions/ai-governance): risk-tiered human-oversight decision tool
-- [METAR Stream](https://www.yashhooda.ai/#metar): Kafka → Spark Structured Streaming → Delta medallion, live US airspace
+- [METAR Stream](https://www.yashhooda.ai/#metar): Kafka → Spark Structured Streaming → Delta medallion, live US airspace, plus a Preflight Brief agent (route → METAR/TAF/NOTAM → go/no-go)
 - [ClimatePulse](https://www.yashhooda.ai/#climate): 56-year NOAA pipeline, 13 cities
 - [Running tools](https://www.yashhooda.ai/#heat-pace): heat-adjusted pace, pace calculator, race predictor, race time by temperature
 - [Build Log](https://www.yashhooda.ai/#buildlog): build-in-public changelog

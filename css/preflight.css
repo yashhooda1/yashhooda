@@ -1,0 +1,50 @@
+/* css/preflight.css — Preflight Brief panel (#metar #preflight-panel). Theme-aware via css/themes.css vars. */
+#preflight-panel .pf-form { display: grid; grid-template-columns: 2fr 1.4fr 1.2fr .6fr auto; gap: .6rem; align-items: end; margin: .5rem 0 .6rem; }
+#preflight-panel label { display: flex; flex-direction: column; gap: .25rem; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+#preflight-panel input, #preflight-panel select {
+  min-width: 0; width: 100%; box-sizing: border-box;
+  font: inherit; font-size: .9rem; text-transform: none; letter-spacing: 0; color: var(--text);
+  background: var(--bg-elevated, rgba(var(--fg-rgb), .04)); border: 1px solid var(--border); border-radius: 8px; padding: .5rem .6rem; }
+#preflight-panel #pf-route { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
+#preflight-panel .pf-presets { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; font-size: .78rem; color: var(--text-muted); align-items: center; }
+#preflight-panel .pf-presets button { font: inherit; font-size: .75rem; cursor: pointer; color: var(--text); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: .2rem .65rem; }
+#preflight-panel .pf-presets button:hover { border-color: var(--green); }
+#preflight-panel .pf-placeholder { color: var(--text-muted); font-size: .85rem; text-align: center; padding: 1.8rem 1rem; }
+
+#preflight-panel .pf-badge { font-weight: 700; font-size: .78rem; padding: .2rem .55rem; border-radius: 6px; white-space: nowrap; }
+#preflight-panel .pf-badge.pf-go      { background: rgba(26,152,80,.18);  color: #1a9850; }
+#preflight-panel .pf-badge.pf-caution { background: rgba(214,158,46,.2);  color: #c98a12; }
+#preflight-panel .pf-badge.pf-nogo    { background: rgba(192,57,43,.18);  color: #d0453a; }
+#preflight-panel .pf-verdict { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; font-size: .85rem; margin-bottom: .8rem; }
+#preflight-panel .pf-verdict .pf-badge { font-size: 1rem; padding: .35rem .8rem; }
+
+#preflight-panel .pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: .7rem; }
+#preflight-panel .pf-station { border: 1px solid var(--border); border-left-width: 3px; border-radius: 10px; padding: .75rem .85rem; background: rgba(var(--card-rgb, var(--fg-rgb)), .03); }
+#preflight-panel .pf-station.pf-go { border-left-color: #1a9850; }
+#preflight-panel .pf-station.pf-caution { border-left-color: #d69e2e; }
+#preflight-panel .pf-station.pf-nogo { border-left-color: #c0392b; }
+#preflight-panel .pf-st-head { display: flex; justify-content: space-between; gap: .5rem; align-items: center; font-size: .9rem; }
+#preflight-panel .pf-st-head small { color: var(--text-muted); font-size: .72rem; }
+#preflight-panel .pf-st-meta { font-size: .75rem; color: var(--text-muted); margin: .35rem 0 .5rem; }
+#preflight-panel .pf-raw { display: block; font-size: .72rem; line-height: 1.45; white-space: pre-wrap; word-break: break-word; padding: .4rem .5rem; margin: .3rem 0; border-radius: 6px; background: rgba(var(--fg-rgb), .05); }
+#preflight-panel .pf-flags { list-style: none; padding: 0; margin: .5rem 0 0; font-size: .78rem; }
+#preflight-panel .pf-flags li { padding: .2rem 0 .2rem .9rem; position: relative; }
+#preflight-panel .pf-flags li::before { content: ''; position: absolute; left: 0; top: .55rem; width: 6px; height: 6px; border-radius: 50%; }
+#preflight-panel .pf-flags li.pf-nogo::before { background: #c0392b; }
+#preflight-panel .pf-flags li.pf-caution::before { background: #d69e2e; }
+#preflight-panel .pf-flags li.pf-go::before { background: #1a9850; }
+#preflight-panel .pf-flags b { font-size: .65rem; letter-spacing: .04em; opacity: .7; margin-right: .25rem; }
+#preflight-panel .pf-clean { font-size: .78rem; color: #1a9850; margin-top: .4rem; }
+
+#preflight-panel .pf-narr { margin-top: 1rem; padding: .9rem 1rem; border: 1px solid var(--border); border-radius: 10px; font-size: .86rem; line-height: 1.55; }
+#preflight-panel .pf-narr p { margin: .35rem 0; }
+#preflight-panel .pf-narr.pf-locked { display: flex; gap: .8rem; align-items: center; justify-content: space-between; flex-wrap: wrap; color: var(--text-muted); }
+#preflight-panel .pf-foot, #preflight-panel .pf-disclaimer { font-size: .72rem; color: var(--text-muted); margin-top: .6rem; }
+
+#preflight-panel .pf-form > *, #preflight-panel .pf-station, #preflight-panel .pf-grid { min-width: 0; }
+#preflight-panel .pf-st-head { flex-wrap: wrap; }
+#preflight-panel .pf-flags li { overflow-wrap: anywhere; }
+@media (max-width: 720px) {
+  #preflight-panel .pf-form { grid-template-columns: 1fr 1fr; }
+  #preflight-panel .pf-form label:first-child, #preflight-panel .pf-form label:nth-child(3), #preflight-panel .pf-form button { grid-column: 1 / -1; }
+}

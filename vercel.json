@@ -76,6 +76,9 @@
     "api/fit-check.js": {
       "maxDuration": 45
     },
+    "api/preflight-brief.js": {
+      "maxDuration": 30
+    },
     "api/navigate.js": {
       "maxDuration": 20
     }

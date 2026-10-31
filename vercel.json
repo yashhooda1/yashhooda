@@ -81,6 +81,9 @@
     },
     "api/navigate.js": {
       "maxDuration": 20
+    },
+    "api/docshield.js": {
+      "maxDuration": 15
     }
   },
   "rewrites": [

@@ -1,0 +1,318 @@
+{
+  "generated": "2026-10-31T20:37:27.821Z",
+  "engine": "1.0.0",
+  "corpus": {
+    "total": 39,
+    "malicious": 26,
+    "benign": 13
+  },
+  "docshield": {
+    "tp": 26,
+    "fn": 0,
+    "fp": 1,
+    "tn": 12,
+    "recall": 1,
+    "fpr": 0.077,
+    "precision": 0.963,
+    "blocked": 15,
+    "latency_ms": {
+      "p50": 0.3,
+      "p95": 14.86,
+      "max": 20.09
+    }
+  },
+  "fileguard": {
+    "tp": 2,
+    "fn": 24,
+    "fp": 1,
+    "tn": 12,
+    "recall": 0.077,
+    "fpr": 0.077,
+    "precision": 0.667
+  },
+  "known_false_positives": [
+    {
+      "id": "benign-injection-article",
+      "title": "Blog post that discusses prompt injection (dual-use)",
+      "dualUse": true,
+      "rules": [
+        "DS-PI-001"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "pdf-openaction-js",
+      "title": "PDF that runs JavaScript on open",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-launch",
+      "title": "PDF Launch action (starts a program)",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-embedded-exe",
+      "title": "PDF carrying an embedded .exe",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-hex-obfuscated",
+      "title": "JavaScript hidden with #hex name escapes",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-polyglot-zip",
+      "title": "PDF with a ZIP archive appended after %%EOF",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-header-offset",
+      "title": "GIF/PDF polyglot (PDF header not at byte 0)",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-bomb",
+      "title": "Decompression bomb (8 MB from a few KB)",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-white-text-injection",
+      "title": "Resume with white-on-white instructions for the AI screener",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-render-mode-3",
+      "title": "Invisible text layer (render mode 3) tampering with extraction",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-tiny-font",
+      "title": "Microscopic 0.3 pt font hiding a role-spoof",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "pdf-metadata-injection",
+      "title": "Injection in the PDF Title metadata",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "rejected"
+    },
+    {
+      "id": "pdf-compressed-visible-injection",
+      "title": "Visible injection inside a compressed stream",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "exe-as-pdf",
+      "title": "Windows executable renamed to .pdf",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "double-extension",
+      "title": "Double extension invoice.pdf.exe",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "rtlo-filename",
+      "title": "Right-to-left override in the filename",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "html-as-text",
+      "title": "HTML with script uploaded as text/plain",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "rejected"
+    },
+    {
+      "id": "text-ascii-smuggling",
+      "title": "Invisible Unicode tag characters (\"ASCII smuggling\")",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "text-zero-width",
+      "title": "Zero-width characters splitting the injection",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "text-homoglyph",
+      "title": "Cyrillic look-alike letters in the injection",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "text-base64",
+      "title": "Base64-encoded instructions",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "text-markdown-exfil",
+      "title": "Markdown-image data exfiltration",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "text-role-spoof",
+      "title": "Chat-template token spoofing",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "resume-plain-injection",
+      "title": "Resume that talks to the AI screener",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "text-field-tamper",
+      "title": "Invoice text that rewrites extracted fields",
+      "label": "malicious",
+      "docshield": "REVIEW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "text-secrets",
+      "title": "Credentials pasted into a runbook",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "text-pii",
+      "title": "Claim form with SSN and card number",
+      "label": "malicious",
+      "docshield": "BLOCK",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-memo-pdf",
+      "title": "Clean policy memo (compressed PDF)",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-resume-pdf",
+      "title": "Clean resume (PDF, contact details)",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-links-pdf",
+      "title": "PDF with ordinary web links",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-white-heading",
+      "title": "White heading on a dark banner (legit design)",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-incremental",
+      "title": "PDF saved with an incremental update",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-policy-text",
+      "title": "Insurance policy wording",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-spec-sheet",
+      "title": "Spec sheet with a \"System:\" line",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-security-awareness",
+      "title": "Security-awareness poster text",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-eng-doc",
+      "title": "Engineering runbook mentioning functions and deletes",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-readme-badges",
+      "title": "README with shields.io badges",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-ids-csv",
+      "title": "CSV of 16-digit account IDs (not cards)",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-png",
+      "title": "Real PNG image",
+      "label": "benign",
+      "docshield": "ALLOW",
+      "fileguard": "passed"
+    },
+    {
+      "id": "benign-injection-article",
+      "title": "Blog post that discusses prompt injection (dual-use)",
+      "label": "benign",
+      "docshield": "REVIEW",
+      "fileguard": "rejected"
+    }
+  ]
+}

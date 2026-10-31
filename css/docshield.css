@@ -1,0 +1,79 @@
+/* css/docshield.css — DocShield section (#docshield). Theme-aware via css/themes.css vars. */
+#docshield .ds-lede { max-width: 860px; color: var(--text-muted); line-height: 1.65; }
+#docshield .ds-lede strong { color: var(--text); }
+#docshield .ds-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 1rem; margin-top: 1.4rem; align-items: start; }
+#docshield .ds-card { border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; background: rgba(var(--card-rgb, var(--fg-rgb)), .03); min-width: 0; }
+#docshield .ds-card h3 { margin: 0 0 .7rem; font-size: .95rem; text-transform: none; letter-spacing: 0; }
+
+#docshield .ds-tabs { display: flex; gap: .3rem; margin-bottom: .7rem; }
+#docshield .ds-tabs button { font: inherit; font-size: .78rem; cursor: pointer; color: var(--text-muted); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: .25rem .8rem; }
+#docshield .ds-tabs button[aria-selected="true"] { color: var(--text); border-color: var(--green); background: rgba(var(--accent-rgb), .12); }
+#docshield .ds-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; text-align: center; min-height: 150px; padding: 1rem;
+  border: 1.5px dashed rgba(var(--accent-rgb), .45); border-radius: 10px; cursor: pointer; color: var(--text-muted); font-size: .85rem; transition: background .15s, border-color .15s; }
+#docshield .ds-drop:hover, #docshield .ds-drop.ds-over { background: rgba(var(--accent-rgb), .08); border-color: var(--green); }
+#docshield .ds-drop b { color: var(--text); }
+#docshield .ds-drop .ds-file { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--green-light); font-size: .8rem; word-break: break-all; }
+#docshield textarea { width: 100%; box-sizing: border-box; min-height: 150px; resize: vertical; font: .82rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text);
+  background: rgba(var(--fg-rgb), .04); border: 1px solid var(--border); border-radius: 10px; padding: .6rem .7rem; }
+#docshield .ds-actions { display: flex; gap: .5rem; align-items: center; margin-top: .7rem; flex-wrap: wrap; }
+#docshield .ds-hint { font-size: .72rem; color: var(--text-muted); }
+#docshield .ds-samples { margin-top: 1rem; font-size: .76rem; color: var(--text-muted); }
+#docshield .ds-samples div { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .4rem; }
+#docshield .ds-samples button { font: inherit; font-size: .73rem; cursor: pointer; color: var(--text); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: .2rem .65rem; }
+#docshield .ds-samples button:hover { border-color: var(--green); }
+#docshield .ds-samples button.ds-benign { border-style: dashed; }
+
+#docshield .ds-placeholder { color: var(--text-muted); font-size: .85rem; text-align: center; padding: 2.4rem 1rem; }
+#docshield .ds-verdict { display: flex; gap: .9rem; align-items: center; flex-wrap: wrap; padding-bottom: .8rem; border-bottom: 1px solid var(--border); }
+#docshield .ds-badge { font-weight: 700; font-size: 1rem; padding: .35rem .85rem; border-radius: 8px; letter-spacing: .03em; }
+#docshield .ds-v-ALLOW  { background: rgba(26,152,80,.18);  color: #1a9850; }
+#docshield .ds-v-REVIEW { background: rgba(214,158,46,.2);  color: #c98a12; }
+#docshield .ds-v-BLOCK  { background: rgba(192,57,43,.18);  color: #d0453a; }
+#docshield .ds-meter { flex: 1 1 160px; min-width: 140px; }
+#docshield .ds-meter span { display: block; font-size: .7rem; color: var(--text-muted); margin-bottom: .25rem; }
+#docshield .ds-bar { height: 8px; border-radius: 99px; background: rgba(var(--fg-rgb), .08); overflow: hidden; }
+#docshield .ds-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #1a9850, #d69e2e 45%, #c0392b); }
+#docshield .ds-meta { font-size: .72rem; color: var(--text-muted); margin: .6rem 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+#docshield .ds-fw { display: flex; flex-wrap: wrap; gap: .3rem; margin: .5rem 0 .8rem; }
+#docshield .ds-chip { font-size: .66rem; padding: .12rem .45rem; border-radius: 5px; border: 1px solid var(--border); color: var(--text-muted); white-space: nowrap; }
+#docshield .ds-chip.ds-owasp { border-color: rgba(214,158,46,.5); }
+#docshield .ds-chip.ds-attack { border-color: rgba(192,57,43,.45); }
+#docshield .ds-chip.ds-atlas { border-color: rgba(var(--accent-rgb), .5); }
+
+#docshield .ds-findings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .55rem; }
+#docshield .ds-f { border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 9px; padding: .6rem .75rem; font-size: .8rem; min-width: 0; }
+#docshield .ds-f.ds-s-critical { border-left-color: #c0392b; }
+#docshield .ds-f.ds-s-high { border-left-color: #e67e22; }
+#docshield .ds-f.ds-s-medium { border-left-color: #d69e2e; }
+#docshield .ds-f.ds-s-low, #docshield .ds-f.ds-s-info { border-left-color: rgba(var(--accent-rgb), .6); }
+#docshield .ds-f-head { display: flex; gap: .45rem; align-items: baseline; flex-wrap: wrap; }
+#docshield .ds-sev { font-size: .62rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .08rem .38rem; border-radius: 4px; background: rgba(var(--fg-rgb), .08); }
+#docshield .ds-s-critical .ds-sev { background: rgba(192,57,43,.2); color: #e05a4e; }
+#docshield .ds-s-high .ds-sev { background: rgba(230,126,34,.2); color: #e98b3a; }
+#docshield .ds-s-medium .ds-sev { background: rgba(214,158,46,.2); color: #d39b2a; }
+#docshield .ds-rule { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .7rem; color: var(--text-muted); }
+#docshield .ds-f-title { font-weight: 600; }
+#docshield .ds-f-detail { color: var(--text-muted); margin: .25rem 0; overflow-wrap: anywhere; }
+#docshield .ds-ev { display: block; font-size: .72rem; line-height: 1.45; white-space: pre-wrap; word-break: break-word; padding: .35rem .5rem; margin: .3rem 0; border-radius: 6px; background: rgba(var(--fg-rgb), .05); }
+#docshield .ds-limits { font-size: .74rem; color: var(--text-muted); margin-top: .8rem; }
+#docshield .ds-dl { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .9rem; }
+#docshield .ds-dl button { font: inherit; font-size: .74rem; cursor: pointer; color: var(--text); background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: .3rem .7rem; }
+#docshield .ds-dl button:hover { border-color: var(--green); }
+#docshield .ds-err { color: #d0453a; font-size: .85rem; padding: 1rem; }
+
+#docshield .ds-lower { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; margin-top: 1rem; }
+#docshield .ds-bench table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+#docshield .ds-bench th, #docshield .ds-bench td { text-align: left; padding: .4rem .45rem; border-bottom: 1px solid rgba(var(--fg-rgb), .07); }
+#docshield .ds-bench th { font-size: .66rem; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+#docshield .ds-bench td.ds-num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+#docshield .ds-bench tr.ds-me td { color: var(--text); font-weight: 600; }
+#docshield .ds-note { font-size: .74rem; color: var(--text-muted); line-height: 1.55; margin: .7rem 0 0; }
+#docshield .ds-steps { list-style: none; margin: 0; padding: 0; counter-reset: ds; display: flex; flex-direction: column; gap: .55rem; }
+#docshield .ds-steps li { counter-increment: ds; display: grid; grid-template-columns: 1.6rem 1fr; gap: .5rem; font-size: .8rem; color: var(--text-muted); line-height: 1.5; }
+#docshield .ds-steps li::before { content: counter(ds, decimal-leading-zero); font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--green); padding-top: .1rem; }
+#docshield .ds-steps b { color: var(--text); font-weight: 600; }
+#docshield .ds-links { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1rem; }
+
+@media (max-width: 860px) {
+  #docshield .ds-grid, #docshield .ds-lower { grid-template-columns: 1fr; }
+}

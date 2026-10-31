@@ -1,0 +1,37 @@
+# .github/workflows/docshield.yml
+# Unit tests + detection-quality gate for DocShield (lib/docshield, docshield/).
+# No npm install: the engine, tests and eval use only node: built-ins.
+name: DocShield
+
+on:
+  push:
+    branches: [main]
+    paths: ['lib/docshield/**', 'docshield/**', 'api/docshield.js', 'lib/fileGuard.js', '.github/workflows/docshield.yml']
+  pull_request:
+    paths: ['lib/docshield/**', 'docshield/**', 'api/docshield.js', 'lib/fileGuard.js', '.github/workflows/docshield.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unit tests
+        run: node --test docshield/test/*.test.js
+      - name: Eval gate (recall ≥ 95%, FPR ≤ 15%)
+        run: node docshield/eval.js --check | tee docshield-eval.txt
+      - name: SARIF for the real-world fixtures
+        run: node docshield/cli.js docshield/test/fixtures --fail-on none --sarif docshield.sarif
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docshield-report
+          path: |
+            docshield-eval.txt
+            docshield.sarif

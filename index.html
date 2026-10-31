@@ -18,6 +18,7 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="stylesheet" href="/css/themes.css" />
     <link rel="stylesheet" href="/css/preflight.css" />
+    <link rel="stylesheet" href="/css/docshield.css" />
     <script>
     /* Theme boot — runs before first paint so there is no flash of the wrong theme.
        Full switcher lives in js/ui-shell.js. */
@@ -4297,6 +4298,7 @@
             <a href="#fit-check" title="Paste a job description — AI scores the fit">🎯 Fit Check</a>
             <a href="#projects">Projects</a>
             <a href="#governance">AI Governance</a>
+            <a href="#docshield" title="Security gate for AI document pipelines">🛡️ DocShield</a>
 
             <div class="nav-dropdown">
                 <button class="nav-drop-trigger" onclick="toggleNavDrop(event, this)" aria-expanded="false" aria-haspopup="true">Explorations <span class="caret">▾</span></button>
@@ -4542,6 +4544,42 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <a href="https://github.com/yashhooda1/yashhooda" target="_blank" class="project-btn">📂 GitHub</a>
                     <a href="https://www.youtube.com/watch?v=hvS8gZ10YoA" target="_blank" rel="noopener" class="project-btn">🎬 HoodaAgents Demo</a>
                     <a href="https://www.youtube.com/watch?v=ujYML8Xuvnc" target="_blank" rel="noopener" class="project-btn">🔒 Security Update Demo</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">🛡️ DocShield — Security Gate for AI Document Pipelines</div>
+                <div class="project-tech">
+                    <span class="tech-pill">Application Security</span>
+                    <span class="skill-tag">Indirect Prompt Injection Defense</span>
+                    <span class="skill-tag">PDF Malware Triage</span>
+                    <span class="skill-tag">Threat Modeling (STRIDE)</span>
+                    <span class="skill-tag">OWASP LLM Top 10</span>
+                    <span class="skill-tag">MITRE ATT&amp;CK · ATLAS</span>
+                    <span class="skill-tag">Secrets &amp; PII Detection</span>
+                    <span class="skill-tag">SARIF 2.1.0</span>
+                    <span class="skill-tag">ReDoS &amp; Decompression-Bomb Hardening</span>
+                    <span class="skill-tag ai">AI Security</span>
+                    <span class="skill-tag cl">Node.js Serverless</span>
+                    <span class="skill-tag cl">GitHub Actions</span>
+                </div>
+                <div class="project-desc">
+                    A pre-ingestion scanner for documents headed to an LLM. It catches malicious PDFs (auto-run JavaScript,
+                    Launch actions, embedded executables, <code>#hex</code>-obfuscated names, decompression bombs), disguised
+                    and polyglot files, and <strong>indirect prompt injection a human can't see</strong>: white text, invisible
+                    render-mode-3 layers, microscopic fonts, metadata, Unicode tag "ASCII smuggling", zero-width splits,
+                    homoglyphs and base64. It also flags leaked credentials and PII before they reach a model or a vector index.
+                    <br><br>
+                    Zero dependencies and no model in the decision: a hand-written PDF parser and content-stream interpreter
+                    (ToUnicode CMaps, graphics-state tracking), every finding mapped to OWASP LLM Top 10, MITRE ATT&amp;CK and ATLAS,
+                    SARIF output for code scanning, a STRIDE threat model, and an eval in CI. On a 39-document labeled corpus it
+                    catches <strong>26/26 attacks vs 2/26</strong> for the site's previous upload filter, with one documented
+                    false positive.
+                </div>
+                <div class="project-links">
+                    <a href="#docshield" class="nav-chat-btn">🛡️ Try it live</a>
+                    <a href="https://github.com/yashhooda1/yashhooda/tree/main/lib/docshield" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                    <a href="https://github.com/yashhooda1/yashhooda/blob/main/docshield/THREAT_MODEL.md" target="_blank" rel="noopener" class="project-btn">🧭 Threat Model</a>
                 </div>
             </div>
 
@@ -4998,6 +5036,85 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <div class="governance-signal"><strong>02 · CONTROL</strong><span>Apply human review, least privilege, monitoring, appeals, and kill switches.</span></div>
                     <div class="governance-signal"><strong>03 · DOCUMENT</strong><span>Export a reusable governance brief with owners, purpose, and approval fields.</span></div>
                     <div class="governance-signal"><strong>04 · ACCOUNT</strong><span>Keep a named human responsible for every consequential outcome.</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ DOCSHIELD — security gate for AI document pipelines (api/docshield.js, lib/docshield/, js/docshield.js) ═══ -->
+    <section id="docshield">
+        <h2>🛡️ DocShield — Security Gate for AI Document Pipelines</h2>
+        <p class="ds-lede">
+            Any app that feeds documents to an LLM (resume screeners, invoice and policy extractors, RAG indexes)
+            can be attacked through the files themselves: <strong>malicious PDFs</strong>, <strong>disguised executables</strong>, and
+            <strong>indirect prompt injection</strong> hidden in white text, invisible text layers, metadata or Unicode tricks,
+            which the model reads and a human reviewer never sees. DocShield scans a file <em>before</em> ingestion and returns
+            <strong>ALLOW / REVIEW / BLOCK</strong>, with evidence and OWASP LLM Top 10, MITRE ATT&amp;CK and ATLAS mappings for every finding.
+            It's a deterministic, zero-dependency engine with no model in the decision, so it can't be prompt-injected itself.
+        </p>
+
+        <div class="ds-grid">
+            <div class="ds-card">
+                <h3>Scan a document</h3>
+                <div class="ds-tabs" role="tablist">
+                    <button type="button" role="tab" data-mode="file" aria-selected="true">Upload file</button>
+                    <button type="button" role="tab" data-mode="text" aria-selected="false">Paste text</button>
+                </div>
+                <div class="ds-drop" id="ds-drop" tabindex="0" role="button" aria-label="Choose a file to scan">
+                    <div style="font-size:1.6rem">📄</div>
+                    <div><b>Drop a PDF or text file</b> or click to choose</div>
+                    <div id="ds-picked" class="ds-hint">PDF, TXT, MD, CSV, HTML, images · up to 2 MB</div>
+                </div>
+                <input type="file" id="ds-input" hidden>
+                <textarea id="ds-text" hidden placeholder="Paste an email, a resume, a web page… anything you would hand to an LLM." aria-label="Text to scan"></textarea>
+                <div class="ds-actions">
+                    <button class="btn-primary" id="ds-run" type="button">🛡️ Scan</button>
+                    <span class="ds-hint">Nothing is stored. Files are scanned in memory and discarded.</span>
+                </div>
+                <div class="ds-samples">Or try a built-in sample (all payloads are inert):
+                    <div>
+                        <button type="button" data-ds-sample="pdf-white-text-injection">Resume with white-text injection</button>
+                        <button type="button" data-ds-sample="pdf-render-mode-3">Invisible layer tampering a policy</button>
+                        <button type="button" data-ds-sample="pdf-openaction-js">PDF auto-run JavaScript</button>
+                        <button type="button" data-ds-sample="exe-as-pdf">EXE renamed to .pdf</button>
+                        <button type="button" data-ds-sample="text-ascii-smuggling">Invisible Unicode tags</button>
+                        <button type="button" data-ds-sample="text-secrets">Leaked credentials</button>
+                        <button type="button" class="ds-benign" data-ds-sample="benign-memo-pdf">Clean memo (control)</button>
+                    </div>
+                </div>
+            </div>
+            <div class="ds-card" aria-live="polite">
+                <h3>Report</h3>
+                <div id="ds-out"><div class="ds-placeholder">🛡️ Upload a file or pick a sample to see the verdict, evidence and framework mappings.</div></div>
+            </div>
+        </div>
+
+        <div class="ds-lower">
+            <div class="ds-card ds-bench">
+                <h3>Benchmark: same corpus, two gates</h3>
+                <table id="ds-bench-table"><tbody><tr><td class="ds-hint">Loading eval results…</td></tr></tbody></table>
+                <div class="ds-hint" id="ds-bench-meta" style="margin-top:.5rem"></div>
+                <p class="ds-note">
+                    The "previous upload filter" is this site's own <code>fileGuard</code>, which regex-scans the first 10 KB of raw bytes.
+                    It can't see inside compressed PDF streams, file magic or Unicode tricks, and the gap is structural, not a tuning problem.
+                    I wrote the corpus alongside the detector, so treat DocShield's recall as a regression suite, not a real-world rate.
+                    The one false alarm is kept on purpose: a blog post <em>about</em> prompt injection gets REVIEW, because phrase
+                    matching can't tell use from mention. CI fails the build if recall drops below 95% or false alarms rise above 15%.
+                </p>
+            </div>
+            <div class="ds-card">
+                <h3>How it works</h3>
+                <ol class="ds-steps">
+                    <li><span><b>Trust bytes, not labels.</b> Magic-byte sniffing against the declared type and extension; double extensions, RTL-override filenames, executables and polyglots (a ZIP after <code>%%EOF</code>, a PDF header that isn't at byte 0).</span></li>
+                    <li><span><b>Take the PDF apart.</b> Inflates streams under hard budgets (bombs are reported, not expanded), unpacks object streams, decodes <code>#hex</code>-obfuscated names, and flags JavaScript, auto-run, Launch, embedded executables, XFA and incremental updates.</span></li>
+                    <li><span><b>Read it like the model does.</b> A content-stream interpreter decodes CID fonts through ToUnicode CMaps and tracks the graphics state, so it can split <em>visible</em> text from text in render mode 3, white fill, sub-1pt size, off-page placement or metadata.</span></li>
+                    <li><span><b>Find the instructions.</b> Ten phrase families (override, role spoofing, AI-addressed text, exfiltration via markdown images, secrecy, decision tampering, tool coercion), checked after undoing Unicode tags, zero-width splits, homoglyphs and base64. Hidden plus instruction is critical.</span></li>
+                    <li><span><b>Stop the leaks.</b> Cloud and API keys, private keys, connection strings, JWTs, SSNs and Luhn-valid cards, with evidence redacted. Exports a JSON report or SARIF for GitHub code scanning.</span></li>
+                </ol>
+                <div class="ds-links">
+                    <a class="project-btn" href="https://github.com/yashhooda1/yashhooda/tree/main/lib/docshield" target="_blank" rel="noopener">📂 Engine</a>
+                    <a class="project-btn" href="https://github.com/yashhooda1/yashhooda/blob/main/docshield/README.md" target="_blank" rel="noopener">📘 README</a>
+                    <a class="project-btn" href="https://github.com/yashhooda1/yashhooda/blob/main/docshield/THREAT_MODEL.md" target="_blank" rel="noopener">🧭 Threat model (STRIDE)</a>
                 </div>
             </div>
         </div>
@@ -17439,5 +17556,6 @@ if (buildlogSection) buildlogObserver.observe(buildlogSection);
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
 <script src="/js/ui-shell.js" defer></script>
 <script src="/js/preflight.js" defer></script>
+<script src="/js/docshield.js" defer></script>
 </body>
 </html>

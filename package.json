@@ -5,7 +5,10 @@
   "scripts": {
     "eval": "node evals/run-evals.js",
     "eval:smoke": "node evals/run-evals.js --no-judge",
-    "eval:baseline": "node evals/run-evals.js --update-baseline"
+    "eval:baseline": "node evals/run-evals.js --update-baseline",
+    "test:docshield": "node --test docshield/test/*.test.js",
+    "eval:docshield": "node docshield/eval.js --check",
+    "docshield": "node docshield/cli.js"
   },
   "dependencies": {
     "@upstash/vector": "^1.2.0",

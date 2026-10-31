@@ -21,6 +21,21 @@ If you're skimming, these are the parts worth reading the code for:
 
 ---
 
+## 🛡️ DocShield (Oct 2026): security gate for AI document pipelines
+
+Live at [`/#docshield`](https://yashhooda.ai/#docshield). It scans documents **before** they reach a model and returns ALLOW / REVIEW / BLOCK with evidence and OWASP LLM Top 10 / MITRE ATT&CK / ATLAS / CWE mappings. It covers malicious-PDF triage, disguised and polyglot files, indirect prompt injection hidden from humans (white text, invisible layers, Unicode tags, homoglyphs, base64), and secrets/PII. Zero dependencies, no model in the decision.
+
+| Piece | Where |
+|---|---|
+| Engine (file type, PDF parser + content-stream interpreter, injection, secrets, scoring, SARIF) | `lib/docshield/` |
+| Endpoint, public, rate-limited, kill switch `docshield` / `DOCSHIELD_OFF` | `api/docshield.js` |
+| UI | `js/docshield.js`, `css/docshield.css` |
+| Tests (`npm run test:docshield`), eval vs `fileGuard` (`npm run eval:docshield`), CLI (`npm run docshield -- <path>`) | `docshield/` |
+| Docs | [`docshield/README.md`](docshield/README.md), [`docshield/THREAT_MODEL.md`](docshield/THREAT_MODEL.md) |
+| CI | `.github/workflows/docshield.yml` |
+
+Eval on 39 labeled documents: **26/26 attacks caught vs 2/26** for the existing `fileGuard`, with 1 documented false positive. Re-run `node docshield/eval.js --write` after changing rules to refresh `public_data_docshield_eval.json`.
+
 ## ✨ v2 shell (Oct 2026): themes, ⌘K navigator, Fit Check
 
 Nothing was removed in the v2 redesign — it is a layer on top of the existing page.

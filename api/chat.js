@@ -11,7 +11,7 @@ import { checkUsageLimit } from '../lib/usageLimit.js';
 import { getAuthUser } from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
 import { checkKillSwitch } from '../lib/killSwitch.js';
-import { MODEL_ADDITIONS, FAST_MODEL, THINKS_BY_DEFAULT_RE, isModelAccessError as modelAccessError, fallbackFor } from '../lib/models.js';
+import { MODEL_ADDITIONS, FAST_MODEL, THINKS_BY_DEFAULT_RE, isModelAccessError as modelAccessError, fallbackFor, DEEPSEEK_BASE_URL, DEEPSEEK_CHAT_OPTIONS } from '../lib/models.js';
 import crypto            from 'crypto';
 
 export const maxDuration = 60;
@@ -1170,6 +1170,7 @@ export default async function handler(req, res) {
         xai:       process.env.XAI_API_KEY,
         google:    process.env.GOOGLE_API_KEY,
         together:  process.env.TOGETHER_API_KEY,
+        deepseek:  process.env.DEEPSEEK_API_KEY,
     }[cfg.provider];
     if (!apiKey) return res.status(500).json({ error: `API key not configured for ${cfg.provider}` });
 
@@ -1384,6 +1385,34 @@ export default async function handler(req, res) {
                 return res.status(502).json({ error: 'Gemini API error', detail: data });
             }
             reply = filterOutput(data.candidates?.[0]?.content?.parts?.[0]?.text ?? 'Reach Yash at yash.hooda6@gmail.com!');
+
+        } else if (cfg.provider === 'deepseek') {
+            // Nov 2026: DeepSeek V4 (OpenAI-compatible). Thinking off by default — see lib/models.js.
+            const callDeepSeek = (model) => fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                body:    JSON.stringify({
+                    model,
+                    max_tokens: 4096,
+                    messages:   [{ role: 'system', content: systemText }, ...toOpenAIChat(messages)],
+                    ...DEEPSEEK_CHAT_OPTIONS,
+                }),
+            });
+            let response = await callDeepSeek(cfg.api);
+            let data = await response.json().catch(() => ({}));
+            const dsFallback = fallbackFor(cfg.api); // deepseek-v4-pro → deepseek-flash when not accessible
+            if (!response.ok && dsFallback && modelAccessError(response.status, data)) {
+                console.warn(`[DeepSeek] ${cfg.api} not accessible — falling back to ${dsFallback}`);
+                response = await callDeepSeek(dsFallback);
+                data = await response.json().catch(() => ({}));
+            }
+            if (!response.ok) {
+                console.error('[DeepSeek] Error:', JSON.stringify(data));
+                await notifyFailure({ route: '/api/chat [DeepSeek]', model: cfg.api, error: data?.error?.message || JSON.stringify(data).slice(0, 200), userMessage: queryText, sessionId });
+                return res.status(502).json({ error: 'DeepSeek API error', detail: data });
+            }
+            // Only `content` is the answer; `reasoning_content` (thinking mode) is never shown.
+            reply = filterOutput(data.choices?.[0]?.message?.content || 'Reach Yash at yash.hooda6@gmail.com!');
 
         } else if (cfg.provider === 'together') {
             const response = await fetch('https://api.together.xyz/v1/chat/completions', {

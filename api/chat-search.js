@@ -5,7 +5,7 @@
 import { getAuthUser }  from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
-import { MODEL_ADDITIONS, fallbackFor, isModelAccessError } from '../lib/models.js';
+import { MODEL_ADDITIONS, fallbackFor, isModelAccessError, DEEPSEEK_BASE_URL, DEEPSEEK_CHAT_OPTIONS } from '../lib/models.js';
 
 export const maxDuration = 60; // seconds — requires Vercel Pro (you already have it)
 
@@ -97,17 +97,18 @@ export default async function handler(req, res) {
   try {
     // ════════════════════════════════════════════════════════
     // NON-ANTHROPIC PATH: xAI, Google, Together — simple completion, no streaming
-    if (cfg.provider === 'xai' || cfg.provider === 'google' || cfg.provider === 'together') {
+    if (cfg.provider === 'xai' || cfg.provider === 'google' || cfg.provider === 'together' || cfg.provider === 'deepseek') {
       sendEvent({ type: 'searching', message: '🤖 Generating response…' });
       let text = '';
       try {
-        if (cfg.provider === 'xai' || cfg.provider === 'together') {
-          const baseUrl = cfg.provider === 'xai' ? 'https://api.x.ai/v1' : 'https://api.together.xyz/v1';
-          const key     = cfg.provider === 'xai' ? process.env.XAI_API_KEY : process.env.TOGETHER_API_KEY;
+        if (cfg.provider === 'xai' || cfg.provider === 'together' || cfg.provider === 'deepseek') {
+          const baseUrl = { xai: 'https://api.x.ai/v1', together: 'https://api.together.xyz/v1', deepseek: DEEPSEEK_BASE_URL }[cfg.provider];
+          const key     = { xai: process.env.XAI_API_KEY, together: process.env.TOGETHER_API_KEY, deepseek: process.env.DEEPSEEK_API_KEY }[cfg.provider];
+          const extra   = cfg.provider === 'deepseek' ? DEEPSEEK_CHAT_OPTIONS : {};   // Nov 2026: DeepSeek thinking off
           const callCompat = (model) => fetch(`${baseUrl}/chat/completions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-            body: JSON.stringify({ model, max_tokens: 1024, messages: [{ role: 'system', content: buildSystemPrompt() }, ...cleanMessages] }),
+            body: JSON.stringify({ model, max_tokens: 1024, messages: [{ role: 'system', content: buildSystemPrompt() }, ...cleanMessages], ...extra }),
           });
           let r = await callCompat(cfg.api);
           let d = await r.json();

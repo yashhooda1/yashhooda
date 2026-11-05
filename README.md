@@ -355,4 +355,4 @@ Two things outside the terminal drive most of what's in here. I'm a marathoner c
 
 Currently open to Data Engineering and AI Engineering roles.
 
-[yashhooda.ai](https://www.yashhooda.ai) · [github.com/yashhooda1](https://github.com/yashhooda1) · [linkedin.com/in/yash-hooda-384430242](https://linkedin.com/in/yash-hooda-384430242) · [yash.hooda6@gmail.com](mailto:yash.hooda6@gmail.com)
+[yashhooda.ai](https://www.yashhooda.ai) · [github.com/yashhooda1](https://github.com/yashhooda1) · [yash.hooda6@gmail.com](mailto:yash.hooda6@gmail.com)

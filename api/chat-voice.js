@@ -3,7 +3,7 @@ import { notifyFailure } from './_notify.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
 import { getAuthUser }  from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
-import { MODEL_ADDITIONS, fallbackFor, isModelAccessError } from '../lib/models.js';
+import { MODEL_ADDITIONS, fallbackFor, isModelAccessError, DEEPSEEK_BASE_URL, DEEPSEEK_CHAT_OPTIONS } from '../lib/models.js';
 
 
 export const maxDuration = 120;
@@ -115,6 +115,9 @@ export default async function handler(req, res) {
       await streamOpenAICompat('https://api.x.ai/v1', process.env.XAI_API_KEY, cfg.api, cleanMessages, send);
     } else if (cfg.provider === 'together') {
       await streamOpenAICompat('https://api.together.xyz/v1', process.env.TOGETHER_API_KEY, cfg.api, cleanMessages, send);
+    } else if (cfg.provider === 'deepseek') {
+      // Nov 2026: thinking off — voice needs the first token fast, and reasoning would eat the 300-token budget
+      await streamOpenAICompat(DEEPSEEK_BASE_URL, process.env.DEEPSEEK_API_KEY, cfg.api, cleanMessages, send, DEEPSEEK_CHAT_OPTIONS);
     } else if (cfg.provider === 'google') {
       await streamGemini(cfg.api, cleanMessages, send);
     } else {
@@ -271,7 +274,7 @@ async function streamOpenAI(apiModel, messages, send) {
 }
 
 // ── OPENAI COMPAT (xAI, Together) ──
-async function streamOpenAICompat(baseUrl, apiKey, model, messages, send) {
+async function streamOpenAICompat(baseUrl, apiKey, model, messages, send, extraBody = {}) {
   if (!apiKey) { send({ type: 'error', error: 'API key not set' }); return; }
   const r = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
@@ -281,12 +284,13 @@ async function streamOpenAICompat(baseUrl, apiKey, model, messages, send) {
       max_tokens: 300,
       stream: true,
       messages: [{ role: 'system', content: VOICE_PROMPT }, ...messages],
+      ...extraBody,
     }),
   });
   if (!r.ok) {
     const t = await r.text();
     const alt = fallbackFor(model); // Oct 2026: grok-4.7/4.6 → grok-4.5 when not accessible
-    if (alt && accessErrorFromText(r.status, t)) { console.warn(`[voice/${baseUrl}] ${model} not accessible — falling back to ${alt}`); return streamOpenAICompat(baseUrl, apiKey, alt, messages, send); }
+    if (alt && accessErrorFromText(r.status, t)) { console.warn(`[voice/${baseUrl}] ${model} not accessible — falling back to ${alt}`); return streamOpenAICompat(baseUrl, apiKey, alt, messages, send, extraBody); }
     await notifyFailure({ route: `/api/chat-voice [${baseUrl}]`, model, error: `${r.status}: ${t.slice(0, 200)}`, userMessage: messages.slice(-1)[0]?.content?.slice(0, 150) });
     send({ type: 'error', error: `${baseUrl} ${r.status}: ${t.slice(0, 200)}` });
     return;

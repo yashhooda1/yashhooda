@@ -9564,8 +9564,8 @@ function newChat() {
 
 // Provider → logo file in /logos/. Monochrome marks are tinted to the theme via
 // CSS mask (ignores the SVG's own fill); Gemini keeps its native gradient.
-const PROVIDER_ICON  = { Anthropic:'claude', OpenAI:'openai', xAI:'grok', Google:'gemini', Meta:'meta' };
-const COLORED_ICONS  = new Set(['gemini']);
+const PROVIDER_ICON  = { Anthropic:'claude', OpenAI:'openai', xAI:'grok', Google:'gemini', Meta:'meta', DeepSeek:'deepseek' };
+const COLORED_ICONS  = new Set(['gemini', 'deepseek']);   // DeepSeek keeps its brand blue
 function providerLogo(provider) {
     const f = PROVIDER_ICON[provider];
     if (!f) return '';                       

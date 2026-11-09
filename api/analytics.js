@@ -323,7 +323,7 @@ TEMPERATURE SCIENCE (El Helou 2012, Ely 2007; Pugh 1971, Davies 1980):
   a tailwind returns only ~45% of that, so out-and-back routes always lose net time.
   windSecPerMi in the data is the already-netted loop estimate.
 - Houston summers: 90-100°F with 70-85% humidity June-Sept requires 60-90 sec/mile slower
-- Houston Marathon (Jan 17) risk is a north wind behind a cold front, not temperature
+- Aramco Houston Half (Jan 17, 2027) risk is a north wind behind a cold front, not temperature
 - Boulder altitude (~5,400 ft): additional ~3-5% performance reduction vs sea level
 ` : '';
 

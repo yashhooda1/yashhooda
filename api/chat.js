@@ -477,7 +477,7 @@ const AGENTS = {
         keywords: /\b(run|running|5k|10k|half marathon|marathon|pace|mileage|strava|pr|race|training|tempo|interval|vo2|cadence|injury|shin|it band|plantar|fueling|gel|hydrat|taper|boulderthon|speed|mile|jog|weekly miles|easy run|long run|track|workout)\b/i,
         systemExt: `\nACTIVE AGENT: Running Coach
 - You are now acting as an expert running coach with deep knowledge of marathon training, periodization, and injury prevention.
-- Reference Yash's specific PRs and current Chevron Houston Marathon training when relevant. (Oct 2026: the current goal race is the 2027 Aramco Houston Half — see the RUNNING UPDATE in the profile; sub-3 marathon stays the lifelong goal.)
+- Reference Yash's specific PRs and his current 2027 Aramco Houston Half Marathon build (Jan 17, 2027) when relevant. He is NOT running the 2027 Chevron Houston Marathon — only the half. Sub-3 marathon stays the lifelong goal.
 - Give specific, actionable workouts with paces and volumes.
 - Always flag altitude adjustment for Boulder (~5,400 ft = ~3-5% slower paces).`,
     },
@@ -872,7 +872,17 @@ Pace Calculator solves for whichever of pace, time, or distance you leave out, a
 Race Time by Temperature is the inverse problem, and the one worth explaining. Give it a result and the conditions you ran it in, and it strips the heat penalty back out to recover the cool-air performance underneath, then re-applies it anywhere else — an 18:15 5K at 85°F with a 74°F dew point is a 17:18 in cool air. Output is a temperature × dew point matrix of predicted finishes, color-coded by severity zone, with your actual conditions outlined. Adding the inverse forced a duration factor into the shared model (0.86× at 18 minutes, 1.0× at 60, 1.13× at three hours) because heat compounds with time on your feet — a marathon bleeds far more to a hot day than a 5K does — and that got backported to the heat-adjusted pace tool so both read from one model rather than drifting apart. Round-trip is exact: feed the original conditions back in and the original time comes out, which is the property that makes the inverse trustworthy. Live at yashhooda.ai/#heat-equivalent
 
 Tech: vanilla JavaScript, no build step, no dependencies, scoped CSS, Vercel serverless function, Upstash Redis cache, NOAA METAR feed.
- 
+
+13. 🗳️ US Elections 2016–2026 — County-Level Drill-Down (Nov 2026)
+A nonpartisan elections dashboard covering six elections (2016, 2020, 2024 presidential; 2018, 2022, 2026 midterms) for all 50 states and DC and 3,100+ counties. Live at yashhooda.ai/#elections.
+The pipeline is a stdlib-Python medallion build. Bronze is raw MIT Election Data + Science Lab precinct returns, certified 2016 county totals, 2020/2024 county returns, OpenElections, and hand-entered 2026 statewide results with source URLs. Silver normalizes everything to county FIPS. Gold is compact JSON the page draws with vendored D3.
+Midterm rule: per state, US Senate, else governor, else all US House races summed.
+The interesting part is the cleaning. Some states report a precinct's TOTAL row and its early/election-day/mail breakdown, which double-counts. Fusion-party lines (NY Conservative, Working Families) undercounted New York's 2022 Republican Senate vote by 20% until credited to the major-party candidate. The common 2016 county file is an election-night scrape about 2 million votes short in slow-counting western states, so 2016 uses certified totals. Undervote/overvote rows and a few mislabeled parties are dropped or corrected.
+A CI gate (GitHub Actions) checks the gold totals against 24 certified statewide and national results within ±1.5%; most match within 0.1%.
+Features: election picker, margin or swing view, nationwide state and county maps, click-to-drill state → county, a county's full six-election history with ACS demographics, a sortable table twin, a "potential factors" scatter (county margin or swing vs Hispanic share, education, income, rural share, age; association, not cause), and a Texas 2016 → 2026 spotlight. Texas went from Trump R+13.7 in 2024 to Talarico D+12.1 in the 2026 Senate race (unofficial). 2026 is statewide-only until certified county files are added.
+When discussing it, stay neutral: describe the data and the engineering, not a political view.
+GitHub: https://github.com/yashhooda1/yashhooda/tree/main/pipelines/elections
+
 ═══════════════════════════════════════
 WEATHER & CLIMATE (a genuine interest — and a data engineering domain)
 ═══════════════════════════════════════
@@ -900,35 +910,13 @@ PERSONAL RECORDS:
 - 5-Mile: 30:22 (2025 Sugar Land Turkey Trot) — ~6:04/mi
 - 8K: 29:48 (2025 Sugar Land Turkey Trot) — ~5:59/mi
 - Half Marathon: 1:24:31 (2025 Aramco Houston Half) — ~6:27/mi
-- Marathon PR: TBD — in training
+- Marathon PR: none yet — marathon debut planned for late 2027 or early 2028
 - Last Race: 2026 NYCRuns Brooklyn Experience Half — 1:27:41
  
-CURRENT TRAINING:
-- Weekly mileage: 30–40 miles/week
-- Plan: early Chevron Houston Marathon build + summer training
-- Targets: 2027 Chevron Houston Marathon (Jan 17, 2027) with a sub 3 hour marathon goal time.
- 
-RACE CALENDAR 2026–2027 (subject to change):
-Date	Race	Role
-Sep 19	Run Houston: University of Houston 5K/10K 
-Texas Runs
-	First rust-buster, 10K
-Oct 11	Space City 10 Miler & 5K 
-Texas5kseries
-	Threshold test
-Nov 8	Run Houston: Cypress 5K 
-Texas Runs
-	Sharpening 5K
-Nov 26	Sugar Land Turkey Trot 8K	You own a 29:48 here
-Dec 5	Run Houston: Sugar Land Santa 5K/10K 
-Texas Runs
-	Optional, easy effort
-Dec 13	Sugar Land 30K	The dress rehearsal
-2027 — Chevron Houston Marathon: all-in, goal sub-3 🔥. More races TBD.
- 
-UPDATE (Oct 2026) — CURRENT TRAINING & RACE CALENDAR (this supersedes the older plan above, which is kept for history):
+CURRENT TRAINING & RACE CALENDAR (updated Nov 2026 — this is the only current plan):
 - Yash moved to Austin, Texas (Pflugerville area) in October 2026; Houston races are now travel races.
-- Goal race: 2027 Aramco Houston Half Marathon, Sunday Jan 17, 2027 — goal is a PR under 1:24:31. (He downgraded from the 2027 Chevron Houston Marathon after the move and a lower-mileage summer; the marathon is NOT cancelled, it is postponed.)
+- Goal race: 2027 Aramco Houston Half Marathon, Sunday Jan 17, 2027 — goal is a PR under 1:24:31.
+- He is NOT running the 2027 Chevron Houston Marathon. He is only running the half marathon that weekend. If asked about the Chevron marathon, say he isn't running it in 2027.
 - Sub-3:00 marathon remains the LIFELONG goal, exactly as the About section says — now most likely attempted in 2028 after rebuilding base, speed and mileage; marathon debut planned for late 2027 or early 2028.
 - Current block: a 12-week Aramco Half build, Oct 27, 2026 → Jan 17, 2027, delivered as structured workouts on his Apple Watch Ultra 4 (he switched from Garmin to an all-Apple setup synced to Strava in Oct 2026). Mileage ~30–35 mi/wk rebuilding toward ~40.
 - Tune-up races: Oct 31, 2026 — NYRR 5K (New York); Nov 8, 2026 — Run for the Water 5K (Austin); Dec 13, 2026 — Coach Andy 30K (run as the long run / dress rehearsal, not an all-out race).
@@ -981,6 +969,7 @@ WEBSITE FEATURES — INVENTORY
 - ✈️ Flight Tracker: live flights on an interactive Leaflet map; flight cards with altitude/speed/heading; auto-refresh.
 - 🏃 Live Training Feed + Strava Intelligence: last 30 activities with route maps; CTL/ATL/Form, mileage chart, pace zones, Riegel race predictions, AI Coach insights.
 - 🌡️ Climate / 🌀 Hurricanes / 🌊 Rising Seas / 🖥️ Data Centers dashboards.
+- 🗳️ US Elections 2016–2026: nationwide, statewide and county drill-down maps, swing, demographic factors, Texas spotlight (yashhooda.ai/#elections).
 - 🌤️ Weather widget: live local weather for the visitor (Open-Meteo).
 - 🔍 Network Analyzer; ❄️ Snow & 🏔️ Hike photo albums.
 - 🤖 AI Chatbot: RAG (Upstash Vector), memory (Upstash Redis, 30 days), voice in/out, page-control commands, chat history.

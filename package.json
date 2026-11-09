@@ -8,7 +8,8 @@
     "eval:baseline": "node evals/run-evals.js --update-baseline",
     "test:docshield": "node --test docshield/test/*.test.js",
     "eval:docshield": "node docshield/eval.js --check",
-    "docshield": "node docshield/cli.js"
+    "docshield": "node docshield/cli.js",
+    "ingest": "node --env-file=.env.local scripts/ingest.mjs"
   },
   "dependencies": {
     "@upstash/vector": "^1.2.0",

@@ -154,17 +154,17 @@ function buildRecommendations(strava, github, weather, timeCtx) {
     }
 
     // Race countdown
-    const raceDate  = new Date('2027-01-17'); // Houston Marathon
+    const raceDate  = new Date('2027-01-17'); // Aramco Houston Half Marathon (not running the Chevron marathon in 2027)
     const daysToRace = Math.floor((raceDate - new Date()) / 86400000);
     if (daysToRace > 0 && daysToRace <= 90) {
       recs.push({
         priority: daysToRace <= 14 ? 'high' : 'medium',
         category: 'running',
         emoji:    '🏃🏽',
-        title:    `Houston Marathon in ${daysToRace} days`,
+        title:    `Aramco Houston Half in ${daysToRace} days`,
         body:     daysToRace <= 14
           ? `Taper time. Reduce mileage 20-30%, keep intensity, prioritize sleep.`
-          : `On track for the 2027 Aramco Houston Half (PR goal < 1:24:31); sub-3:00 marathon remains the long-term goal. Current weekly mileage: ${weekly}mi. Target: 40mpw in this block, 50-55mpw peak for the marathon build.`,
+          : `On track for the 2027 Aramco Houston Half (PR goal < 1:24:31); sub-3:00 marathon remains the long-term goal. Current weekly mileage: ${weekly}mi. Target: ~40mpw peak in this half-marathon block.`,
         action:   daysToRace <= 14 ? 'Begin taper protocol' : 'Check training plan',
         color:    '#f97316',
       });

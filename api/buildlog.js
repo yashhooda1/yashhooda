@@ -18,6 +18,50 @@ const ALLOWED_ORIGINS = new Set([
 // ── STATIC SHIPPED MILESTONES (always shown, most recent first) ──────────────
 const SHIPPED_MILESTONES = [
   {
+    date:    '2026-11-09',
+    title:   'US Elections 2016–2026 — Nationwide, Statewide & County Drill-Down',
+    body:    'A nonpartisan elections dashboard covering six elections (2016, 2020, 2024 presidential; 2018, 2022, 2026 midterms) across all 50 states, DC and 3,100+ counties. It runs on a stdlib-Python medallion pipeline. Bronze is MIT Election Lab precinct returns, certified 2016 county totals, 2020/2024 county returns, OpenElections and hand-entered 2026 statewide results with source URLs. Silver normalizes to county FIPS, and gold is compact JSON drawn with vendored D3 and us-atlas, with no third-party calls at runtime. The cleaning was the real work. Precincts that report a TOTAL row next to their early/election-day/mail breakdown were double-counting. Fusion-party lines had New York 2022 Republican Senate votes 20% short until Conservative-line votes were credited to the candidate. The common 2016 county file turned out to be an election-night scrape about 2 million votes short in slow-counting western states, so it was replaced with certified totals. Undervote rows and mislabeled parties are dropped or corrected. A GitHub Actions gate checks the gold totals against 24 certified statewide and national results within ±1.5%, and most land within 0.1%. The page has an election picker, margin or swing view, state and county maps with click-to-drill, each county’s six-election history with ACS demographics, a sortable table, a potential-factors scatter (association, not cause) and a Texas 2016→2026 spotlight. 2026 is statewide-only and unofficial until certified county files are dropped in.',
+    tags:    ['data-engineering', 'medallion', 'python', 'pipeline', 'data-quality', 'ci', 'd3', 'dataviz', 'elections'],
+    type:    'shipped',
+    links:   [
+      { label: 'Live dashboard', url: 'https://www.yashhooda.ai/#elections' },
+      { label: 'Pipeline', url: 'https://github.com/yashhooda1/yashhooda/tree/main/pipelines/elections' },
+    ],
+  },
+  {
+    date:    '2026-11-05',
+    title:   'HoodaAgents — DeepSeek V4 Pro + V4.1 Flash',
+    body:    'Added DeepSeek to the model picker as two models: DeepSeek V4 Pro (flagship) and DeepSeek V4.1 Flash (fast, very low cost). Both live in the shared lib/models.js catalog, so they work in chat, web-search chat and voice, each on its OpenAI-compatible path. Pro falls back to Flash on a model-access error instead of failing. Thinking is off by default, because V4 reasons by default, which is slow, bills reasoning tokens and would use up the voice token budget. DEEPSEEK_THINKING=on re-enables it at low effort. Only the answer content is ever shown, never reasoning_content. The retired deepseek-chat and deepseek-reasoner IDs are not used. Request shape and fallback were verified against a mocked API, and the picker shows the DeepSeek logo in its brand blue.',
+    tags:    ['hoodaagents', 'llm-routing', 'deepseek', 'multi-model', 'fallbacks', 'ai-engineering'],
+    type:    'shipped',
+    links:   [
+      { label: 'Models tab', url: 'https://www.yashhooda.ai/#tars' },
+      { label: 'GitHub PR', url: 'https://github.com/yashhooda1/yashhooda/pull/22' },
+    ],
+  },
+  {
+    date:    '2026-10-31',
+    title:   'DocShield — Security Gate for AI Document Pipelines',
+    body:    'A pre-ingestion scanner for any document headed to an LLM. It returns ALLOW / REVIEW / BLOCK with evidence and OWASP LLM Top 10 (2025), MITRE ATT&CK, ATLAS and CWE mappings for every finding. It catches four kinds of problem. Malicious PDFs: auto-run JavaScript, Launch actions, embedded executables, #hex-obfuscated names and decompression bombs. Disguised files: an EXE renamed to .pdf, double extensions, RTL-override names and polyglots. Indirect prompt injection a human never sees: white text, render-mode-3 layers, sub-1pt fonts, off-page text, metadata, Unicode-tag smuggling, zero-width splits, homoglyphs and base64. Secrets and PII, with the evidence redacted. It has zero dependencies and no model in the decision, so it cannot be prompt-injected itself. A hand-written PDF parser and content-stream interpreter separate visible text from hidden text. On its own corpus it caught 26/26 malicious files against 2/26 for the old upload filter, with one documented false alarm. There are 59 tests, a STRIDE threat model, SARIF export, and a CI eval gate (recall ≥ 95%, FPR ≤ 15%).',
+    tags:    ['security', 'prompt-injection', 'owasp-llm', 'mitre-atlas', 'pdf', 'testing', 'ci'],
+    type:    'shipped',
+    links:   [
+      { label: 'Try it live', url: 'https://www.yashhooda.ai/#docshield' },
+      { label: 'Threat model', url: 'https://github.com/yashhooda1/yashhooda/blob/main/docshield/THREAT_MODEL.md' },
+    ],
+  },
+  {
+    date:    '2026-10-30',
+    title:   'Preflight Brief Agent — Route Go/No-Go in METAR Stream',
+    body:    'Turns a route (e.g. KAUS → KHOU) into a pilot-style preflight weather brief with go / caution / no-go flags. It pulls METARs and TAFs from NOAA, plus FAA NOTAMs when keyed. If an airport has no TAF, it uses the nearest TAF station within 40 nm and re-validates that choice. The flags come from deterministic rules in lib/preflight.js, a JS port of the metar-stream Python rules, parity-checked on shared fixtures, so the model never decides go/no-go. A short narrative from the fast model is login-gated. The endpoint is rate limited, behind a kill switch, and Redis-cached (weather 5 min, narratives 10 min).',
+    tags:    ['agent', 'aviation', 'metar', 'noaa', 'deterministic-rules', 'serverless'],
+    type:    'shipped',
+    links:   [
+      { label: 'METAR Stream', url: 'https://www.yashhooda.ai/#metar' },
+      { label: 'GitHub PR', url: 'https://github.com/yashhooda1/yashhooda/pull/19' },
+    ],
+  },
+  {
     date:    '2026-10-27',
     title:   'HoodaAgents — Claude 5.5 / GPT-6.1 / Gemini 4 / Grok 4.7, fallback chains, RAG refresh',
     body:    'Added 13 models across every chat surface (chat, voice, web-search, Models tab) from a new shared catalog in lib/models.js: Claude Opus/Sonnet/Haiku 5.5, GPT-6.1 Terra & Sol, GPT-6 Sol & Luna, GPT-5.4 nano, Gemini 4 Argon, Gemini 3.6 Flash and 3.5 Flash-Lite, Grok 4.7 and 4.6. Every provider branch now retries one step down on a model-access error instead of 502ing, and the small utility model behind CRAG grading, reranking, analysis and extraction is env-selectable (ANTHROPIC_FAST_MODEL). Rebuilt the RAG knowledge base with 20 current chunks ingested as dense + sparse vectors — and fixed the sparse query shape so hybrid retrieval actually returns sparse hits. Refreshed the running knowledge everywhere: Austin, the 2027 Aramco Houston Half as the goal race, the Oct–Dec tune-up calendar, Apple Watch Ultra 4 — with sub-3:00 marathon kept as the lifelong goal. Also fixed two latent syntax errors (prompt-lab.js, darkweb.js) that had taken those endpoints down.',
@@ -37,6 +81,16 @@ const SHIPPED_MILESTONES = [
     links:   [
       { label: 'Fit Check', url: 'https://www.yashhooda.ai/#fit-check' },
       { label: 'GitHub PR', url: 'https://github.com/yashhooda1/yashhooda/pulls' },
+    ],
+  },
+  {
+    date:    '2026-10-23',
+    title:   'HoodaRun — Build a Workout, Run It on Apple Watch',
+    body:    'A Garmin Connect–style workout builder for HoodaRun, my Apple Watch Ultra workout app. It covers easy runs, tempos, intervals, mile repeats, fartleks and long runs. Build a workout on yashhooda.ai and sign in with your Apple ID, and it is saved to your own private iCloud through CloudKit. HoodaRun on iPhone picks it up and schedules it in the Workout app with step-by-step pace and heart-rate alerts. Claude-built plans from mcp-apple-workouts use the exact same workout format. The builder runs in preview mode until a CloudKit web API token is set.',
+    tags:    ['apple-watch', 'cloudkit', 'ios', 'running', 'mcp'],
+    type:    'shipped',
+    links:   [
+      { label: 'Workout builder', url: 'https://www.yashhooda.ai/#hoodarun' },
     ],
   },
   {

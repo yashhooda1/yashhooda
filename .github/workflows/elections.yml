@@ -1,0 +1,64 @@
+# .github/workflows/elections.yml
+# US elections pipeline (pipelines/elections/) — bronze -> silver -> gold for #elections.
+#
+#  * pull_request / push: re-check the committed gold JSON against certified totals
+#    (pipelines/elections/checks.csv). Fast: no downloads.
+#  * workflow_dispatch: fetch bronze from the public sources, rebuild silver + gold,
+#    run the same gate, and open a PR with the refreshed data if anything changed.
+#    Run it after dropping a certified 2026 county file into data/elections/bronze/2026/.
+# Python standard library only, so there is no install step.
+name: Elections
+
+on:
+  push:
+    branches: [main]
+    paths: ['pipelines/elections/**', 'data/elections/**', '.github/workflows/elections.yml']
+  pull_request:
+    paths: ['pipelines/elections/**', 'data/elections/**', '.github/workflows/elections.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Gold totals vs certified results (±1.5%)
+        run: python pipelines/elections/build.py --check-only
+
+  rebuild:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch bronze
+        run: bash pipelines/elections/fetch_bronze.sh
+      - name: Build silver + gold, then gate
+        run: python pipelines/elections/build.py --check
+      - name: Open a PR with refreshed data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- data/elections; then echo "No data changes."; exit 0; fi
+          branch="data/elections-refresh-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add data/elections
+          git commit -m "data(elections): refresh gold from pipeline run ${GITHUB_RUN_ID}"
+          git push origin "$branch"
+          gh pr create --title "Elections data refresh" --body "Automated rebuild of data/elections from pipelines/elections (run ${GITHUB_RUN_ID}). Certified-total gate passed." --base main --head "$branch"

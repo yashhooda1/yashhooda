@@ -1,0 +1,25 @@
+year,state,race,dem_votes,rep_votes,source
+2016,US,president,65853514,62984828,FEC Federal Elections 2016
+2020,US,president,81283501,74223975,FEC Federal Elections 2020
+2024,US,president,75017613,77302580,FEC Federal Elections 2024 (certified)
+2016,TX,president,3877868,4685047,Texas SOS canvass
+2020,TX,president,5259126,5890347,Texas SOS canvass
+2024,TX,president,4835250,6393597,Texas SOS canvass
+2020,PA,president,3458229,3377674,Pennsylvania DOS certified
+2018,TX,senate,4045632,4260553,Texas SOS canvass
+2018,FL,senate,4084545,4099505,Florida DOS certified
+2018,OH,senate,2358508,2057559,Ohio SOS certified
+2018,IN,senate,1023553,1158000,Indiana Election Division
+2018,DE,senate,217385,137127,Delaware Department of Elections
+2022,TX,governor,3553656,4437099,Texas SOS canvass
+2022,GA,senate,1946117,1908442,Georgia SOS certified (general, before runoff)
+2022,AZ,senate,1322027,1196308,Arizona SOS canvass
+2022,NV,senate,498316,490388,Nevada SOS canvass
+2022,PA,senate,2751012,2487260,Pennsylvania DOS certified
+2022,WA,senate,1741906,1299322,Washington SOS certified
+2022,NY,senate,3320561,2501151,NYS Board of Elections (all party lines)
+2022,MI,governor,2430505,1960635,Michigan Board of State Canvassers
+2022,MN,governor,1312349,1119941,Minnesota SOS canvass
+2022,NM,governor,370168,324701,New Mexico SOS canvass
+2022,ND,senate,59995,135474,North Dakota SOS
+2022,WY,governor,30686,143696,Wyoming SOS

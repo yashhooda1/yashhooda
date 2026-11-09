@@ -12,6 +12,7 @@ This is a single-page portfolio that is also a working AI application (HoodaAgen
 - [DocShield](https://www.yashhooda.ai/#docshield): security gate for AI document pipelines — malicious-PDF triage, hidden prompt-injection detection, secrets/PII, OWASP LLM Top 10 + MITRE ATT&CK/ATLAS mappings, SARIF ([README](https://github.com/yashhooda1/yashhooda/blob/main/docshield/README.md), [threat model](https://github.com/yashhooda1/yashhooda/blob/main/docshield/THREAT_MODEL.md))
 - [METAR Stream](https://www.yashhooda.ai/#metar): Kafka → Spark Structured Streaming → Delta medallion, live US airspace, plus a Preflight Brief agent (route → METAR/TAF/NOTAM → go/no-go)
 - [ClimatePulse](https://www.yashhooda.ai/#climate): 56-year NOAA pipeline, 13 cities
+- [US Elections 2016–2026](https://www.yashhooda.ai/#elections): county-level medallion pipeline (MIT Election Lab precinct returns → county FIPS → gold JSON) with a certified-totals CI gate; national/state/county drill-down, swing, demographic factors, Texas 2016→2026 spotlight ([pipeline](https://github.com/yashhooda1/yashhooda/tree/main/pipelines/elections))
 - [Running tools](https://www.yashhooda.ai/#heat-pace): heat-adjusted pace, pace calculator, race predictor, race time by temperature
 - [Build Log](https://www.yashhooda.ai/#buildlog): build-in-public changelog
 - [Contact](https://www.yashhooda.ai/#contact)

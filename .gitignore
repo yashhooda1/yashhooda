@@ -68,3 +68,6 @@ apple/ios/**/*.xcodeproj/
 apple/ios/**/xcuserdata/
 apple/ios/**/DerivedData/
 __pycache__/
+
+# ── ELECTIONS PIPELINE ── raw bronze downloads (~350 MB), refetched by pipelines/elections/fetch_bronze.sh
+.elex-bronze/

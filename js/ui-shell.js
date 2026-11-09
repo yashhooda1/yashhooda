@@ -364,7 +364,7 @@
      ══════════════════════════════════════════════════════════════════════ */
   const RAIL = [ // curated: one dot per destination worth a glance
     ['about', '⚡', 'About'], ['fit-check', '🎯', 'Fit Check'], ['projects', '🚀', 'Projects'], ['governance', '🛡️', 'AI Governance'], null,
-    ['aviation', '✈️', 'Aviation'], ['metar', '🌪️', 'METAR Stream'], ['climate', '🌡️', 'Climate'], ['datacenters', '🖥️', 'Data Centers'], ['apple-lab', '🍎', 'Apple Lab'], null,
+    ['aviation', '✈️', 'Aviation'], ['metar', '🌪️', 'METAR Stream'], ['climate', '🌡️', 'Climate'], ['datacenters', '🖥️', 'Data Centers'], ['elections', '🗳️', 'Elections'], ['apple-lab', '🍎', 'Apple Lab'], null,
     ['running', '🏃', 'Running'], ['heat-pace', '🌡️', 'Running Tools'], ['strava-feed', '📡', 'Live Strava'], null,
     ['certifications', '🏆', 'Certs'], ['buildlog', '📋', 'Build Log'], ['contact', '📬', 'Contact'],
   ];

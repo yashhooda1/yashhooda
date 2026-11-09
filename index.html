@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="/css/themes.css" />
     <link rel="stylesheet" href="/css/preflight.css" />
     <link rel="stylesheet" href="/css/docshield.css" />
+    <link rel="stylesheet" href="/css/elections.css" />
     <script>
     /* Theme boot — runs before first paint so there is no flash of the wrong theme.
        Full switcher lives in js/ui-shell.js. */
@@ -4312,6 +4313,7 @@
                     <a href="#hurricanes">Hurricanes 🌀</a>
                     <a href="#sealevel">Rising Seas 🌊</a>
                     <a href="#datacenters">Data Centers 🖥️</a>
+                    <a href="#elections">US Elections 🗳️</a>
                     <a href="#apple-lab">Apple Silicon Lab 🍎</a>
                     <a href="#snow">Snow ❄️</a>
                     <a href="#network">Network 🔍</a>
@@ -5946,6 +5948,106 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <p id="dc-caveat" style="margin-top:1rem;border-left:2px solid #a78bfa;background:rgba(167,139,250,0.08);padding:0.75rem 0.9rem;border-radius:0 8px 8px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
             <strong style="color:var(--text);">Reading this honestly:</strong> per-query water and energy numbers are genuinely contested and span orders of magnitude, so they're shown as ranges. At the individual level an AI prompt is tiny next to everyday items — a single burger is ~1,650 L of water. What actually strains systems is the <em>aggregate</em> and its <em>geographic concentration</em>: a handful of clusters (Northern Virginia alone ≈ a quarter of the state's electricity) pull enormous, localized loads on grids and watersheds — and efficiency gains keep being outrun by sheer growth.
         </p>
+    </section>
+
+    <!-- ═══ US ELECTIONS 2016–2026 — county drill-down (pipelines/elections/, data/elections/, js/elections.js, css/elections.css) ═══ -->
+    <section id="elections">
+        <h2>🗳️ US Elections 2016–2026 — Nationwide, Statewide &amp; County Drill-Down</h2>
+        <p class="el-lede">
+            Six elections, 3,100+ counties, one pipeline. Raw precinct and county returns (MIT Election Lab, OpenElections, state canvasses)
+            land in a <strong>bronze</strong> layer, get normalized to county FIPS with fusion-party lines credited to the right candidate and
+            duplicate vote-mode rows removed (<strong>silver</strong>), then roll up into compact <strong>gold</strong> JSON this page draws.
+            A CI gate checks the gold totals against 24 certified statewide and national results before anything ships.
+            Pick an election, click a state to drill into its counties, click a county for its full history.
+        </p>
+
+        <div class="el-filters" role="group" aria-label="Election dashboard filters">
+            <div class="el-years" id="el-years" role="group" aria-label="Election"></div>
+            <div class="el-seg" role="group" aria-label="Show">
+                <button type="button" data-view="margin" aria-pressed="true">Margin</button>
+                <button type="button" data-view="swing" aria-pressed="false">Swing</button>
+            </div>
+            <div class="el-seg" role="group" aria-label="Swing compared with">
+                <button type="button" data-cmp="prev" aria-pressed="true" disabled title="Compare with the election just before">vs previous</button>
+                <button type="button" data-cmp="type" aria-pressed="false" disabled title="President vs president, midterm vs midterm">vs same type</button>
+            </div>
+            <div class="el-seg" role="group" aria-label="Map detail">
+                <button type="button" data-geo="states" aria-pressed="false">States</button>
+                <button type="button" data-geo="counties" aria-pressed="true">Counties</button>
+            </div>
+            <label class="el-select"><span>State</span><select id="el-state" aria-label="State"><option value="">All states</option></select></label>
+        </div>
+
+        <p class="el-status" id="el-status">The dashboard loads when you scroll here.</p>
+        <div id="el-body" hidden>
+            <div class="el-crumbs" id="el-crumbs" role="navigation" aria-label="Drill-down level"></div>
+            <div class="el-kpis" id="el-kpis"></div>
+
+            <div class="el-grid">
+                <div class="el-card el-map-card">
+                    <svg id="el-map" class="el-map" role="group" aria-label="Map of results. Use the table for every value."></svg>
+                    <div class="el-legend" id="el-legend"></div>
+                    <div class="el-notes" id="el-notes"></div>
+                </div>
+                <div class="el-side">
+                    <div class="el-card el-detail" id="el-detail" hidden></div>
+                    <div class="el-card">
+                        <h3 id="el-trend-title">Margin, 2016–2026</h3>
+                        <div id="el-trend" class="el-trend"></div>
+                        <p class="el-hint">● president &nbsp;○ midterm (the race differs by state). Margin = (D − R) ÷ all votes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="el-grid el-grid-2">
+                <div class="el-card">
+                    <h3 id="el-table-title">Results</h3>
+                    <div class="el-table-wrap"><table class="el-table" id="el-table"></table></div>
+                    <p class="el-hint">Click a column to sort, a row to drill in. This table carries every value on the map.</p>
+                </div>
+                <div class="el-card">
+                    <div class="el-factor-head">
+                        <h3>Potential factors</h3>
+                        <label class="el-select"><span>Compare with</span><select id="el-factor">
+                            <option value="hisp">Hispanic or Latino %</option><option value="lesscol">No 4-year degree %</option>
+                            <option value="white">White, non-Hispanic %</option><option value="black">Black %</option>
+                            <option value="foreign">Foreign-born %</option><option value="inc">Median household income</option>
+                            <option value="rural">Rural population %</option><option value="age65">Age 65+ %</option><option value="unemp">Unemployment %</option>
+                        </select></label>
+                    </div>
+                    <p class="el-sub" id="el-factor-title"></p>
+                    <div id="el-scatter" class="el-scatter"></div>
+                    <p class="el-hint" id="el-factor-stat"></p>
+                </div>
+            </div>
+
+            <div class="el-card el-spotlight">
+                <h3>Spotlight: Texas, 2016 → 2026</h3>
+                <div class="el-spot-top">
+                    <div class="el-hero" id="el-tx-hero"></div>
+                    <div class="el-spot-trend"><p class="el-sub">Texas statewide margin, every election</p><div id="el-tx-trend"></div></div>
+                </div>
+                <div class="el-multiples" id="el-tx-multiples"></div>
+                <div class="el-shifts" id="el-tx-shifts"></div>
+            </div>
+
+            <details class="el-card el-method">
+                <summary>Method, caveats &amp; sources</summary>
+                <ul>
+                    <li><b>Midterm race rule:</b> per state, the US Senate race (regular before special), else governor, else every US House race summed. A race counts only if a Democrat and a Republican each won 15%+ statewide, so VT/ME 2018 (independent senators) and CA 2018 (D vs D) fall through to governor.</li>
+                    <li><b>Cleaning:</b> undervotes/overvotes and "ballots cast" rows are dropped; a candidate's TOTAL row is dropped when the same precinct also reports early/election-day/mail; fusion lines (NY Conservative, Working Families…) go to the candidate's major party; Indiana 2018 comes from OpenElections because the MIT file is missing it; a few mislabelled parties are corrected by hand and listed in <code>build.py</code>.</li>
+                    <li><b>Geography:</b> Alaska reports by state-house district and Connecticut 2024 by planning region, so their county maps show the statewide result. Indiana 2022 county data is partial; its statewide total comes from the state canvass.</li>
+                    <li><b>2026 is unofficial.</b> Texas statewide results are loaded (Senate as of Nov 8, governor as of Nov 6); county files are added as states certify.</li>
+                    <li><b>Factors</b> use ACS 2012–2016 county estimates and show association, not cause.</li>
+                    <li><b>Sources:</b> <a href="https://github.com/MEDSL/2018-elections-official" target="_blank" rel="noopener">MIT Election Lab 2018</a> · <a href="https://github.com/MEDSL/2022-elections-official" target="_blank" rel="noopener">MIT Election Lab 2022</a> · <a href="https://github.com/MEDSL/2018-elections-unoffical" target="_blank" rel="noopener">MIT county context (certified 2016 + ACS)</a> · <a href="https://github.com/tonmcg/US_County_Level_Election_Results_08-24" target="_blank" rel="noopener">2020/2024 county returns</a> · <a href="https://github.com/openelections/openelections-data-in" target="_blank" rel="noopener">OpenElections Indiana</a> · <a href="https://electionresults.sos.state.tx.us/results.html" target="_blank" rel="noopener">Texas SOS</a> · map shapes from us-atlas.</li>
+                </ul>
+                <div class="el-links">
+                    <a class="project-btn" href="https://github.com/yashhooda1/yashhooda/tree/main/pipelines/elections" target="_blank" rel="noopener">📂 Pipeline</a>
+                    <a class="project-btn" href="https://github.com/yashhooda1/yashhooda/blob/main/pipelines/elections/checks.csv" target="_blank" rel="noopener">✅ Certified-total checks</a>
+                </div>
+            </details>
+        </div>
+        <div class="el-tip" id="el-tip" role="tooltip" hidden></div>
     </section>
 
     <!-- APPLE SILICON LAB -->
@@ -17551,5 +17653,6 @@ if (buildlogSection) buildlogObserver.observe(buildlogSection);
 <script src="/js/ui-shell.js" defer></script>
 <script src="/js/preflight.js" defer></script>
 <script src="/js/docshield.js" defer></script>
+<script src="/js/elections.js" defer></script>
 </body>
 </html>

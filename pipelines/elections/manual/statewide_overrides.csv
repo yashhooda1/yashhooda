@@ -1,0 +1,3 @@
+year,state,race,dem_votes,rep_votes,total_votes,note,source_url
+2016,AK,president,116454,163387,318608,MEDSL context file has no Alaska rows and the tonmcg 2016 row is an election-night count; certified totals used,https://www.elections.alaska.gov/results/16GENR/
+2022,IN,senate,704411,1090165,1858390,MEDSL 2022 Indiana file covers only part of the state; statewide total from the Indiana Election Division canvass (county map shows the counties MEDSL has),https://en.wikipedia.org/wiki/2022_United_States_Senate_election_in_Indiana

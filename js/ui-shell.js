@@ -78,13 +78,36 @@
       if (!p.classList.contains('open')) return;
       $$('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === theme.current()));
       // anchor under whichever button opened it (nav button or mobile bar)
-      const btn = (ev && ev.target && ev.target.closest('button')) || $('#nav-theme-btn');
-      const r = btn ? btn.getBoundingClientRect() : null;
-      if (r && r.bottom < window.innerHeight - 200) { p.style.top = Math.round(r.bottom + 8) + 'px'; p.style.bottom = 'auto'; p.style.right = Math.max(8, Math.round(window.innerWidth - r.right)) + 'px'; }
-      else { p.style.top = 'auto'; p.style.bottom = '72px'; p.style.right = '8px'; }
+      themeAnchor = (ev && ev.target && ev.target.closest('button')) || $('#nav-theme-btn');
+      placeThemePop();
     },
     close() { const p = $('#yh-theme-pop'); if (p) p.classList.remove('open'); },
   };
+  // Position the theme menu next to the button that opened it, always fully inside the
+  // viewport. (Bug, Nov 2026: it was right-aligned to the button's right edge, so with the
+  // button near the left of the nav the 360px menu hung off the left side of the window.)
+  // Re-run on scroll/resize while open so the menu follows the nav instead of staying put.
+  let themeAnchor = null;
+  function placeThemePop() {
+    const p = $('#yh-theme-pop');
+    if (!p || !p.classList.contains('open')) return;
+    const r = themeAnchor && themeAnchor.isConnected ? themeAnchor.getBoundingClientRect() : null;
+    const w = p.offsetWidth, h = p.offsetHeight, vw = window.innerWidth, vh = window.innerHeight, m = 8;
+    p.style.right = 'auto';
+    if (!r || (!r.width && !r.height)) {        // no visible anchor (e.g. opened from ⌘K or the "t" key)
+      p.style.left = Math.max(m, vw - w - m) + 'px'; p.style.top = 'auto'; p.style.bottom = '72px';
+      return;
+    }
+    // Horizontal: open from the button's left edge, shifted back inside the window if it would overflow.
+    p.style.left = Math.round(Math.min(Math.max(m, r.left), Math.max(m, vw - w - m))) + 'px';
+    // Vertical: below the button if it fits, else above it, else pinned to the bottom.
+    if (r.bottom + 8 + h <= vh - m) { p.style.top = Math.round(r.bottom + 8) + 'px'; p.style.bottom = 'auto'; }
+    else if (r.top - 8 - h >= m)    { p.style.top = Math.round(r.top - 8 - h) + 'px'; p.style.bottom = 'auto'; }
+    else                             { p.style.top = 'auto'; p.style.bottom = '72px'; }
+  }
+  window.addEventListener('resize', placeThemePop);
+  window.addEventListener('scroll', placeThemePop, { passive: true });
+
   function buildThemePop() {
     let p = $('#yh-theme-pop'); if (p) return p;
     p = document.createElement('div'); p.id = 'yh-theme-pop'; p.className = 'theme-pop'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', 'Choose a theme');

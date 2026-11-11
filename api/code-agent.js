@@ -135,7 +135,9 @@ async function callModel(cfg, messages) {
         ...(systemMsg ? { system: systemMsg.content } : {}),
         messages:   userMsgs.map(m => ({ role: 'user', content: m.content })),
     };
-    if (THINKS_BY_DEFAULT) payload.effort = cfg.effort ?? 'low';
+    // Nov 2026: `effort` is not a top-level Messages API field — it sat here and every Opus 5
+    // request (python / sql / debug paths) came back 400 invalid_request_error. It belongs in output_config.
+    if (THINKS_BY_DEFAULT) payload.output_config = { effort: cfg.effort ?? 'low' };
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method:  'POST',

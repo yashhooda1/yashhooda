@@ -8024,7 +8024,8 @@ const SEARCH_TRIGGERS = [
  
 function needsWebSearch(text) {
     const lower = text.toLowerCase();
-    return SEARCH_TRIGGERS.some(t => lower.includes(t));
+    // Nov 2026: match whole words — substring matching fired on "know" (now), "restore" (score), "distill" (still).
+    return SEARCH_TRIGGERS.some(t => new RegExp('(^|[^a-z0-9])' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(lower));
 }
 
 (async function loadIFProfile() {

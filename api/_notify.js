@@ -31,19 +31,23 @@ async function sendEmail(subject, body) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
   try {
-    await fetch('https://api.resend.com/emails', {
+    const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${key}`,
         'Content-Type':  'application/json',
       },
       body: JSON.stringify({
-        from:    'alerts@yashhooda1.vercel.app',
+        // Nov 2026: was 'alerts@yashhooda1.vercel.app' — a vercel.app address can't be a verified
+        // Resend sender. Use the yashhooda.ai domain the signup/reset emails already send from.
+        from:    process.env.ALERT_FROM || 'HoodaAgents Alerts <noreply@yashhooda.ai>',
         to:      'yash.hooda6@gmail.com',
         subject,
         text:    body,
       }),
     });
+    // A rejected send (bad sender, bad key) used to pass silently — surface it in Vercel logs.
+    if (!r.ok) console.error('[NOTIFY] Email rejected:', r.status, (await r.text()).slice(0, 200));
   } catch (e) {
     console.error('[NOTIFY] Email failed:', e.message);
   }

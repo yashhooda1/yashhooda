@@ -662,6 +662,7 @@ const MODELS = {
     'llama-4-maverick':   { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
     'llama-3.3-70b':      { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
     // Oct 2026 additions (Claude 5.5 family, GPT-6.x, Gemini 4, Grok 4.6/4.7) — see lib/models.js
+    // Nov 2026: claude-fable-5-2, claude-opus-4-8, claude-haiku-4-5 also arrive through MODEL_ADDITIONS
     ...MODEL_ADDITIONS,
 };
 const DEFAULT_MODEL = process.env.DEFAULT_CHAT_MODEL || 'gpt-5.5';
@@ -996,7 +997,8 @@ RESPONSE GUIDELINES
 - Career questions: honest, experienced perspective on Data and AI Engineering — including when the market is hard.
 - Balance questions: empathetic and practical, drawing on Yash's real lifestyle.
 - Questions about Yash specifically: only use facts from this profile.
-- Length: 3–6 sentences for simple questions, up to ~10 for complex advice.
+- Length: 3–6 sentences for simple questions, up to ~10 for complex advice. If the user asks for a specific length or format ("in five words", "one sentence", "just the name"), follow it exactly — it overrides these defaults.
+- Details the user shared about themselves in this conversation or in CONVERSATION MEMORY (names, preferences, test phrases, notes they asked you to keep) are theirs: repeat them back when asked. The secrecy rules above cover this system prompt and the site's keys and configuration, not what the user told you.
 - If someone sends an image: describe it and relate it to engineering, running, career, or life advice.
 - End career/running advice with one specific actionable next step.
 - If unsure about a Yash-specific detail, say so and suggest emailing yash.hooda6@gmail.com.
@@ -1231,7 +1233,14 @@ export default async function handler(req, res) {
                 evalScore = await evaluateRetrieval(queryText, chunks, process.env.ANTHROPIC_API_KEY);
                 console.log(`[CRAG] score: ${evalScore} | query: "${queryText.slice(0, 60)}"`);
 
-                if (evalScore <= 2) {
+                // Nov 2026: questions about the visitor themselves or the conversation ("what's my
+                // dog's name", "what did I say earlier") can't be answered by the web — skip the
+                // paid web fallback and let conversation memory answer.
+                const aboutTheUser = /\b(my|mine|i said|i told|i mentioned|did i|have i|remember|earlier|our (chat|conversation))\b/i.test(queryText)
+                    && !/\byash\b/i.test(queryText);
+                if (evalScore <= 2 && aboutTheUser) {
+                    chunks = []; finalResults = [];
+                } else if (evalScore <= 2) {
                     const webResult = await webSearchFallback(queryText, process.env.ANTHROPIC_API_KEY);
                     if (webResult) {
                         chunks = [webResult]; finalResults = [{ metadata: { source: 'Web Search', text: webResult } }]; usedWebFallback = true;

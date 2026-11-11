@@ -8024,7 +8024,8 @@ const SEARCH_TRIGGERS = [
  
 function needsWebSearch(text) {
     const lower = text.toLowerCase();
-    return SEARCH_TRIGGERS.some(t => lower.includes(t));
+    // Nov 2026: match whole words — substring matching fired on "know" (now), "restore" (score), "distill" (still).
+    return SEARCH_TRIGGERS.some(t => new RegExp('(^|[^a-z0-9])' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(lower));
 }
 
 (async function loadIFProfile() {
@@ -9669,13 +9670,16 @@ function providerLogo(provider) {
 // ── AI MODEL SELECTION ──
 const AI_MODELS = [
     // ── Oct 2026 additions: Claude 5.5 family (lib/models.js keeps the server registry in sync) ──
+    { key: 'claude-fable-5-2',  name: 'Claude Fable 5.2',   provider: 'Anthropic', note: 'Newest (Nov 9) — Anthropic\'s most capable: demanding reasoning & long-horizon agentic work' },
     { key: 'claude-opus-5-5',   name: 'Claude Opus 5.5',    provider: 'Anthropic', note: 'Newest Opus — deepest reasoning, long agentic tasks' },
     { key: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5',  provider: 'Anthropic', note: 'Newest Sonnet — fast, sharp, best everyday Claude' },
     { key: 'claude-haiku-5-5',  name: 'Claude Haiku 5.5',   provider: 'Anthropic', note: 'Newest Haiku — near-instant, lowest cost Claude' },
     { key: 'claude-opus-5',     name: 'Claude Opus 5',      provider: 'Anthropic', note: 'Smartest, best for deep advice' },
     { key: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6',  provider: 'Anthropic', note: 'Fast and capable, great default' },
     { key: 'claude-fable-5',    name: 'Claude Fable 5',     provider: 'Anthropic', note: 'Anthropic\'s most capable model' },
-    { key: 'claude-fable-5-1',  name: 'Claude Fable 5.1',   provider: 'Anthropic', note: 'Latest Fable — long-horizon agentic coding & research' },
+    { key: 'claude-fable-5-1',  name: 'Claude Fable 5.1',   provider: 'Anthropic', note: 'Previous Fable — long-horizon agentic coding & research' },
+    { key: 'claude-opus-4-8',   name: 'Claude Opus 4.8',    provider: 'Anthropic', note: 'Last Opus 4 — proven, steady reasoning' },
+    { key: 'claude-haiku-4-5',  name: 'Claude Haiku 4.5',   provider: 'Anthropic', note: 'Fast, low-cost classic Haiku' },
     { key: 'claude-sonnet-5',   name: 'Claude Sonnet 5',    provider: 'Anthropic', note: 'Newest Sonnet — fast, capable, great everyday default' },
     // ── Oct 2026 additions: GPT-6.x line ──
     { key: 'gpt-6.1-terra',     name: 'ChatGPT 6.1 Terra',  provider: 'OpenAI',    note: 'Newest (Oct 26) — fast visual reasoning & computer use, half the cost of 5.6 Terra' },
@@ -10037,7 +10041,7 @@ function escapeHtml(text) {
 }
 
 // ── MARKDOWN RENDERER ──
-function renderMarkdown(text) {
+function renderMarkdown(text, opts) {
     if (!text) return '';
     try {
         if (window.marked) {
@@ -10051,6 +10055,13 @@ function renderMarkdown(text) {
                     return window.hljs ? hljs.highlightAuto(code).value : code;
                 }
             });
+            // opts.noHtml: escape raw HTML instead of passing it through — used for
+            // web-search replies, whose text is shaped by third-party pages (Nov 2026).
+            if (opts && opts.noHtml) {
+                const safe = new marked.Renderer();
+                safe.html = (h) => String(typeof h === 'string' ? h : (h && h.text) || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                return marked.parse(text, { renderer: safe });
+            }
             return marked.parse(text);
         }
     } catch(e) {}
@@ -10528,7 +10539,9 @@ async function sendMsg() {
             // Final text — parse save markers
             fullText = evt.text;
             const cleanText = parseSaveInstructions(fullText);
-            botDiv.textContent = cleanText || fullText;
+            // Nov 2026: render markdown like the /api/chat path does — search replies showed literal **bold**
+            botDiv.classList.add('markdown-body');
+            botDiv.innerHTML = renderMarkdown(cleanText || fullText, { noHtml: true });
             chatHistory.push({ role: 'assistant', content: cleanText || fullText });
             msgs.scrollTop = msgs.scrollHeight;
           } else if (evt.type === 'error') {

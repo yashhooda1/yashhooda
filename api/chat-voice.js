@@ -3,7 +3,7 @@ import { notifyFailure } from './_notify.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
 import { getAuthUser }  from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
-import { MODEL_ADDITIONS, fallbackFor, isModelAccessError, DEEPSEEK_BASE_URL, DEEPSEEK_CHAT_OPTIONS } from '../lib/models.js';
+import { MODEL_ADDITIONS, THINKS_BY_DEFAULT_RE, fallbackFor, isModelAccessError, DEEPSEEK_BASE_URL, DEEPSEEK_CHAT_OPTIONS } from '../lib/models.js';
 
 
 export const maxDuration = 120;
@@ -146,7 +146,9 @@ async function streamAnthropic(apiModel, messages, send) {
 
   const body = {
     model:      apiModel,
-    max_tokens: 300,
+    // Claude 5 models think before answering and thinking tokens share this budget —
+    // at 300 a Fable/Opus 5 reply could be cut off before any text (Nov 2026).
+    max_tokens: THINKS_BY_DEFAULT_RE.test(apiModel) ? 4000 : 300,
     stream:     true,
     system: [{ type: 'text', text: VOICE_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages,

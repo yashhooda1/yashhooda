@@ -59,6 +59,7 @@ Kill switches for the new endpoints: `SET killswitch:fit-check on`, `SET killswi
 | Provider | Added | Fallback if the account can't access it |
 |---|---|---|
 | Anthropic | `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` | → `claude-opus-5` / `claude-sonnet-5` / Haiku 4.5 |
+| Anthropic (Nov 11) | `claude-fable-5-2` (released Nov 9), `claude-opus-4-8`, `claude-haiku-4-5` | → `claude-opus-5-5` / `claude-sonnet-4-6` / — |
 | OpenAI | `gpt-6.1-terra` (Oct 26), `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.4-nano` | → one step down, then `gpt-5.5` |
 | Google | `gemini-4-argon`, `gemini-3.6-flash`, `gemini-3.5-flash-lite` | → `gemini-3.8-flash` / `gemini-3.5-flash` |
 | xAI | `grok-4.7`, `grok-4.6` | → `grok-4.5` |

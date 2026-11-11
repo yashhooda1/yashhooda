@@ -662,6 +662,7 @@ const MODELS = {
     'llama-4-maverick':   { provider: 'together',  api: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-Turbo' },
     'llama-3.3-70b':      { provider: 'together',  api: 'meta-llama/Llama-3.3-70B-Instruct-Turbo' },
     // Oct 2026 additions (Claude 5.5 family, GPT-6.x, Gemini 4, Grok 4.6/4.7) — see lib/models.js
+    // Nov 2026: claude-fable-5-2, claude-opus-4-8, claude-haiku-4-5 also arrive through MODEL_ADDITIONS
     ...MODEL_ADDITIONS,
 };
 const DEFAULT_MODEL = process.env.DEFAULT_CHAT_MODEL || 'gpt-5.5';

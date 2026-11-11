@@ -10040,7 +10040,7 @@ function escapeHtml(text) {
 }
 
 // ── MARKDOWN RENDERER ──
-function renderMarkdown(text) {
+function renderMarkdown(text, opts) {
     if (!text) return '';
     try {
         if (window.marked) {
@@ -10054,6 +10054,13 @@ function renderMarkdown(text) {
                     return window.hljs ? hljs.highlightAuto(code).value : code;
                 }
             });
+            // opts.noHtml: escape raw HTML instead of passing it through — used for
+            // web-search replies, whose text is shaped by third-party pages (Nov 2026).
+            if (opts && opts.noHtml) {
+                const safe = new marked.Renderer();
+                safe.html = (h) => String(typeof h === 'string' ? h : (h && h.text) || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                return marked.parse(text, { renderer: safe });
+            }
             return marked.parse(text);
         }
     } catch(e) {}
@@ -10531,7 +10538,9 @@ async function sendMsg() {
             // Final text — parse save markers
             fullText = evt.text;
             const cleanText = parseSaveInstructions(fullText);
-            botDiv.textContent = cleanText || fullText;
+            // Nov 2026: render markdown like the /api/chat path does — search replies showed literal **bold**
+            botDiv.classList.add('markdown-body');
+            botDiv.innerHTML = renderMarkdown(cleanText || fullText, { noHtml: true });
             chatHistory.push({ role: 'assistant', content: cleanText || fullText });
             msgs.scrollTop = msgs.scrollHeight;
           } else if (evt.type === 'error') {

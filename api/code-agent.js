@@ -411,11 +411,18 @@ export default async function handler(req, res) {
             const revisePrompt =
                 `${prompt}\n\nIMPORTANT: Fix these issues from code review:\n` +
                 review.issues.map(i => `- ${i}`).join('\n');
-            code = await withTimeout(
-                writeCode(revisePrompt, plan, language, taskType, code, cfg),
-                STEP_TIMEOUT_MS, 'revise'
-            );
-            console.log(`[CODE-AGENT] Revision complete`);
+            // Nov 2026: the revision is an optional polish pass. It used to throw on timeout and
+            // discard working code ("revise timed out after 25000ms" → 500). Keep the first draft instead.
+            try {
+                const revised = await withTimeout(
+                    writeCode(revisePrompt, plan, language, taskType, code, cfg),
+                    STEP_TIMEOUT_MS, 'revise'
+                );
+                if (revised && revised.trim()) code = revised;
+                console.log(`[CODE-AGENT] Revision complete`);
+            } catch (reviseErr) {
+                console.warn(`[CODE-AGENT] Revision skipped — keeping first draft: ${reviseErr.message}`);
+            }
         }
 
         // STEP 6: EXPLAIN + SUGGESTIONS in parallel

@@ -9423,6 +9423,8 @@ async function loadAnalyticsDashboard() {
             { label: 'Career',   val: totals.agent_career,   max: totals.total_requests, color: '#facc15' },
             { label: 'Travel',   val: totals.agent_travel,   max: totals.total_requests, color: '#86efac' },
             { label: 'General',  val: totals.agent_general,  max: totals.total_requests, color: '#93c5fd' },
+            { label: 'Voice',    val: totals.voice_requests  || 0, max: Math.max(totals.total_requests, totals.voice_requests  || 0, 1), color: '#f9a8d4' },
+            { label: 'Web search', val: totals.search_requests || 0, max: Math.max(totals.total_requests, totals.search_requests || 0, 1), color: '#fcd34d' },
         ];
 
         container.innerHTML = `
@@ -10069,7 +10071,7 @@ function renderMarkdown(text, opts) {
 }
 
 // ── CODING AGENT TRIGGER ──
-const CODE_AGENT_TRIGGERS = /\b(write|build|create|generate|make|code|implement|develop|program|script)\b.{0,40}\b(function|class|script|code|api|endpoint|pipeline|query|algorithm|bot|agent|tool|app|component|module|snippet|program)\b|\b(debug|fix|refactor|optimize|review|explain|analyze|improve|clean up)\b.{0,30}\b(code|function|script|error|bug|class|query|this)\b|\b(how (do|does|can|to)|show me how)\b.{0,40}\b(implement|code|write|build|create|use)\b/i;
+const CODE_AGENT_TRIGGERS = /\b(write|build|create|generate|make|code|implement|develop|program|script)\b.{0,40}\b(function|class|script|code|api|endpoint|pipeline|query|algorithm|bot|agent|tool|app|component|module|snippet|program)\b|\b(debug|fix|refactor|optimize|review|explain|analyze|improve|clean up)\b.{0,30}\b(code|function|script|error|bug|class|query)\b|\b(how (do|does|can|to)|show me how)\b.{0,40}\b(implement|code|write|build|create|use)\b/i;
 
 async function runCodeAgent(prompt, sessionId) {
     const msgs = document.getElementById('chat-messages');
@@ -10481,7 +10483,10 @@ async function sendMsg() {
  
   chatHistory.push({ role: 'user', content: userContent });
  
-  const useSearch = needsWebSearch(text) && !pendingImageBase64;
+  // Nov 2026: questions about Yash or this site belong on the knowledge-base path (/api/chat),
+  // even when they contain a search trigger word ("weather", "current", "elections"…).
+  const aboutThisSite = /\b(yash|yash's|hooda\w*|this (site|website|page|dashboard|tool|project|app|chatbot)|the site|your (site|website)|on (the|this) site)\b/i.test(text);
+  const useSearch = needsWebSearch(text) && !aboutThisSite && !pendingImageBase64;
  
   try {
     if (useSearch) {
@@ -16152,7 +16157,7 @@ function vmInterrupt(){
   VM.ttsQueue  = [];
   VM.ttsBusy   = false;
   VM.speaking  = false;
-  setTimeout(vmListen, 600);
+  setTimeout(vmListen, 250);   // was 600 — after an interrupt the visitor is already talking
 }
 function vmKillRec(){
   if (VM.recognition){
@@ -16177,11 +16182,15 @@ function vmListen(){
   VM.recognition = rec;
 
   let accumulated  = '';
-  const SILENCE_MS = 2500;   // was 1600 — room for natural mid-sentence pauses
+  // Nov 2026: adaptive end-of-turn. A flat 2.5 s wait after every utterance made each
+  // exchange feel laggy. Once the recognizer has finalized a phrase the speaker has usually
+  // finished, so wait briefly; while words are still arriving (interim), allow a longer pause.
+  const SILENCE_AFTER_FINAL_MS   = 1000;
+  const SILENCE_WHILE_INTERIM_MS = 2000;
 
-  function bumpSilence(){
+  function bumpSilence(ms){
     clearTimeout(VM.silenceTimer);
-    VM.silenceTimer = setTimeout(()=>{ VM.listening = false; try { rec.stop(); } catch(e){} }, SILENCE_MS);
+    VM.silenceTimer = setTimeout(()=>{ VM.listening = false; try { rec.stop(); } catch(e){} }, ms || SILENCE_WHILE_INTERIM_MS);
   }
 
   rec.onstart = ()=>{ vmSetState('listening'); VM.noSpeechCount = 0; bumpSilence(); };
@@ -16195,7 +16204,9 @@ function vmListen(){
     }
     const el = document.getElementById('vm-user-text');
     if (el) el.textContent = (accumulated + interim).trim();
-    bumpSilence();
+    // Trailing "and", "but", "so", "um"… means they're mid-thought — keep the longer window.
+    const midThought = /\b(and|but|so|or|because|um|uh|like|the|a|to|of|with)\s*$/i.test(accumulated.trim());
+    bumpSilence(!interim && accumulated.trim() && !midThought ? SILENCE_AFTER_FINAL_MS : SILENCE_WHILE_INTERIM_MS);
   };
 
   rec.onerror = (e)=>{
@@ -16236,7 +16247,7 @@ async function vmHandle(text){
   document.getElementById('vm-ai-text').textContent   = '';
   VM.history.push({ role: 'user', content: text });
   VM.streamDone = false; VM.ttsQueue = [];
-  let sentenceBuf = '', full = '';
+  let sentenceBuf = '', full = '', spokeFirst = false;
   try {
     const res = await fetch('/api/chat-voice',{
       method: 'POST',
@@ -16249,7 +16260,7 @@ async function vmHandle(text){
     if (!res.ok){
       const errText = await res.text();
       console.error('chat-voice HTTP error:', res.status, errText);
-      full = `Error ${res.status} — check Vercel logs.`;
+      full = res.status === 402 || res.status === 403 ? "Voice chat needs a Pro account — you can still type to me in the chat tab." : "Sorry, I hit a snag on my end. Mind asking that again?";   // was `Error ${res.status} — check Vercel logs.` read aloud
       document.getElementById('vm-ai-text').textContent = full;
       vmEnqueueSentence(full);
       VM.history.push({ role: 'assistant', content: full });
@@ -16271,20 +16282,25 @@ async function vmHandle(text){
           document.getElementById('vm-ai-text').textContent = full;
           let m;
           while ((m = sentenceBuf.match(/^[\s\S]*?[.!?…]+["')\]]?\s/))){
-            vmEnqueueSentence(m[0]); sentenceBuf = sentenceBuf.slice(m[0].length);
+            vmEnqueueSentence(m[0]); sentenceBuf = sentenceBuf.slice(m[0].length); spokeFirst = true;
+          }
+          // Nov 2026: don't wait for a full sentence before the first sound — if the opening
+          // runs long, start speaking at the first comma / dash / semicolon.
+          if (!spokeFirst && sentenceBuf.length > 60 && (m = sentenceBuf.match(/^[\s\S]{30,}?[,;:—–]\s/))){
+            vmEnqueueSentence(m[0]); sentenceBuf = sentenceBuf.slice(m[0].length); spokeFirst = true;
           }
         } else if (evt.type === 'done'){
           if (evt.text){ full = evt.text; document.getElementById('vm-ai-text').textContent = full; }
         } else if (evt.type === 'error'){
           console.error('chat-voice stream error:', evt.error);
-          full = full || 'Sorry, something went wrong.';
+          if (!full){ full = "Sorry, I lost my train of thought there. Could you say that again?"; sentenceBuf = full; }   // speak it — before, the error was shown but never said
           document.getElementById('vm-ai-text').textContent = full;
         }
       }
     }
   } catch(e){
     console.error('vmHandle fetch error:', e);
-    full = full || "Network error — check your connection.";
+    if (!full){ full = "I lost the connection for a second. Try me again?"; sentenceBuf = full; }
     document.getElementById('vm-ai-text').textContent = full;
   }
   if (sentenceBuf.trim()) vmEnqueueSentence(sentenceBuf);
@@ -16293,16 +16309,25 @@ async function vmHandle(text){
   VM.streamDone = true;
   vmMaybeFinish();
 }
-function vmEnqueueSentence(s){ s = s.trim(); if (s){ VM.ttsQueue.push(s); vmPumpTTS(); } }
+function vmEnqueueSentence(s){
+  // Strip anything a voice shouldn't read: markdown marks, emoji, bare URLs' protocol.
+  s = s.replace(/[*_`#>]+/g, '').replace(/https?:\/\//g, '').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').replace(/\s+/g, ' ').trim();
+  if (s){ VM.ttsQueue.push(s); vmPumpTTS(); }
+}
     
 // Fetches one sentence's TTS audio and returns an object URL ready to play
 async function fetchAudio(sentence){
   try {
-    const res = await fetch('/api/tts', {
+    // Nov 2026: gpt-4o-mini-tts takes delivery instructions (set server-side in api/tts.js), so it
+    // sounds conversational instead of read-aloud. If it fails, retry once on tts-1 — before,
+    // a failed sentence was silently skipped.
+    const speak = (model) => fetch('/api/tts', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ text: sentence, model: 'tts-1', voice: 'nova' }),
+      body:    JSON.stringify({ text: sentence, model, voice: 'nova', style: 'conversation' }),
     });
+    let res = await speak(VM.ttsModel || 'gpt-4o-mini-tts');
+    if (!res.ok && (VM.ttsModel || 'gpt-4o-mini-tts') !== 'tts-1'){ VM.ttsModel = 'tts-1'; res = await speak('tts-1'); }
     if (!res.ok) return null;
     const blob = await res.blob();
     return URL.createObjectURL(blob);
@@ -16354,7 +16379,7 @@ async function vmPumpTTS(){
 function vmMaybeFinish(){
   if (VM.active && VM.streamDone && !VM.ttsBusy && !VM.speaking &&
       !VM.ttsQueue.length && !VM.listening){
-    VM.restartTimer = setTimeout(vmListen, 1200); // was 800 — last word fully fades
+    VM.restartTimer = setTimeout(vmListen, 450); // was 1200 — audio.onended already marks the end; a long gap clipped quick replies
   }
 }
 

@@ -9,11 +9,15 @@ export const config = { runtime: 'nodejs' };
 const ALLOWED_TTS_MODELS = ['gpt-4o-mini-tts', 'tts-1', 'tts-1-hd'];
 const DEFAULT_TTS_MODEL  = ALLOWED_TTS_MODELS.includes(process.env.TTS_DEFAULT_MODEL) ? process.env.TTS_DEFAULT_MODEL : 'tts-1';
 
+const TTS_STYLES = {
+  conversation: 'Speak like a friendly, relaxed person in a one-on-one conversation: warm, natural pacing, light variation in pitch, small pauses at commas. Not a narrator, not an announcer, never sing-song. Read times like 1:24:31 as "one twenty-four thirty-one".',
+};
+
 export default async function handler(req, res) {
   const g = await gate(req, res, { endpoint: 'tts', methods: ['POST'], auth: 'user', plan: 'premium' });
   if (!g.ok) return;
 
-  const { text, voice, model, format } = req.body || {};
+  const { text, voice, model, format, style } = req.body || {};
   if (!text || typeof text !== 'string') {
     return res.status(400).json({ error: 'text required' });
   }
@@ -38,6 +42,9 @@ export default async function handler(req, res) {
         voice:           ttsVoice,
         input,
         response_format: ttsFormat,
+        // Nov 2026: only gpt-4o-mini-tts accepts delivery instructions. The text is fixed here —
+        // the client sends a style name, never free-form instructions.
+        ...(ttsModel === 'gpt-4o-mini-tts' && TTS_STYLES[style] ? { instructions: TTS_STYLES[style] } : {}),
       }),
     });
 

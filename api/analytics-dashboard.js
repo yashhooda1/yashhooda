@@ -56,6 +56,9 @@ export default async function handler(req, res) {
         agent_career:        parseInt(h.agent_career  || 0),
         agent_travel:        parseInt(h.agent_travel  || 0),
         agent_general:       parseInt(h.agent_general || 0),
+        // Nov 2026: voice + web-search turns are counted separately (lib/liteContext.js)
+        voice_requests:      parseInt(h.voice_requests  || 0),
+        search_requests:     parseInt(h.search_requests || 0),
       };
     });
 
@@ -69,8 +72,10 @@ export default async function handler(req, res) {
       agent_career:      acc.agent_career      + d.agent_career,
       agent_travel:      acc.agent_travel      + d.agent_travel,
       agent_general:     acc.agent_general     + d.agent_general,
+      voice_requests:    acc.voice_requests    + d.voice_requests,
+      search_requests:   acc.search_requests   + d.search_requests,
     }), { total_requests:0, retrieval_success:0, web_fallbacks:0, total_ms:0,
-          agent_running:0, agent_career:0, agent_travel:0, agent_general:0 });
+          agent_running:0, agent_career:0, agent_travel:0, agent_general:0, voice_requests:0, search_requests:0 });
 
     totals.retrieval_success_pct = totals.total_requests > 0
       ? Math.round((totals.retrieval_success / totals.total_requests) * 100) : 0;

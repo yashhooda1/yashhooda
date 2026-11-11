@@ -6,7 +6,6 @@ import { getAuthUser }  from '../lib/auth.js';
 import { guardRequest } from '../lib/contentGuard.js';
 import { checkUsageLimit } from '../lib/usageLimit.js';
 import { MODEL_ADDITIONS, fallbackFor, isModelAccessError, DEEPSEEK_BASE_URL, DEEPSEEK_CHAT_OPTIONS } from '../lib/models.js';
-import { withTimeout, liteRedis, ragContext, memoryContext, saveTurn } from '../lib/liteContext.js';
 
 export const maxDuration = 60; // seconds — requires Vercel Pro (you already have it)
 
@@ -90,29 +89,7 @@ export default async function handler(req, res) {
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
-  // ── Nov 2026: knowledge base + shared memory. This route used to answer from the short
-  // static prompt only, so any question containing a search trigger word ("weather",
-  // "current", "2026"…) lost the knowledge base and was never written to Upstash.
-  const startedAt = Date.now();
-  const sid       = (typeof sessionId === 'string' && sessionId.length <= 128) ? sessionId : null;
-  const redis     = liteRedis();
-  const [ragBlock, memoryBlock] = await Promise.all([
-    withTimeout(ragContext(queryText, { topK: 4, maxLen: 1200 }), 2500, ''),
-    withTimeout(memoryContext(redis, sid),                         2500, ''),
-  ]);
-  const ctx = ragBlock + memoryBlock;
-
-  let answered = '';   // final reply text, for memory + analytics
-  let saved    = false;
-  const persist = async () => {
-    if (saved || !answered.trim()) return;
-    saved = true;
-    await saveTurn(redis, { kind: 'search', sessionId: sid, userText: queryText, reply: answered.trim(), model: picked, ms: Date.now() - startedAt });
-  };
-
   const sendEvent = (data) => {
-    if (data && data.type === 'token' && typeof data.text === 'string') answered += data.text;
-    if (data && data.type === 'done'  && typeof data.text === 'string' && data.text) answered = data.text;
     res.write(`data: ${JSON.stringify(data)}\n\n`);
     if (res.flush) res.flush(); // force flush for Vercel edge buffering
   };
@@ -131,7 +108,7 @@ export default async function handler(req, res) {
           const callCompat = (model) => fetch(`${baseUrl}/chat/completions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-            body: JSON.stringify({ model, max_tokens: 1024, messages: [{ role: 'system', content: buildSystemPrompt(ctx) }, ...cleanMessages], ...extra }),
+            body: JSON.stringify({ model, max_tokens: 1024, messages: [{ role: 'system', content: buildSystemPrompt() }, ...cleanMessages], ...extra }),
           });
           let r = await callCompat(cfg.api);
           let d = await r.json();
@@ -145,7 +122,7 @@ export default async function handler(req, res) {
           const callGem = (model) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ systemInstruction: { parts: [{ text: buildSystemPrompt(ctx) }] }, contents: gemContents, generationConfig: { maxOutputTokens: 1024 } }),
+            body: JSON.stringify({ systemInstruction: { parts: [{ text: buildSystemPrompt() }] }, contents: gemContents, generationConfig: { maxOutputTokens: 1024 } }),
           });
           let r = await callGem(cfg.api);
           let d = await r.json();
@@ -155,7 +132,6 @@ export default async function handler(req, res) {
         }
       } catch (e) { text = 'Error: ' + e.message; }
       sendEvent({ type: 'done', text });
-      await persist();
       res.end();
       return;
     }
@@ -173,7 +149,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           model,
-          instructions: buildSystemPrompt(ctx),
+          instructions: buildSystemPrompt(),
           input: cleanMessages,
           tools: [{ type: 'web_search' }],
           reasoning: { effort: 'medium' },
@@ -191,14 +167,12 @@ export default async function handler(req, res) {
       if (!oaiRes.ok) {
         console.error('OpenAI API error:', oaiRes.status, JSON.stringify(data));
         sendEvent({ type: 'error', error: `OpenAI error ${oaiRes.status}` });
-        await persist();
         res.end();
         return;
       }
 
       const text = extractOpenAIText(data) || '(no response)';
       sendEvent({ type: 'done', text });
-      await persist();
       res.end();
       return;
     }
@@ -220,7 +194,7 @@ export default async function handler(req, res) {
         output_config: { effort: 'high' },
         stream: true,
         system: [
-          { type: 'text', text: buildSystemPrompt(), cache_control: { type: 'ephemeral' } }, ...(ctx ? [{ type: 'text', text: ctx }] : [])
+          { type: 'text', text: buildSystemPrompt(), cache_control: { type: 'ephemeral' } }
         ],
         tools: [{
           type: 'web_search_20250305',
@@ -244,7 +218,6 @@ export default async function handler(req, res) {
       const errText = await anthropicRes.text();
       console.error('Anthropic API error:', anthropicRes.status, errText);
       sendEvent({ type: 'error', error: `Anthropic error ${anthropicRes.status}` });
-      await persist();
       res.end();
       return;
     }
@@ -314,7 +287,6 @@ export default async function handler(req, res) {
     sendEvent({ type: 'error', error: err.message });
   }
 
-  await persist();
   res.end();
 }
 
@@ -333,10 +305,10 @@ function extractOpenAIText(data) {
   return texts.join('\n');
 }
 
-function buildSystemPrompt(ctx = '') {
+function buildSystemPrompt() {
   return `You are Yash Hooda's AI assistant on his portfolio website. You have web_search to find current information.
 
-IDENTITY: AI and Data Engineer (UT Dallas CS grad, Databricks certified), open to Data Engineering and AI Engineering roles. Aviation is a hobby (part-time flying toward a private pilot certificate), not a career goal — never call him an aspiring airline pilot. Runner — 5K PR 18:15, HM PR 1:24:31, (the 2026 Boulderthon Marathon plan is off). UPDATE (Oct 2026): he now lives in Austin, TX; current goal race is the 2027 Aramco Houston Half (Jan 17, 2027, PR goal under 1:24:31) with tune-ups NYRR 5K (Oct 31), Run for the Water 5K Austin (Nov 8) and Coach Andy 30K (Dec 13, long run); a sub-3:00 marathon remains his lifelong goal, likely 2028. You can discuss his projects and this site's features: HoodaAgents (this multi-model AI platform), METAR Stream, ClimatePulse, DocShield, PaceForge, Fit Check, the elections dashboard, the running tools (heat-adjusted pace, pace calculator, race time by temperature) and more.
+IDENTITY: AI and Data Engineer (UT Dallas CS grad, Databricks certified), open to Data Engineering and AI Engineering roles. Aviation is a hobby (part-time flying toward a private pilot certificate), not a career goal — never call him an aspiring airline pilot. Runner — 5K PR 18:15, HM PR 1:24:31, training for 2026 Boulderthon Marathon. UPDATE (Oct 2026): he now lives in Austin, TX; current goal race is the 2027 Aramco Houston Half (Jan 17, 2027, PR goal under 1:24:31) with tune-ups NYRR 5K (Oct 31), Run for the Water 5K Austin (Nov 8) and Coach Andy 30K (Dec 13, long run); a sub-3:00 marathon remains his lifelong goal, likely 2028. You can discuss his projects: HoodaAgents AI Hiring Engine, ClimatePulse pipeline, Virtual TA Chatbot, and more.
 You know about his interests in aviation, astronomy, current world events, politics, economy, climate change, etc....
 
 SEARCH RULES:
@@ -344,12 +316,10 @@ SEARCH RULES:
 - Cite sources naturally: "According to [outlet]..."
 - Keep responses concise — 2-4 paragraphs max
 - Do NOT search for things you already know
-- Questions about Yash, his projects, or anything on this site (yashhooda.ai): answer from the KNOWLEDGE BASE notes and this prompt, NOT from a web search — the web does not know this site better than you do. If neither covers it, say so and suggest emailing yash.hooda6@gmail.com.
-- When KNOWLEDGE BASE or EARLIER WITH THIS VISITOR notes appear below, treat them as trusted context for this visitor
 - DO NOT SEARCH for anything illegal or innappropriate
 
 SAVE MARKERS: If user says "save this" or "bookmark this", include at end of reply:
 [SAVE_ARTICLE: {"title": "...", "url": "...", "summary": "...", "tags": ["tag1","tag2"]}]
 
-TONE: Sharp, direct, no fluff. Supportive on career/running goals.` + ctx;
+TONE: Sharp, direct, no fluff. Supportive on career/running goals.`;
 }

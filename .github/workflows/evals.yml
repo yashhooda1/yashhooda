@@ -60,6 +60,10 @@ jobs:
       # Keep the full JSON run so you can inspect a red build after the fact.
       - name: Upload run artifact
         if: always()
+        # GitHub's artifact service sometimes answers with an HTML error page
+        # ("<!DOCTYPE ... is not valid JSON"). That is not an eval failure, so a
+        # failed upload must not turn the gate red.
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: eval-run-${{ github.run_id }}

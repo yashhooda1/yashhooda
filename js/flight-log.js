@@ -51,6 +51,13 @@
     { file: '2026-07-24-n1710k-ramp', group: 'ksgr', alt: 'Yash standing next to Cessna 172S N1710K on the ramp at Sugar Land', caption: 'Intro flight in N1710K · KSGR, Jul 24 2026' },
     { file: '2026-08-18-n975th-g1000', group: 'ksgr', alt: 'Garmin G1000 primary flight display in Cessna 172S N975TH on the ramp', caption: 'N975TH on the ramp — G1000 up before taxi' },
     { file: '2026-08-g1000-cruise', group: 'ksgr', alt: 'Garmin G1000 showing 93 knots at 4,200 feet in cruise', caption: 'In the practice area: 4,200 ft, 93 KIAS' },
+    { file: '2026-08-18-n975th-prop-clouds', group: 'ksgr', alt: 'Propeller arc against a layered cloud deck above the glareshield, with the G1000 out of focus below', caption: 'Prop arc and cloud layers from the left seat of N975TH' },
+    { file: '2026-08-farmland-subdivision', group: 'ksgr', alt: 'View out the right window of a Cessna 172 over farmland and a new subdivision, with building cumulus on the horizon', caption: 'Farmland, a new subdivision and building cumulus southwest of Houston' },
+    { file: '2026-08-18-n975th-descent', group: 'ksgr', alt: 'Garmin G1000 in N975TH showing 99 knots, 2,920 feet and a 650 fpm descent, heading 066 toward KSGR', caption: 'Heading home in N975TH: descending through 2,900 ft, KSGR Tower tuned' },
+    { file: '2026-08-18-n975th-direct-ksgr', group: 'ksgr', alt: 'Garmin G1000 in N975TH showing direct-to KSGR, 11.4 nautical miles, bearing 063, at 2,900 feet', caption: 'Direct KSGR — 11.4 NM to go at 2,900 ft' },
+    { file: '2026-08-houston-skyline', group: 'ksgr', alt: 'View over the cowling of a Cessna 172 of a river, a highway and the Houston skyline on the hazy horizon', caption: 'Inbound to Sugar Land with the Houston skyline on the horizon' },
+    { file: '2026-08-ksgr-approach-fields', group: 'ksgr', alt: 'Low-altitude view of fields, a lake and neighborhoods stretching to the horizon under fair-weather cumulus', caption: 'Low over the fields and lakes on the way back into KSGR' },
+    { file: '2026-08-ksgr-approach-lake', group: 'ksgr', alt: 'Banked view over a lakeside neighborhood and a winding creek, with the wheel fairing in the corner', caption: 'Banking over a lakeside neighborhood in the pattern' },
     { file: '2026-08-g1000-taxi', group: 'ksgr', alt: 'Garmin G1000 display while taxiing at Sugar Land Regional', caption: 'Taxiing at Sugar Land Regional' },
     { file: '2026-08-ksgr-sunset', group: 'ksgr', alt: 'Sunset behind hangars seen from under the wing of a Cessna 172', caption: 'Sunset on the KSGR ramp' }
   ];

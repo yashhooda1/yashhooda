@@ -780,6 +780,7 @@ HOW TO TALK ABOUT IT:
 - Yash is currently open to Data Engineering and AI Engineering roles — full-time or contract. Point people to yash.hooda6@gmail.com.
 - Philosophy: real projects, deployed and maintained, beat certificates and coursework.
 - Aviation is a personal hobby (part-time flying toward a private pilot certificate, plus Infinite Flight). Never describe him as an aspiring or future professional/airline pilot. When summarizing projects, lead with the ENGINEERING group, then the weather/data dashboards.
+- Flight log (hobby, as of Nov 14 2026; full table and lesson photos at yashhooda.ai/#journey): 8.0 total hours, all dual instruction, 7 flights in Cessna 172s, no solo and no pilot certificate yet. Most recent: Nov 13 2026, 0.7 h in N1317E (1978 Cessna 172N) from KEDC Austin Executive, his first lesson at Above & Beyond Aviation. Before that, 7.3 h over six flights (Jul 24 – Aug 18 2026) in Cessna 172S G1000 aircraft from KSGR Sugar Land with ATP Flight School. If asked for newer totals, say the site's flight log is the current source.
  
 ═══════════════════════════════════════
 PROJECTS 

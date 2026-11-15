@@ -1,0 +1,59 @@
+/* css/flight-log.css — logbook table, aircraft cards and lesson photos inside #aviation .journey-wrap.
+   Theme-aware via css/themes.css tokens; rendered by js/flight-log.js. */
+#aviation .fl-block { margin-top: 1.75rem; }
+#aviation .fl-h { font-family: 'Space Mono', monospace; font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 .6rem; }
+#aviation .fl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* logbook table */
+#aviation .fl-scroll { overflow-x: auto; border: 1px solid rgba(var(--fg-rgb), .08); border-radius: 10px; }
+#aviation .fl-table { width: 100%; border-collapse: collapse; font-size: .82rem; min-width: 640px; }
+#aviation .fl-table th, #aviation .fl-table td { padding: .55rem .75rem; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(var(--fg-rgb), .06); }
+#aviation .fl-table thead th { font-family: 'Space Mono', monospace; font-size: .62rem; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); background: rgba(var(--fg-rgb), .03); white-space: nowrap; }
+#aviation .fl-table tbody tr:hover { background: rgba(var(--accent-rgb), .06); }
+#aviation .fl-table tfoot th, #aviation .fl-table tfoot td { border-bottom: 0; border-top: 1px solid rgba(var(--fg-rgb), .14); font-weight: 700; color: var(--text); background: rgba(var(--fg-rgb), .03); }
+#aviation .fl-num { text-align: right !important; font-family: 'Space Mono', monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#aviation .fl-date { white-space: nowrap; color: var(--text); }
+#aviation .fl-tail { font-family: 'Space Mono', monospace; color: #93c5fd; font-weight: 700; display: block; }
+#aviation .fl-model { display: block; font-size: .7rem; color: var(--text-muted); }
+#aviation .fl-apt { font-family: 'Space Mono', monospace; color: var(--text); }
+#aviation .fl-local { font-size: .68rem; color: var(--text-muted); border: 1px solid rgba(var(--fg-rgb), .14); border-radius: 999px; padding: .05rem .4rem; margin-left: .2rem; }
+#aviation .fl-rem { color: var(--text-muted); min-width: 12ch; }
+#aviation .fl-src { font-size: .72rem; color: var(--text-muted); opacity: .75; margin: .6rem 0 0; }
+
+/* aircraft cards */
+#aviation .fl-acs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .75rem; }
+#aviation .fl-ac { border: 1px solid rgba(var(--fg-rgb), .08); border-radius: 10px; padding: .85rem 1rem; background: rgba(var(--fg-rgb), .025); }
+#aviation .fl-ac-head { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; flex-wrap: wrap; margin-bottom: .55rem; }
+#aviation .fl-ac-model { font-weight: 700; color: var(--text); font-size: .92rem; }
+#aviation .fl-ac-hrs { font-family: 'Space Mono', monospace; font-size: .72rem; color: #93c5fd; white-space: nowrap; }
+#aviation .fl-ac-specs { margin: 0; display: grid; gap: .3rem; }
+#aviation .fl-ac-specs div { display: grid; grid-template-columns: 6.5rem 1fr; gap: .5rem; font-size: .78rem; }
+#aviation .fl-ac-specs dt { color: var(--text-muted); }
+#aviation .fl-ac-specs dd { margin: 0; color: var(--text); overflow-wrap: anywhere; }
+
+/* lesson photos */
+#aviation .fl-group-label { font-size: .78rem; color: var(--text-muted); margin: 1rem 0 .5rem; }
+#aviation .fl-group-label:first-child { margin-top: 0; }
+#aviation .fl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem; }
+#aviation .fl-tile { margin: 0; min-width: 0; }
+#aviation .fl-photo { display: block; width: 100%; padding: 0; border: 1px solid rgba(var(--fg-rgb), .08); border-radius: 10px; overflow: hidden; background: rgba(var(--fg-rgb), .04); cursor: zoom-in; aspect-ratio: 3 / 4; }
+#aviation .fl-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .25s ease; }
+#aviation .fl-photo:hover img { transform: scale(1.04); }
+#aviation .fl-photo:focus-visible { outline: 2px solid rgb(var(--accent-rgb)); outline-offset: 2px; }
+#aviation .fl-video video { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block; border: 1px solid rgba(var(--fg-rgb), .08); border-radius: 10px; background: #000; }
+#aviation .fl-tile figcaption { font-size: .68rem; line-height: 1.4; color: var(--text-muted); margin-top: .35rem; }
+
+/* phones: each flight becomes a card instead of a sideways-scrolling row */
+@media (max-width: 640px) {
+  #aviation .fl-scroll { border: 0; overflow: visible; }
+  #aviation .fl-table { min-width: 0; font-size: .8rem; }
+  #aviation .fl-table thead { display: none; }
+  #aviation .fl-table tbody tr, #aviation .fl-table tfoot tr { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .35rem .6rem; padding: .7rem .8rem; margin-bottom: .6rem; border: 1px solid rgba(var(--fg-rgb), .08); border-radius: 10px; }
+  #aviation .fl-table td, #aviation .fl-table tfoot th { display: block; padding: 0; border: 0; background: none !important; text-align: left !important; }
+  #aviation .fl-table td[data-l]::before { content: attr(data-l); display: block; font-family: 'Space Mono', monospace; font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+  #aviation .fl-table td[data-l="Date"], #aviation .fl-table td[data-l="Remarks"], #aviation .fl-table tfoot th { grid-column: 1 / -1; }
+  #aviation .fl-table td[data-l="Aircraft"] { grid-column: span 2; }
+  #aviation .fl-table tfoot td:last-child { display: none; }
+  #aviation .fl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { #aviation .fl-photo img { transition: none; } }

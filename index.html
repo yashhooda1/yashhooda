@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="/css/preflight.css" />
     <link rel="stylesheet" href="/css/docshield.css" />
     <link rel="stylesheet" href="/css/elections.css" />
+    <link rel="stylesheet" href="/css/flight-log.css" />
     <script>
     /* Theme boot — runs before first paint so there is no flash of the wrong theme.
        Full switcher lives in js/ui-shell.js. */
@@ -5143,26 +5144,27 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
                 <div>
                     <div class="journey-label">Logbook — real aircraft</div>
-                    <!-- ✏️ EDIT THESE FOUR VALUES with your actual logged times -->
-                    <div class="aviation-stats-row" style="margin:0;">
+                    <!-- ✏️ These tiles are computed from the FLIGHTS array in /js/flight-log.js.
+                         The values below are only the no-JS fallback. -->
+                    <div class="aviation-stats-row" style="margin:0;" id="fl-stats">
                         <div class="aviation-stat">
                             <span class="aviation-stat-val">8.0</span>
                             <div class="aviation-stat-label">Total Hours</div>
                         </div>
                         <div class="aviation-stat">
-                            <span class="aviation-stat-val">7.0</span>
+                            <span class="aviation-stat-val">8.0</span>
                             <div class="aviation-stat-label">Dual Received</div>
                         </div>
                         <div class="aviation-stat">
-                            <span class="aviation-stat-val">4</span>
-                            <div class="aviation-stat-label">Landings</div>
+                            <span class="aviation-stat-val">7</span>
+                            <div class="aviation-stat-label">Flights</div>
                         </div>
                         <div class="aviation-stat">
                             <span class="aviation-stat-val" style="font-size:0.95rem;">C172</span>
                             <div class="aviation-stat-label">Type Flown</div>
                         </div>
                     </div>
-                    <p class="journey-note">Weekend flying, logged for fun.</p>
+                    <p class="journey-note" id="fl-note">Weekend flying, logged for fun.</p>
                 </div>
 
                 <div>
@@ -5199,6 +5201,23 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <p class="journey-note" id="if-note">Live from the Infinite Flight Live API v2.</p>
                 </div>
           </div><!-- /.journey-cols -->
+
+          <!-- Real-aircraft logbook, aircraft flown and lesson photos — rendered by /js/flight-log.js -->
+          <div class="fl-block" id="flight-logbook">
+              <h3 class="fl-h">Logbook entries</h3>
+              <div class="fl-scroll" id="fl-log"></div>
+              <p class="fl-src">Transcribed from my LogTen logbook. All time is dual instruction in single-engine land aircraft; times in hours.</p>
+          </div>
+
+          <div class="fl-block">
+              <h3 class="fl-h">Aircraft flown</h3>
+              <div class="fl-acs" id="fl-aircraft"></div>
+          </div>
+
+          <div class="fl-block" id="flight-photos">
+              <h3 class="fl-h">From the lessons</h3>
+              <div id="fl-gallery"></div>
+          </div>
 
           <div id="if-flight" data-state="idle" aria-live="polite" style="padding-top:2rem;">
               <div class="if-head">
@@ -17692,5 +17711,6 @@ if (buildlogSection) buildlogObserver.observe(buildlogSection);
 <script src="/js/preflight.js" defer></script>
 <script src="/js/docshield.js" defer></script>
 <script src="/js/elections.js" defer></script>
+<script src="/js/flight-log.js" defer></script>
 </body>
 </html>

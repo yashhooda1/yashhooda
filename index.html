@@ -4814,6 +4814,54 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
 
             <div class="project-card">
+                <div class="project-title">⌚🍎 Apple Workouts MCP Server — Training Plans Straight to Apple Watch</div>
+                <div class="project-tech">
+                    <span class="skill-tag de">Python</span>
+                    <span class="skill-tag ai">MCP Servers</span>
+                    <span class="skill-tag ai">Pydantic</span>
+                    <span class="tech-pill">WorkoutKit</span>
+                    <span class="tech-pill">Swift / App Intents</span>
+                    <span class="tech-pill">CloudKit</span>
+                    <span class="tech-pill">iCalendar Feed</span>
+                    <span class="skill-tag">OAuth 2.1 + PKCE</span>
+                    <span class="skill-tag">Sign in with Apple</span>
+                    <span class="skill-tag">Multi-User Accounts</span>
+                    <span class="skill-tag cl">Docker</span>
+                    <span class="skill-tag cl">Railway</span>
+                    <span class="tech-pill">pytest</span>
+                    <span class="skill-tag cl">GitHub Actions</span>
+                </div>
+                <div class="project-desc">
+                    Model Context Protocol server that lets Claude, ChatGPT or any MCP client
+                    build structured runs, strength sessions and multi-week training plans and
+                    put them on an Apple Watch — the Apple counterpart to mcp-garmin, with the
+                    same workout spec so prompts and plans port unchanged.
+                    <br><br>
+                    Apple has no cloud API that writes to a Watch; structured workouts only get
+                    there through WorkoutKit, which runs on the iPhone. So the work is split:
+                    the server compiles each workout into JSON that maps 1:1 onto WorkoutKit
+                    (warmup, interval blocks, cooldown, heart-rate-zone and pace-range alerts),
+                    and the HoodaRun iPhone app reads that feed, schedules it to the Watch, and
+                    reports back what actually landed — so the server can tell a published
+                    workout from one that's really on the wrist.
+                    <br><br>
+                    Plan generators cover the mile, 5K, 10K, half and marathon for any goal
+                    time, sized from current mileage, with a base tier for runners under 18
+                    miles a week. Completed workouts flow back from Health, so a weekly review
+                    lines planned sessions up against what was run and the plan can ease back
+                    after time off, scale volume or shift paces in place. Workouts can be moved,
+                    swapped or shifted without duplicating calendar events. It also serves an
+                    Apple Calendar feed, acts as its own OAuth 2.1 authorization server for
+                    Claude and ChatGPT connectors, and gives each invited runner a separate
+                    account, feed and calendar link.
+                </div>
+                <div class="project-links">
+                    <a href="https://github.com/yashhooda1/mcp-apple-workouts" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
+                    <a href="#hoodarun" class="project-btn">⌚ HoodaRun Workout Builder</a>
+                </div>
+            </div>
+
+            <div class="project-card">
                 <div class="project-title">⌚🏃🏽‍♂️ Garmin MCP Server — Training Plans Built From Your Actual Fitness</div>
                 <div class="project-tech">
                     <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>

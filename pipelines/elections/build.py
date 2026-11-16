@@ -432,6 +432,7 @@ def main():
             {'name': 'MIT Election Data + Science Lab, 2022 precinct returns', 'url': 'https://github.com/MEDSL/2022-elections-official'},
             {'name': '2016 presidential county returns and county demographics (ACS 2012-2016): MEDSL election-context-2018', 'url': 'https://github.com/MEDSL/2018-elections-unoffical'},
             {'name': '2026: Texas Secretary of State / Decision Desk HQ (unofficial until certified)', 'url': 'https://electionresults.sos.state.tx.us/results.html'},
+            {'name': '2026, other states: unofficial statewide counts as listed on each race\'s Wikipedia article (per-state link on each result; replaced as states certify)', 'url': 'https://en.wikipedia.org/wiki/2026_United_States_elections'},
         ],
         'caveats': [
             '2026 results are unofficial until each state certifies them.',

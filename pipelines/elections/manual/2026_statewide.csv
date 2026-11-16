@@ -1,3 +1,67 @@
 state,race,dem_candidate,rep_candidate,dem_votes,rep_votes,total_votes,status,as_of,source_url
 TX,senate,James Talarico,Ken Paxton,5447098,4250850,9888539,unofficial,2026-11-08,https://votes.decisiondeskhq.com/races/2026-11-03/texas-us-senate-general-election
 TX,governor,Gina Hinojosa,Greg Abbott,5230929,4524955,,unofficial (99% reporting),2026-11-06,https://en.wikipedia.org/wiki/2026_Texas_gubernatorial_election
+AK,governor,Jonathan Kreiss-Tomkins,Bernadette Wilson,141623,77943,278284,unofficial (first-round count; total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_Alaska_gubernatorial_election
+AL,senate,Everett Wess,Barry Moore,759321,917338,1676659,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Alabama
+AL,governor,Doug Jones,Tommy Tuberville,806270,873332,1679602,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Alabama_gubernatorial_election
+AR,senate,Hallie Shoffner,Tom Cotton,375831,480802,886121,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Arkansas
+AR,governor,Fredrick Love,Sarah Huckabee Sanders,341842,477304,886059,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Arkansas_gubernatorial_election
+AZ,governor,Katie Hobbs,Andy Biggs,1434813,1094388,2577383,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Arizona_gubernatorial_election
+CA,governor,Xavier Becerra,Steve Hilton,8526667,4470796,12997463,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_California_gubernatorial_election
+CO,senate,John Hickenlooper,Mark Baisley,1629507,942089,2693335,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Colorado
+CO,governor,Phil Weiser,Victor Marx,1639109,890472,2681244,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Colorado_gubernatorial_election
+CT,governor,Ned Lamont,Ryan Fazio,771936,523917,1295853,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_Connecticut_gubernatorial_election
+DE,senate,Chris Coons,Michael Katz,240587,137837,379754,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Delaware
+FL,senate,Angie Nixon,Ashley Moody,3974149,4211455,8280269,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_special_election_in_Florida
+FL,governor,David Jolly,Byron Donalds,4029462,4135701,8270102,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Florida_gubernatorial_election
+GA,senate,Jon Ossoff,Mike Collins,2469037,1713664,4182701,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Georgia
+GA,governor,Keisha Lance Bottoms,Rick Jackson,2273861,1910910,4184771,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Georgia_gubernatorial_election
+HI,governor,Josh Green,Gary Cordery,279445,105258,384703,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Hawaii_gubernatorial_election
+IA,senate,Josh Turek,Ashley Hinson,688746,631482,1362331,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Iowa
+IA,governor,Rob Sand,Zach Lahn,759705,608231,1367936,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Iowa_gubernatorial_election
+ID,governor,Terri Pickens,Brad Little,231475,408410,716113,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Idaho_gubernatorial_election
+IL,senate,Juliana Stratton,Don Tracy,2598988,1527950,4193190,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Illinois
+IL,governor,JB Pritzker,Darren Bailey,2540792,1509625,4190958,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Illinois_gubernatorial_election
+KS,senate,Adam Hamilton,Roger Marshall,566865,508887,1109316,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Kansas
+KS,governor,Cindy Holscher,Ty Masterson,556894,547459,1104353,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_Kansas_gubernatorial_election
+KY,senate,Charles Booker,Andy Barr,612357,784869,1427276,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Kentucky
+LA,senate,Jamie Davis,Julia Letlow,720521,746476,1466997,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Louisiana
+MA,senate,Ed Markey,John Deaton,1654184,838169,2604291,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Massachusetts
+MA,governor,Maura Healey,Mike Minogue,1628936,912300,2627696,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Massachusetts_gubernatorial_election
+MD,governor,Wes Moore,Dan Cox,1437649,679806,2213846,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Maryland_gubernatorial_election
+ME,senate,Troy Jackson,Susan Collins,376955,332918,710361,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Maine
+ME,governor,Hannah Pingree,Bobby Charles,388721,267346,714048,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_Maine_gubernatorial_election
+MI,senate,Abdul El-Sayed,Mike Rogers,2520895,2181111,4798086,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Michigan
+MI,governor,Jocelyn Benson,John James,2614227,2095233,4791776,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Michigan_gubernatorial_election
+MN,senate,Peggy Flanagan,Michele Tafoya,1520871,1233467,2831795,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Minnesota
+MN,governor,Amy Klobuchar,Lisa Demuth,1569698,1206583,2830159,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Minnesota_gubernatorial_election
+MS,senate,Scott Colom,Cindy Hyde-Smith,480148,472121,972738,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Mississippi
+NC,senate,Roy Cooper,Michael Whatley,2480640,1648870,4222304,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_North_Carolina
+NE,governor,Lynne Walz,Jim Pillen,326179,384579,764887,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Nebraska_gubernatorial_election
+NH,senate,Chris Pappas,John E. Sununu,356425,268712,637218,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_New_Hampshire
+NH,governor,Cinde Warmington,Kelly Ayotte,297834,324934,632380,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_New_Hampshire_gubernatorial_election
+NJ,senate,Cory Booker,Justin Murphy,1851091,1032597,2961273,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_New_Jersey
+NM,senate,Ben Ray Luján,Larry Marker,458756,266434,725190,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_New_Mexico
+NM,governor,Deb Haaland,Gregg Hull,412834,308315,721149,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_New_Mexico_gubernatorial_election
+NV,governor,Aaron Ford,Joe Lombardo,563151,480595,1091587,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Nevada_gubernatorial_election
+NY,governor,Kathy Hochul,Bruce Blakeman,3651791,2448115,6112761,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_New_York_gubernatorial_election
+OH,senate,Sherrod Brown,Jon Husted,2302472,2079600,4604592,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_special_election_in_Ohio
+OH,governor,Amy Acton,Vivek Ramaswamy,2405510,2041281,4595782,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Ohio_gubernatorial_election
+OK,senate,N'Kiyla Jasmine Thomas,Kevin Hern,439522,639860,1118730,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Oklahoma
+OK,governor,Cyndi Munson,Mike Mazzei,514776,582039,1120139,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Oklahoma_gubernatorial_election
+OR,senate,Jeff Merkley,David Brock Smith,1138894,757034,1960629,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Oregon
+OR,governor,Tina Kotek,Christine Drazan,1051936,862989,1974149,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_Oregon_gubernatorial_election
+PA,governor,Josh Shapiro,Stacy Garrity,3036075,1913522,5014281,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_Pennsylvania_gubernatorial_election
+RI,senate,Jack Reed,Raymond McKay,240694,105454,360396,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Rhode_Island
+RI,governor,Helena Foulkes,Aaron Guckian,207588,47402,359691,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Rhode_Island_gubernatorial_election
+SC,senate,Annie Andrews,Darline Graham,1044001,952191,2041487,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_South_Carolina
+SC,governor,Jermaine Johnson,Alan Wilson,960534,1051334,2038214,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_South_Carolina_gubernatorial_election
+SD,governor,Dan Ahlers,Larry Rhoden,111161,193335,304496,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_South_Dakota_gubernatorial_election
+TN,senate,Marquita Bradshaw,Bill Hagerty,886974,1138457,2066869,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Tennessee
+TN,governor,Jerri Green,Marsha Blackburn,902953,957136,2102474,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Tennessee_gubernatorial_election
+VA,senate,Mark Warner,Bert Mizusawa,2234930,1391025,3635772,unofficial (total estimated from vote shares),2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Virginia
+VT,governor,Amanda Janoo,Phil Scott,141631,162048,309055,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Vermont_gubernatorial_election
+WI,governor,David Crowley,Tom Tiffany,1440993,1227676,2668669,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Wisconsin_gubernatorial_election
+WV,senate,Rachel Fetty Anderson,Shelley Moore Capito,173656,266772,457611,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_West_Virginia
+WY,senate,James W. Byrd,Harriet Hageman,65105,122174,188318,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_United_States_Senate_election_in_Wyoming
+WY,governor,Kenneth Casner,Eric Barlow,27472,128496,188624,unofficial,2026-11-16,https://en.wikipedia.org/wiki/2026_Wyoming_gubernatorial_election

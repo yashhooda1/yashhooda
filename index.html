@@ -4327,6 +4327,7 @@
                 <div class="nav-drop-menu">
                     <a href="#running">Running</a>
                     <a href="#mcp-garmin">Garmin Training Plans ⌚</a>
+                    <a href="#hoodarun">HoodaRun Workout Builder ⌚</a>
                     <a href="#heat-pace">Running Heat Adjustment Calculator</a>
                     <a href="#wind-cold">Wind &amp; Cold Adjustment</a>
                     <a href="#pace-calc">Pace Calculator</a>
@@ -4853,11 +4854,51 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     swapped or shifted without duplicating calendar events. It also serves an
                     Apple Calendar feed, acts as its own OAuth 2.1 authorization server for
                     Claude and ChatGPT connectors, and gives each invited runner a separate
-                    account, feed and calendar link.
+                    account, feed and calendar link. A saved runner profile — run days,
+                    hard days, long-run day, usual workout times — shapes every generated week.
                 </div>
                 <div class="project-links">
                     <a href="https://github.com/yashhooda1/mcp-apple-workouts" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
                     <a href="#hoodarun" class="project-btn">⌚ HoodaRun Workout Builder</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-title">⌚ HoodaRun — Apple Watch Workout Builder</div>
+                <div class="project-tech">
+                    <span class="tech-pill">iOS · watchOS</span>
+                    <span class="skill-tag cl">Swift</span>
+                    <span class="skill-tag cl">SwiftUI</span>
+                    <span class="tech-pill">WorkoutKit</span>
+                    <span class="tech-pill">HealthKit</span>
+                    <span class="tech-pill">CloudKit</span>
+                    <span class="tech-pill">EventKit</span>
+                    <span class="tech-pill">App Intents · Siri</span>
+                    <span class="skill-tag ai">MCP Client Sync</span>
+                </div>
+                <div class="project-desc">
+                    My own Apple Watch workout app: a Garmin Connect–style calendar and builder
+                    for easy runs, tempos, intervals, mile repeats, fartleks and long runs. It
+                    schedules each one into the Watch's Workout app through WorkoutKit, with
+                    step-by-step pace and heart-rate alerts on the wrist.
+                    <br><br>
+                    Workouts reach it three ways. Build one in the app. Build one in the web
+                    builder on this site — sign in with your Apple ID and it's saved to your own
+                    private iCloud, where the app picks it up. Or have Claude or ChatGPT write a
+                    whole training plan through mcp-apple-workouts, which uses the exact same
+                    workout format.
+                    <br><br>
+                    The app is the half of that system Apple requires to run on the phone: it
+                    reads the server's feed, schedules to the Watch, mirrors the plan into Apple
+                    Calendar, and reports back which workouts actually landed. With permission it
+                    also shares completed workouts from Apple Health, which is what lets a plan
+                    be reviewed against what was really run and adjusted. Finished runs reach
+                    Strava through Strava's own Apple Health sync.
+                </div>
+                <div class="project-links">
+                    <span class="al-status">Running on my Ultra 4 · App Store release planned</span>
+                    <a href="#hoodarun" class="project-btn">⌚ Web Builder</a>
+                    <a href="https://github.com/yashhooda1/mcp-apple-workouts/tree/main/ios/HoodaRun" target="_blank" rel="noopener" class="project-btn">📂 Sync Code</a>
                 </div>
             </div>
 
@@ -6123,7 +6164,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Local AI on Apple Silicon, cloud-scale habits: benchmarks measured on my own MacBook Pro, an Apple Health running pipeline, a Siri career agent, and two SwiftUI apps
+                Local AI on Apple Silicon, cloud-scale habits: benchmarks measured on my own MacBook Pro, an Apple Health running pipeline, a Siri career agent, HoodaRun and its Apple Workouts MCP server, and two more SwiftUI apps
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="al-machine-badge">Loading…</span>
@@ -6201,6 +6242,50 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <div class="project-links">
                         <a href="https://github.com/yashhooda1/yashhooda/blob/main/api/career-agent.js" target="_blank" rel="noopener" class="project-btn">📂 Endpoint</a>
                         <a href="https://github.com/yashhooda1/yashhooda/tree/main/apple/career-agent" target="_blank" rel="noopener" class="project-btn">📱 Shortcut setup</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">⌚ HoodaRun — Apple Watch Workout Builder</div>
+                    <div class="project-tech">
+                        <span class="tech-pill">iOS · watchOS</span>
+                        <span class="skill-tag cl">SwiftUI</span>
+                        <span class="skill-tag cl">WorkoutKit</span>
+                        <span class="skill-tag cl">HealthKit</span>
+                        <span class="skill-tag cl">CloudKit</span>
+                        <span class="skill-tag cl">App Intents</span>
+                    </div>
+                    <div class="project-desc">
+                        A Garmin Connect–style workout calendar and builder for Apple Watch. Structured
+                        runs — tempos, intervals, mile repeats, long runs — are scheduled into the Workout
+                        app with pace and heart-rate alerts, mirrored into Apple Calendar, and can come from
+                        the app, the web builder on this site, or a plan Claude wrote.
+                    </div>
+                    <div class="project-links">
+                        <span class="al-status">Running on my Ultra 4 · App Store release planned</span>
+                        <a href="#hoodarun" class="project-btn">⌚ Web Builder</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">⌚🍎 Apple Workouts MCP Server</div>
+                    <div class="project-tech">
+                        <span class="tech-pill">Agents</span>
+                        <span class="skill-tag ai">MCP Servers</span>
+                        <span class="skill-tag de">Python</span>
+                        <span class="skill-tag cl">WorkoutKit JSON</span>
+                        <span class="skill-tag">OAuth 2.1 · Sign in with Apple</span>
+                        <span class="skill-tag cl">Railway</span>
+                    </div>
+                    <div class="project-desc">
+                        The server side of HoodaRun and the Apple counterpart to mcp-garmin. Claude or
+                        ChatGPT build workouts and mile-to-marathon plans; the server compiles them to
+                        WorkoutKit-shaped JSON, serves an Apple Calendar feed, and keeps each invited
+                        runner's plan, profile and completed workouts in a separate account.
+                    </div>
+                    <div class="project-links">
+                        <a href="#projects" class="project-btn">📖 Full write-up</a>
+                        <a href="https://github.com/yashhooda1/mcp-apple-workouts" target="_blank" rel="noopener" class="project-btn">📂 Code</a>
                     </div>
                 </div>
 

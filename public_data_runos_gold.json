@@ -1,4 +1,524 @@
 {
   "schema_version": 1,
-  "status": "awaiting_first_run"
+  "status": "ok",
+  "generated_at": "2026-11-16T20:08:33Z",
+  "source": "Apple Health export",
+  "export_date": "2026-11-16 14:06:42 -0600",
+  "pipeline": {
+    "bronze": 87,
+    "silver": 85,
+    "duplicates_removed": 0,
+    "rejected": {
+      "distance_out_of_range": 2
+    }
+  },
+  "includes_vitals": false,
+  "data_through": "2026-11-15",
+  "first_run": "2026-08-25",
+  "weekly": [
+    {
+      "week_start": "2025-11-17",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2025-11-24",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2025-12-01",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2025-12-08",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2025-12-15",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2025-12-22",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2025-12-29",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-01-05",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-01-12",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-01-19",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-01-26",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-02-02",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-02-09",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-02-16",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-02-23",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-03-02",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-03-09",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-03-16",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-03-23",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-03-30",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-04-06",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-04-13",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-04-20",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-04-27",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-05-04",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-05-11",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-05-18",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-05-25",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-06-01",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-06-08",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-06-15",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-06-22",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-06-29",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-07-06",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-07-13",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-07-20",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-07-27",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-08-03",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-08-10",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-08-17",
+      "miles": 0,
+      "runs": 0,
+      "long_run_mi": 0,
+      "avg_pace_s_per_mi": null
+    },
+    {
+      "week_start": "2026-08-24",
+      "miles": 17.7,
+      "runs": 4,
+      "long_run_mi": 7.1,
+      "avg_pace_s_per_mi": 507.5
+    },
+    {
+      "week_start": "2026-08-31",
+      "miles": 40.7,
+      "runs": 9,
+      "long_run_mi": 8.0,
+      "avg_pace_s_per_mi": 484.1
+    },
+    {
+      "week_start": "2026-09-07",
+      "miles": 35.2,
+      "runs": 10,
+      "long_run_mi": 7.1,
+      "avg_pace_s_per_mi": 475.6
+    },
+    {
+      "week_start": "2026-09-14",
+      "miles": 20.7,
+      "runs": 6,
+      "long_run_mi": 7.0,
+      "avg_pace_s_per_mi": 463.9
+    },
+    {
+      "week_start": "2026-09-21",
+      "miles": 41.3,
+      "runs": 10,
+      "long_run_mi": 12.0,
+      "avg_pace_s_per_mi": 465.8
+    },
+    {
+      "week_start": "2026-09-28",
+      "miles": 31.4,
+      "runs": 6,
+      "long_run_mi": 9.2,
+      "avg_pace_s_per_mi": 493.7
+    },
+    {
+      "week_start": "2026-10-05",
+      "miles": 35.4,
+      "runs": 9,
+      "long_run_mi": 12.0,
+      "avg_pace_s_per_mi": 490.2
+    },
+    {
+      "week_start": "2026-10-12",
+      "miles": 18.2,
+      "runs": 3,
+      "long_run_mi": 7.1,
+      "avg_pace_s_per_mi": 490.2
+    },
+    {
+      "week_start": "2026-10-19",
+      "miles": 35.0,
+      "runs": 7,
+      "long_run_mi": 13.5,
+      "avg_pace_s_per_mi": 455.3
+    },
+    {
+      "week_start": "2026-10-26",
+      "miles": 32.2,
+      "runs": 8,
+      "long_run_mi": 12.1,
+      "avg_pace_s_per_mi": 448.2
+    },
+    {
+      "week_start": "2026-11-02",
+      "miles": 28.7,
+      "runs": 8,
+      "long_run_mi": 6.2,
+      "avg_pace_s_per_mi": 458.3
+    },
+    {
+      "week_start": "2026-11-09",
+      "miles": 26.2,
+      "runs": 5,
+      "long_run_mi": 8.1,
+      "avg_pace_s_per_mi": 469.3
+    }
+  ],
+  "load": {
+    "acute_7d_mi": 26.2,
+    "chronic_28d_weekly_mi": 30.5,
+    "acwr": 0.86
+  },
+  "yearly": [
+    {
+      "year": 2026,
+      "miles": 362.8,
+      "runs": 85,
+      "avg_pace_s_per_mi": 473.8
+    }
+  ],
+  "totals": {
+    "runs": 85,
+    "miles": 362.8,
+    "hours": 47.8,
+    "longest_run_mi": 13.5
+  },
+  "pace_by_temperature": [
+    {
+      "band": "< 50\u00b0F",
+      "runs": 4,
+      "miles": 17.0,
+      "avg_pace_s_per_mi": 433.2
+    },
+    {
+      "band": "50s",
+      "runs": 4,
+      "miles": 19.4,
+      "avg_pace_s_per_mi": 455.1
+    },
+    {
+      "band": "60s",
+      "runs": 3,
+      "miles": 24.5,
+      "avg_pace_s_per_mi": 448.7
+    },
+    {
+      "band": "70s",
+      "runs": 5,
+      "miles": 20.2,
+      "avg_pace_s_per_mi": 467.5
+    },
+    {
+      "band": "80s",
+      "runs": 1,
+      "miles": 6.1,
+      "avg_pace_s_per_mi": 445.7
+    },
+    {
+      "band": "90\u00b0F +",
+      "runs": 0,
+      "miles": 0,
+      "avg_pace_s_per_mi": null
+    }
+  ],
+  "predictions": {
+    "method": "Riegel (exponent 1.06) from the best run of the last 90 days",
+    "basis": {
+      "date": "2026-10-31",
+      "miles": 3.28,
+      "time": "19:37"
+    },
+    "races": {
+      "5K": "18:31",
+      "10K": "38:35",
+      "Half": "1:25:09",
+      "Marathon": "2:57:31"
+    }
+  },
+  "goal_race": {
+    "name": "Chevron Houston Marathon",
+    "date": "2027-01-17",
+    "distance": "Marathon",
+    "goal_time": "2:59:59",
+    "days_to_go": 63,
+    "weeks_to_go": 9,
+    "components": [
+      {
+        "label": "Average week, last 4 weeks",
+        "value": 28.5,
+        "target": 50,
+        "unit": "mi",
+        "pct": 57
+      },
+      {
+        "label": "Peak week, last 16 weeks",
+        "value": 41.3,
+        "target": 60,
+        "unit": "mi",
+        "pct": 69
+      },
+      {
+        "label": "Longest run, last 6 weeks",
+        "value": 13.5,
+        "target": 20,
+        "unit": "mi",
+        "pct": 68
+      }
+    ],
+    "readiness_pct": 65,
+    "predicted_time": "2:57:31",
+    "gap_to_goal_s": -148
+  },
+  "running_dynamics_monthly": {
+    "power_w": [
+      {
+        "month": "2026-10",
+        "median": 282.0,
+        "n": 8355
+      },
+      {
+        "month": "2026-11",
+        "median": 279.0,
+        "n": 12004
+      }
+    ],
+    "stride_m": [
+      {
+        "month": "2026-11",
+        "median": 1.2,
+        "n": 3573
+      }
+    ],
+    "ground_contact_ms": [
+      {
+        "month": "2026-11",
+        "median": 230.0,
+        "n": 3547
+      }
+    ],
+    "vertical_osc_cm": [
+      {
+        "month": "2026-11",
+        "median": 8.7,
+        "n": 3593
+      }
+    ]
+  }
 }

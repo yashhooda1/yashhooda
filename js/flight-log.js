@@ -31,7 +31,7 @@
 
   // ✏️ One object per flight, newest first. `ldg: null` = not transcribed yet (shows as —).
   var FLIGHTS = [
-    { date: '2026-11-13', tail: 'N1317E', from: 'KEDC', to: 'KEDC', total: 0.7, dual: 0.7, ldg: null, remarks: 'First lesson at Above & Beyond Aviation' },
+    { date: '2026-11-13', tail: 'N1317E', from: 'KEDC', to: 'KEDC', total: 0.7, dual: 0.7, ldg: null, remarks: 'Discovery flight at Above & Beyond Aviation' },
     { date: '2026-08-18', tail: 'N975TH', from: 'KSGR', to: 'KSGR', total: 1.0, dual: 1.0, ldg: 1, remarks: 'Dual instruction' },
     { date: '2026-08-07', tail: 'N94631', from: 'KSGR', to: 'KSGR', total: 1.1, dual: 1.1, ldg: 3, remarks: 'Dual instruction' },
     { date: '2026-08-05', tail: 'N23134', from: 'KSGR', to: 'KSGR', total: 1.4, dual: 1.4, ldg: 1, remarks: 'Dual instruction' },
@@ -42,7 +42,7 @@
 
   // ✏️ Lesson photos. Files live in /images/flight/ as <file>.jpg + <file>-thumb.jpg.
   var PHOTOS = [
-    { file: '2026-11-13-n1317e-ramp', group: 'kedc', alt: 'Yash beside the red and white Cessna 172N N1317E on the ramp', caption: 'With N1317E before my first lesson at Above & Beyond · KEDC, Nov 13 2026' },
+    { file: '2026-11-13-n1317e-ramp', group: 'kedc', alt: 'Yash beside the red and white Cessna 172N N1317E on the ramp', caption: 'With N1317E before my discovery flight at Above & Beyond · KEDC, Nov 13 2026' },
     { file: '2026-11-13-n1317e-panel', group: 'kedc', alt: 'Analog instrument panel of Cessna 172N N1317E with a Garmin GNS 430', caption: 'N1317E — a 1978 Skyhawk II with a six-pack and a GNS 430' },
     { file: '2026-11-13-wing-strut', group: 'kedc', alt: 'View past the wing strut of a Cessna 172 over Central Texas farmland and ponds', caption: 'Under the wing over Central Texas' },
     { file: '2026-11-13-prop-cowl', group: 'kedc', alt: 'Propeller blades and red cowling against a layered overcast sky', caption: 'Over the nose, sun behind the overcast' },
@@ -64,7 +64,7 @@
   var VIDEO = {
     src: '/images/flight/2026-11-13-first-lesson.mp4',
     poster: '/images/flight/2026-11-13-first-lesson-poster.jpg',
-    caption: 'First lesson out of KEDC in N1317E (20 s, no sound)'
+    caption: 'Discovery flight out of KEDC in N1317E (20 s, no sound)'
   };
   var GROUPS = [
     { id: 'kedc', label: 'Above & Beyond Aviation · KEDC · Nov 2026' },

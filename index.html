@@ -2703,6 +2703,18 @@
         .cp-kpi-val.hot   { color: #f87171; }
         .cp-kpi-val.blue  { color: #60a5fa; }
         .cp-kpi-val.home  { color: #f97316; }
+        /* Hurricane Analytics — featured Houston storms */
+        .hz-storms { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .hz-storm { border: 1px solid var(--border, rgba(255,255,255,0.1)); border-radius: 10px; padding: 1rem; background: rgba(251,146,60,0.04); }
+        .hz-storm h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+        .hz-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.85rem; }
+        .hz-stat b { display: block; font-size: 1.05rem; color: #fb923c; }
+        .hz-stat span { font-size: 0.7rem; color: var(--text-muted); }
+        .hz-notes { margin: 0; padding-left: 1.1rem; font-size: 0.82rem; line-height: 1.5; }
+        .hz-notes li { margin-bottom: 0.45rem; }
+        .hz-notes li.climate { background: rgba(56,189,248,0.07); border-radius: 6px; }
+        .hz-notes a { color: var(--text-muted); font-size: 0.75rem; }
+        .hz-storm-caveat { margin: 0.5rem 0 0; font-size: 0.72rem; color: var(--text-muted); font-style: italic; }
         /* Home vs reference (Houston vs Austin) panel */
         .cp-hv-grid {
             display: grid;
@@ -5821,15 +5833,21 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val" id="hz-latest">—</span>
-                <span class="cp-kpi-label">Latest season</span>
+                <span class="cp-kpi-label" id="hz-latest-label">Latest season</span>
+            </div>
+            <div class="cp-kpi-cell">
+                <span class="cp-kpi-val blue" id="hz-season-ace">—</span>
+                <span class="cp-kpi-label" id="hz-season-ace-label">Season ACE vs 1991–2020</span>
             </div>
         </div>
+        <p id="hz-season-line" class="cp-insight" style="margin:0 0 1rem;display:none;"></p>
 
         <!-- Tab nav -->
         <div class="cp-tabs">
             <button class="cp-tab active" onclick="hzTab(this,'timeline')">📈 Activity &amp; SST</button>
             <button class="cp-tab" onclick="hzTab(this,'scatter')">🎯 Correlation</button>
             <button class="cp-tab" onclick="hzTab(this,'ri')">🌀 Rapid Intensification</button>
+            <button class="cp-tab" onclick="hzTab(this,'houston')">🏠 Harvey &amp; Beryl</button>
         </div>
 
         <!-- Activity & SST timeline -->
@@ -5860,6 +5878,12 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
             <div class="cp-chart-wrap"><canvas id="hz-ri-chart"></canvas></div>
             <p class="cp-insight" id="hz-signal-ri">Loading signal...</p>
+        </div>
+
+        <!-- Houston landfalls: Harvey (2017) and Beryl (2024) — track stats from HURDAT2, sourced climate notes -->
+        <div class="cp-panel" id="hz-panel-houston">
+            <div id="hz-storms" class="hz-storms"></div>
+            <p class="cp-insight" id="hz-signal-houston">Loading signal...</p>
         </div>
 
         <!-- Honesty note: association, not attribution -->
@@ -14829,6 +14853,14 @@ window.cpUpdateSignal = function (tab) {
     });
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
     const kill = (k) => { if (HZ.charts[k]) { HZ.charts[k].destroy(); delete HZ.charts[k]; } };
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // Charts show the well-observed era the correlations use (pre-1950 counts
+    // miss storms that never met a ship). Preliminary seasons — NHC's
+    // operational best track, not yet reanalysed — are drawn hollow.
+    const win = () => (HZ.data.series || []).filter(d => d.year >= (HZ.data.corr_window_start || 1950));
+    const isPre = (d) => d && d.preliminary === true;
+    const barFill = (s, color, alpha) => s.map(d => isPre(d) ? 'transparent' : color + alpha);
+    const yearLabel = (d) => isPre(d) ? d.year + '*' : d.year;
 
     async function hzLoad() {
         if (HZ.loaded) return;
@@ -14853,24 +14885,44 @@ window.cpUpdateSignal = function (tab) {
         set('hz-r-global', fmt(c.ace_vs_global_temp));
         const s = HZ.data.series || [];
         set('hz-n', (c.ace_vs_tna_sst && c.ace_vs_tna_sst.n) || s.length);
-        set('hz-latest', s.length ? s[s.length - 1].year : '—');
+        const last = s[s.length - 1], ls = HZ.data.latest_season || {}, nm = HZ.data.normals;
+        set('hz-latest', last ? last.year + (isPre(last) ? '*' : '') : '—');
+        set('hz-latest-label', isPre(last) ? (ls.complete ? 'Latest season · preliminary' : 'Season in progress · preliminary') : 'Latest season');
+        if (last && nm && nm.ace) {
+            const pct = Math.round(100 * last.ace / nm.ace);
+            set('hz-season-ace', pct + '%');
+            set('hz-season-ace-label', `${last.year} ACE vs ${nm.window[0]}–${nm.window[1]} normal`);
+            const line = document.getElementById('hz-season-line');
+            if (line) {
+                const vs = (v, what, n) => `${v} ${what} (normal ${n})`;
+                const peak = (ls.storms || []).filter(x => x.peak_kt >= 64).sort((a, b) => b.peak_kt - a.peak_kt)[0];
+                line.innerHTML = `<strong>${last.year}${isPre(last) ? ' so far' : ''}:</strong> ` +
+                    `${vs(last.named, 'named storms', nm.named)}, ${vs(last.hurricanes, last.hurricanes === 1 ? 'hurricane' : 'hurricanes', nm.hurricanes)}, ` +
+                    `${vs(last.major, 'major', nm.major)}, ACE ${last.ace.toFixed(1)} (normal ${nm.ace}) — ` +
+                    `${pct < 70 ? 'well below' : pct > 130 ? 'well above' : 'near'} normal by storm energy` +
+                    (peak ? `; strongest: ${esc(peak.name)}, ${peak.peak_kt} kt` : '') + '.' +
+                    (isPre(last) ? ` *Preliminary: from NHC's operational best track, and kept out of the correlations until NOAA reanalyses it into HURDAT2${HZ.data.reanalysed_through ? ` (currently through ${HZ.data.reanalysed_through})` : ''}.` : '');
+                line.style.display = '';
+            }
+        }
         if (HZ.data.generated_at) set('hz-last-updated', 'Data: ' + HZ.data.generated_at.slice(0, 10));
         if (HZ.data.source_file) {
             const sub = document.getElementById('hz-subtitle');
             if (sub) sub.textContent =
-                `Atlantic hurricane activity vs. the water storms intensify over · ${HZ.data.source_file} · NOAA TNA · GISTEMP`;
+                `Atlantic hurricane activity vs. the water storms intensify over · ${HZ.data.source_file}` +
+                ((HZ.data.preliminary_years || []).length ? ' + NHC operational best track' : '') + ' · NOAA TNA · GISTEMP';
         }
     }
 
     // ── Tab 1: ACE bars + SST line (dual axis) ──────────────────────────────
     function hzDrawTimeline() {
-        const s = HZ.data.series;
+        const s = win();
         HZ.charts.timeline = new Chart(document.getElementById('hz-timeline-chart'), {
             data: {
-                labels: s.map(d => d.year),
+                labels: s.map(yearLabel),
                 datasets: [
                     { type: 'bar', label: 'ACE', yAxisID: 'y', data: s.map(d => d.ace),
-                      backgroundColor: STORM + '8c', borderColor: STORM, borderWidth: 1, borderRadius: 3 },
+                      backgroundColor: barFill(s, STORM, '8c'), borderColor: STORM, borderWidth: 1, borderRadius: 3 },
                     { type: 'line', label: 'SST anomaly (°C)', yAxisID: 'y1', data: s.map(d => d.tna_sst_aso),
                       borderColor: OCEAN, backgroundColor: OCEAN, tension: 0.35, pointRadius: 2, borderWidth: 2, spanGaps: true },
                 ],
@@ -14889,8 +14941,9 @@ window.cpUpdateSignal = function (tab) {
 
     // ── Tab 2: scatter SST(x) vs ACE(y) + regression ────────────────────────
     function hzDrawScatter() {
-        const pts = HZ.data.series
-            .filter(d => d.tna_sst_aso != null && d.ace != null)
+        // Same seasons the r in the KPI strip uses: reanalysed, 1950 onward.
+        const pts = win()
+            .filter(d => d.tna_sst_aso != null && d.ace != null && !isPre(d))
             .map(d => ({ x: d.tna_sst_aso, y: d.ace, year: d.year }));
         const n = pts.length,
             sx = pts.reduce((a, p) => a + p.x, 0), sy = pts.reduce((a, p) => a + p.y, 0),
@@ -14918,13 +14971,13 @@ window.cpUpdateSignal = function (tab) {
 
     // ── Tab 3: RI-storm bars + SST line ─────────────────────────────────────
     function hzDrawRI() {
-        const s = HZ.data.series;
+        const s = win();
         HZ.charts.ri = new Chart(document.getElementById('hz-ri-chart'), {
             data: {
-                labels: s.map(d => d.year),
+                labels: s.map(yearLabel),
                 datasets: [
                     { type: 'bar', label: 'RI storms', yAxisID: 'y', data: s.map(d => d.ri_storms),
-                      backgroundColor: STORMLINE + 'aa', borderColor: STORMLINE, borderWidth: 1, borderRadius: 3 },
+                      backgroundColor: barFill(s, STORMLINE, 'aa'), borderColor: STORMLINE, borderWidth: 1, borderRadius: 3 },
                     { type: 'line', label: 'SST anomaly (°C)', yAxisID: 'y1', data: s.map(d => d.tna_sst_aso),
                       borderColor: OCEAN, backgroundColor: OCEAN, tension: 0.35, pointRadius: 2, borderWidth: 2, spanGaps: true },
                 ],
@@ -14941,6 +14994,39 @@ window.cpUpdateSignal = function (tab) {
         hzSignal('ri');
     }
 
+    // ── Tab 4: Harvey & Beryl — track stats from HURDAT2 + sourced notes ────
+    function hzDrawHouston() {
+        const el = document.getElementById('hz-storms');
+        if (!el) return;
+        const fs = HZ.data.featured || [];
+        if (!fs.length) { el.innerHTML = '<div class="cp-hv-empty">Storm details populate on the next pipeline run.</div>'; return; }
+        // Central time: Harvey's 0300 UTC landfall was the evening of Aug 25 in Texas.
+        const day = (iso) => iso ? new Date(iso.replace(/Z$/, ':00Z')).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Chicago' }) : '—';
+        const ord = (n) => n + (['th', 'st', 'nd', 'rd'][(n % 100 - 20) % 10] || ['th', 'st', 'nd', 'rd'][n % 100] || 'th');
+        const cat = (c) => c ? `Cat ${c}` : 'TS';
+        el.innerHTML = fs.map(f => {
+            const tx = (f.landfalls || []).filter(l => l.lon != null && l.lon < -93.5 && l.lon > -97.6 && l.lat > 26);
+            const lf = tx[0] || (f.landfalls || [])[0];
+            const ss = f.season || {};
+            const stat = (v, label) => `<div class="hz-stat"><b>${v}</b><span>${label}</span></div>`;
+            return `<article class="hz-storm">
+                <h3>🌀 ${esc(f.headline || (f.name + ' ' + f.year))}</h3>
+                <div class="hz-stats">
+                    ${stat(`${f.peak_kt} kt · ${cat(f.peak_category)}`, 'Peak intensity')}
+                    ${stat(f.min_pressure_mb ? f.min_pressure_mb + ' mb' : '—', 'Lowest pressure')}
+                    ${stat(f.max_24h_gain_kt != null ? '+' + f.max_24h_gain_kt + ' kt' : '—', 'Fastest 24 h gain' + (f.rapid_intensification ? ' (RI)' : ''))}
+                    ${stat(lf ? `${lf.kt} kt · ${cat(lf.category)}` : '—', lf ? 'Texas landfall, ' + day(lf.time) : 'Landfall')}
+                    ${stat(ss.ace != null ? ss.ace.toFixed(0) + (ss.ace_rank_since_1950 ? ` · ${ord(ss.ace_rank_since_1950)}` : '') : '—', `${f.year} season ACE (rank of ${ss.n_seasons || '—'})`)}
+                    ${stat(ss.tna_sst_aso != null ? (ss.tna_sst_aso > 0 ? '+' : '') + ss.tna_sst_aso.toFixed(2) + '°C' + (ss.tna_sst_rank_since_1950 ? ` · ${ord(ss.tna_sst_rank_since_1950)}` : '') : '—', 'Aug–Oct Atlantic SST (rank)')}
+                </div>
+                <ul class="hz-notes">${(f.notes || []).map(n => `<li class="${/^Climate signal|study found/i.test(n.text) ? 'climate' : ''}">${esc(n.text)}
+                    ${n.url ? `<a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.source)}</a>` : `<span>${esc(n.source || '')}</span>`}</li>`).join('')}</ul>
+                ${f.caveat ? `<p class="hz-storm-caveat">${esc(f.caveat)}</p>` : ''}
+            </article>`;
+        }).join('');
+        hzSignal('houston');
+    }
+
     // ── Insight lines ───────────────────────────────────────────────────────
     function hzSignal(tab) {
         const el = document.getElementById('hz-signal-' + tab);
@@ -14954,6 +15040,13 @@ window.cpUpdateSignal = function (tab) {
             t = `Each dot is a season. The upward fit (r = ${rr(c.ace_vs_tna_sst)}) is the association between Aug–Oct SST and ACE — real, but modulated by ENSO/AMO, so not a clean causal estimate.`;
         if (tab === 'ri')
             t = `Rapid-intensification counts track Atlantic warmth at r = ${rr(c.ri_storms_vs_tna_sst)} — consistent with warmer water raising a storm's ceiling on how fast it can strengthen.`;
+        if (tab === 'timeline') {
+            const last = (HZ.data.series || []).slice(-1)[0], nm = HZ.data.normals;
+            if (last && nm && nm.ace && last.ace < 0.7 * nm.ace)
+                t += ` ${last.year} is the reminder that one season is weather, not trend: its ACE was ${Math.round(100 * last.ace / nm.ace)}% of normal${last.tna_sst_aso != null ? ` with the tropical Atlantic still ${last.tna_sst_aso > 0 ? '+' : ''}${last.tna_sst_aso.toFixed(2)}°C` : ''} — warm water sets the ceiling, but shear, dry air and ENSO decide whether storms reach it.`;
+        }
+        if (tab === 'houston' && (HZ.data.featured || []).length)
+            t = `Two Houston storms, two different climate fingerprints. Harvey's damage came from rain: warmer air holds about 7% more water per °C, and studies attribute roughly 15–38% of its Houston rainfall to warming. Beryl's story is speed and timing: record-early rapid intensification over water that was September-warm in June. The SST rank uses NOAA's tropical Atlantic box (5–25°N, 55–15°W) — where Beryl strengthened, but not the Gulf, where Harvey did.`;
         el.innerHTML = t ? `<strong>Signal:</strong> ${t}` : '';
     }
 
@@ -14967,6 +15060,7 @@ window.cpUpdateSignal = function (tab) {
         if (id === 'timeline' && !HZ.charts.timeline) hzDrawTimeline();
         if (id === 'scatter'  && !HZ.charts.scatter)  hzDrawScatter();
         if (id === 'ri'       && !HZ.charts.ri)       hzDrawRI();
+        if (id === 'houston') hzDrawHouston();
         hzSignal(id);
     };
 

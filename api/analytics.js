@@ -330,7 +330,7 @@ TEMPERATURE SCIENCE (El Helou 2012, Ely 2007; Pugh 1971, Davies 1980):
     // 9. ── AI INSIGHTS via Claude ──
     // AFTER — Gemini Flash, free, works now
     const coachPrompt = `You are a world-class running coach analyzing Yash Hooda's training data.
-Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00 (lifelong goal, now targeted for ~2028). Currently training for the 2027 Aramco Houston Half Marathon on Jan 17, 2027 (goal: PR under 1:24:31) on a 12-week block that started Oct 27, 2026; tune-ups: NYRR 5K Oct 31, Run for the Water 5K (Austin) Nov 8, Coach Andy 30K Dec 13 as a long run. He now lives in Austin, TX. (Earlier plan, kept for context: 2027 Chevron Houston Marathon, sub 3 at sea level.)
+Yash's PRs: 5K 18:15, Half Marathon 1:24:31, 8K 29:48. Marathon goal: sub-3:00 (lifelong goal, now targeted for ~2028). Currently training for the 2027 Aramco Houston Half Marathon on Jan 17, 2027 (goal: PR under 1:24:31) on a 12-week block that started Oct 27, 2026; tune-ups: NYRR 5K Oct 31, Run for the Water 5K (Austin) Nov 8, Coach Andy 30K Dec 13 as a long run. He lives in the Houston, TX area again (after a brief stint in Austin in fall 2026). (Earlier plan, kept for context: 2027 Chevron Houston Marathon, sub 3 at sea level.)
 CTL (fitness): ${ctlRounded}, ATL (fatigue): ${atlRounded}, Form: ${form}
 Pace zones (last 30 runs): ${JSON.stringify(paceZones)}
 ${weatherContext}
@@ -342,7 +342,7 @@ TEMPERATURE SCIENCE CONTEXT:
 - High humidity (≥70%) prevents sweat evaporation — compounds heat stress significantly
 - Houston summers require slowing easy runs 60-90 sec/mile vs goal pace
 - Boulder altitude will slow pace ~3-5% vs sea level Houston training
-- Austin (his home since Oct 2026) is hillier than Houston and still hot/humid into October; the 2027 Aramco Houston Half (Jan 17, 2027) is flat at sea level, so treat Austin hill runs as extra load, not slowness
+- He is back in the flat, humid Houston area — the same terrain and sea-level conditions as the 2027 Aramco Houston Half (Jan 17, 2027). Runs logged in Austin during fall 2026 were on hillier ground, so treat those as extra load, not slowness
 - 80/20 rule: 80% easy (conversational), 20% quality — crucial in heat to avoid overtraining
 
 Write 3 short sharp coaching insights (2-3 sentences each) about:

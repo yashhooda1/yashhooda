@@ -1,6 +1,6 @@
 # yashhooda.ai
 
-> Yash Hooda — Data Engineer & AI Engineer (Austin, TX). BS Computer Science, UT Dallas (2024). Databricks Certified Data Engineer Associate. Builds and operates production LLM systems and real-time data pipelines; open to Data Engineering / AI Engineering roles. Contact: yash.hooda6@gmail.com
+> Yash Hooda — Data Engineer & AI Engineer (Houston, TX). BS Computer Science, UT Dallas (2024). Databricks Certified Data Engineer Associate. Builds and operates production LLM systems and real-time data pipelines; open to Data Engineering / AI Engineering roles. Contact: yash.hooda6@gmail.com
 
 This is a single-page portfolio that is also a working AI application (HoodaAgents). Sections are addressable by hash.
 

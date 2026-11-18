@@ -2703,7 +2703,7 @@
         .cp-kpi-val.hot   { color: #f87171; }
         .cp-kpi-val.blue  { color: #60a5fa; }
         .cp-kpi-val.home  { color: #f97316; }
-        /* Austin vs Houston panel */
+        /* Home vs reference (Houston vs Austin) panel */
         .cp-hv-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -4802,10 +4802,10 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
                 <div class="project-desc">
                     End-to-end Bronze → Silver → Gold pipeline analyzing 57 years (1970–2026) 
-                    of NOAA daily station data across 24 global cities — Austin (home station), Houston, Newark, Dallas,
+                    of NOAA daily station data across 24 global cities — Houston (home station), Austin, Newark, Dallas,
                     Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, San Francisco, Seattle, New York City, Boston, Miami, Atlanta, Washington DC, Orlando, Anchorage, Toronto, and Delhi. Features automated daily refresh via GitHub Actions,
                     Celsius→Fahrenheit conversion for international stations, an interactive
-                    dashboard with city toggle comparisons, and an Austin-vs-Houston layer contrasting winter freezes and humidity (dew point, afternoon RH).
+                    dashboard with city toggle comparisons, and a Houston-vs-Austin layer contrasting winter freezes and humidity (dew point, afternoon RH).
                     Denver included for Boulderthon marathon race planning context.
                 </div>
                 <div class="project-links">
@@ -5436,7 +5436,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </p>
             <form class="pf-form" id="pf-form" autocomplete="off">
                 <label>Route (departure first)
-                    <input id="pf-route" type="text" value="KAUS KHOU" maxlength="40" spellcheck="false" aria-label="Route as ICAO codes">
+                    <input id="pf-route" type="text" value="KHOU KAUS" maxlength="40" spellcheck="false" aria-label="Route as ICAO codes">
                 </label>
                 <label>Minimums
                     <select id="pf-profile">
@@ -5454,9 +5454,9 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 <button class="btn-primary" id="pf-run" type="submit">Brief me</button>
             </form>
             <div class="pf-presets">Try:
-                <button type="button" data-pf-route="KAUS KHOU">KAUS → KHOU</button>
-                <button type="button" data-pf-route="KEDC KCLL KHOU">KEDC → KCLL → KHOU</button>
-                <button type="button" data-pf-route="KAUS KDAL">KAUS → KDAL</button>
+                <button type="button" data-pf-route="KHOU KAUS">KHOU → KAUS</button>
+                <button type="button" data-pf-route="KSGR KCLL KEDC">KSGR → KCLL → KEDC</button>
+                <button type="button" data-pf-route="KHOU KDAL">KHOU → KDAL</button>
                 <button type="button" data-pf-route="KSGR KLBX">KSGR → KLBX</button>
             </div>
             <div id="pf-out"><div class="pf-placeholder">✈️ Enter a route and hit <b>Brief me</b>. Not an official briefing — practice and portfolio use only.</div></div>
@@ -5525,7 +5525,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
 
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Texas grid demand, generation mix and prices from ERCOT, joined to METAR weather from six Texas airports. Austin is the home view: Austin Energy's load-zone price (LZ_AEN) and KAUS weather, contrasted with Houston. Same Kafka → Spark → Delta pipeline as METAR Stream.
+                Texas grid demand, generation mix and prices from ERCOT, joined to METAR weather from six Texas airports. Houston is the home view: Houston's load-zone price (LZ_HOUSTON) and KIAH weather, contrasted with Austin. Same Kafka → Spark → Delta pipeline as METAR Stream.
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="er-badge">Loading…</span>
@@ -5544,8 +5544,8 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 <div class="cp-kpi-cell"><span class="cp-kpi-val blue" id="er-margin">—</span><span class="cp-kpi-label">Capacity margin</span></div>
                 <div class="cp-kpi-cell"><span class="cp-kpi-val" id="er-ws">—</span><span class="cp-kpi-label">Wind + solar share</span></div>
                 <div class="cp-kpi-cell"><span class="cp-kpi-val" id="er-net">—</span><span class="cp-kpi-label">Net load (MW)</span></div>
-                <div class="cp-kpi-cell"><span class="cp-kpi-val home" id="er-price">—</span><span class="cp-kpi-label" id="er-price-label">Austin Energy zone ($/MWh)</span></div>
-                <div class="cp-kpi-cell"><span class="cp-kpi-val home" id="er-home-temp">—</span><span class="cp-kpi-label" id="er-home-temp-label">Austin now (KAUS)</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val home" id="er-price">—</span><span class="cp-kpi-label" id="er-price-label">Houston load zone ($/MWh)</span></div>
+                <div class="cp-kpi-cell"><span class="cp-kpi-val home" id="er-home-temp">—</span><span class="cp-kpi-label" id="er-home-temp-label">Houston now (KIAH)</span></div>
             </div>
 
             <div class="cp-tabs">
@@ -5603,7 +5603,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="cp-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                57 years (1970–2026) of NOAA daily station data · 24 cities · Austin home station · Bronze → Silver → Gold pipeline
+                57 years (1970–2026) of NOAA daily station data · 24 cities · Houston home station · Bronze → Silver → Gold pipeline
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="cp-last-updated">Updated daily</span>
@@ -5615,27 +5615,27 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <div class="cp-kpi-row">
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val home" id="cp-home-annual">—</span>
-                <span class="cp-kpi-label" id="cp-home-annual-label">Austin °F / decade</span>
+                <span class="cp-kpi-label" id="cp-home-annual-label">Houston °F / decade</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val hot" id="cp-ref-annual">—</span>
-                <span class="cp-kpi-label" id="cp-ref-annual-label">Houston °F / decade</span>
+                <span class="cp-kpi-label" id="cp-ref-annual-label">Austin °F / decade</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val home" id="cp-home-winter">—</span>
-                <span class="cp-kpi-label" id="cp-home-winter-label">AUS winter nights / dec</span>
+                <span class="cp-kpi-label" id="cp-home-winter-label">HOU winter nights / dec</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val blue" id="cp-freeze">—</span>
-                <span class="cp-kpi-label" id="cp-freeze-label">Freeze nights / winter · AUS vs HOU</span>
+                <span class="cp-kpi-label" id="cp-freeze-label">Freeze nights / winter · HOU vs AUS</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val blue" id="cp-dewpt">—</span>
-                <span class="cp-kpi-label" id="cp-dewpt-label">Winter dew point vs HOU</span>
+                <span class="cp-kpi-label" id="cp-dewpt-label">Winter dew point vs AUS</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val" id="cp-80f">—</span>
-                <span class="cp-kpi-label" id="cp-80f-label">AUS extra 80°F days / decade</span>
+                <span class="cp-kpi-label" id="cp-80f-label">HOU extra 80°F days / decade</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val" id="cp-years">57</span>
@@ -5661,7 +5661,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <button class="cp-tab" onclick="cpTab(this,'seasonal')">📅 Seasonal</button>
             <button class="cp-tab" onclick="cpTab(this,'heat')">🔥 Heat Days</button>
             <button class="cp-tab" onclick="cpTab(this,'winter')">❄️ Winter Lows</button>
-            <button class="cp-tab" onclick="cpTab(this,'home')">💧 Austin vs Houston</button>
+            <button class="cp-tab" id="cp-tab-home" onclick="cpTab(this,'home')">💧 Houston vs Austin</button>
         </div>
  
         <!-- Annual Trend -->
@@ -5700,7 +5700,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <p class="cp-insight" id="cp-signal-winter">Loading signal...</p>
         </div>
 
-        <!-- Austin vs Houston — winters + humidity (fixed pair, ignores the city toggles) -->
+        <!-- Home vs reference (Houston vs Austin) — winters + humidity (fixed pair, ignores the city toggles) -->
         <div class="cp-panel" id="cp-panel-home">
             <div class="cp-hv-grid" id="cp-hv-grid"></div>
             <div class="cp-controls">
@@ -5747,7 +5747,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
  
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
             <p id="co2-subtitle" style="margin:0;font-size:0.85rem;color:var(--text-muted);">
-                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 24 station series (Austin home)
+                Global Carbon Budget emissions · NOAA Mauna Loa CO₂ · NASA GISTEMP — joined to the 24 station series (Houston home)
             </p>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                 <span class="cp-refresh-badge" id="co2-updated">Updated monthly</span>
@@ -13125,15 +13125,15 @@ const HOODAAGENTS_KILL_SWITCH = true;
         data:    null,
         charts:  {},
         loaded:  false,
-        // Home station (Austin) + its reference (Houston) on load. The gold file
-        // names the home station; these are the fallbacks until it does.
-        HOME:    'AUS',
-        REF:     'IAH',
-        active:  new Set(['AUS', 'IAH']),
+        // Home station (Houston) + its reference (Austin) on load. The gold file
+        // names both (home_station, home_vs.ref); these are the fallbacks.
+        HOME:    'IAH',
+        REF:     'AUS',
+        active:  new Set(['IAH', 'AUS']),
         MONTHS:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
         CITIES: {
-            AUS: { name: 'Austin, TX',   color: '#f97316' },
             IAH: { name: 'Houston, TX',  color: '#f87171' },
+            AUS: { name: 'Austin, TX',   color: '#f97316' },
             EWR: { name: 'Newark, NJ',   color: '#60a5fa' },
             DAL: { name: 'Dallas, TX',   color: '#facc15' },
             DEN: { name: 'Denver, CO',   color: '#4ade80' },
@@ -13168,8 +13168,16 @@ const HOODAAGENTS_KILL_SWITCH = true;
             CP.data   = await res.json();
             CP.loaded = true;
             if (CP.data.home_station && CP.CITIES[CP.data.home_station]) CP.HOME = CP.data.home_station;
-            // Until the pipeline has produced Austin, don't leave an empty default slot.
+            // The reference follows the gold file too, so the pair stays coherent
+            // whichever way round the pipeline last published it.
+            const hvRef = (CP.data.home_vs || {}).ref;
+            if (hvRef && hvRef !== CP.HOME && CP.CITIES[hvRef]) CP.REF = hvRef;
+            else if (CP.REF === CP.HOME) CP.REF = CP.HOME === 'IAH' ? 'AUS' : 'IAH';
+            CP.active = new Set([CP.HOME, CP.REF]);
+            // If the home series is missing from this run, don't leave an empty default slot.
             if (!CP.data[CP.HOME]) CP.active = new Set([CP.REF, 'EWR'].filter(c => CP.data[c]));
+            const hvTab = document.getElementById('cp-tab-home');
+            if (hvTab) hvTab.textContent = `💧 ${cityOf(CP.HOME)} vs ${cityOf(CP.REF)}`;
             cpBuildToggles();
             cpPopulateKPIs();
             cpDrawTrend();
@@ -13219,21 +13227,22 @@ const HOODAAGENTS_KILL_SWITCH = true;
         if (id === 'seasonal') { destroyChart('seasonal'); cpDrawSeasonal(); }
         if (id === 'heat')     { destroyChart('heat');     cpDrawHeat(); }
         if (id === 'winter')   { destroyChart('winter');   cpDrawWinter(); }
-        // 'home' is a fixed Austin/Houston pair — the city toggles don't change it
+        // 'home' is a fixed home/reference pair — the city toggles don't change it
     }
 
     function destroyChart(key) {
         if (CP.charts[key]) { CP.charts[key].destroy(); delete CP.charts[key]; }
     }
 
-    // ── KPI strip — Austin (home) as primary, Houston as reference ───────────
+    // ── KPI strip — home station (Houston) as primary, Austin as reference ───
+    const cityOf = (code) => ((CP.CITIES[code] || {}).name || code).split(',')[0];
     const kSgn = (v, d = 2) => (v == null || Number.isNaN(v)) ? '—' : (v >= 0 ? '+' : '') + v.toFixed(d);
     const kNum = (v, d = 1) => (v == null || Number.isNaN(v)) ? '—' : v.toFixed(d);
     const shortCode = (code) => ({ AUS: 'AUS', IAH: 'HOU' })[code] || code;
 
     function cpPopulateKPIs() {
-        // Before the first pipeline run that includes Austin, fall back to
-        // Houston + Newark rather than leaving the strip blank.
+        // If the home series is missing from this run, fall back to the
+        // reference + Newark rather than leaving the strip blank.
         const homeCode = CP.data[CP.HOME] ? CP.HOME : CP.REF;
         const refCode  = homeCode === CP.REF ? 'EWR' : CP.REF;
         const home = CP.data[homeCode], ref = CP.data[refCode];
@@ -13250,6 +13259,11 @@ const HOODAAGENTS_KILL_SWITCH = true;
         set('cp-home-winter-label', `${shortCode(homeCode)} winter nights / dec`);
         set('cp-80f', kSgn(home.slope_80f_febmar) + ' days');
         set('cp-80f-label', `${shortCode(homeCode)} extra 80°F days / decade`);
+        set('cp-freeze-label', `Freeze nights / winter · ${shortCode(homeCode)} vs ${shortCode(refCode)}`);
+        set('cp-dewpt-label', `Winter dew point vs ${shortCode(refCode)}`);
+        // KPI colours follow the stations, not the slot they sit in.
+        const tint = (id, code) => { const el = document.getElementById(id); if (el && CP.CITIES[code]) el.style.color = CP.CITIES[code].color; };
+        tint('cp-home-annual', homeCode); tint('cp-home-winter', homeCode); tint('cp-ref-annual', refCode);
 
         const w = hv.winter, hum = hv.humidity;
         set('cp-freeze', w && w.home_freeze_nights != null
@@ -13257,7 +13271,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
         set('cp-dewpt', hum && hum.djf_dewpt_diff != null ? kSgn(hum.djf_dewpt_diff, 1) + '°F' : '—');
         const dp = document.getElementById('cp-dewpt');
         if (dp && hum && hum.djf_home_dewpt != null)
-            dp.title = `DJF mean dew point: Austin ${kNum(hum.djf_home_dewpt)}°F vs Houston ${kNum(hum.djf_ref_dewpt)}°F (${hum.djf_window[0]}–${hum.djf_window[1]})`;
+            dp.title = `DJF mean dew point: ${homeName} ${kNum(hum.djf_home_dewpt)}°F vs ${refName} ${kNum(hum.djf_ref_dewpt)}°F (${hum.djf_window[0]}–${hum.djf_window[1]})`;
 
         // Dynamic year count
         const lastYear = home.yearly[home.yearly.length - 1].year;
@@ -13618,13 +13632,20 @@ const HOODAAGENTS_KILL_SWITCH = true;
         window.cpUpdateSignal('winter');
     }
 
-    // ── Austin vs Houston — winters + humidity ───────────────────────────────
+    // ── Home vs reference (Houston vs Austin) — winters + humidity ───────────
+    // City names come from gold.home_vs, so the copy follows the pipeline's
+    // home/ref orientation instead of assuming one.
+    const hvNames = () => {
+        const hv = (CP.data && CP.data.home_vs) || {};
+        return { H: (hv.home_name || cityOf(CP.HOME)).split(',')[0], R: (hv.ref_name || cityOf(CP.REF)).split(',')[0],
+                 hc: (CP.CITIES[hv.home || CP.HOME] || {}).color || '#f87171', rc: (CP.CITIES[hv.ref || CP.REF] || {}).color || '#f97316' };
+    };
     // Everything here reads gold.home_vs and the two station blocks; nothing is
     // hand-typed, so the cards move with the daily regression like the rest.
     function hvCard(label, home, ref, unit, delta) {
         return `<div class="cp-hv-card">
             <div class="cp-hv-label">${label}</div>
-            <div class="cp-hv-pair"><b>${home}${unit}</b><em>Austin</em><span>${ref}${unit}</span><em>Houston</em></div>
+            <div class="cp-hv-pair"><b style="color:${hvNames().hc}">${home}${unit}</b><em>${hvNames().H}</em><span style="color:${hvNames().rc}">${ref}${unit}</span><em>${hvNames().R}</em></div>
             ${delta ? `<div class="cp-hv-delta">${delta}</div>` : ''}
         </div>`;
     }
@@ -13634,17 +13655,18 @@ const HOODAAGENTS_KILL_SWITCH = true;
         if (!grid) return;
         const hv = CP.data.home_vs;
         if (!hv) {
-            grid.innerHTML = `<div class="cp-hv-empty">Austin's series populates on the next ClimatePulse pipeline run.</div>`;
+            grid.innerHTML = `<div class="cp-hv-empty">The ${cityOf(CP.HOME)} vs ${cityOf(CP.REF)} comparison populates on the next ClimatePulse pipeline run.</div>`;
             return;
         }
         const w = hv.winter || {}, a = hv.annual || {}, h = hv.humidity || {};
+        const { H, R } = hvNames();
         const cards = [];
         if (w.home_tmin != null) cards.push(hvCard('Winter night lows (DJF)',
             kNum(w.home_tmin), kNum(w.ref_tmin), '°F',
-            `Austin ${kNum(Math.abs(w.tmin_diff))}°F ${w.tmin_diff < 0 ? 'colder' : 'warmer'} · ${w.window[0]}–${w.window[1]}`));
+            `${H} ${kNum(Math.abs(w.tmin_diff))}°F ${w.tmin_diff < 0 ? 'colder' : 'warmer'} · ${w.window[0]}–${w.window[1]}`));
         if (w.home_freeze_nights != null) cards.push(hvCard('Freeze nights per winter (≤32°F)',
             kNum(w.home_freeze_nights), kNum(w.ref_freeze_nights), '',
-            `${w.freeze_ratio ? w.freeze_ratio + '× Houston' : ''} · last 10: ${kNum(w.home_freeze_recent)} vs ${kNum(w.ref_freeze_recent)}`));
+            `${w.freeze_ratio ? w.freeze_ratio + '× ' + R : ''} · last 10: ${kNum(w.home_freeze_recent)} vs ${kNum(w.ref_freeze_recent)}`));
         if (h.djf_home_dewpt != null) cards.push(hvCard('Winter dew point',
             kNum(h.djf_home_dewpt), kNum(h.djf_ref_dewpt), '°F',
             `${kSgn(h.djf_dewpt_diff, 1)}°F · ${h.djf_n} winters, ${h.djf_window[0]}–${h.djf_window[1]}`));
@@ -13731,16 +13753,17 @@ const HOODAAGENTS_KILL_SWITCH = true;
         const hv = CP.data && CP.data.home_vs;
         if (!hv) return '';
         const w = hv.winter || {}, h = hv.humidity || {}, a = hv.annual || {};
+        const { H, R } = hvNames();
         const parts = [];
         // Lead with humidity — that's where the two cities genuinely differ.
         // Temperature gaps are stated as measured, and only called meaningful
         // when they are (≥ 2°F), so the copy can't overstate a small difference.
-        if (h.djf_dewpt_diff != null) parts.push(`The clearest difference is moisture. Austin's winter dew point averages ${kNum(h.djf_home_dewpt)}°F vs Houston's ${kNum(h.djf_ref_dewpt)}°F (${kSgn(h.djf_dewpt_diff, 1)}°F), with afternoon humidity ${kNum(Math.abs(h.djf_rhmn_diff), 0)} points ${h.djf_rhmn_diff < 0 ? 'lower' : 'higher'}${h.jja_rhmn_diff != null ? `; in summer, afternoon humidity runs ${kNum(Math.abs(h.jja_rhmn_diff), 0)} points ${h.jja_rhmn_diff < 0 ? 'lower' : 'higher'} and dew point ${kNum(Math.abs(h.jja_dewpt_diff))}°F ${h.jja_dewpt_diff < 0 ? 'lower' : 'higher'} (${kNum(h.jja_home_dewpt)}°F vs ${kNum(h.jja_ref_dewpt)}°F)` : ''}.`);
+        if (h.djf_dewpt_diff != null) parts.push(`The clearest difference is moisture. ${H}'s winter dew point averages ${kNum(h.djf_home_dewpt)}°F vs ${R}'s ${kNum(h.djf_ref_dewpt)}°F (${kSgn(h.djf_dewpt_diff, 1)}°F), with afternoon humidity ${kNum(Math.abs(h.djf_rhmn_diff), 0)} points ${h.djf_rhmn_diff < 0 ? 'lower' : 'higher'}${h.jja_rhmn_diff != null ? `; in summer, afternoon humidity runs ${kNum(Math.abs(h.jja_rhmn_diff), 0)} points ${h.jja_rhmn_diff < 0 ? 'lower' : 'higher'} and dew point ${kNum(Math.abs(h.jja_dewpt_diff))}°F ${h.jja_dewpt_diff < 0 ? 'lower' : 'higher'} (${kNum(h.jja_home_dewpt)}°F vs ${kNum(h.jja_ref_dewpt)}°F)` : ''}.`);
         if (w.tmin_diff != null) {
             const big = Math.abs(w.tmin_diff) >= 2;
-            parts.push(`Winter temperatures are ${big ? 'noticeably' : 'only slightly'} different: night lows average ${kNum(w.home_tmin)}°F in Austin vs ${kNum(w.ref_tmin)}°F in Houston (${kSgn(w.tmin_diff, 1)}°F), and Austin logs ${kNum(w.home_freeze_nights)} freeze nights a winter to Houston's ${kNum(w.ref_freeze_nights)} (${w.window[0]}–${w.window[1]})${w.home_freeze_recent != null ? `, ${kNum(w.home_freeze_recent)} vs ${kNum(w.ref_freeze_recent)} over the last 10 winters` : ''}. Houston's winter nights are also warming faster (${kSgn(w.ref_slope)} vs ${kSgn(w.home_slope)}°F/decade).`);
+            parts.push(`Winter temperatures are ${big ? 'noticeably' : 'only slightly'} different: night lows average ${kNum(w.home_tmin)}°F in ${H} vs ${kNum(w.ref_tmin)}°F in ${R} (${kSgn(w.tmin_diff, 1)}°F), and ${H} logs ${kNum(w.home_freeze_nights)} freeze nights a winter to ${R}'s ${kNum(w.ref_freeze_nights)} (${w.window[0]}–${w.window[1]})${w.home_freeze_recent != null ? `, ${kNum(w.home_freeze_recent)} vs ${kNum(w.ref_freeze_recent)} over the last 10 winters` : ''}.${(w.home_slope != null && w.ref_slope != null && w.home_slope !== w.ref_slope) ? ` ${w.home_slope > w.ref_slope ? H : R}'s winter nights are also warming faster (${kSgn(Math.max(w.home_slope, w.ref_slope))} vs ${kSgn(Math.min(w.home_slope, w.ref_slope))}°F/decade).` : ''}`);
         }
-        if (a.range_diff != null && Math.abs(a.range_diff) >= 1) parts.push(`Austin's daily high–low swing is ${kNum(Math.abs(a.range_diff))}°F ${a.range_diff > 0 ? 'wider' : 'narrower'}.`);
+        if (a.range_diff != null && Math.abs(a.range_diff) >= 1) parts.push(`${H}'s daily high–low swing is ${kNum(Math.abs(a.range_diff))}°F ${a.range_diff > 0 ? 'wider' : 'narrower'}.`);
         if (h.record_start) parts.push(`Humidity comes from NOAA daily dew point/RH, which begins ${h.record_start.slice(0, 4)} for these stations — a shorter window than the 1970+ temperature series.`);
         return parts.join(' ');
     }
@@ -13762,22 +13785,31 @@ const heatDays = (d) => last(d).count_80f;
 const swing = (d) => (july(d) != null && jan(d) != null) ? july(d) - jan(d) : null;
 
 const hvOf = () => (CP.data && CP.data.home_vs) || {};
+// Winter stats for one of the home/ref pair, whichever side the pipeline put it on.
+const hvSide = (code) => {
+    const hv = hvOf(), w = hv.winter;
+    if (!w || (hv.home !== code && hv.ref !== code)) return null;
+    const [me, other] = hv.home === code ? ['home', 'ref'] : ['ref', 'home'];
+    return { tmin: w[me + '_tmin'], otherTmin: w[other + '_tmin'], frz: w[me + '_freeze_nights'], otherFrz: w[other + '_freeze_nights'] };
+};
+const homeTag = (code) => CP.HOME === code ? ' — the home station —' : '';
+const hvTabName = () => `💧 ${(CP.CITIES[CP.HOME].name).split(',')[0]} vs ${(CP.CITIES[CP.REF].name).split(',')[0]}`;
 const avgFreeze = (d) => {
     const w = (d?.winter || []).filter(r => r.freeze_nights != null);
     return w.length ? w.reduce((a, r) => a + r.freeze_nights, 0) / w.length : null;
 };
 const CP_SIGNALS = {
     AUS: {
-        trend:    (d) => `Austin (Camp Mabry) — the home station — warms at ${sgn(d.slope_annual)}°F/decade. Sitting inland, ~150 mi from the Gulf, it gets less of the Gulf moisture that keeps Houston's air muggy.`,
+        trend:    (d) => `Austin (Camp Mabry)${homeTag('AUS')} warms at ${sgn(d.slope_annual)}°F/decade. Sitting inland, ~150 mi from the Gulf, it gets less of the Gulf moisture that keeps Houston's air muggy.`,
         seasonal: (d) => `Austin's July mean is ${num(july(d))}°F against ${num(jan(d))}°F in January — a ${num(swing(d))}°F seasonal swing. Average temperatures track Houston closely; the real difference is humidity — Austin's air is noticeably drier year-round.`,
         heat:     (d) => `Austin logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}, with Feb–Mar heat days changing ${sgn(d.slope_80f_febmar)} days/decade.`,
         winter:   (d) => {
-            const w = hvOf().winter;
-            return `Austin winter nighttime lows warm at ${sgn(d.slope_winter)}°F/decade from a colder base than Houston${w ? ` — ${num(w.home_tmin)}°F vs ${num(w.ref_tmin)}°F on average, with ${num(w.home_freeze_nights)} freeze nights a winter to Houston's ${num(w.ref_freeze_nights)}` : ''}. Open the 💧 Austin vs Houston tab for the humidity side.`;
+            const w = hvSide('AUS');
+            return `Austin winter nighttime lows warm at ${sgn(d.slope_winter)}°F/decade from a colder base than Houston${w ? ` — ${num(w.tmin)}°F vs ${num(w.otherTmin)}°F on average, with ${num(w.frz)} freeze nights a winter to Houston's ${num(w.otherFrz)}` : ''}. Open the ${hvTabName()} tab for the humidity side.`;
         },
     },
     IAH: {
-        trend:    (d) => `Houston (IAH) warms at ${sgn(d.slope_annual)}°F/decade — one of the fastest-warming major US cities, driven by urban heat island effects and Gulf Coast humidity.`,
+        trend:    (d) => `Houston (IAH)${homeTag('IAH')} warms at ${sgn(d.slope_annual)}°F/decade — one of the fastest-warming major US cities, driven by urban heat island effects and Gulf Coast humidity.`,
         seasonal: (d) => `Houston summers are brutal — July averages ${num(july(d))}°F mean with extreme humidity. Winters are mild but warming faster than summers (${sgn(d.slope_winter)}°F/decade for winter nights).`,
         heat:     (d) => `Houston logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}, with Feb–Mar heat days increasing ${sgn(d.slope_80f_febmar)} days/decade — extreme heat arriving earlier every year.`,
         winter:   (d) => `Houston winter nighttime lows warm at ${sgn(d.slope_winter)}°F/decade — faster than its annual rate of ${sgn(d.slope_annual)}°F, a classic greenhouse-gas fingerprint distinct from urban heat island effects.`,
@@ -14698,7 +14730,7 @@ window.cpUpdateSignal = function (tab) {
                 'Updated ' + new Date(d.generated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
  
-        // Per-city table — home station (Austin) pinned first, rest by slope
+        // Per-city table — home station (Houston) pinned first, rest by slope
         const rows = [...(d.stations || [])].sort((a, b) => (b.home === true) - (a.home === true));
         document.getElementById('co2-city-body').innerHTML = rows.map(s => {
             const v   = s.vs_cumulative_emissions || {};
@@ -15661,7 +15693,9 @@ window.cpUpdateSignal = function (tab) {
         'Natural Gas': '#fb923c', 'Wind': '#38bdf8', 'Solar': '#facc15', 'Nuclear': '#a78bfa',
         'Coal and Lignite': '#a8a29e', 'Power Storage': '#4caf50', 'Hydro': '#60a5fa', 'Other': '#6b7280',
     };
-    // Austin Energy's load zone leads; Houston's load zone is its direct counterpart.
+    // Houston's load zone leads; Austin Energy's load zone is its direct counterpart.
+    // Which is home comes from the snapshot's `home` block, so the copy follows the pipeline.
+    const STATION_WEIGHT_PCT = { KIAH: 35, KAUS: 11 };  // share of the population weighting
     const HUB_COLORS = { LZ_AEN: '#f97316', LZ_HOUSTON: '#e879f9', HB_HOUSTON: '#f87171', HB_NORTH: '#60a5fa', HB_WEST: '#facc15', HB_HUBAVG: '#4caf50' };
     const HUB_NAMES = { LZ_AEN: 'Austin Energy zone', LZ_HOUSTON: 'Houston load zone', HB_HOUSTON: 'Houston hub', HB_NORTH: 'North hub', HB_WEST: 'West hub', HB_HUBAVG: 'Hub average' };
     const TICK = { color: '#9ca3af', font: { size: 10 } };
@@ -15709,17 +15743,20 @@ window.cpUpdateSignal = function (tab) {
         set('er-margin', l.margin_pct != null ? num(l.margin_pct, 1) + '%' : '—');
         set('er-ws', l.wind_solar_share_pct != null ? num(l.wind_solar_share_pct, 1) + '%' : '—');
         set('er-net', num(l.net_load_mw));
-        // Austin Energy zone once the refresh publishes it; Houston hub until then.
+        // Home load zone when the refresh publishes it; Houston hub until then.
         const rp = l.rt_prices || {};
-        const priceKey = rp.LZ_AEN != null ? 'LZ_AEN' : (rp.HB_HOUSTON != null ? 'HB_HOUSTON' : null);
+        const home = d.home || {}, ref = home.ref || {};
+        const homeZone = home.load_zone || 'LZ_HOUSTON';
+        const homeName = home.name || 'Houston', homeStn = home.station || 'KIAH';
+        const priceKey = rp[homeZone] != null ? homeZone : (rp.HB_HOUSTON != null ? 'HB_HOUSTON' : null);
         set('er-price', priceKey ? '$' + num(rp[priceKey], 2) : '—');
-        set('er-price-label', (priceKey ? HUB_NAMES[priceKey] : 'Austin Energy zone') + ' ($/MWh)');
-        const home = d.home || {};
+        set('er-price-label', (HUB_NAMES[priceKey || homeZone] || homeZone) + ' ($/MWh)');
         const tn = home.temp_now;
         set('er-home-temp', tn && tn.temp_f != null ? num(tn.temp_f, 0) + '°F' : '—');
+        set('er-home-temp-label', `${homeName} now (${homeStn})`);
         const homeTempEl = $('er-home-temp');
-        if (homeTempEl) homeTempEl.title = tn ? `KAUS METAR, ${ct(tn.t, { month: 'short', day: 'numeric', hour: 'numeric' })} CT` +
-            (home.ref_temp_now ? ` · Houston (KIAH) ${num(home.ref_temp_now.temp_f, 0)}°F` : '') : '';
+        if (homeTempEl) homeTempEl.title = tn ? `${homeStn} METAR, ${ct(tn.t, { month: 'short', day: 'numeric', hour: 'numeric' })} CT` +
+            (home.ref_temp_now ? ` · ${ref.name || 'Austin'} (${ref.station || 'KAUS'}) ${num(home.ref_temp_now.temp_f, 0)}°F` : '') : '';
 
         const s = d.stats || {};
         const rej = Object.values(s.rejected_this_run || {}).reduce((a, b) => a + b, 0);
@@ -15796,14 +15833,17 @@ window.cpUpdateSignal = function (tab) {
         });
         const all = hubs.flatMap(h => series[h].map(p => ({ h, ...p })));
         const hi = all.reduce((a, p) => p.usd > a.usd ? p : a, all[0] || { usd: 0 });
-        // Austin vs Houston load zones, computed by the pipeline over the last 24 h.
-        const z = (ER.d.home || {}).zones_24h || {};
+        // Home vs reference load zones, computed by the pipeline over the last 24 h.
+        // spread_avg is home minus reference, whichever city the snapshot calls home.
+        const hb = ER.d.home || {}, z = hb.zones_24h || {};
+        const hz = hb.load_zone || 'LZ_HOUSTON', rz = (hb.ref || {}).load_zone || (hz === 'LZ_HOUSTON' ? 'LZ_AEN' : 'LZ_HOUSTON');
+        const hn = hb.name || 'Houston';
         let zoneText = '';
-        if (z.LZ_AEN && z.LZ_HOUSTON && z.spread_avg != null) {
+        if (z[hz] && z[rz] && z.spread_avg != null) {
             const sp = z.spread_avg;
-            zoneText = ` Over the last 24 hours Austin Energy's zone averaged $${num(z.LZ_AEN.avg, 2)}/MWh vs $${num(z.LZ_HOUSTON.avg, 2)} for Houston's — ` +
-                (Math.abs(sp) < 0.5 ? 'essentially level' : `Austin $${num(Math.abs(sp), 2)} ${sp > 0 ? 'higher' : 'lower'} on average`) +
-                ` across ${num(z.spread_n)} matching 15-minute intervals (Austin peak $${num(z.LZ_AEN.max, 2)}).`;
+            zoneText = ` Over the last 24 hours the ${esc(HUB_NAMES[hz] || hz)} averaged $${num(z[hz].avg, 2)}/MWh vs $${num(z[rz].avg, 2)} for the ${esc(HUB_NAMES[rz] || rz)} — ` +
+                (Math.abs(sp) < 0.5 ? 'essentially level' : `${esc(hn)} $${num(Math.abs(sp), 2)} ${sp > 0 ? 'higher' : 'lower'} on average`) +
+                ` across ${num(z.spread_n)} matching 15-minute intervals (${esc(hn)} peak $${num(z[hz].max, 2)}).`;
         }
         $('er-sig-price').innerHTML = all.length
             ? `<strong>Signal:</strong> highest 15-minute price today was $${num(hi.usd, 2)}/MWh at ${esc(HUB_NAMES[hi.h])} (${hm(hi.t)} CT).${zoneText} Hubs are trading points; load zones are what customers in an area settle at, and they diverge when transmission is congested.`
@@ -15846,9 +15886,10 @@ window.cpUpdateSignal = function (tab) {
         sig.innerHTML = `<strong>Model:</strong> ${parts.join('; ')} (n = ${num(m.n)} hours, R² = ${num(m.r2, 2)}). ` +
             `Temperature alone, by design: time of day and weekday drive much of hourly load and are not in this fit, so R² measures how much weather explains on its own. Not a forecast.` +
             (() => {
-                const tn = (ER.d.home || {}).temp_now, lastPt = pts[pts.length - 1];
+                const hb = ER.d.home || {}, tn = hb.temp_now, lastPt = pts[pts.length - 1];
+                const stn = hb.station || 'KIAH', wt = STATION_WEIGHT_PCT[stn];
                 return tn && lastPt && tn.t === lastPt.t
-                    ? ` Austin (KAUS, ~11% of the population weighting) read ${num(tn.temp_f, 0)}°F in the latest hour vs the statewide weighted ${num(lastPt.temp_f, 0)}°F.`
+                    ? ` ${esc(hb.name || 'Houston')} (${stn}${wt ? `, ~${wt}% of the population weighting` : ''}) read ${num(tn.temp_f, 0)}°F in the latest hour vs the statewide weighted ${num(lastPt.temp_f, 0)}°F.`
                     : '';
             })();
     }

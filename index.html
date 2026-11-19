@@ -5384,7 +5384,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             
 
         <h2 style="margin-top:2.5rem;">✈️ Live Flight Tracker</h2>
-        <p>Real-time flights across the World powered by ADS-B transponder data and FlightAware. Includes airline, origin, and destination where available. Updates every 5 minutes.</p>
+        <p>Real-time flights across the world from ADS-B transponder data (OpenSky Network, with adsb.lol as a fallback). Includes airline, origin, and destination where available. Refreshes every 5–15 minutes from a shared cache.</p>
 
         <div class="aviation-bar">
             <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
@@ -11425,7 +11425,10 @@ setTool('dns');
     let AIRPORTS = {};
     fetch('/airports.json').then(r => r.json()).then(d => { AIRPORTS = d; }).catch(() => {});
 
-    // Airline lookup by ICAO callsign prefix (fallback when FlightAware omits operator)
+    // Feed label for a flight's `source` (opensky / adsb / legacy flightaware).
+    const srcLabel = (s) => !s ? '' : s.startsWith('opensky') ? 'OpenSky' : s.startsWith('adsb') ? 'ADS-B' : s === 'flightaware' ? 'FlightAware' : s;
+
+    // Airline lookup by ICAO callsign prefix (fallback when the feed omits operator)
     const AIRLINES = {
         AAL:{n:'American Airlines',i:'AA'}, UAL:{n:'United Airlines',i:'UA'}, DAL:{n:'Delta Air Lines',i:'DL'},
         SWA:{n:'Southwest Airlines',i:'WN'}, FFT:{n:'Frontier Airlines',i:'F9'}, AAY:{n:'Allegiant Air',i:'G4'},
@@ -11512,14 +11515,15 @@ setTool('dns');
             document.getElementById('flight-total').textContent = (total || flights.length).toLocaleString();
             document.getElementById('flight-updated').textContent = new Date(data.timestamp).toLocaleTimeString('en-US', {
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
-            });
+            }) + (data.stale ? ' (cached)' : '');
 
             // Data source badge (optional element #flight-source)
             const srcEl = document.getElementById('flight-source');
             if (srcEl) {
                 const s = source || '';
-                srcEl.textContent = s.includes('flightaware') ? 'FlightAware AeroAPI'
-                    : s.includes('adsb') ? 'ADS-B Exchange'
+                srcEl.textContent = s.includes('opensky') ? 'OpenSky Network'
+                    : s.includes('adsb') ? 'adsb.lol (ADS-B)'
+                    : s.includes('flightaware') ? 'FlightAware AeroAPI'
                     : (s || 'unknown');
             }
 
@@ -11575,7 +11579,7 @@ setTool('dns');
                                 ${f.progress_pct ? `<br>📍 ${f.progress_pct}% complete` : ''}
                             </div>
                             ${(f.region || f.source) ? `<div style="font-size:0.65rem;color:#6b7280;margin-top:0.4rem;">
-                                ${f.region ? `🌐 ${f.region}` : ''}${f.region && f.source ? ' · ' : ''}${f.source ? `📡 ${f.source === 'adsb' ? 'ADS-B' : 'FlightAware'}` : ''}
+                                ${f.region ? `🌐 ${f.region}` : ''}${f.region && f.source ? ' · ' : ''}${f.source ? `📡 ${srcLabel(f.source)}` : ''}
                             </div>` : ''}
                         </div>
                     `)
@@ -11635,7 +11639,7 @@ setTool('dns');
                             </div>
                             ${(f.region || f.source) ? `
                             <div class="flight-meta" style="margin-top:0.4rem;font-size:0.62rem;color:var(--text-muted);letter-spacing:0.03em;">
-                                ${f.region ? `🌐 ${f.region}` : ''}${f.region && f.source ? '  ·  ' : ''}${f.source ? `📡 ${f.source === 'adsb' ? 'ADS-B' : 'FlightAware'}` : ''}
+                                ${f.region ? `🌐 ${f.region}` : ''}${f.region && f.source ? '  ·  ' : ''}${f.source ? `📡 ${srcLabel(f.source)}` : ''}
                             </div>` : ''}
                         </div>`;
                     }).join('')}

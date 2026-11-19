@@ -28,6 +28,8 @@
     KSGR: 'Sugar Land Regional · Sugar Land, TX',
     KEDC: 'Austin Executive · Pflugerville, TX'
   };
+  // ✏️ Current default training airport — shown as a stat tile and in the note.
+  var HOME_AIRPORT = 'KSGR';
 
   // ✏️ One object per flight, newest first. `ldg: null` = not transcribed yet (shows as —).
   var FLIGHTS = [
@@ -110,15 +112,19 @@
       [String(FLIGHTS.length), 'Flights'],
       [String(sum('ldg')), 'Landings'],
       [String(tails.length), 'Airframes'],
-      [String(airports.length), 'Airports']
+      [String(airports.length), 'Airports'],
+      [HOME_AIRPORT, 'Home Airport', AIRPORTS[HOME_AIRPORT]]
     ];
     el.innerHTML = tiles.map(function (t) {
-      return '<div class="aviation-stat"><span class="aviation-stat-val">' + esc(t[0]) +
+      return '<div class="aviation-stat"' + (t[2] ? ' title="' + esc(t[2]) + '"' : '') +
+        '><span class="aviation-stat-val">' + esc(t[0]) +
         '</span><div class="aviation-stat-label">' + esc(t[1]) + '</div></div>';
     }).join('');
     var note = document.getElementById('fl-note');
     if (note && FLIGHTS.length) {
-      note.textContent = 'Weekend flying, logged for fun. Last flight ' + fmtDate(FLIGHTS[0].date) + '.';
+      note.textContent = 'Weekend flying, logged for fun. Home airport: ' + HOME_AIRPORT +
+        (AIRPORTS[HOME_AIRPORT] ? ' (' + AIRPORTS[HOME_AIRPORT].split(' · ')[0] + ')' : '') +
+        '. Last flight ' + fmtDate(FLIGHTS[0].date) + '.';
     }
   }
 

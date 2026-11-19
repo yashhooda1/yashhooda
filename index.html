@@ -2703,11 +2703,18 @@
         .cp-kpi-val.hot   { color: #f87171; }
         .cp-kpi-val.blue  { color: #60a5fa; }
         .cp-kpi-val.home  { color: #f97316; }
+        /* Rising Seas — Houston Coast gauge strip */
+        .sl-hou-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; margin-bottom: 1rem; }
+        .sl-hou-stat { border: 1px solid var(--border, rgba(255,255,255,0.1)); border-radius: 8px; padding: 0.6rem 0.75rem; background: rgba(56,189,248,0.05); }
+        .sl-hou-stat b { display: block; font-size: 1.1rem; color: #38bdf8; }
+        .sl-hou-stat span { font-size: 0.7rem; color: var(--text-muted); line-height: 1.3; display: block; }
+        .sl-hou-gauge { font-size: 0.78rem; color: var(--text-muted); margin: -0.35rem 0 0.75rem; }
+        .sl-hou-gauge b { color: #38bdf8; }
         /* Hurricane Analytics — featured Houston storms */
         .hz-storms { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .hz-storm { border: 1px solid var(--border, rgba(255,255,255,0.1)); border-radius: 10px; padding: 1rem; background: rgba(251,146,60,0.04); }
         .hz-storm h3 { margin: 0 0 0.75rem; font-size: 1rem; }
-        .hz-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.85rem; }
+        .hz-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 0.5rem; margin-bottom: 0.85rem; }
         .hz-stat b { display: block; font-size: 1.05rem; color: #fb923c; }
         .hz-stat span { font-size: 0.7rem; color: var(--text-muted); }
         .hz-notes { margin: 0; padding-left: 1.1rem; font-size: 0.82rem; line-height: 1.5; }
@@ -5851,7 +5858,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <button class="cp-tab active" onclick="hzTab(this,'timeline')">📈 Activity &amp; SST</button>
             <button class="cp-tab" onclick="hzTab(this,'scatter')">🎯 Correlation</button>
             <button class="cp-tab" onclick="hzTab(this,'ri')">🌀 Rapid Intensification</button>
-            <button class="cp-tab" onclick="hzTab(this,'houston')">🏠 Harvey &amp; Beryl</button>
+            <button class="cp-tab" onclick="hzTab(this,'houston')">🏠 Houston Storms</button>
         </div>
 
         <!-- Activity & SST timeline -->
@@ -5884,7 +5891,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <p class="cp-insight" id="hz-signal-ri">Loading signal...</p>
         </div>
 
-        <!-- Houston landfalls: Harvey (2017) and Beryl (2024) — track stats from HURDAT2, sourced climate notes -->
+        <!-- Houston landfalls: Ike (2008), Harvey (2017) and Beryl (2024) — track stats from HURDAT2, sourced climate notes -->
         <div class="cp-panel" id="hz-panel-houston">
             <div id="hz-storms" class="hz-storms"></div>
             <p class="cp-insight" id="hz-signal-houston">Loading signal...</p>
@@ -5947,6 +5954,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <button class="cp-tab" onclick="slTab(this,'map')">🗺️ U.S. Risk Map</button>
             <button class="cp-tab" onclick="slTab(this,'ice')">🧊 Ice-Melt Scenarios</button>
             <button class="cp-tab" onclick="slTab(this,'forecast')">🔮 2100 Outlook</button>
+            <button class="cp-tab" onclick="slTab(this,'houston')">🏠 Houston Coast</button>
         </div>
 
         <!-- Rising seas (GMSL) -->
@@ -5985,6 +5993,16 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <div class="cp-legend" id="sl-forecast-legend"></div>
             <div class="cp-chart-wrap"><canvas id="sl-forecast-chart"></canvas></div>
             <p class="cp-insight" id="sl-signal-forecast">Loading signal...</p>
+        </div>
+
+        <!-- Houston Coast: live NOAA tide gauges (Galveston Pier 21, Morgans Point, Eagle Point),
+             NOAA 2022 local projections for Galveston, and sourced notes on Galveston, Buffalo Bayou and Houston -->
+        <div class="cp-panel" id="sl-panel-houston">
+            <div class="sl-hou-stats" id="sl-hou-stats"></div>
+            <div class="cp-legend" id="sl-hou-legend"></div>
+            <div class="cp-chart-wrap"><canvas id="sl-hou-chart"></canvas></div>
+            <div class="hz-storms" id="sl-hou-places" style="margin-top:1rem;"></div>
+            <p class="cp-insight" id="sl-signal-houston">Loading signal...</p>
         </div>
 
         <!-- Honesty / timescale note -->
@@ -15009,7 +15027,7 @@ window.cpUpdateSignal = function (tab) {
         hzSignal('ri');
     }
 
-    // ── Tab 4: Harvey & Beryl — track stats from HURDAT2 + sourced notes ────
+    // ── Tab 4: Houston Storms (Ike, Harvey, Beryl) — HURDAT2 stats + sourced notes
     function hzDrawHouston() {
         const el = document.getElementById('hz-storms');
         if (!el) return;
@@ -15061,7 +15079,7 @@ window.cpUpdateSignal = function (tab) {
                 t += ` ${last.year} is the reminder that one season is weather, not trend: its ACE was ${Math.round(100 * last.ace / nm.ace)}% of normal${last.tna_sst_aso != null ? ` with the tropical Atlantic still ${last.tna_sst_aso > 0 ? '+' : ''}${last.tna_sst_aso.toFixed(2)}°C` : ''} — warm water sets the ceiling, but shear, dry air and ENSO decide whether storms reach it.`;
         }
         if (tab === 'houston' && (HZ.data.featured || []).length)
-            t = `Two Houston storms, two different climate fingerprints. Harvey's damage came from rain: warmer air holds about 7% more water per °C, and studies attribute roughly 15–38% of its Houston rainfall to warming. Beryl's story is speed and timing: record-early rapid intensification over water that was September-warm in June. The SST rank uses NOAA's tropical Atlantic box (5–25°N, 55–15°W) — where Beryl strengthened, but not the Gulf, where Harvey did.`;
+            t = `Three Houston storms, three ways the climate shows up. Ike's damage was surge — and the water it surged from keeps climbing: Galveston's gauge rises about 6.6 mm a year (see Rising Seas → Houston Coast). Harvey's damage came from rain: warmer air holds about 7% more water per °C, and studies attribute roughly 15–38% of its Houston rainfall to warming. Beryl's story is speed and timing: record-early rapid intensification over water that was September-warm in June. The SST rank uses NOAA's tropical Atlantic box (5–25°N, 55–15°W) — where Beryl strengthened, but not the Gulf, where Harvey and Ike did.`;
         el.innerHTML = t ? `<strong>Signal:</strong> ${t}` : '';
     }
 
@@ -15257,6 +15275,96 @@ window.cpUpdateSignal = function (tab) {
         slSignal('forecast');
     }
  
+    // ── Tab 5: Houston Coast — live NOAA tide gauges + 2022 local projections ──
+    const SC_COLOR = { 'Low': '#38bdf8', 'Intermediate-Low': '#4ade80', 'Intermediate': '#facc15',
+                       'Intermediate-High': '#fb923c', 'High': '#ef4444' };
+    const slEsc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const inch = (mm) => (mm / 25.4).toFixed(1);
+    const ft = (m) => (m * 3.28084).toFixed(1);
+    const houGauge = (id) => ((SL.data.houston || {}).gauges || []).find(g => g.id === id);
+    // NOAA's 2022 projections are relative to the 1996–2014 mean (centred on 2005);
+    // shift the observed annual means onto the same zero so the two lines meet.
+    function houObserved(g) {
+        const base = g.annual.filter(d => d.year >= 1996 && d.year <= 2014);
+        if (base.length < 15) return null;
+        const zero = base.reduce((s, d) => s + d.mm, 0) / base.length;
+        return g.annual.map(d => ({ year: d.year, m: +((d.mm - zero) / 1000).toFixed(3) }));
+    }
+    const projAt = (g, sc, yr) => ((((g || {}).projections || {})[sc] || []).find(p => p.year === yr) || {}).m;
+
+    function slDrawHouston() {
+        const h = SL.data.houston, statsEl = document.getElementById('sl-hou-stats');
+        const placesEl = document.getElementById('sl-hou-places');
+        if (!h || !(h.gauges || []).length) {
+            if (statsEl) statsEl.innerHTML = '<div class="cp-hv-empty">Houston tide-gauge data populates on the next pipeline run.</div>';
+            return;
+        }
+        const gal = houGauge('8771450'), mor = houGauge('8770613'), eag = houGauge('8771013');
+        const stat = (v, label) => `<div class="sl-hou-stat"><b>${v}</b><span>${label}</span></div>`;
+        if (statsEl) statsEl.innerHTML = [
+            gal && gal.trend ? stat(`+${gal.trend.mm_yr} mm/yr`, `Galveston Pier 21 since ${gal.annual[0].year} · ${gal.trend.ft_century} ft/century`) : '',
+            gal && gal.rise_since_ike_mm != null ? stat(`+${inch(gal.rise_since_ike_mm)} in`, `Galveston rise since Ike (${h.ike_year})`) : '',
+            projAt(gal, 'Intermediate', 2050) != null ? stat(`+${ft(projAt(gal, 'Intermediate', 2050))} ft`, 'Galveston by 2050 · NOAA Intermediate') : '',
+            projAt(gal, 'Intermediate', 2100) != null ? stat(`+${ft(projAt(gal, 'Intermediate', 2100))} ft`, `Galveston by 2100 · Intermediate (range +${ft(projAt(gal, 'Low', 2100))}–${ft(projAt(gal, 'High', 2100))} ft)`) : '',
+            mor && mor.trend ? stat(`+${mor.trend.mm_yr} mm/yr`, 'Morgans Point · mouth of the Ship Channel') : '',
+            eag && eag.trend ? stat(`+${eag.trend.mm_yr} mm/yr`, 'Eagle Point · west Galveston Bay') : '',
+        ].join('');
+
+        // Chart: Galveston observed (re-zeroed to NOAA's 2005 baseline) + the five 2022 scenarios.
+        const obs = gal ? houObserved(gal) : null;
+        const scen = Object.keys((gal || {}).projections || {});
+        if (obs && !SL.charts.houston) {
+            const last = obs[obs.length - 1].year;
+            const years = [];
+            for (let y = obs[0].year; y <= 2100; y++) years.push(y);
+            const obsAt = Object.fromEntries(obs.map(d => [d.year, d.m]));
+            const datasets = [{
+                label: 'Galveston Pier 21 (observed)', data: years.map(y => obsAt[y] ?? null),
+                borderColor: '#e0e0e0', backgroundColor: '#e0e0e0', borderWidth: 1.6, pointRadius: 0, tension: 0.2, spanGaps: false,
+            }];
+            scen.forEach(sc => {
+                const pts = gal.projections[sc].filter(p => p.year >= 2020 && p.year <= 2100);
+                const at = Object.fromEntries(pts.map(p => [p.year, p.m]));
+                datasets.push({
+                    label: 'NOAA ' + sc, data: years.map(y => at[y] ?? null),
+                    borderColor: SC_COLOR[sc] || '#9ca3af', backgroundColor: SC_COLOR[sc] || '#9ca3af',
+                    borderWidth: 2, borderDash: [5, 4], pointRadius: 0, tension: 0.3, spanGaps: true,
+                });
+            });
+            const leg = document.getElementById('sl-hou-legend');
+            if (leg) leg.innerHTML =
+                `<span class="cp-leg-item"><span class="cp-leg-dot" style="background:#e0e0e0"></span>Galveston Pier 21, annual mean (NOAA, ${obs[0].year}–${last})</span>` +
+                scen.map(sc => `<span class="cp-leg-item"><span class="cp-leg-dash" style="border-color:${SC_COLOR[sc]}"></span>${slEsc(sc)}</span>`).join('');
+            SL.charts.houston = new Chart(document.getElementById('sl-hou-chart'), {
+                type: 'line',
+                data: { labels: years, datasets },
+                options: merge({
+                    plugins: { tooltip: { mode: 'index', intersect: false, filter: i => i.parsed.y != null,
+                        callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)} m (${ft(ctx.parsed.y)} ft)` } } },
+                    scales: {
+                        x: { ticks: { maxTicksLimit: 10 } },
+                        y: { title: { display: true, text: 'm vs 2005 (NOAA baseline)', color: OCEAN, font: { size: 11 } },
+                             ticks: { callback: v => (v > 0 ? '+' : '') + v + ' m' } },
+                    },
+                }),
+            });
+        }
+
+        // Place cards: Galveston, Buffalo Bayou & the Ship Channel, Houston.
+        if (placesEl) placesEl.innerHTML = (h.places || []).map(p => {
+            const g = p.gauge ? houGauge(p.gauge) : null;
+            const gline = g && g.trend
+                ? `<p class="sl-hou-gauge">NOAA gauge ${slEsc(g.name)}: <b>+${g.trend.mm_yr} mm/yr</b>` +
+                  (g.rise_since_ike_mm != null ? ` · <b>+${inch(g.rise_since_ike_mm)} in</b> since Ike` : '') + `</p>` : '';
+            return `<article class="hz-storm">
+                <h3>📍 ${slEsc(p.name)}</h3>${gline}
+                <ul class="hz-notes">${(p.notes || []).map(n => `<li>${slEsc(n.text)}
+                    ${n.url ? `<a href="${slEsc(n.url)}" target="_blank" rel="noopener">${slEsc(n.source)}</a>` : ''}</li>`).join('')}</ul>
+            </article>`;
+        }).join('');
+        slSignal('houston');
+    }
+
     function slSignal(tab) {
         const el = document.getElementById('sl-signal-' + tab);
         if (!el || !SL.data) return;
@@ -15276,17 +15384,27 @@ window.cpUpdateSignal = function (tab) {
             const mid = (sc.find(s => s.key === 'int') || {}).target_2100;
             t = `NOAA's five 2100 scenarios span +${lo} m (Low) to +${hi} m (High) above 2000, with Intermediate at +${mid} m. Paths stay close through ~2050 (~0.25-0.3 m, largely locked in) and diverge after mid-century — so how high 2100 goes still depends on emissions and ice-sheet response.`;
         }
+        if (tab === 'houston' && SL.data.houston) {
+            const gal = houGauge('8771450'), eag = houGauge('8771013');
+            if (gal && gal.trend)
+                t = `Galveston's sea level is rising about ${(gal.trend.mm_yr / g.rate_now).toFixed(1)}× as fast as the global ocean (${gal.trend.mm_yr} vs ~${g.rate_now} mm/yr) because the land is sinking as the Gulf rises` +
+                    (eag && eag.trend ? ` — and Eagle Point, on the subsiding west shore of the bay, runs ${eag.trend.mm_yr} mm/yr` : '') +
+                    `. Higher water doesn't need to flood Houston directly to matter: it raises the starting line for every surge pushed up Galveston Bay, the Ship Channel and tidal Buffalo Bayou.` +
+                    (projAt(gal, 'Intermediate', 2050) != null ? ` NOAA's Intermediate scenario adds about ${ft(projAt(gal, 'Intermediate', 2050))} ft at Galveston by 2050 versus 2005.` : '');
+        }
         el.innerHTML = t ? `<strong>Signal:</strong> ${t}` : '';
     }
- 
+
     // ── Tab switching ───────────────────────────────────────────────────────
     window.slTab = function (btn, id) {
         document.querySelectorAll('#sealevel .cp-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('#sealevel .cp-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('sl-panel-' + id).classList.add('active');
-        if (!SL.loaded) { slLoad(); return; }
+        // First click before data loads: load, then draw the tab that was asked for.
+        if (!SL.loaded) { slLoad().then(() => { if (SL.loaded && id !== 'gmsl') window.slTab(btn, id); }); return; }
         if (id === 'gmsl' && !SL.charts.gmsl) slDrawGMSL();
+        if (id === 'houston') slDrawHouston();
         if (id === 'map')  slDrawMap();                 // handles its own init/invalidateSize
         if (id === 'ice'  && !SL.charts.ice)  slDrawIce();
         if (id === 'forecast' && !SL.charts.forecast) slDrawForecast();

@@ -2715,7 +2715,7 @@
         .hz-notes li.climate { background: rgba(56,189,248,0.07); border-radius: 6px; }
         .hz-notes a { color: var(--text-muted); font-size: 0.75rem; }
         .hz-storm-caveat { margin: 0.5rem 0 0; font-size: 0.72rem; color: var(--text-muted); font-style: italic; }
-        /* Home vs reference (Houston vs Austin) panel */
+        /* Home vs reference (Houston vs New York City) panel */
         .cp-hv-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -4814,10 +4814,10 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 </div>
                 <div class="project-desc">
                     End-to-end Bronze → Silver → Gold pipeline analyzing 57 years (1970–2026) 
-                    of NOAA daily station data across 24 global cities — Houston (home station), Austin, Newark, Dallas,
-                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, San Francisco, Seattle, New York City, Boston, Miami, Atlanta, Washington DC, Orlando, Anchorage, Toronto, and Delhi. Features automated daily refresh via GitHub Actions,
+                    of NOAA daily station data across 24 global cities — Houston (home station), New York City, Austin, Newark, Dallas,
+                    Denver, London, Helsinki, Amsterdam, Brussels, Paris, Rome, Chicago, Los Angeles, San Francisco, Seattle, Boston, Miami, Atlanta, Washington DC, Orlando, Anchorage, Toronto, and Delhi. Features automated daily refresh via GitHub Actions,
                     Celsius→Fahrenheit conversion for international stations, an interactive
-                    dashboard with city toggle comparisons, and a Houston-vs-Austin layer contrasting winter freezes and humidity (dew point, afternoon RH).
+                    dashboard with city toggle comparisons, and a Houston-vs-New York City layer — the two largest U.S. cities — contrasting winter freezes and humidity (dew point, afternoon RH).
                     Denver included for Boulderthon marathon race planning context.
                 </div>
                 <div class="project-links">
@@ -5631,7 +5631,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val hot" id="cp-ref-annual">—</span>
-                <span class="cp-kpi-label" id="cp-ref-annual-label">Austin °F / decade</span>
+                <span class="cp-kpi-label" id="cp-ref-annual-label">New York City °F / decade</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val home" id="cp-home-winter">—</span>
@@ -5639,11 +5639,11 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val blue" id="cp-freeze">—</span>
-                <span class="cp-kpi-label" id="cp-freeze-label">Freeze nights / winter · HOU vs AUS</span>
+                <span class="cp-kpi-label" id="cp-freeze-label">Freeze nights / winter · HOU vs NYC</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val blue" id="cp-dewpt">—</span>
-                <span class="cp-kpi-label" id="cp-dewpt-label">Winter dew point vs AUS</span>
+                <span class="cp-kpi-label" id="cp-dewpt-label">Winter dew point vs NYC</span>
             </div>
             <div class="cp-kpi-cell">
                 <span class="cp-kpi-val" id="cp-80f">—</span>
@@ -5673,7 +5673,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <button class="cp-tab" onclick="cpTab(this,'seasonal')">📅 Seasonal</button>
             <button class="cp-tab" onclick="cpTab(this,'heat')">🔥 Heat Days</button>
             <button class="cp-tab" onclick="cpTab(this,'winter')">❄️ Winter Lows</button>
-            <button class="cp-tab" id="cp-tab-home" onclick="cpTab(this,'home')">💧 Houston vs Austin</button>
+            <button class="cp-tab" id="cp-tab-home" onclick="cpTab(this,'home')">💧 Houston vs New York City</button>
         </div>
  
         <!-- Annual Trend -->
@@ -5712,7 +5712,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <p class="cp-insight" id="cp-signal-winter">Loading signal...</p>
         </div>
 
-        <!-- Home vs reference (Houston vs Austin) — winters + humidity (fixed pair, ignores the city toggles) -->
+        <!-- Home vs reference (Houston vs New York City) — winters + humidity (fixed pair, ignores the city toggles) -->
         <div class="cp-panel" id="cp-panel-home">
             <div class="cp-hv-grid" id="cp-hv-grid"></div>
             <div class="cp-controls">
@@ -13149,14 +13149,16 @@ const HOODAAGENTS_KILL_SWITCH = true;
         data:    null,
         charts:  {},
         loaded:  false,
-        // Home station (Houston) + its reference (Austin) on load. The gold file
-        // names both (home_station, home_vs.ref); these are the fallbacks.
+        // Home station (Houston) + its reference (New York City) on load — the two
+        // largest U.S. cities. The gold file names both (home_station,
+        // home_vs.ref); these are the fallbacks.
         HOME:    'IAH',
-        REF:     'AUS',
-        active:  new Set(['IAH', 'AUS']),
+        REF:     'NYC',
+        active:  new Set(['IAH', 'NYC']),
         MONTHS:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
         CITIES: {
             IAH: { name: 'Houston, TX',  color: '#f87171' },
+            NYC: { name: 'New York City, NY',  color: '#fde68a' },
             AUS: { name: 'Austin, TX',   color: '#f97316' },
             EWR: { name: 'Newark, NJ',   color: '#60a5fa' },
             DAL: { name: 'Dallas, TX',   color: '#facc15' },
@@ -13172,8 +13174,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
             FCO: { name: 'Rome, Italy',        color: '#fb7185' },
             SFO: { name: 'San Francisco, CA',  color: '#38bdf8' },
             SEA: { name: 'Seattle, WA',        color: '#94a3b8' },
-            NYC: { name: 'New York City, NY',  color: '#fde68a' },
-            BOS: { name: 'Boston, MA',         color: '#c4b5fd' },
+            BOS:{ name: 'Boston, MA',         color: '#c4b5fd' },
             MIA: { name: 'Miami, FL',          color: '#f9a8d4' },
             ATL: { name: 'Atlanta, GA',        color: '#bef264' },
             DCA: { name: 'Washington, DC',     color: '#e2e8f0' },
@@ -13196,7 +13197,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
             // whichever way round the pipeline last published it.
             const hvRef = (CP.data.home_vs || {}).ref;
             if (hvRef && hvRef !== CP.HOME && CP.CITIES[hvRef]) CP.REF = hvRef;
-            else if (CP.REF === CP.HOME) CP.REF = CP.HOME === 'IAH' ? 'AUS' : 'IAH';
+            else if (CP.REF === CP.HOME) CP.REF = CP.HOME === 'IAH' ? 'NYC' : 'IAH';
             CP.active = new Set([CP.HOME, CP.REF]);
             // If the home series is missing from this run, don't leave an empty default slot.
             if (!CP.data[CP.HOME]) CP.active = new Set([CP.REF, 'EWR'].filter(c => CP.data[c]));
@@ -13258,11 +13259,11 @@ const HOODAAGENTS_KILL_SWITCH = true;
         if (CP.charts[key]) { CP.charts[key].destroy(); delete CP.charts[key]; }
     }
 
-    // ── KPI strip — home station (Houston) as primary, Austin as reference ───
+    // ── KPI strip — home station (Houston) as primary, New York City as reference
     const cityOf = (code) => ((CP.CITIES[code] || {}).name || code).split(',')[0];
     const kSgn = (v, d = 2) => (v == null || Number.isNaN(v)) ? '—' : (v >= 0 ? '+' : '') + v.toFixed(d);
     const kNum = (v, d = 1) => (v == null || Number.isNaN(v)) ? '—' : v.toFixed(d);
-    const shortCode = (code) => ({ AUS: 'AUS', IAH: 'HOU' })[code] || code;
+    const shortCode = (code) => ({ AUS: 'AUS', IAH: 'HOU', NYC: 'NYC' })[code] || code;
 
     function cpPopulateKPIs() {
         // If the home series is missing from this run, fall back to the
@@ -13656,7 +13657,7 @@ const HOODAAGENTS_KILL_SWITCH = true;
         window.cpUpdateSignal('winter');
     }
 
-    // ── Home vs reference (Houston vs Austin) — winters + humidity ───────────
+    // ── Home vs reference (Houston vs New York City) — winters + humidity ────
     // City names come from gold.home_vs, so the copy follows the pipeline's
     // home/ref orientation instead of assuming one.
     const hvNames = () => {
@@ -13690,7 +13691,11 @@ const HOODAAGENTS_KILL_SWITCH = true;
             `${H} ${kNum(Math.abs(w.tmin_diff))}°F ${w.tmin_diff < 0 ? 'colder' : 'warmer'} · ${w.window[0]}–${w.window[1]}`));
         if (w.home_freeze_nights != null) cards.push(hvCard('Freeze nights per winter (≤32°F)',
             kNum(w.home_freeze_nights), kNum(w.ref_freeze_nights), '',
-            `${w.freeze_ratio ? w.freeze_ratio + '× ' + R : ''} · last 10: ${kNum(w.home_freeze_recent)} vs ${kNum(w.ref_freeze_recent)}`));
+            `${w.home_freeze_nights > 0 && w.ref_freeze_nights > 0
+                ? (w.home_freeze_nights >= w.ref_freeze_nights
+                    ? `${H} ${kNum(w.home_freeze_nights / w.ref_freeze_nights)}× as many`
+                    : `${R} ${kNum(w.ref_freeze_nights / w.home_freeze_nights)}× as many`)
+                : ''} · last 10: ${kNum(w.home_freeze_recent)} vs ${kNum(w.ref_freeze_recent)}`));
         if (h.djf_home_dewpt != null) cards.push(hvCard('Winter dew point',
             kNum(h.djf_home_dewpt), kNum(h.djf_ref_dewpt), '°F',
             `${kSgn(h.djf_dewpt_diff, 1)}°F · ${h.djf_n} winters, ${h.djf_window[0]}–${h.djf_window[1]}`));
@@ -13829,7 +13834,7 @@ const CP_SIGNALS = {
         heat:     (d) => `Austin logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}, with Feb–Mar heat days changing ${sgn(d.slope_80f_febmar)} days/decade.`,
         winter:   (d) => {
             const w = hvSide('AUS');
-            return `Austin winter nighttime lows warm at ${sgn(d.slope_winter)}°F/decade from a colder base than Houston${w ? ` — ${num(w.tmin)}°F vs ${num(w.otherTmin)}°F on average, with ${num(w.frz)} freeze nights a winter to Houston's ${num(w.otherFrz)}` : ''}. Open the ${hvTabName()} tab for the humidity side.`;
+            return `Austin winter nighttime lows warm at ${sgn(d.slope_winter)}°F/decade from a colder base than Houston${w ? ` — ${num(w.tmin)}°F vs ${num(w.otherTmin)}°F on average, with ${num(w.frz)} freeze nights a winter to Houston's ${num(w.otherFrz)}. Open the ${hvTabName()} tab for the humidity side` : ''}.`;
         },
     },
     IAH: {
@@ -13926,7 +13931,10 @@ const CP_SIGNALS = {
         trend:    (d) => `New York City (Central Park) warms at ${sgn(d.slope_annual)}°F/decade. Central Park is the city's official record station, with observations back to 1869; dense surrounding development adds an urban heat island on top of regional warming.`,
         seasonal: (d) => `New York swings from about ${num(jan(d))}°F in January to ${num(july(d))}°F in July — a ${num(swing(d))}°F range, with hot, humid summers and cold winters.`,
         heat:     (d) => `Central Park logged ${heatDays(d) ?? '—'} days above 80°F in ${last(d).year ?? '—'}. Summer heat in New York lands hardest at night, when pavement and buildings keep releasing the day's heat.`,
-        winter:   (d) => `New York winter lows warm at ${sgn(d.slope_winter)}°F/decade. Compare it with Newark across the river — two stations, one metro, different surroundings.`,
+        winter:   (d) => {
+            const w = hvSide('NYC');
+            return `New York winter lows warm at ${sgn(d.slope_winter)}°F/decade${w ? ` from a base of ${num(w.tmin)}°F, against Houston's ${num(w.otherTmin)}°F — ${num(w.frz)} freeze nights a winter to Houston's ${num(w.otherFrz)}. Open the ${hvTabName()} tab for the humidity side` : '. Compare it with Newark across the river — two stations, one metro, different surroundings'}.`;
+        },
     },
     BOS: {
         trend:    (d) => `Boston (Logan) warms at ${sgn(d.slope_annual)}°F/decade. Logan sits on the harbor, so the ocean tempers both extremes compared with inland Massachusetts.`,
@@ -14605,8 +14613,11 @@ window.cpUpdateSignal = function (tab) {
     function render(d) {
         const sum = d.stations_summary;
         // Home station pinned to the top; the rest keep the pipeline's triage order.
+        // Home station first, its reference (home_vs.ref) second, the rest in pipeline order.
+        const refCode = (d.home_vs || {}).ref;
+        const pin = (s) => s.home === true ? 2 : (refCode && s.code === refCode ? 1 : 0);
         const roster = Array.isArray(d.stations)
-            ? [...d.stations].sort((a, b) => (b.home === true) - (a.home === true)) : d.stations;
+            ? [...d.stations].sort((a, b) => pin(b) - pin(a)) : d.stations;
         if (!Array.isArray(roster) || !roster.length || !sum) return;
  
         const block = document.getElementById('cp-roster-block');

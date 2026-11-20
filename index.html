@@ -2721,6 +2721,11 @@
         .hz-notes li { margin-bottom: 0.45rem; }
         .hz-notes li.climate { background: rgba(56,189,248,0.07); border-radius: 6px; }
         .hz-notes a { color: var(--text-muted); font-size: 0.75rem; }
+        .dc-hou-stats .sl-hou-stat { background: rgba(167,139,250,0.05); }
+        .dc-hou-stats .sl-hou-stat b { color: #a78bfa; }
+        .dc-hou-stats .sl-hou-stat.fb b { color: #4ade80; }
+        .dc-hou-cards { grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
+        .dc-hou-cards .hz-storm { background: rgba(167,139,250,0.04); min-width: 0; }
         .hz-storm-caveat { margin: 0.5rem 0 0; font-size: 0.72rem; color: var(--text-muted); font-style: italic; }
         /* Home vs reference (Houston vs New York City) panel */
         .cp-hv-grid {
@@ -6059,6 +6064,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             <button class="cp-tab" onclick="dcTab(this,'map')">🗺️ U.S. Hotspots</button>
             <button class="cp-tab" onclick="dcTab(this,'water')">💧 Water Footprint</button>
             <button class="cp-tab" onclick="dcTab(this,'energy')">⚡ Energy &amp; Efficiency</button>
+            <button class="cp-tab" onclick="dcTab(this,'houston')">🏠 Houston Area</button>
         </div>
 
         <!-- Growth & AI demand -->
@@ -6096,6 +6102,20 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             </div>
             <div class="cp-chart-wrap"><canvas id="dc-energy-chart"></canvas></div>
             <p class="cp-insight" id="dc-signal-energy">Loading signal...</p>
+        </div>
+
+        <!-- Houston Area: Greater Houston + Fort Bend County (curated, sourced: api/datacenters.js → houston) -->
+        <div class="cp-panel" id="dc-panel-houston">
+            <div class="sl-hou-stats dc-hou-stats" id="dc-hou-stats"></div>
+            <div class="cp-legend">
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#4ade80"></span>Fort Bend</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#a78bfa"></span>Brazoria</span>
+                <span class="cp-leg-item"><span class="cp-leg-dot" style="background:#fb923c"></span>Houston market &amp; CenterPoint grid</span>
+                <span class="cp-leg-item" style="color:var(--text-muted)">Megawatts, log scale · bars span a range where a project can expand</span>
+            </div>
+            <div class="cp-chart-wrap"><canvas id="dc-hou-chart"></canvas></div>
+            <div class="hz-storms dc-hou-cards" id="dc-hou-cards" style="margin-top:1rem;"></div>
+            <p class="cp-insight" id="dc-signal-houston">Loading signal...</p>
         </div>
 
         <!-- Honest framing note -->
@@ -15592,6 +15612,51 @@ window.cpUpdateSignal = function (tab) {
         dcSignal('energy');
     }
  
+    // ── Tab 5: Houston Area — Greater Houston + Fort Bend County ────────────
+    const COUNTY_COLOR = { 'Fort Bend': '#4ade80', 'Brazoria': '#a78bfa', 'Region': '#fb923c' };
+    const dcEsc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const mwFmt = (v) => v >= 1000 ? (v / 1000).toLocaleString() + ' GW' : v.toLocaleString() + ' MW';
+    function dcDrawHouston() {
+        const h = DC.data.houston;
+        if (!h) return;
+        const statsEl = document.getElementById('dc-hou-stats');
+        if (statsEl) statsEl.innerHTML = h.stats.map(st =>
+            `<div class="sl-hou-stat${/fort bend/i.test(st.label) ? ' fb' : ''}"><b>${dcEsc(st.v)}</b><span>${dcEsc(st.label)}</span></div>`).join('');
+        const items = h.power;
+        if (!DC.charts.houston) DC.charts.houston = new Chart(document.getElementById('dc-hou-chart'), {
+            type: 'bar',
+            // solid bar from the axis to the committed MW; a lighter extension where a project can grow
+            data: { labels: items.map(i => i.county === 'Region' ? i.label : `${i.label} (${i.county})`), datasets: [{
+                data: items.map(i => [3, i.lo]), grouped: false,
+                backgroundColor: items.map(i => (COUNTY_COLOR[i.county] || '#9ca3af') + 'b3'),
+                borderColor: items.map(i => COUNTY_COLOR[i.county] || '#9ca3af'), borderWidth: 1, borderRadius: 3 }, {
+                data: items.map(i => i.hi > i.lo ? [i.lo, i.hi] : null), grouped: false,
+                backgroundColor: items.map(i => (COUNTY_COLOR[i.county] || '#9ca3af') + '40'),
+                borderColor: items.map(i => COUNTY_COLOR[i.county] || '#9ca3af'), borderWidth: 1, borderDash: [4, 3], borderRadius: 3 }] },
+            options: merge({
+                indexAxis: 'y',
+                plugins: { tooltip: { filter: item => item.datasetIndex === 0, callbacks: {
+                    title: ctx => items[ctx[0].dataIndex].label + (items[ctx[0].dataIndex].county === 'Region' ? '' : ' · ' + items[ctx[0].dataIndex].county),
+                    label: ctx => { const it = items[ctx.dataIndex]; return it.lo === it.hi ? mwFmt(it.lo) : mwFmt(it.lo) + ' initial, up to ' + mwFmt(it.hi); },
+                    afterLabel: ctx => items[ctx.dataIndex].note } } },
+                scales: {
+                    x: { type: 'logarithmic', min: 3, title: { display: true, text: 'Megawatts (log scale)', color: PURPLE, font: { size: 11 } },
+                         ticks: { callback: v => [10, 100, 1000, 10000].includes(v) ? mwFmt(v) : '' } },
+                    y: { ticks: { color: '#e0e0e0', font: { size: 10 }, callback: function (v) {
+                        const l = this.getLabelForValue(v); return window.innerWidth < 600 && l.length > 22 ? l.slice(0, 21) + '…' : l; } },
+                         grid: { display: false } },
+                },
+            }),
+        });
+        const notes = (list) => list.map(n => `<li${n.climate ? ' class="climate"' : ''}>${dcEsc(n.t)} <a href="${dcEsc(n.url)}" target="_blank" rel="noopener">source</a></li>`).join('');
+        const cards = document.getElementById('dc-hou-cards');
+        if (cards) cards.innerHTML =
+            `<div class="hz-storm"><h3>🏠 Fort Bend County</h3><ul class="hz-notes">${notes(h.fort_bend)}</ul></div>` +
+            `<div class="hz-storm"><h3>⚡ Greater Houston: grid &amp; policy</h3><ul class="hz-notes">${notes(h.region)}</ul>` +
+            `<p class="hz-storm-caveat">Curated from public filings, utility earnings and reporting, as of ${dcEsc(h.as_of)}. Market MW are colocation capacity; utility GW are expected grid load.</p></div>`;
+        dcSignal('houston');
+    }
+
     function dcSignal(tab) {
         const el = document.getElementById('dc-signal-' + tab);
         if (!el || !DC.data) return;
@@ -15613,6 +15678,8 @@ window.cpUpdateSignal = function (tab) {
             t = `An AI prompt's water use is tiny per query — but a data center runs billions of them and also needs cooling water directly (Google withdrew ${(d.water.hyperscalers_2023_billion_gal.find(h=>/google/i.test(h.name))||{}).gal}B gallons in 2023). Context matters: one burger is ~1,650 L, a T-shirt ~2,650 L.`;
         if (tab === 'energy')
             t = `Per-query energy is contested: a 2024 ChatGPT estimate put it near 2.9 Wh (~10× a web search), while 2025 medians are ~0.24–0.3 Wh. The efficiency paradox: hyperscaler PUE is excellent (~${e.pue_hyperscale}) yet Google's absolute data-center power still rose ~${e.google_absolute_2024_pct}% in a single year.`;
+        if (tab === 'houston' && d.houston)
+            t = `Greater Houston is a mid-sized market today, about 287 MW of colocation built and 390 MW more under construction, but the grid pipeline is far bigger: CenterPoint expects ~8 GW of data-center load by 2029, roughly 28× what's built now. Fort Bend itself has no large campus on record yet; the growth is ringing it, from Katy and Hockley to Brazoria and Wharton. The local question is water: one hyperscale campus at the high-end 5 million gallons a day would equal about 6% of all the groundwater Fort Bend pumped in 2025, in a county that is legally required to cut groundwater use.`;
         el.innerHTML = t ? `<strong>Signal:</strong> ${t}` : '';
     }
  
@@ -15627,6 +15694,7 @@ window.cpUpdateSignal = function (tab) {
         if (id === 'map') dcDrawMap();
         if (id === 'water' && !DC.charts.water) dcDrawWater();
         if (id === 'energy' && !DC.charts.energy) dcDrawEnergy();
+        if (id === 'houston' && !DC.charts.houston) dcDrawHouston();
         dcSignal(id);
     };
  

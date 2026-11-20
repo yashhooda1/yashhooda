@@ -6185,13 +6185,32 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                 <div class="el-shifts" id="el-tx-shifts"></div>
             </div>
 
+            <div class="el-card el-spotlight el-hou" id="el-hou">
+                <h3>🏠 Spotlight: Greater Houston, 2016 → 2026</h3>
+                <p class="el-sub">Harris, Fort Bend, Montgomery, Brazoria and Galveston counties: Democratic vs Republican share and how each county shifted, election by election</p>
+                <div class="el-spot-top">
+                    <div class="el-hero" id="el-hou-hero"></div>
+                    <div class="el-hou-mapwrap">
+                        <div class="el-seg el-hou-years" id="el-hou-years" role="group" aria-label="Election year for the Houston map"></div>
+                        <div class="el-hou-map" id="el-hou-map"></div>
+                    </div>
+                </div>
+                <div class="el-seg el-hou-scope" id="el-hou-scope" role="group" aria-label="Choose the Houston area or one county"></div>
+                <div class="el-spot-top el-hou-detail">
+                    <div class="el-spot-trend"><p class="el-sub" id="el-hou-trend-title">Margin, every election</p><div id="el-hou-trend"></div></div>
+                    <div class="el-dwrap" id="el-hou-table"></div>
+                </div>
+                <h4 class="el-hou-h">Margin by county and election <small>(shift from the previous election underneath; click a county to drill down)</small></h4>
+                <div class="el-dwrap" id="el-hou-grid"></div>
+            </div>
+
             <details class="el-card el-method">
                 <summary>Method, caveats &amp; sources</summary>
                 <ul>
                     <li><b>Midterm race rule:</b> per state, the US Senate race (regular before special), else governor, else every US House race summed. A race counts only if a Democrat and a Republican each won 15%+ statewide, so VT/ME 2018 (independent senators) and CA 2018 (D vs D) fall through to governor.</li>
                     <li><b>Cleaning:</b> undervotes/overvotes and "ballots cast" rows are dropped; a candidate's TOTAL row is dropped when the same precinct also reports early/election-day/mail; fusion lines (NY Conservative, Working Families…) go to the candidate's major party; Indiana 2018 comes from OpenElections because the MIT file is missing it; a few mislabelled parties are corrected by hand and listed in <code>build.py</code>.</li>
                     <li><b>Geography:</b> Alaska reports by state-house district and Connecticut 2024 by planning region, so their county maps show the statewide result. Indiana 2022 county data is partial; its statewide total comes from the state canvass.</li>
-                    <li><b>2026 is unofficial.</b> Texas statewide results are loaded (Senate as of Nov 8, governor as of Nov 6); county files are added as states certify.</li>
+                    <li><b>2026 is unofficial.</b> Texas statewide results are loaded (Senate as of Nov 8, governor as of Nov 6); county files are added as states certify. The Greater Houston spotlight uses unofficial 2026 US Senate returns for its five counties (<a href="https://abcnews.com/Elections/texas-county-senate-election-results-2026" target="_blank" rel="noopener">ABC News</a>, Nov 10, about 99% counted; third-party and write-in votes from the county reports); the rest of Texas stays statewide until county results are certified.</li>
                     <li><b>Factors</b> use ACS 2012–2016 county estimates and show association, not cause.</li>
                     <li><b>Sources:</b> <a href="https://github.com/MEDSL/2018-elections-official" target="_blank" rel="noopener">MIT Election Lab 2018</a> · <a href="https://github.com/MEDSL/2022-elections-official" target="_blank" rel="noopener">MIT Election Lab 2022</a> · <a href="https://github.com/MEDSL/2018-elections-unoffical" target="_blank" rel="noopener">MIT county context (certified 2016 + ACS)</a> · <a href="https://github.com/tonmcg/US_County_Level_Election_Results_08-24" target="_blank" rel="noopener">2020/2024 county returns</a> · <a href="https://github.com/openelections/openelections-data-in" target="_blank" rel="noopener">OpenElections Indiana</a> · <a href="https://electionresults.sos.state.tx.us/results.html" target="_blank" rel="noopener">Texas SOS</a> · map shapes from us-atlas.</li>
                 </ul>

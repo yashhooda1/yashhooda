@@ -150,3 +150,28 @@
   #elections .el-years button { padding: .35rem .5rem; }
   #elections .el-hero-v { font-size: 2rem; }
 }
+
+/* Greater Houston spotlight */
+#elections .el-hou-mapwrap { display: flex; flex-direction: column; gap: .5rem; align-items: center; }
+#elections .el-hou-map { width: 100%; max-width: 330px; }
+#elections .el-hou-map svg { width: 100%; height: auto; display: block; }
+#elections .el-hou-ctx path { fill: rgba(var(--fg-rgb), .05); stroke: var(--border); stroke-width: .12; }
+#elections .el-hou-c { stroke: var(--bg-card); stroke-width: .25; cursor: pointer; }
+#elections .el-hou-c:hover, #elections .el-hou-c:focus-visible { stroke: var(--text); stroke-width: .5; outline: none; }
+#elections .el-hou-c.el-sel { stroke: var(--text); stroke-width: .7; }
+#elections .el-hou-lbl { fill: var(--text); paint-order: stroke; stroke: var(--bg-card); stroke-width: .35; pointer-events: none; }
+#elections .el-hou-scope { margin: 1rem 0 .6rem; }
+#elections .el-hou-years, #elections .el-hou-scope { max-width: 100%; overflow-x: auto; }
+#elections .el-hou-years button, #elections .el-hou-scope button { white-space: nowrap; flex: 0 0 auto; }
+#elections .el-hou-detail { align-items: start; }
+#elections .el-hou-dt th small, #elections .el-hou-grid th small { display: block; font-weight: 400; font-size: .6rem; color: var(--text-muted); }
+#elections .el-hou-dt td, #elections .el-hou-grid td { font-variant-numeric: tabular-nums; white-space: nowrap; }
+#elections .el-hou-cur { background: rgba(var(--accent-rgb), .08); }
+#elections .el-hou-h { font-size: .82rem; margin: 1rem 0 .5rem; }
+#elections .el-hou-h small { color: var(--text-muted); font-weight: 400; }
+#elections .el-hou-grid { width: 100%; border-collapse: separate; border-spacing: 3px; }
+#elections .el-hou-grid td { text-align: center; border-radius: 6px; background: color-mix(in srgb, var(--c, transparent) 38%, transparent); }
+#elections .el-hou-grid td b { display: block; font-size: .76rem; }
+#elections .el-hou-grid td small { display: block; font-size: .6rem; color: var(--text-muted); }
+#elections .el-hou-grid th button { font: inherit; color: var(--green-light); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+#elections .el-hou-grid tr.el-hou-cur th button { color: var(--text); font-weight: 700; }

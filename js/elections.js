@@ -408,6 +408,7 @@
   // ── Texas spotlight: 2016 → 2026 ──
   function renderSpotlight() {
     if (!ready) return;
+    renderHouston();
     const tx = G.states.TX, r26 = tx.results['2026'];
     const series = trendSeries(y => tx.results[String(y)]);
     drawTrend($('#el-tx-trend'), series, { h: 170, label: 'Texas statewide margin by election, 2016 to 2026' });
@@ -445,6 +446,100 @@
       <div class="el-shift-cols"><div><h5 style="color:${P.poleD}">Toward Democrats</h5><ol>${sh.slice(0, 5).filter(x => x.s > 0).map(li).join('') || '<li>None</li>'}</ol></div>
       <div><h5 style="color:${P.poleR}">Toward Republicans</h5><ol>${sh.slice(-5).reverse().filter(x => x.s < 0).map(li).join('') || '<li>None</li>'}</ol></div></div>`;
     $$('[data-tx]').forEach(btn => btn.onclick = () => { S.year = b; S.view = 'swing'; S.cmp = YEARS.indexOf(b) - YEARS.indexOf(a) === 2 ? 'type' : 'prev'; makeScale(); selectState('TX'); selectCounty(btn.dataset.tx); $('#el-map').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+  }
+
+  // ── Greater Houston spotlight: five counties, 2016 → 2026 ──
+  const HOU = [['48201', 'Harris'], ['48157', 'Fort Bend'], ['48339', 'Montgomery'], ['48039', 'Brazoria'], ['48167', 'Galveston']];
+  const TX_CANDS = { 2016: ['Clinton', 'Trump'], 2018: ["O'Rourke", 'Cruz'], 2020: ['Biden', 'Trump'], 2022: ["O'Rourke", 'Abbott'], 2024: ['Harris', 'Trump'] };
+  const H = { year: null, scope: 'region' };
+  const houRace = y => { const sr = G.states.TX.results[String(y)]; return sr && sr.race; };
+  function houRec(scope, y) {
+    const ids = scope === 'region' ? HOU.map(h => h[0]) : [scope];
+    let d = 0, r = 0, t = 0;
+    for (const f of ids) {
+      const c = countyRec(f, y);
+      if (!c || c.fill) return null;  // region needs all five counties
+      d += c.d; r += c.r; t += c.t;
+    }
+    return { d, r, t, race: houRace(y) };
+  }
+  const houName = s => s === 'region' ? 'Houston area' : HOU.find(h => h[0] === s)[1] + ' County';
+  function houShift(scope, y, back) {  // back = 1: previous election; 2: previous election of the same type
+    const i = YEARS.indexOf(y), py = YEARS[i - back];
+    const c = houRec(scope, y), p = py && houRec(scope, py);
+    return c && p ? margin(c) - margin(p) : null;
+  }
+  function houCands(y) {
+    const sr = G.states.TX.results[String(y)];
+    return sr && sr.dem_candidate ? [sr.dem_candidate.split(' ').pop(), sr.rep_candidate.split(' ').pop()] : TX_CANDS[y] || ['Democrat', 'Republican'];
+  }
+
+  function renderHouston() {
+    const yrs = YEARS.filter(y => houRec('region', y));
+    if (!yrs.length) { $('#el-hou').hidden = true; return; }
+    if (!yrs.includes(H.year)) H.year = yrs[yrs.length - 1];
+    const tx = G.states.TX, mScale = d3.scaleLinear().domain([-60, -40, -20, 0, 20, 40, 60])
+      .range([P.R[2], P.R[1], P.R[0], P.mid, P.D[0], P.D[1], P.D[2]]).interpolate(d3.interpolateLab).clamp(true);
+    const col = m => m == null ? P.none : m >= 0 ? P.poleD : P.poleR;
+
+    // hero: the whole region for the chosen year
+    const y = H.year, rg = houRec('region', y), sr = tx.results[String(y)], [dn, rn] = houCands(y);
+    const s1 = houShift('region', y, 1), s2 = houShift('region', y, 2), won = HOU.filter(([f]) => { const c = houRec(f, y); return c && c.d > c.r; }).length;
+    const vsState = margin(rg) - margin(sr);
+    $('#el-hou-hero').innerHTML = `<div class="el-hero-k">Houston area ${y} · ${esc(RACE[rg.race] || '')}</div>
+      <div class="el-hero-v" style="color:${col(margin(rg))}">${mLabel(margin(rg))}</div>
+      <div class="el-hero-sub">${esc(dn)} (D) <b>${p1(pct(rg.d, rg.t))}</b> · ${esc(rn)} (R) <b>${p1(pct(rg.r, rg.t))}</b> · ${fmt(rg.t)} votes</div>
+      <div class="el-hero-sub">${s1 == null ? '' : `<b>${sLabel(s1)}</b> vs ${YEARS[YEARS.indexOf(y) - 1]}`}${s1 != null && s2 != null ? ' · ' : ''}${s2 == null ? '' : `<b>${sLabel(s2)}</b> vs ${YEARS[YEARS.indexOf(y) - 2]} <small>(same type)</small>`}</div>
+      <div class="el-hero-sub">${esc(dn)} carried ${won} of 5 counties · the region ran <b>${Math.abs(vsState).toFixed(1)} pts ${vsState >= 0 ? 'more Democratic' : 'more Republican'}</b> than Texas (${mLabel(margin(sr))})</div>
+      <div class="el-hero-foot">${y === 2026 ? `County returns ${esc(sr.status || 'unofficial')} · as of Nov 10 · <a href="https://abcnews.com/Elections/texas-county-senate-election-results-2026" target="_blank" rel="noopener">source</a>` : 'Certified county returns'}</div>`;
+
+    // year buttons + map of the five counties (neighbouring Texas counties drawn for context)
+    $('#el-hou-years').innerHTML = yrs.map(v => `<button type="button" data-houy="${v}" aria-pressed="${v === y}">${v}</button>`).join('');
+    const five = counties.filter(f => HOU.some(h => h[0] === f.id)), [[x0, y0], [x1, y1]] = path.bounds({ type: 'FeatureCollection', features: five });
+    const pad = (x1 - x0) * .06, w = x1 - x0 + pad * 2, fs = w / 24;
+    const ctx = counties.filter(f => f.id.startsWith('48') && !five.includes(f));
+    $('#el-hou-map').innerHTML = `<svg viewBox="${x0 - pad} ${y0 - pad} ${w} ${y1 - y0 + pad * 2}" role="img" aria-label="Houston-area counties, ${y} margins">
+      <g class="el-hou-ctx">${ctx.map(f => `<path d="${path(f)}"/>`).join('')}</g>
+      ${five.map(f => { const c = houRec(f.id, y); return `<path class="el-hou-c${H.scope === f.id ? ' el-sel' : ''}" data-houc="${f.id}" d="${path(f)}" fill="${c ? mScale(margin(c)) : P.none}" tabindex="0" role="button" aria-label="${esc(houName(f.id))}: ${c ? mLabel(margin(c)) : 'no data'}"/>`; }).join('')}
+      ${five.map(f => { const [cx, cy] = path.centroid(f), c = houRec(f.id, y); return `<text x="${cx}" y="${cy}" font-size="${fs}" text-anchor="middle" class="el-hou-lbl">${esc(HOU.find(h => h[0] === f.id)[1])}<tspan x="${cx}" dy="${fs * 1.15}" font-weight="700">${c ? mLabel(margin(c)) : '—'}</tspan></text>`; }).join('')}
+    </svg>`;
+
+    // scope pills
+    $('#el-hou-scope').innerHTML = [['region', 'Houston area (5 counties)'], ...HOU].map(([k, l]) => `<button type="button" data-hous="${k}" aria-pressed="${H.scope === k}">${esc(l)}</button>`).join('');
+
+    // trend + drill-down table for the chosen scope
+    $('#el-hou-trend-title').textContent = `${houName(H.scope)}: margin, every election`;
+    drawTrend($('#el-hou-trend'), trendSeries(v => houRec(H.scope, v)), { h: 190, label: houName(H.scope) + ' margin by election, 2016 to 2026' });
+    const reg = H.scope !== 'region';
+    $('#el-hou-table').innerHTML = `<table class="el-dtable el-hou-dt"><thead><tr><th scope="col">Election</th><th scope="col">D %</th><th scope="col">R %</th><th scope="col">Margin</th><th scope="col">Shift vs last</th><th scope="col">Shift vs same type</th><th scope="col">Votes</th>${reg ? '<th scope="col">% of area</th>' : ''}</tr></thead><tbody>${
+      YEARS.map(v => {
+        const c = houRec(H.scope, v), a = houRec('region', v), [d_, r_] = houCands(v), sa = houShift(H.scope, v, 1), sb = houShift(H.scope, v, 2);
+        const sh = s => s == null ? '—' : `<span style="color:${Math.abs(s) < .05 ? 'inherit' : col(s)}">${sLabel(s)}</span>`;
+        return `<tr${v === y ? ' class="el-hou-cur"' : ''}><th scope="row">${v}<small>${esc(RACE[houRace(v)] || '—')} · ${esc(d_)} v ${esc(r_)}</small></th>
+          <td>${c ? p1(pct(c.d, c.t)) : '—'}</td><td>${c ? p1(pct(c.r, c.t)) : '—'}</td>
+          <td style="color:${col(c && margin(c))};font-weight:700">${c ? mLabel(margin(c)) : '—'}</td><td>${sh(sa)}</td><td>${sh(sb)}</td>
+          <td>${c ? fmt(c.t) : '—'}</td>${reg ? `<td>${c && a ? p1(pct(c.t, a.t)) : '—'}</td>` : ''}</tr>`;
+      }).join('')}</tbody></table>`;
+
+    // county × election grid
+    $('#el-hou-grid').innerHTML = `<table class="el-dtable el-hou-grid"><thead><tr><th scope="col">County</th>${YEARS.map(v => `<th scope="col">${v}<small>${esc(RACE[houRace(v)] || '')}</small></th>`).join('')}<th scope="col">2016 → ${yrs[yrs.length - 1]}</th></tr></thead><tbody>${
+      [['region', 'Houston area'], ...HOU].map(([k, l]) => {
+        const first = houRec(k, YEARS[0]), last = houRec(k, yrs[yrs.length - 1]), net = first && last ? margin(last) - margin(first) : null;
+        return `<tr${H.scope === k ? ' class="el-hou-cur"' : ''}><th scope="row"><button type="button" data-hous="${k}">${esc(l)}</button></th>${YEARS.map(v => {
+          const c = houRec(k, v), s = houShift(k, v, 1);
+          return c ? `<td style="--c:${mScale(margin(c))}"><b>${mLabel(margin(c))}</b><small>${s == null ? '&nbsp;' : sLabel(s)}</small></td>` : '<td>—</td>';
+        }).join('')}<td><b style="color:${col(net)}">${sLabel(net)}</b></td></tr>`;
+      }).join('')}</tbody></table>`;
+
+    $$('[data-houy]').forEach(b => b.onclick = () => { H.year = +b.dataset.houy; renderHouston(); });
+    $$('[data-hous]').forEach(b => b.onclick = () => { H.scope = b.dataset.hous; renderHouston(); });
+    $$('[data-houc]').forEach(p => {
+      const pick = () => { H.scope = H.scope === p.dataset.houc ? 'region' : p.dataset.houc; renderHouston(); };
+      p.onclick = pick;
+      p.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } };
+      p.onmousemove = e => { const c = houRec(p.dataset.houc, y); tip(e, `<div class="el-tip-h">${esc(houName(p.dataset.houc))} · ${y}</div>${c ? `<div class="el-tip-row">D ${p1(pct(c.d, c.t))} · R ${p1(pct(c.r, c.t))}</div><div class="el-tip-row"><b>${mLabel(margin(c))}</b> · ${fmt(c.t)} votes</div>` : '<div class="el-tip-row">No county data</div>'}`); };
+      p.onmouseleave = hideTip;
+    });
   }
 
   // boot when the section gets close

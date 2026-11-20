@@ -1,0 +1,6 @@
+state,county,fips,race,dem_votes,rep_votes,total_votes,status,as_of,source_url
+TX,Harris,48201,senate,907617,451780,1383480,unofficial,2026-11-10,https://abcnews.com/Elections/texas-county-senate-election-results-2026
+TX,Fort Bend,48157,senate,210780,115978,331918,unofficial,2026-11-10,https://abcnews.com/Elections/texas-county-senate-election-results-2026
+TX,Montgomery,48339,senate,98324,155781,258542,unofficial,2026-11-10,https://abcnews.com/Elections/texas-county-senate-election-results-2026
+TX,Brazoria,48039,senate,73275,65605,141883,unofficial,2026-11-10,https://abcnews.com/Elections/texas-county-senate-election-results-2026
+TX,Galveston,48167,senate,62051,69943,134598,unofficial,2026-11-10,https://abcnews.com/Elections/texas-county-senate-election-results-2026

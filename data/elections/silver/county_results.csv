@@ -15512,3 +15512,8 @@ year,type,race,state_fips,state,fips,county,dem,rep,other,total
 2024,presidential,president,56,WY,56041,Uinta County,1561,7282,141,8984
 2024,presidential,president,56,WY,56043,Washakie County,656,3125,60,3841
 2024,presidential,president,56,WY,56045,Weston County,378,3069,47,3494
+2026,midterm,senate,48,TX,48039,Brazoria,73275,65605,3003,141883
+2026,midterm,senate,48,TX,48157,Fort Bend,210780,115978,5160,331918
+2026,midterm,senate,48,TX,48167,Galveston,62051,69943,2604,134598
+2026,midterm,senate,48,TX,48201,Harris,907617,451780,24083,1383480
+2026,midterm,senate,48,TX,48339,Montgomery,98324,155781,4437,258542

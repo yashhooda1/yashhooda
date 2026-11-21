@@ -32,6 +32,8 @@ jobs:
           python-version: '3.12'
       - name: Gold totals vs certified results (±1.5%)
         run: python pipelines/elections/build.py --check-only
+      - name: Race-by-race chamber totals (Senate, House, governors, electoral votes)
+        run: python pipelines/elections/build_races.py --check-only
 
   rebuild:
     if: github.event_name == 'workflow_dispatch'
@@ -49,6 +51,8 @@ jobs:
         run: bash pipelines/elections/fetch_bronze.sh
       - name: Build silver + gold, then gate
         run: python pipelines/elections/build.py --check
+      - name: Build race-by-race gold, then gate
+        run: python pipelines/elections/build_races.py --check
       - name: Open a PR with refreshed data
         env:
           GH_TOKEN: ${{ github.token }}

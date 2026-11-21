@@ -28,4 +28,13 @@ sparse() { # repo dir paths...
 sparse MEDSL/2018-elections-official MEDSL-2018 SENATE/SENATE_precinct_general.zip STATE/STATE_precinct_general.zip HOUSE/HOUSE_precinct_general.zip
 sparse MEDSL/2022-elections-official MEDSL-2022 individual_states
 
+# Race-by-race data (build_races.py): FiveThirtyEight certified results + MIT constituency returns (2016 House)
+mkdir -p 538 constituency-returns
+for f in senate house gubernatorial presidential; do
+  [ -s "538/election_results_$f.csv" ] || curl -sSfL -o "538/election_results_$f.csv" \
+    "https://raw.githubusercontent.com/fivethirtyeight/election-results/main/election_results_$f.csv"
+done
+[ -s constituency-returns/1976-2018-house.csv ] || curl -sSfL -o constituency-returns/1976-2018-house.csv \
+  "https://raw.githubusercontent.com/MEDSL/constituency-returns/master/1976-2018-house.csv"
+
 echo "bronze ready in $B"

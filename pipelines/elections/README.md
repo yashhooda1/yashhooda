@@ -23,6 +23,24 @@ python3 pipelines/elections/build.py --check-only   # gate the committed gold, n
 pipeline or data, and a manual **Run workflow** fetches, rebuilds, gates and opens a
 data-refresh PR.
 
+## Race by race (Senate, House, governor, president)
+
+`build_races.py` writes `data/elections/gold/races.json` for the Google-style panel at the top of
+`/#elections` (`js/elections-races.js`): every cycle 2016–2026 split into Senate / House / Governor /
+President, with post-election chamber control, seats gained and lost, key races, flips, and a full
+candidate result for every state and House district.
+
+| Race | 2016–2024 | 2026 |
+|---|---|---|
+| Senate, governor, president | FiveThirtyEight `election-results` (certified; runoffs and ranked-choice final rounds) | `manual/2026_statewide.csv`, plus `manual/2026_senate_extra.csv` for races that aren't D-vs-R |
+| US House | 538 (2018–2024), MIT `constituency-returns` (2016) | `manual/2026_house.csv` (one row per candidate) |
+| Governor holdovers | `manual/governor_holdovers.csv` for odd-year races 538 lacks (KY/MS/LA 2023, NJ/VA 2025) | |
+
+Chamber totals count the latest election for every seat (Senate classes, all 50 governors), so seats
+not up still count. A seat that is up in 2026 with no result loaded counts as **pending**, never for
+the old holder. `--check` / `--check-only` assert the known post-election totals (Senate, House,
+governors, electoral votes) for 2016–2024; the CI job runs `--check-only` on every PR.
+
 ## Sources
 
 | Election | Race used | Source |

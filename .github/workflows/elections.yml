@@ -57,7 +57,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet -- data/elections; then echo "No data changes."; exit 0; fi
+          # A rebuild always stamps a new generated_at; put back any file whose only change is that stamp.
+          for f in $(git diff --name-only -- 'data/elections/**/*.json'); do
+            if python3 -c "import json,subprocess,sys; o=json.loads(subprocess.check_output(['git','show','HEAD:'+sys.argv[1]])); n=json.load(open(sys.argv[1])); [d.pop('generated_at',None) for d in (o,n)]; sys.exit(0 if o==n else 1)" "$f"; then
+              git checkout -- "$f"
+            fi
+          done
+          if git diff --quiet -- data/elections; then echo "No data changes (timestamps only)."; exit 0; fi
           branch="data/elections-refresh-${GITHUB_RUN_ID}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -65,4 +71,8 @@ jobs:
           git add data/elections
           git commit -m "data(elections): refresh gold from pipeline run ${GITHUB_RUN_ID}"
           git push origin "$branch"
-          gh pr create --title "Elections data refresh" --body "Automated rebuild of data/elections from pipelines/elections (run ${GITHUB_RUN_ID}). Certified-total gate passed." --base main --head "$branch"
+          # Opening the PR needs Settings -> Actions -> General -> "Allow GitHub Actions to create and approve pull requests".
+          # Without it the branch is still pushed, so warn with the link instead of failing the run.
+          if ! gh pr create --title "Elections data refresh" --body "Automated rebuild of data/elections from pipelines/elections (run ${GITHUB_RUN_ID}). Certified-total gate passed." --base main --head "$branch"; then
+            echo "::warning::Pushed $branch but couldn't open the PR (Actions isn't allowed to create PRs in this repo). Open it here: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/main...${branch}?expand=1"
+          fi

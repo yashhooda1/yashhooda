@@ -200,6 +200,14 @@
 
   // ── selection & controls ──
   function selectState(po) { S.state = po || null; S.county = null; S.sort = { k: 'share', dir: -1 }; $('#el-state').value = S.state || ''; render(); }
+  // Hand-off from the race-by-race panel (js/elections-races.js): which race each state's county map shows,
+  // and "County map" jumps here with that year and state selected.
+  window.YH_ELECTIONS = { stateRace: (po, y) => { const sr = G && stRes(po, y); return sr && hasCountyData(po, y) && !sr.statewide_fill ? sr.race : null; } };
+  window.addEventListener('yh:elections-drill', e => {
+    if (!ready) return;
+    S.year = e.detail.year; S.view = 'margin'; makeScale(); selectState(e.detail.state);
+    $('#el-map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
   function selectCounty(f) { S.county = S.county === f ? null : f; render(); }
   function bind() {
     $('#el-years').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.year = +b.dataset.year; render(); });

@@ -1,0 +1,3 @@
+state,seat,special,candidate,party,votes,winner,status,as_of,source_url
+# 2026 Senate races not in 2026_statewide.csv (non D-vs-R matchups or not yet entered): AK, ID, MT, NE, SD.
+# One row per candidate. seat = Senate class (II for regular 2026 races). party: D, R, I_D, I_R or O.

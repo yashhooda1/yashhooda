@@ -6135,6 +6135,38 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
             Pick an election, click a state to drill into its counties, click a county for its full history.
         </p>
 
+        <!-- Race-by-race results (js/elections-races.js, data/elections/gold/races.json from pipelines/elections/build_races.py) -->
+        <div class="el-races" id="el-races">
+            <h3 class="elr-h">Results by race · Senate, House, Governor &amp; President</h3>
+            <p class="el-sub">Every federal and governor race from 2016 to 2026: chamber control, seats gained and lost, key races and a full result for every state and district.</p>
+            <div class="elr-head">
+                <div class="el-years" id="elr-years" role="group" aria-label="Election year"></div>
+                <div class="elr-tabs" id="elr-tabs" role="tablist" aria-label="Race"></div>
+            </div>
+            <p class="el-status" id="elr-status">Race results load when you scroll here.</p>
+            <div id="elr-body" hidden>
+                <div class="elr-grid">
+                    <div class="el-card elr-main">
+                        <div class="elr-meta" id="elr-meta"></div>
+                        <h3 id="elr-title" class="elr-title"></h3>
+                        <p class="el-sub" id="elr-src"></p>
+                        <div class="elr-tally" id="elr-tally"></div>
+                        <svg id="elr-map" class="elr-map" role="group" aria-label="Map of race results by state. The table below has every value."></svg>
+                        <div class="elr-legend" id="elr-legend"></div>
+                        <div class="el-notes" id="elr-notes"></div>
+                    </div>
+                    <aside class="el-card elr-side" id="elr-detail" aria-live="polite"></aside>
+                </div>
+                <div class="el-card">
+                    <h3 id="elr-table-title">All races</h3>
+                    <div class="el-table-wrap"><table class="el-table elr-table" id="elr-table"></table></div>
+                    <p class="el-hint">Click a column to sort, a row for the full result. Certified results from FiveThirtyEight's election-results data (2016 House from the MIT Election Lab); 2026 is unofficial.</p>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="elr-h">County drill-down · margin and swing by county</h3>
+
         <div class="el-filters" role="group" aria-label="Election dashboard filters">
             <div class="el-years" id="el-years" role="group" aria-label="Election"></div>
             <div class="el-seg" role="group" aria-label="Show">
@@ -18203,6 +18235,7 @@ if (buildlogSection) buildlogObserver.observe(buildlogSection);
 <script src="/js/preflight.js" defer></script>
 <script src="/js/docshield.js" defer></script>
 <script src="/js/elections.js" defer></script>
+<script src="/js/elections-races.js" defer></script>
 <script src="/js/flight-log.js" defer></script>
 </body>
 </html>

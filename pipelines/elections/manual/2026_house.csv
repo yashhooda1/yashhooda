@@ -1,0 +1,4 @@
+state,seat,special,candidate,party,votes,winner,status,as_of,source_url
+# 2026 US House by district, one row per candidate. seat = district number (1 for at-large).
+# party: D, R, I_D, I_R or O. winner true once the race is called; until then the leader shows as "leading".
+# Example: TX,7,false,Jane Doe,D,150000,true,unofficial,2026-11-20,https://...

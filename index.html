@@ -1690,7 +1690,13 @@
         .strava-stat-label { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
         .strava-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid rgba(var(--fg-rgb),0.05); font-size: 0.7rem; color: var(--text-muted); }
         .strava-kudos { color: #fc4c02; font-family: 'Space Mono', monospace; }
+        .strava-meta { flex: 1 1 auto; min-width: 0; text-align: center; font-size: 0.66rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .strava-device { color: var(--text-muted); white-space: nowrap; }
+        .strava-card .strava-type-badge { white-space: nowrap; }
+        @media (max-width: 520px) {
+            .strava-card > div:first-child { flex-wrap: wrap; row-gap: 0.35rem; }
+            .strava-meta { order: 3; flex-basis: 100%; text-align: left; }
+        }
         .strava-loading { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; }
         .strava-loading::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(252,76,2,0.3); border-top-color: #fc4c02; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -13042,6 +13048,7 @@ async function loadStrava() {
             <div class="strava-card">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.6rem;">
                     <div class="strava-type-badge" style="margin-bottom:0;">${typeIcon(a.sport_type || a.type)} ${a.sport_type || a.type}</div>
+                    <div class="strava-meta">${fmtDate(a.date)}${a.device_name ? `<span class="strava-device" title="Recorded with ${esc(a.device_name)}"> · ⌚ ${esc(a.device_name)}</span>` : ''}</div>
                     ${fmtLocation(a) ? `<div class="strava-location">📍 ${fmtLocation(a)}</div>` : ''}
                 </div>
                 <div class="strava-name" title="${a.name}">${a.name}</div>
@@ -13057,8 +13064,7 @@ async function loadStrava() {
                 ${photoStrip(a)}
                 ${a.map_polyline ? `<div class="strava-map" id="map-${a.id}"></div>` : ''}
                 <div class="strava-footer">
-                    <span>${fmtDate(a.date)}${a.device_name ? `<span class="strava-device" title="Recorded with ${esc(a.device_name)}"> · ⌚ ${esc(a.device_name)}</span>` : ''}</span>
-                    <span class="strava-kudos">❤️ ${a.kudos} kudos</span>
+                    <span class="strava-kudos" style="margin-left:auto;">❤️ ${a.kudos} kudos</span>
                 </div>
             </div>
         `).join('');

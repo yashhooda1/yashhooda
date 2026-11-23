@@ -140,18 +140,29 @@ export default async function handler(req, res) {
     // 3a. Fetch descriptions with timeout to avoid blocking mobile.
     //     Now Redis-cached (6h) — this endpoint was previously hit on every
     //     cold request, which alone was pushing the daily read limit.
+    //     The same detail call carries device_name ("Apple Watch Ultra 4"), which
+    //     never changes for a finished activity, so it's cached for 90 days.
     const descriptions = {};
-    const descTimeout = (id) => new Promise(async resolve => {
+    const devices = {};
+    const DEVICE_TTL = 60 * 60 * 24 * 90;
+    if (redis && activities.length) {
+        try {
+            const hits = await redis.mget(...activities.map(a => `strava:device:${a.id}`));
+            activities.forEach((a, i) => { if (hits[i] !== null && hits[i] !== undefined) devices[a.id] = hits[i] || null; });
+        } catch {}
+    }
+    const descTimeout = (id, needDesc = true) => new Promise(async resolve => {
         const dkey = `strava:desc:${id}`;
-        if (redis) {
+        if (redis && needDesc) {
             try {
                 const hit = await redis.get(dkey);
                 if (hit !== null && hit !== undefined) {
                     descriptions[id] = hit || null;
-                    return resolve();
+                    if (id in devices) return resolve();
                 }
             } catch {}
         }
+        if (!needDesc && id in devices) return resolve();
         const controller = new AbortController();
         const timer = setTimeout(() => { controller.abort(); resolve(); }, 3000);
         fetch(`https://www.strava.com/api/v3/activities/${id}`, {
@@ -160,13 +171,24 @@ export default async function handler(req, res) {
         })
         .then(r => r.json())
         .then(async d => {
-            descriptions[id] = d.description || null;
-            if (redis) { try { await redis.set(dkey, d.description || '', { ex: 60 * 60 * 6 }); } catch {} }
+            if (!d || !d.id) return;  // error payload (e.g. 429): cache nothing
+            if (needDesc) descriptions[id] = d.description || null;
+            devices[id] = d.device_name || null;
+            if (redis) {
+                if (needDesc) { try { await redis.set(dkey, d.description || '', { ex: 60 * 60 * 6 }); } catch {} }
+                try { await redis.set(`strava:device:${id}`, d.device_name || '', { ex: DEVICE_TTL }); } catch {}
+            }
         })
         .catch(() => {})
         .finally(() => { clearTimeout(timer); resolve(); });
     });
-    await Promise.all(activities.slice(0, 6).map(a => descTimeout(a.id)));
+    // Newest 6 get description + device; then backfill the device for up to 8
+    // older activities per request, so the feed fills in without a fan-out.
+    const backfill = activities.slice(6).filter(a => !(a.id in devices)).slice(0, 8);
+    await Promise.all([
+        ...activities.slice(0, 6).map(a => descTimeout(a.id)),
+        ...backfill.map(a => descTimeout(a.id, false)),
+    ]);
 
     // 3a-ii. Photos — only for activities that actually have them (the summary
     //        payload tells us via total_photo_count, so we skip the empty ones
@@ -220,6 +242,7 @@ export default async function handler(req, res) {
       avg_hr:        a.average_heartrate || null,
       max_hr:        a.max_heartrate || null,
       description:   descriptions[a.id] || null,
+      device_name:   devices[a.id] || null,
       kudos:         a.kudos_count,
       suffer_score:  a.suffer_score || null,
       map_polyline:  a.map?.summary_polyline || null,

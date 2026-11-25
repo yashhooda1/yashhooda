@@ -47,7 +47,8 @@ export async function getWeatherForActivity({ lat, lon, isoTimeGMT }) {
   url.searchParams.set("end_date", dateStr);
   url.searchParams.set(
     "hourly",
-    "temperature_2m,dewpoint_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m"
+    "temperature_2m,dewpoint_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m," +
+      "wind_direction_10m,weather_code,is_day"
   );
   url.searchParams.set("temperature_unit", "fahrenheit");
   url.searchParams.set("wind_speed_unit", "mph");
@@ -87,7 +88,43 @@ export async function getWeatherForActivity({ lat, lon, isoTimeGMT }) {
     humidityPct: h.relative_humidity_2m?.[i]  ?? null,
     apparentF:   h.apparent_temperature?.[i]  ?? null,
     windMph:     h.wind_speed_10m?.[i]        ?? null,
+    windDirDeg:  h.wind_direction_10m?.[i]    ?? null,
+    weatherCode: h.weather_code?.[i]          ?? null,
+    isDay:       h.is_day?.[i] != null ? h.is_day[i] === 1 : null,
   };
+}
+
+/**
+ * WMO weather code → short label + emoji (Open-Meteo `weather_code`).
+ * Night-aware so a 5 AM clear run shows a moon, like Strava does.
+ */
+export function describeWeatherCode(code, isDay = true) {
+  if (code == null) return null;
+  const night = isDay === false;
+  const table = [
+    [[0],              "Clear",          night ? "🌙" : "☀️"],
+    [[1],              "Mostly clear",   night ? "🌙" : "🌤️"],
+    [[2],              "Partly cloudy",  night ? "☁️" : "⛅"],
+    [[3],              "Overcast",       "☁️"],
+    [[45, 48],         "Fog",            "🌫️"],
+    [[51, 53, 55],     "Drizzle",        "🌦️"],
+    [[56, 57],         "Freezing drizzle", "🌧️"],
+    [[61, 63, 65],     "Rain",           "🌧️"],
+    [[66, 67],         "Freezing rain",  "🌧️"],
+    [[71, 73, 75, 77], "Snow",           "🌨️"],
+    [[80, 81, 82],     "Showers",        "🌦️"],
+    [[85, 86],         "Snow showers",   "🌨️"],
+    [[95, 96, 99],     "Thunderstorm",   "⛈️"],
+  ];
+  const hit = table.find(([codes]) => codes.includes(code));
+  return hit ? { label: hit[1], icon: hit[2] } : { label: "—", icon: "🌡️" };
+}
+
+/** Degrees → 16-point compass ("NNW"). */
+export function compassFromDeg(deg) {
+  if (deg == null) return null;
+  const pts = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  return pts[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16];
 }
 
 /**

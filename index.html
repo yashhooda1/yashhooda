@@ -1681,6 +1681,10 @@
         line-height: 1.5;
         white-space: pre-line;
         }
+        .strava-weather { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; margin-bottom: 0.6rem; padding: 0.35rem 0.55rem; border-radius: 6px; background: rgba(var(--fg-rgb),0.03); border: 1px solid rgba(var(--fg-rgb),0.06); font-family: 'Space Mono', monospace; font-size: 0.66rem; color: var(--text-muted); line-height: 1.4; }
+        .strava-wx-main { color: var(--text); font-weight: 700; }
+        .strava-wx-icon { font-size: 0.9rem; line-height: 1; }
+        .strava-wx-heat { padding: 0.05rem 0.4rem; border-radius: 4px; background: rgba(252,76,2,0.1); border: 1px solid rgba(252,76,2,0.25); color: #fc4c02; white-space: nowrap; }
         #strava-feed {
         position: relative;
         z-index: 1;
@@ -12994,10 +12998,15 @@ async function loadStrava() {
                 .filter(a => String(a.sport_type || a.type || '').includes('Run'))
                 .map(a => ({ t: new Date(a.date).getTime(), mi: parseFloat(a.distance_mi) || 0 }))
                 .filter(a => !isNaN(a.t));
+            // a.date is wall-clock CT with a fake "Z", so compare against the week bounds in
+            // that same wall-clock frame (undo the offset ctWeekStartMs subtracted). Otherwise
+            // an early-Monday run lands in the previous week.
+            const wallShift = ctOffsetMs(new Date());
+            const wkStartWall = wkStart + wallShift, prevStartWall = prevStart + wallShift;
             const oldest = runs.length ? Math.min.apply(null, runs.map(r => r.t)) : Infinity;
             // only trust the fallback if the feed actually reaches back past last Monday
-            if (oldest <= prevStart) {
-                const sum = runs.filter(r => r.t >= prevStart && r.t < wkStart)
+            if (oldest <= prevStartWall) {
+                const sum = runs.filter(r => r.t >= prevStartWall && r.t < wkStartWall)
                                 .reduce((s, r) => s + r.mi, 0);
                 lastWeek = Math.round(sum * 10) / 10;
             }
@@ -13028,7 +13037,9 @@ async function loadStrava() {
         if (!acts.length) { grid.innerHTML = '<div class="strava-error">No recent activities found.</div>'; return; }
         const typeIcon = t => ({'Run':'🏃','Ride':'🚴','Swim':'🏊','Hike':'🥾','Walk':'🚶','VirtualRun':'🏃','TrailRun':'🏔️','Workout':'💪'}[t] || '🏃');
         const fmtTime = s => { const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60; return h > 0 ? `${h}h ${m}m` : `${m}:${sec.toString().padStart(2,'0')}`; };
-        const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        // a.date is Strava's start_date_local: wall-clock time with a fake "Z".
+        // Format it in UTC so the browser doesn't shift it (5:24 AM CT was rendering as the previous day).
+        const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
         // ── Photo strip: up to 3 thumbs, "+N" badge on the last if there are more ──
         const esc = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         window.__stravaPhotos = window.__stravaPhotos || {};
@@ -13044,6 +13055,26 @@ async function loadStrava() {
                     ${(extra > 0 && i === shown.length - 1) ? `<div class="strava-photo-more">+${extra}</div>` : ''}
                 </div>`).join('') + `</div>`;
         };
+        // ── Weather line (Open-Meteo, from /api/strava). Indoor / no-GPS activities have none. ──
+        const weatherLine = (a) => {
+            const w = a.weather;
+            if (!w || w.temp_f == null) return '';
+            const bits = [];
+            if (w.feels_like_f != null && w.feels_like_f !== w.temp_f) bits.push(`Feels ${w.feels_like_f}°F`);
+            if (w.humidity_pct != null) bits.push(`💧 ${w.humidity_pct}%`);
+            if (w.wind_mph != null) bits.push(`💨 ${w.wind_mph} mph${w.wind_dir ? ' ' + esc(w.wind_dir) : ''}`);
+            const hs = w.heat_stress;
+            // Temp + dewpoint ≥ 130 is where heat starts costing pace — only flag it then.
+            const heat = (hs && hs.sum >= 130)
+                ? `<span class="strava-wx-heat" title="Temp + dewpoint ${hs.sum} (${esc(hs.zone)}): ${esc(hs.paceImpact)}">🔥 T+D ${hs.sum}</span>` : '';
+            const tip = `Dewpoint ${w.dewpoint_f ?? '—'}°F${w.heat_index_f != null ? ` · Heat index ${Math.round(w.heat_index_f)}°F` : ''} · Open-Meteo`;
+            return `<div class="strava-weather" title="${esc(tip)}">
+                <span class="strava-wx-icon">${w.icon || '🌡️'}</span>
+                <span class="strava-wx-main">${esc(w.condition || '')}${w.condition ? ', ' : ''}${w.temp_f}°F</span>
+                ${bits.map(b => `<span>${b}</span>`).join('')}
+                ${heat}
+            </div>`;
+        };
         grid.innerHTML = acts.map(a => `
             <div class="strava-card">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.6rem;">
@@ -13053,6 +13084,7 @@ async function loadStrava() {
                 </div>
                 <div class="strava-name" title="${a.name}">${a.name}</div>
                 ${a.description ? `<div class="strava-desc">${a.description}</div>` : ''}
+                ${weatherLine(a)}
                 <div class="strava-stats">
                     <div class="strava-stat"><span class="strava-stat-val">${a.distance_mi} mi</span><span class="strava-stat-label">Distance</span></div>
                     <div class="strava-stat"><span class="strava-stat-val">${fmtTime(a.moving_time_s)}</span><span class="strava-stat-label">Moving Time</span></div>

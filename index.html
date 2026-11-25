@@ -13028,7 +13028,9 @@ async function loadStrava() {
         if (!acts.length) { grid.innerHTML = '<div class="strava-error">No recent activities found.</div>'; return; }
         const typeIcon = t => ({'Run':'🏃','Ride':'🚴','Swim':'🏊','Hike':'🥾','Walk':'🚶','VirtualRun':'🏃','TrailRun':'🏔️','Workout':'💪'}[t] || '🏃');
         const fmtTime = s => { const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60; return h > 0 ? `${h}h ${m}m` : `${m}:${sec.toString().padStart(2,'0')}`; };
-        const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        // a.date is Strava's start_date_local: wall-clock time with a fake "Z".
+        // Format it in UTC so the browser doesn't shift it (5:24 AM CT was rendering as the previous day).
+        const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
         // ── Photo strip: up to 3 thumbs, "+N" badge on the last if there are more ──
         const esc = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         window.__stravaPhotos = window.__stravaPhotos || {};

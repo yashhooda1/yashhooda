@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis';
+import { getWeatherForActivity, heatIndexF, dewpointImpact, describeWeatherCode, compassFromDeg } from './lib/weatherEnrichment.js';
 
 const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
   ? new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN })
@@ -90,6 +91,68 @@ async function photosCached(activityId, accessToken) {
 
   if (redis) { try { await redis.set(key, photos, { ex: 60 * 60 * 24 * 7 }); } catch {} }
   return photos;
+}
+
+
+// Weather at the activity — Open-Meteo hourly, keyed on start lat/lon and the
+// activity's MIDPOINT in real UTC (a.start_date, not start_date_local).
+// Indoor / no-GPS activities get null. Shaped like Strava's own weather line:
+// "Clear, 39 °F. Feels like 33 °F. Humidity 82%. Wind 6.5 mi/h from NNW."
+const WX_KEY = (id) => `strava:wx:v1:${id}`;
+const WX_MAX_FETCH_PER_REQUEST = 15;   // cold-cache backfill cap; fills in over a few loads
+
+async function fetchActivityWeather(a) {
+  if (!Array.isArray(a.start_latlng) || a.start_latlng.length < 2 || !a.start_date) return null;
+  const start = new Date(a.start_date).getTime();
+  if (Number.isNaN(start)) return null;
+  // Midpoint of the activity, +30 min so the helper's hour-floor lands on the NEAREST hour.
+  const mid = start + ((a.elapsed_time || a.moving_time || 0) * 1000) / 2 + 30 * 60 * 1000;
+  const wx = await getWeatherForActivity({
+    lat: a.start_latlng[0], lon: a.start_latlng[1], isoTimeGMT: new Date(mid).toISOString(),
+  });
+  if (!wx || wx.tempF == null) return null;
+  const cond = describeWeatherCode(wx.weatherCode, wx.isDay);
+  const r1 = (n) => (n == null ? null : Math.round(n * 10) / 10);
+  return {
+    condition:    cond?.label || null,
+    icon:         cond?.icon || null,
+    temp_f:       Math.round(wx.tempF),
+    feels_like_f: wx.apparentF != null ? Math.round(wx.apparentF) : null,
+    humidity_pct: wx.humidityPct != null ? Math.round(wx.humidityPct) : null,
+    dewpoint_f:   wx.dewpointF != null ? Math.round(wx.dewpointF) : null,
+    wind_mph:     r1(wx.windMph),
+    wind_dir:     compassFromDeg(wx.windDirDeg),
+    heat_index_f: heatIndexF(wx.tempF, wx.humidityPct),
+    heat_stress:  dewpointImpact(wx.tempF, wx.dewpointF),   // { sum, zone, paceImpact }
+    source:       'open-meteo',
+  };
+}
+
+async function weatherForActivities(activities) {
+  const out = {};
+  const outdoor = activities.filter(a => Array.isArray(a.start_latlng) && a.start_latlng.length >= 2);
+  if (!outdoor.length) return out;
+
+  if (redis) {
+    try {
+      const hits = await redis.mget(...outdoor.map(a => WX_KEY(a.id)));
+      outdoor.forEach((a, i) => { if (hits[i]) out[a.id] = hits[i]; });
+    } catch { /* fall through to fetch */ }
+  }
+
+  const misses = outdoor.filter(a => !(a.id in out)).slice(0, WX_MAX_FETCH_PER_REQUEST);
+  await Promise.all(misses.map(async (a) => {
+    const wx = await fetchActivityWeather(a);
+    if (!wx) return;                       // don't cache failures — retry next load
+    out[a.id] = wx;
+    if (redis) {
+      // Very recent activities get a short TTL so modeled hours settle to observed data.
+      const ageH = (Date.now() - new Date(a.start_date).getTime()) / 3.6e6;
+      const ex = ageH < 48 ? 60 * 60 * 6 : 60 * 60 * 24 * 180;
+      try { await redis.set(WX_KEY(a.id), wx, { ex }); } catch {}
+    }
+  }));
+  return out;
 }
 
 
@@ -211,10 +274,14 @@ export default async function handler(req, res) {
 
     const uniqueKeys = [...new Set(activities.map(coordKey).filter(Boolean))];
     const labelByKey = {};
-    await Promise.all(uniqueKeys.map(async (k) => {
-      const [lat, lon] = k.split(',').map(Number);
-      labelByKey[k] = await geocodeCached(lat, lon);
-    }));
+    let weatherById = {};
+    await Promise.all([
+      ...uniqueKeys.map(async (k) => {
+        const [lat, lon] = k.split(',').map(Number);
+        labelByKey[k] = await geocodeCached(lat, lon);
+      }),
+      weatherForActivities(activities).then(w => { weatherById = w; }).catch(() => {}),
+    ]);
 
     // 3. Shape the data
     const shaped = activities.map(a => ({
@@ -248,6 +315,7 @@ export default async function handler(req, res) {
       map_polyline:  a.map?.summary_polyline || null,
       photos:        photosById[a.id] || [],
       photo_count:   a.total_photo_count || 0,
+      weather:       weatherById[a.id] || null,
     }));
 
     // ── WEEKLY MILEAGE (Mon 00:00 → Sun 23:59:59.999, America/Chicago) ──

@@ -4362,7 +4362,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <h2>⚡ About Me</h2>
         <p>I'm a 24-year-old <strong>AI &amp; Software/Data Engineer</strong> who builds production systems — the kind with rate limiters, kill switches, retries and real traffic, not the kind that lives in a notebook. I hold a BS in Computer Science from UT Dallas and certifications in IBM AI Engineering, IBM Data Science, and the Databricks Certified Data Engineer Associate.</p>
         <p>My work spans both halves of the stack: designing and optimizing end-to-end data pipelines across Microsoft Fabric, Databricks, PySpark and SQL, and shipping full-stack AI systems — multi-model LLM gateways, hybrid RAG with reranking, agentic loops, and offline eval harnesses. This site is one of them. It runs a hybrid retrieval pipeline, a gateway across five model providers, and a seven-layer security stack that has taken sustained real attack traffic and held.</p>
-        <p>Most of my side projects live where messy public data meets automation. <strong>ClimatePulse</strong> is a 57-year NOAA pipeline across 13 global stations with a Bronze&rarr;Silver&rarr;Gold architecture, refreshed daily by GitHub Actions — incremental per-station caching cut each run from 741 API calls to 13. The <strong>live flight tracker</strong> on this page is real-time geospatial ingestion. <strong>mcp-garmin</strong> came from reverse-engineering Garmin's undocumented workout schema into a typed spec an LLM can drive.</p>
+        <p>Most of my side projects live where messy public data meets automation. <strong>ClimatePulse</strong> is a 57-year NOAA pipeline across 13 global stations with a Bronze&rarr;Silver&rarr;Gold architecture, refreshed daily by GitHub Actions — incremental per-station caching cut each run from 741 API calls to 13. The <strong>live flight tracker</strong> on this page is real-time geospatial ingestion.</p>
         <p>Outside the terminal I fly small planes and run, both purely as hobbies. Both hobbies keep turning into engineering problems: the METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), the live flight tracker, and the Infinite Flight tooling on this page are real-time data work that started with aviation data, and the Strava and pace tools came from running. Weather systems, astronomy, and sport pull at me for the same reason. I value time with family and friends, and I'm happiest building whatever comes next. <a href="#journey">My flight log →</a></p>
 
         <!-- .skill-cloud wrapper restored (Oct 2026): its opening tag was missing, so the
@@ -4847,70 +4847,6 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
                     <span class="al-status">Running on my Ultra 4 · App Store release planned</span>
                     <a href="#hoodarun" class="project-btn">⌚ Web Builder</a>
                     <a href="https://github.com/yashhooda1/mcp-apple-workouts/tree/main/ios/HoodaRun" target="_blank" rel="noopener" class="project-btn">📂 Sync Code</a>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-title">⌚🏃🏽‍♂️ Garmin MCP Server — Training Plans Built From Your Actual Fitness</div>
-                <div class="project-tech">
-                    <span class="skill-tag de">Python (Pandas · NumPy · PySpark)</span>
-                    <span class="skill-tag ai">MCP Servers</span>
-                    <span class="skill-tag ai">Pydantic</span>
-                    <span class="tech-pill">Garmin Connect</span>
-                    <span class="tech-pill">Structured Workout Schema</span>
-                    <span class="tech-pill">Strength Workout API</span>
-                    <span class="skill-tag">Riegel Performance Modelling</span>
-                    <span class="skill-tag">Progressive Load Ramps</span>
-                    <span class="skill-tag cl">Docker</span>
-                    <span class="tech-pill">pytest</span>
-                    <span class="skill-tag cl">GitHub Actions</span>
-                </div>
-                <div class="project-desc">
-                    Model Context Protocol server that reads Garmin activities and writes
-                    structured workouts, strength sessions and whole training blocks straight
-                    to the Garmin calendar. Reverse-engineered Garmin's workout-service schema
-                    into a typed, LLM-friendly spec — garth SSO auth, a bearer-secured HTTP
-                    transport, an offline test suite, and CI, packaged for one-command
-                    Docker/Railway deploy.
-                    <br><br>
-                    Plans aren't templates. It reads the last eight weeks of logged running,
-                    derives weekly mileage, longest run, frequency and best effort, and
-                    compares that to what the goal demands. If the goal doesn't fit the
-                    runway it says so and builds toward the one that does — a 5:12 miler
-                    asking for sub-4:30 is told that's a two-or-three-season project, not a
-                    16-week one. Marathon blocks ramp 8%/week on a 3-up-1-down cycle from
-                    wherever the athlete actually is; high-school track blocks target the
-                    sub-2:00 800, sub-4:30 1600, sub-10:00 3200 and sub-15:00 5K with weekly
-                    mileage ceilings by training age. Every plan carries two strength sessions
-                    a week on quality days, per-session fuelling and recovery notes in the
-                    workout description, and a weekly nutrition brief.
-                    <div class="proof-shots">
-                        <figure onclick="openProofShot('images/mcp-garmin/calendar.png', '⌚ mcp-garmin')">
-                            <img src="images/mcp-garmin/calendar.png" loading="lazy" alt="Garmin Connect calendar showing two generated training weeks: easy runs with strides, hill and pace strides, Strength A and Strength B, and Sunday long runs">
-                            <figcaption><b>118 sessions, written over the API.</b> Two weeks of a generated sub-3 block on the Garmin Connect calendar — easy runs, quality, both strength days, Sunday long run.</figcaption>
-                        </figure>
-                        <figure onclick="openProofShot('images/mcp-garmin/watch.jpg', '⌚ mcp-garmin')">
-                            <img src="images/mcp-garmin/watch.jpg" loading="lazy" alt="Generated Strength A session loaded on a Garmin watch, showing the targeted muscle groups">
-                            <figcaption><b>Strength A on the watch.</b> Garmin renders the targeted muscle groups from the exercise codes the server wrote — the strength path needed garminconnect 0.3.7+.</figcaption>
-                        </figure>
-                    </div>
-                    <br>
-                    The interesting part is what broke. Between garminconnect 0.3.6 and 0.3.15,
-                    <code>get_scheduled_workouts()</code> went month-scoped and dict-returning;
-                    two shipped tools still called it the old way and raised <code>TypeError</code>
-                    against the version the project's own dependency floor allowed. The offline
-                    suite never caught it because every test mocked the calendar away — it
-                    surfaced on the first live run. Reading the generated output caught two more:
-                    the gap analysis told a sub-3:30 athlete the block had to reach 20 miles twice
-                    before the taper while the generator capped long runs at 30% of weekly volume,
-                    which tops out at 16 miles on a 53 mi/wk peak — the plan contradicted its own
-                    report. And down weeks were counted per phase while the mileage ramp cut on the
-                    absolute week, so cutback weeks ran full quality and climbing weeks got the
-                    reduced load. All three are now covered by tests that assert the plan against
-                    what the assessment claims, rather than just that it builds.
-                </div>
-                <div class="project-links">
-                    <a href="https://github.com/yashhooda1/mcp-garmin" target="_blank" rel="noopener" class="project-btn">📂 GitHub</a>
                 </div>
             </div>
 

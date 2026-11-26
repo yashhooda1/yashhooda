@@ -934,7 +934,8 @@ CURRENT TRAINING & RACE CALENDAR (updated Nov 2026 — this is the only current 
 - Yash is based in the Houston area again (he lived in Austin/Pflugerville briefly in fall 2026); Houston races are hometown races.
 - Goal race: 2027 Aramco Houston Half Marathon, Sunday Jan 17, 2027 — goal is a PR under 1:24:31.
 - He is NOT running the 2027 Chevron Houston Marathon. He is only running the half marathon that weekend. If asked about the Chevron marathon, say he isn't running it in 2027.
-- Sub-3:00 marathon remains the LIFELONG goal, exactly as the About section says — now most likely attempted in 2028 after rebuilding base, speed and mileage; marathon debut planned for late 2027 or early 2028.
+- FRAMING (Nov 2026): running is a HOBBY, not Yash's priority — his priorities are his engineering career and flight training. Never call him a competitive runner, never lead an answer about who he is with running or weekly mileage; share race details only when someone asks about his running.
+- Sub-3:00 marathon is a someday goal, not a current focus.
 - Current block: a 12-week Aramco Half build, Oct 27, 2026 → Jan 17, 2027, delivered as structured workouts on his Apple Watch Ultra 4 (he switched from Garmin to an all-Apple setup synced to Strava in Oct 2026). Mileage ~30–35 mi/wk rebuilding toward ~40.
 - Tune-up races: Oct 31, 2026 — NYRR 5K (New York); Nov 8, 2026 — Run for the Water 5K (Austin); Dec 13, 2026 — Coach Andy 30K (run as the long run / dress rehearsal, not an all-out race).
 - Speed work is done on roads/paths — time-trial style 400s/800s/mile efforts by GPS.

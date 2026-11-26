@@ -14,7 +14,6 @@ This is a single-page portfolio that is also a working AI application (HoodaAgen
 - [ClimatePulse](https://www.yashhooda.ai/#climate): 56-year NOAA pipeline, 13 cities
 - [US Elections 2016–2026](https://www.yashhooda.ai/#elections): county-level medallion pipeline (MIT Election Lab precinct returns → county FIPS → gold JSON) with a certified-totals CI gate; national/state/county drill-down, swing, demographic factors, Texas 2016→2026 spotlight ([pipeline](https://github.com/yashhooda1/yashhooda/tree/main/pipelines/elections))
 - [Running tools](https://www.yashhooda.ai/#heat-pace): heat-adjusted pace, pace calculator, race predictor, race time by temperature
-- [Garmin Training Plans](https://www.yashhooda.ai/#mcp-garmin): mcp-garmin — MCP server that writes structured Garmin training plans from Claude
 - [HoodaRun](https://www.yashhooda.ai/#hoodarun): Apple Watch workout builder — build a structured run on the web, save it to your own iCloud, and the HoodaRun iPhone app schedules it to the Watch via WorkoutKit (app not yet on the App Store)
 - [Apple Workouts MCP](https://github.com/yashhooda1/mcp-apple-workouts): mcp-apple-workouts — the Apple counterpart to mcp-garmin; Claude/ChatGPT build workouts and mile-to-marathon plans that land on Apple Watch and Apple Calendar, with multi-user accounts and OAuth 2.1
 - [Build Log](https://www.yashhooda.ai/#buildlog): build-in-public changelog

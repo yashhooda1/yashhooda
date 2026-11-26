@@ -155,7 +155,6 @@
     'apple-lab': 'apple silicon, local LLM benchmark, iOS apps, RunOS, siri shortcuts, M-series',
     'running': 'running journey, marathon, half marathon, races, PRs, training',
     'running-analytics': 'strava intelligence, running stats, analytics',
-    'mcp-garmin': 'garmin training plans, MCP server, watch workouts',
     'hoodarun': 'apple watch workout builder, HoodaRun, watchOS',
     'heat-pace': 'heat adjusted pace, humidity, dew point, hot weather running calculator',
     'wind-cold': 'wind chill, cold weather pace adjustment',

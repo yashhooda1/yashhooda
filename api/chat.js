@@ -923,7 +923,7 @@ RUNNING — FULL PROFILE (kept in full)
  
 PERSONAL RECORDS:
 - Mile: 4:58
-- 5K: 18:15 (2025 Women's Quarter Marathon, Houston Running Co) — ~5:53/mi
+- 5K: 18:15 (the 5K race at the 2025 Women's Quarter Marathon event, Houston Running Co — Yash won it as 1st overall male) — ~5:53/mi
 - 5-Mile: 30:22 (2025 Sugar Land Turkey Trot) — ~6:04/mi
 - 8K: 29:48 (2025 Sugar Land Turkey Trot) — ~5:59/mi
 - Half Marathon: 1:24:31 (2025 Aramco Houston Half) — ~6:27/mi

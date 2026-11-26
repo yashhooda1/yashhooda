@@ -4291,11 +4291,10 @@
 <header>
     <img class="header-logo" src="/logo.svg" alt="yashhooda.ai logo" width="96" height="96" />
     <h1>Yash Hooda</h1>
-    <p>AI Engineer &amp; Software/Data Engineer | Aviation Enthusiast | Production LLM &amp; Data Systems | Runner</p>
+    <p>AI Engineer &amp; Software/Data Engineer | Production LLM &amp; Data Systems | Aviation &amp; Running on the side</p>
     <div class="header-badges">
         <span class="badge">UTD Computer Science Alumni</span>
         <span class="badge" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#93c5fd;">⚡ Databricks Certified Data Engineer</span>
-        <span class="badge">Runner · <span id="weekly-miles-badge">--</span> mi/wk<span id="weekly-miles-badge-last" style="opacity:0.7;"></span></span>
     </div>
     <div class="header-cta">
             <a href="#projects" class="btn-primary">🚀 View Projects</a>
@@ -4450,7 +4449,7 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
         <p>I'm a 24-year-old <strong>AI &amp; Software/Data Engineer</strong> who builds production systems — the kind with rate limiters, kill switches, retries and real traffic, not the kind that lives in a notebook. I hold a BS in Computer Science from UT Dallas and certifications in IBM AI Engineering, IBM Data Science, and the Databricks Certified Data Engineer Associate.</p>
         <p>My work spans both halves of the stack: designing and optimizing end-to-end data pipelines across Microsoft Fabric, Databricks, PySpark and SQL, and shipping full-stack AI systems — multi-model LLM gateways, hybrid RAG with reranking, agentic loops, and offline eval harnesses. This site is one of them. It runs a hybrid retrieval pipeline, a gateway across five model providers, and a seven-layer security stack that has taken sustained real attack traffic and held.</p>
         <p>Most of my side projects live where messy public data meets automation. <strong>ClimatePulse</strong> is a 57-year NOAA pipeline across 13 global stations with a Bronze&rarr;Silver&rarr;Gold architecture, refreshed daily by GitHub Actions — incremental per-station caching cut each run from 741 API calls to 13. The <strong>live flight tracker</strong> on this page is real-time geospatial ingestion. <strong>mcp-garmin</strong> came from reverse-engineering Garmin's undocumented workout schema into a typed spec an LLM can drive.</p>
-        <p>Outside the terminal I'm a hobby jogger runner chasing a lifelong goal of sub-3:00 marathon, and I fly small planes on weekends purely as a hobby. Both hobbies keep turning into engineering problems: the METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), the live flight tracker, and the Infinite Flight tooling on this page are real-time data work that started with aviation data, and the Strava and pace tools came from running. Weather systems, astronomy, and sport pull at me for the same reason. I value time with family and friends, and I'm happiest building whatever comes next. <a href="#journey">My flight log →</a></p>
+        <p>Outside the terminal I fly small planes and run, both purely as hobbies. Both hobbies keep turning into engineering problems: the METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), the live flight tracker, and the Infinite Flight tooling on this page are real-time data work that started with aviation data, and the Strava and pace tools came from running. Weather systems, astronomy, and sport pull at me for the same reason. I value time with family and friends, and I'm happiest building whatever comes next. <a href="#journey">My flight log →</a></p>
 
         <!-- .skill-cloud wrapper restored (Oct 2026): its opening tag was missing, so the
              closing </div> below ended .container early and every section after About
@@ -17149,7 +17148,7 @@ function vmMaybeFinish(){
  
     GrokVoice.DEFAULT_INSTRUCTIONS =
         "You are Yash Hooda's voice assistant on his portfolio site. Yash is an AI/Data Engineer " +
-        "and competitive distance runner training for a sub-3:00 marathon. Be concise, warm, and " +
+        "who runs and flies small planes as hobbies (not his priority or profession). Be concise, warm, and " +
         "conversational — this is spoken, so keep answers short unless asked to go deep. You can use " +
         "web and X search for current info. If asked about Yash's projects, running, or background, " +
         "answer helpfully and invite them to explore the site.";

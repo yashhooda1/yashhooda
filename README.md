@@ -352,7 +352,7 @@ ClimatePulse, Hurricane Analytics, Rising Seas & Data Centers add **no marginal 
 
 I build production data and AI systems — pipelines that run unattended, retrieval that actually retrieves, and gateways that hold under attack. BS Computer Science, UT Dallas. Databricks Certified Data Engineer Associate. This repo is the proof rather than the pitch.
 
-Two things outside the terminal drive most of what's in here. I'm a marathoner chasing a sub-3:00 finish — that's where the Strava intelligence and training dashboards come from. And I fly small planes as a hobby, working toward a private pilot certificate at my own pace — that's where the flight tracker, the METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), and the Infinite Flight tooling come from. The domain interest came first; the engineering followed it.
+Two things outside the terminal drive most of what's in here. I run as a hobby — that's where the Strava intelligence and training dashboards come from. And I fly small planes as a hobby, working toward a private pilot certificate at my own pace — that's where the flight tracker, the METAR streaming pipeline (Kafka → Spark Structured Streaming → Delta Lake), and the Infinite Flight tooling come from. The domain interest came first; the engineering followed it.
 
 Currently open to Data Engineering and AI Engineering roles.
 

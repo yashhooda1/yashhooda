@@ -227,7 +227,7 @@ async function learnFromChatPatterns(redis) {
           max_tokens: 200,
           messages: [{
             role: 'user',
-            content: `These are recent questions users asked a chatbot about Yash Hooda (Data/AI Engineer, runner):\n${recentQs.join('\n')}\n\nIdentify 2-3 topic gaps where the bot might lack knowledge. Be specific. Reply in 2-3 sentences.`,
+            content: `These are recent questions users asked a chatbot about Yash Hooda (Software Engineer, runner):\n${recentQs.join('\n')}\n\nIdentify 2-3 topic gaps where the bot might lack knowledge. Be specific. Reply in 2-3 sentences.`,
           }],
         }),
       });

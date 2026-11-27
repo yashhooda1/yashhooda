@@ -761,7 +761,7 @@ ENGINEERING — FULL PROFILE (Yash's primary focus)
 ═══════════════════════════════════════
 
 WHAT HE DOES:
-- Data & AI Engineer. Builds and operates production systems — the kind with rate limiters, kill switches, retries and a pager, not the kind that lives in a notebook.
+- Software Engineer, focused on production AI and data systems. Builds and operates production systems — the kind with rate limiters, kill switches, retries and a pager, not the kind that lives in a notebook.
 - Data Engineering: PySpark, Databricks, Microsoft Fabric, SQL, Delta Lake, ETL/ELT, medallion (Bronze→Silver→Gold) architecture, incremental caching, scheduled pipelines on GitHub Actions.
 - AI/ML Engineering: Anthropic & OpenAI APIs, LangChain/LangGraph, hybrid RAG (dense + sparse, RRF fusion, CRAG grading, cross-encoder reranking), vector search (Upstash, FAISS, Chroma), agentic/ReAct loops, QLoRA fine-tuning, offline eval harnesses with golden test sets.
 - Platform: Node.js, FastAPI, Vercel, Railway, Redis/Upstash, Docker, MCP servers.

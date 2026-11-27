@@ -13198,6 +13198,16 @@ const HOODAAGENTS_KILL_SWITCH = true;
                     ? 'Data through ' + latest + ' · run ' + CP.data.generated_at.slice(0, 10)
                     : 'Run ' + CP.data.generated_at.slice(0, 10);
                 el.title = 'Per-station freshness is in the roster below';
+                // A NOAA-wide publishing stall reads as "pipeline broken" unless
+                // it's named. The pipeline sets upstream.delayed when no U.S.
+                // station has new data for longer than its U.S. threshold.
+                const up = CP.data.upstream;
+                if (up && up.delayed) {
+                    el.textContent += ' · NOAA feed delayed';
+                    el.title = 'NOAA has published no new U.S. station data since '
+                        + up.us_network_through + ' (' + up.lag_days + ' days). '
+                        + 'The daily pipeline is still running; new days appear as soon as NOAA resumes.';
+                }
             }
         }
     }
